@@ -1,0 +1,9 @@
+#!/bin/bash
+
+# start folder=compilers
+export PYTHONPATH=$PYTHONPATH:src
+
+# Downloads the jar if it does not exists
+if [[ ! -f "antlr-4.8-complete.jar" ]]; then
+  wget https://www.antlr.org/download/antlr-4.8-complete.jar
+fi
