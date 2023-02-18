@@ -1,6 +1,16 @@
-def main():
-    print("Hello World!")
+import sys
+from antlr4 import *
+from ExprLexer import ExprLexer
+from ExprParser import ExprParser
 
 
-if __name__ == "__main__":
-    main()
+def main(argv):
+    input_stream = FileStream(argv[1])
+    lexer = ExprLexer(input_stream)
+    stream = CommonTokenStream(lexer)
+    parser = ExprParser(stream)
+    tree = parser.startRule()
+
+
+if __name__ == '__main__':
+    main(sys.argv)
