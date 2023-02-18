@@ -9,8 +9,8 @@ def main(argv):
     lexer = ExprLexer(input_stream)
     stream = CommonTokenStream(lexer)
     parser = ExprParser(stream)
-    tree = parser.startRule()
+    # tree = parser.startRule()
 
 
 if __name__ == '__main__':
-    main(sys.argv)
+    main(sys.argv);
