@@ -11,3 +11,5 @@ fi;
 antlr4 -Dlanguage=Python3 Expr.g4 -visitor;
 #execute main
 python3 main.py Expr.g4
+#install bindings for AST
+#pip install antlr4-python3-runtime
