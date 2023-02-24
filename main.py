@@ -1,7 +1,7 @@
 import sys
-from antlr4 import *
 from ExprLexer import ExprLexer
 from ExprParser import ExprParser
+from antlr4 import *
 
 
 def main(argv):
