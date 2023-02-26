@@ -1,16 +1,16 @@
 import sys
-from ExprLexer import ExprLexer
-from ExprParser import ExprParser
+from generated.input.ExpressionLexer import ExpressionLexer
+from generated.input.ExpressionParser import ExpressionParser
 from antlr4 import *
 
 
 def main(argv):
     input_stream = FileStream(argv[1])
-    lexer = ExprLexer(input_stream)
+    lexer = ExpressionLexer(input_stream)
     stream = CommonTokenStream(lexer)
-    parser = ExprParser(stream)
-    # tree = parser.startRule()
+    parser = ExpressionParser(stream)
+    # tree = parser.program()
 
 
 if __name__ == '__main__':
-    main(sys.argv);
+    main(sys.argv)
