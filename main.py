@@ -9,7 +9,7 @@ def main(argv):
     lexer = ExpressionLexer(input_stream)
     stream = CommonTokenStream(lexer)
     parser = ExpressionParser(stream)
-    # tree = parser.program()
+    tree = parser.start_rule()
 
 
 if __name__ == '__main__':
