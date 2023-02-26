@@ -1,2 +1,0 @@
-class ast():
-    root = None;
