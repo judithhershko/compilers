@@ -11,6 +11,16 @@ expr: expr PLUS expr
     | expr DIV expr
     | expr GT expr
     | expr LT expr
+    | expr AND expr
+    | expr OR expr
+    | NOT  expr
+    | expr ISEQ expr
+    | expr GOE expr
+    | expr LOE expr
+    | expr PLUS PLUS
+    | expr MIN  MIN
+    | PLUS PLUS expr
+    | MIN MIN expr
     | ID
     | NUM
     ;
@@ -27,5 +37,13 @@ PLUS : '+' ;
 EQ   : '=' ;
 LBRAK: '(' ;
 RBRAK: ')' ;
+ISEQ : '==';
+AND  : '&&';
+OR   : '||';
+NOT  :  '!';
+GOE  :  '>=';
+LOE  :  '<=';
+MOD  :  '%' ;
+
 NLINE:';' .*? '\n' -> skip;
 
