@@ -4,11 +4,12 @@ start_rule: (dec)*(expr)*;
 
 dec : ID EQ NUM;
 
-expr: expr PLUS expr
-    | expr MIN expr
+expr:
+     LBRAK expr RBRAK
     | expr MULT expr
-    | LBRAK expr RBRAK
     | expr DIV expr
+    | expr PLUS expr
+    | expr MIN expr
     | expr GT expr
     | expr LT expr
     | expr AND expr
