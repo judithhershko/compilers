@@ -1,9 +1,11 @@
 import sys
+
 from generated.input.ExpressionLexer import ExpressionLexer
 from generated.input.ExpressionParser import ExpressionParser
 from antlr4 import *
 from src import Listener
-from src.Listener import Expression_
+from src.Listener import *
+from src.Visitor import *
 
 
 def main(argv):
@@ -12,7 +14,8 @@ def main(argv):
     stream = CommonTokenStream(lexer)
     parser = ExpressionParser(stream)
     tree = parser.start_rule()
-    printer=Expression_()
+    printer=Expression()
+    result=EvalVisitor().visit(tree)
     walker = ParseTreeWalker()
     walker.walk(printer, tree)
 

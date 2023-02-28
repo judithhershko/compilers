@@ -4,21 +4,14 @@ start_rule: (dec)*(expr)*;
 
 dec : ID EQ NUM;
 
+binop:
+     MULT |DIV| PLUS| MIN| GT| LT| AND| OR| ISEQ| GOE| LOE
+     ;
+
 expr:
      LBRAK expr RBRAK
-    | expr MULT expr
-    | expr DIV expr
-    | expr PLUS expr
-    | expr MIN expr
-    | expr GT expr
-    | expr LT expr
-    | expr AND expr
-    | expr OR expr
     | NOT  expr
-    | expr ISEQ expr
-    | expr GOE expr
-    | expr LOE expr
-    | expr PLUS PLUS
+    | expr binop expr
     | expr MIN  MIN
     | PLUS PLUS expr
     | MIN MIN expr
