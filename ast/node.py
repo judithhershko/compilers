@@ -32,15 +32,16 @@ class Value(AST_node):
 
 
 class BinaryOperator(AST_node):
-    def __init__(self, oper, value1, value2):
+    leftChild = None
+    rightChild = None
+
+    def __init__(self, oper):
         self.operator = oper
-        self.leftSide = value1
-        self.rightSide = value2
 
     def __eq__(self, other):
         if not isinstance(other, BinaryOperator):
             return False
-        return self.operator == other.operator and self.leftSide == other.leftSide and self.rightSide == other.rightSide
+        return self.operator == other.operator and self.leftChild == other.leftChild and self.rightChild == other.rightChild
 
     def getValue(self):
         return self.operator
@@ -48,16 +49,23 @@ class BinaryOperator(AST_node):
     def getLabel(self):
         return "\"Binary operator: " + self.operator + "\""
 
+    def setLeftChild(self, child):
+        self.leftChild = child
+
+    def setRightChild(self, child):
+        self.rightChild = child
+
 
 class UnaryOperator(AST_node):
-    def __init__(self, oper, lit):
+    child = None
+
+    def __init__(self, oper):
         self.operator = oper
-        self.value = lit
 
     def __eq__(self, other):
         if not isinstance(other, UnaryOperator):
             return False
-        return self.operator == other.operator and self.value == other.value
+        return self.operator == other.operator and self.child == other.child
 
     def getValue(self):
         return self.operator
@@ -65,20 +73,30 @@ class UnaryOperator(AST_node):
     def getLabel(self):
         return "\"Unary operator: " + self.operator + "\""
 
+    def setChild(self, child):
+        self.child = child
+
 
 class LogicalOperator(AST_node):
-    def __init__(self, oper, value1, value2):
+    leftChild = None
+    rightChild = None
+
+    def __init__(self, oper):
         self.operator = oper
-        self.leftSide = value1
-        self.rightSide = value2
 
     def __eq__(self, other):
         if not isinstance(other, LogicalOperator):
             return False
-        return self.operator == other.operator and self.leftSide == other.leftSide and self.rightSide == other.rightSide
+        return self.operator == other.operator and self.leftChild == other.leftChild and self.rightChild == other.rightChild
 
     def getValue(self):
         return self.operator
 
     def getLabel(self):
         return "\"Logical operator: " + self.operator + "\""
+
+    def setLeftChild(self, child):
+        self.leftChild = child
+
+    def setRightChild(self, child):
+        self.rightChild = child

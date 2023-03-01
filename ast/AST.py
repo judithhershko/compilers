@@ -16,10 +16,10 @@ class AST():
         nextNode.setNumber(number)
         nextNode.setLevel(level)
         if isinstance(nextNode, node.BinaryOperator) or isinstance(nextNode, node.LogicalOperator):
-            number = self.setNodeIds(nextNode.leftSide, level + 1, number + 1)
-            number = self.setNodeIds(nextNode.rightSide, level + 1, number + 1)
+            number = self.setNodeIds(nextNode.leftChild, level + 1, number + 1)
+            number = self.setNodeIds(nextNode.rightChild, level + 1, number + 1)
         elif isinstance(nextNode, node.UnaryOperator):
-            number = self.setNodeIds(nextNode.value, level + 1, number + 1)
+            number = self.setNodeIds(nextNode.child, level + 1, number + 1)
 
         return number
 
@@ -28,12 +28,12 @@ class AST():
         edges = ""
 
         if isinstance(self.root, node.BinaryOperator) or isinstance(self.root, node.LogicalOperator):
-            edges = self.root.getId() + "--" + self.root.leftSide.getId() + "\n" + self.root.getId() + "--" + \
-                    self.root.rightSide.getId()
-            res = self.toDot(self.root.leftSide)
+            edges = self.root.getId() + "--" + self.root.leftChild.getId() + "\n" + self.root.getId() + "--" + \
+                    self.root.rightChild.getId()
+            res = self.toDot(self.root.leftChild)
             nodes = nodes + res[0]
             edges = edges + res[1]
-            res = self.toDot(self.root.rightSide)
+            res = self.toDot(self.root.rightChild)
             nodes = nodes + res[0]
             edges = edges + res[1]
         elif isinstance(self.root, node.UnaryOperator):
@@ -53,17 +53,17 @@ class AST():
         edges = ""
 
         if isinstance(root, node.BinaryOperator) or isinstance(root, node.LogicalOperator):
-            edges = "\n" + root.getId() + "--" + root.leftSide.getId() + "\n" + root.getId() + "--" + \
-                    root.rightSide.getId()
-            res = self.toDot(root.leftSide)
+            edges = "\n" + root.getId() + "--" + root.leftChild.getId() + "\n" + root.getId() + "--" + \
+                    root.rightChild.getId()
+            res = self.toDot(root.leftChild)
             nodes = nodes + res[0]
             edges = edges + res[1]
-            res = self.toDot(root.rightSide)
+            res = self.toDot(root.rightChild)
             nodes = nodes + res[0]
             edges = edges + res[1]
         elif isinstance(root, node.UnaryOperator):
-            edges = "\n" + root.getId() + "--" + root.value.getId()
-            res = self.toDot(root.value)
+            edges = "\n" + root.getId() + "--" + root.child.getId()
+            res = self.toDot(root.child)
             nodes = nodes + res[0]
             edges = edges + res[1]
 

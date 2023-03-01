@@ -14,33 +14,56 @@ class nodeTestCase(unittest.TestCase):
         ast1 = AST.AST()
         ast2 = AST.AST()
 
+        # first ast
+        add = node.BinaryOperator("+")
+
+        mult = node.BinaryOperator("*")
+        add.setLeftChild(mult)
+
         leaf1 = node.Value(5)
+        mult.setLeftChild(leaf1)
         leaf2 = node.Value(22)
+        mult.setRightChild(leaf2)
+
+        neg = node.UnaryOperator("-")
+        add.setRightChild(neg)
+
         leaf3 = node.Value(-79)
-        mult = node.BinaryOperator("*", leaf1, leaf2)
-        neg = node.UnaryOperator("-", leaf3)
-        add = node.BinaryOperator("+", mult, neg)
+        neg.setChild(leaf3)
+
         ast1.setRoot(add)
         ast1.setNodeIds(ast1.root)
 
-        leaf4 = node.Value(5)
-        leaf5 = node.Value(22)
-        leaf6 = node.Value(-79)
-        leaf4.setLevel(2)
-        leaf4.setNumber(2)
-        leaf5.setLevel(2)
-        leaf5.setNumber(3)
-        leaf6.setLevel(2)
-        leaf6.setNumber(5)
-        mult2 = node.BinaryOperator("*", leaf4, leaf5)
-        mult2.setLevel(1)
-        mult2.setNumber(1)
-        neg2 = node.UnaryOperator("-", leaf6)
-        neg2.setLevel(1)
-        neg2.setNumber(4)
-        add2 = node.BinaryOperator("+", mult2, neg2)
+        # second ast
+        add2 = node.BinaryOperator("+")
         add2.setLevel(0)
         add2.setNumber(0)
+
+        mult2 = node.BinaryOperator("*")
+        mult2.setLevel(1)
+        mult2.setNumber(1)
+        add2.setLeftChild(mult2)
+
+        leaf4 = node.Value(5)
+        leaf4.setLevel(2)
+        leaf4.setNumber(2)
+        mult2.setLeftChild(leaf4)
+
+        leaf5 = node.Value(22)
+        leaf5.setLevel(2)
+        leaf5.setNumber(3)
+        mult2.setRightChild(leaf5)
+
+        neg2 = node.UnaryOperator("-")
+        neg2.setLevel(1)
+        neg2.setNumber(4)
+        add2.setRightChild(neg2)
+
+        leaf6 = node.Value(-79)
+        leaf6.setLevel(2)
+        leaf6.setNumber(5)
+        neg2.setChild(leaf6)
+
         ast2.setRoot(add2)
 
         self.assertEqual(ast1, ast2, "both ASTs should be the same")
@@ -48,12 +71,23 @@ class nodeTestCase(unittest.TestCase):
     def test_generateDot(self):
         ast = AST.AST()
 
+        add = node.BinaryOperator("+")
+
+        mult = node.BinaryOperator("*")
+        add.setLeftChild(mult)
+
         leaf1 = node.Value(5)
+        mult.setLeftChild(leaf1)
+
         leaf2 = node.Value(22)
+        mult.setRightChild(leaf2)
+
+        neg = node.UnaryOperator("-")
+        add.setRightChild(neg)
+
         leaf3 = node.Value(-79)
-        mult = node.BinaryOperator("*", leaf1, leaf2)
-        neg = node.UnaryOperator("-", leaf3)
-        add = node.BinaryOperator("+", mult, neg)
+        neg.setChild(leaf3)
+
         ast.setRoot(add)
         ast.setNodeIds(ast.root)
 
