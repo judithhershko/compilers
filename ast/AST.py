@@ -23,7 +23,7 @@ class AST():
 
         return number
 
-    def generateDot(self):
+    def generateDot(self, fileName):
         nodes = self.root.getId() + " [label=" + self.root.getLabel() + "]"
         edges = ""
 
@@ -43,7 +43,7 @@ class AST():
             edges = edges + res[1]
 
         output = "graph ast {\n" + nodes + "\n\n" + edges + "\n}"
-        file = open("dotFiles/result.dot", "w")
+        file = open("dotFiles/" + fileName + ".dot", "w")
         file.write(output)
         file.close()
         return output
@@ -68,3 +68,7 @@ class AST():
             edges = edges + res[1]
 
         return nodes, edges
+
+    def foldTree(self):
+        if not isinstance(self.root, node.Value):
+            self.root = self.root.fold()
