@@ -1,4 +1,11 @@
 #TODO: check different operators and how to group them
+import enum
+
+class LiteralType(enum.Enum):
+    NUM = 1
+    STR = 2
+    VAR = 3
+
 class AST_node():
     number = None
     level = None
@@ -14,8 +21,9 @@ class AST_node():
 
 
 class Value(AST_node):
-    def __init__(self, lit):
+    def __init__(self, lit, valueType):
         self.value = lit
+        self.type = valueType
 
     def __eq__(self, other):
         if not isinstance(other, Value):
@@ -81,7 +89,7 @@ class BinaryOperator(AST_node):
                 res = self.leftChild.getValue() < self.rightChild.getValue()
             else:
                 res = self.leftChild.getValue() == self.rightChild.getValue()
-            newNode = Value(res)
+            newNode = Value(res, LiteralType.NUM)
 
             return newNode
 
@@ -117,7 +125,7 @@ class UnaryOperator(AST_node):
                 res = - self.child.getValue()
             else:
                 res = + self.child.getValue()
-        newNode = Value(res)
+        newNode = Value(res, LiteralType.NUM)
 
         return newNode
 
@@ -161,6 +169,6 @@ class LogicalOperator(AST_node):
                 res = self.leftChild.getValue() or self.rightChild.getValue()
             else:
                 res = self.leftChild.getValue() != self.rightChild.getValue() # TODO: check if this assumption is correct, or is it it not one of the childs
-            newNode = Value(res)
+            newNode = Value(res, LiteralType.NUM)
 
             return newNode

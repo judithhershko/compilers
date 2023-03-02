@@ -20,15 +20,15 @@ class nodeTestCase(unittest.TestCase):
         mult = node.BinaryOperator("*")
         add.setLeftChild(mult)
 
-        leaf1 = node.Value(5)
+        leaf1 = node.Value(5, node.LiteralType.NUM)
         mult.setLeftChild(leaf1)
-        leaf2 = node.Value(22)
+        leaf2 = node.Value(22, node.LiteralType.NUM)
         mult.setRightChild(leaf2)
 
         neg = node.UnaryOperator("-")
         add.setRightChild(neg)
 
-        leaf3 = node.Value(-79)
+        leaf3 = node.Value(-79, node.LiteralType.NUM)
         neg.setChild(leaf3)
 
         ast1.setRoot(add)
@@ -44,12 +44,12 @@ class nodeTestCase(unittest.TestCase):
         mult2.setNumber(1)
         add2.setLeftChild(mult2)
 
-        leaf4 = node.Value(5)
+        leaf4 = node.Value(5, node.LiteralType.NUM)
         leaf4.setLevel(2)
         leaf4.setNumber(2)
         mult2.setLeftChild(leaf4)
 
-        leaf5 = node.Value(22)
+        leaf5 = node.Value(22, node.LiteralType.NUM)
         leaf5.setLevel(2)
         leaf5.setNumber(3)
         mult2.setRightChild(leaf5)
@@ -59,7 +59,7 @@ class nodeTestCase(unittest.TestCase):
         neg2.setNumber(4)
         add2.setRightChild(neg2)
 
-        leaf6 = node.Value(-79)
+        leaf6 = node.Value(-79, node.LiteralType.NUM)
         leaf6.setLevel(2)
         leaf6.setNumber(5)
         neg2.setChild(leaf6)
@@ -76,16 +76,16 @@ class nodeTestCase(unittest.TestCase):
         mult = node.BinaryOperator("*")
         add.setLeftChild(mult)
 
-        leaf1 = node.Value(5)
+        leaf1 = node.Value(5, node.LiteralType.NUM)
         mult.setLeftChild(leaf1)
 
-        leaf2 = node.Value(22)
+        leaf2 = node.Value(22, node.LiteralType.NUM)
         mult.setRightChild(leaf2)
 
         neg = node.UnaryOperator("-")
         add.setRightChild(neg)
 
-        leaf3 = node.Value(-79)
+        leaf3 = node.Value(-79, node.LiteralType.NUM)
         neg.setChild(leaf3)
 
         ast.setRoot(add)
@@ -108,19 +108,19 @@ class nodeTestCase(unittest.TestCase):
         mult = node.BinaryOperator("*")
         add.setLeftChild(mult)
 
-        leaf1 = node.Value(5)
+        leaf1 = node.Value(5, node.LiteralType.NUM)
         mult.setLeftChild(leaf1)
 
-        leaf2 = node.Value(22)
+        leaf2 = node.Value(22, node.LiteralType.NUM)
         mult.setRightChild(leaf2)
 
         neg = node.UnaryOperator("-")
         add.setRightChild(neg)
 
-        leaf3 = node.Value(-78)
+        leaf3 = node.Value(-78, node.LiteralType.NUM)
         neg.setChild(leaf3)
 
-        leaf4 = node.Value(2)
+        leaf4 = node.Value(2, node.LiteralType.NUM)
         div.setRightChild(leaf4)
 
         ast.setRoot(div)
@@ -130,7 +130,7 @@ class nodeTestCase(unittest.TestCase):
         ast.setNodeIds(ast.root)
         dot = ast.generateDot("test_fold")
 
-        res = node.Value(94)
+        res = node.Value(94, node.LiteralType.NUM)
         res.setLevel(0)
         res.setNumber(0)
 
