@@ -5,20 +5,29 @@ start_rule: (dec)*(expr)*;
 dec : ID EQ NUM;
 
 binop:
-     MULT |DIV| PLUS| MIN| GT| LT| AND| OR| ISEQ| GOE| LOE
+     MULT
+     | MIN
+     | PLUS
+     | DIV
+     | GT
+     | LT
+     | AND
+     | OR
+     | ISEQ
+     | GOE
+     | LOE
      ;
 
 expr:
      LBRAK expr RBRAK
-    | NOT  expr
     | expr binop expr
-    | expr MIN  MIN
-    | PLUS PLUS expr
-    | MIN MIN expr
+    | NOT  expr
+    | expr MIN  MIN NLINE
+    | PLUS PLUS expr NLINE
+    | MIN MIN expr NLINE
     | ID
     | NUM
     ;
-
 ID   : [a-zA-Z_][a-zA-Z_0-9]*;
 NUM  : [0-9]+ ;
 WS   : [ \t\n\r\f]+ -> skip ;
@@ -38,6 +47,5 @@ NOT  :  '!';
 GOE  :  '>=';
 LOE  :  '<=';
 MOD  :  '%' ;
-
 NLINE:';' .*? '\n' -> skip;
 
