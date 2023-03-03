@@ -8,7 +8,7 @@ class symbolTable():
                                    "Const": pd.Series(dtype="bool")})
 
     def addSymbol(self, name, value, symType, const):
-        row = self.table.where(self.table["Name"] == name)
+        row = self.table.where(self.table[name])
         if not row:
             self.table.loc[name] = [value, symType, const]
         else:

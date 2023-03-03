@@ -121,6 +121,10 @@ class BinaryOperator(AST_node):
         res.extend(right)
         return res
 
+    def replaceVariables(self, values):
+        self.leftChild.replaceVariables(values)
+        self.rightChild.replaceVaribles(values)
+
 
 class UnaryOperator(AST_node):
     child = None
@@ -160,6 +164,10 @@ class UnaryOperator(AST_node):
 
     def getVariables(self):
         return self.getChild.getVariables()
+
+    def replaceVariables(self, values):
+        self.child.replaceVariables(values)
+
 
 class LogicalOperator(AST_node):
     leftChild = None
@@ -211,3 +219,7 @@ class LogicalOperator(AST_node):
         right = self.rightChild.getVariables()
         res.extend(right)
         return res
+
+    def replaceVariables(self, values):
+        self.leftChild.replaceVariables(values)
+        self.rightChild.replaceVaribles(values)
