@@ -14,13 +14,11 @@ def main(argv):
     stream = CommonTokenStream(lexer)
     parser = ExpressionParser(stream)
     tree = parser.start_rule()
-    printer=Expression()
-    result=EvalVisitor().visit(tree)
+    printer = Expression()
+    result = EvalVisitor().visit(tree)
     walker = ParseTreeWalker()
     walker.walk(printer, tree)
-    #printer.asT.generateDot("dot_output")
-
-
+    # printer.asT.generateDot("dot_output")
 
 
 if __name__ == '__main__':
