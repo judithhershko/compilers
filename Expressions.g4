@@ -14,6 +14,7 @@ term:
     | term MULT fac
     | term DIV fac
 fac:
+
     pri
     | LBRAK expr RBRAK
 pri:
