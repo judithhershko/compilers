@@ -1,6 +1,6 @@
 grammar Expression;
 
-start_rule: (dec)*(expr)*;
+//start_rule: (dec)*(expr)*;
 
 dec : ID EQ NUM;
 
