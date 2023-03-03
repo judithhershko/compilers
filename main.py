@@ -9,6 +9,7 @@ from src.Visitor import *
 
 
 def main(argv):
+    print('in main')
     input_stream = FileStream(argv[1])
     lexer = ExpressionLexer(input_stream)
     stream = CommonTokenStream(lexer)
@@ -18,7 +19,7 @@ def main(argv):
     result=EvalVisitor().visit(tree)
     walker = ParseTreeWalker()
     walker.walk(printer, tree)
-    #printer.asT.generateDot("dot_output")
+    printer.asT.generateDot("dot_output")
 
 
 
