@@ -1,4 +1,5 @@
-import node
+from . import node
+from .node import *
 
 
 class AST():

@@ -1,4 +1,4 @@
-from ast.AST import *
+from .ast.AST import *
 from generated.input.ExpressionListener import *
 
 
