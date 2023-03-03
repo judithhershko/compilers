@@ -73,3 +73,6 @@ class AST():
     def foldTree(self):
         if not isinstance(self.root, node.Value):
             self.root = self.root.fold()
+
+    def getVariables(self):
+        variables = self.root.getVariables()

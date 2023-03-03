@@ -21,4 +21,3 @@ class symbolTable():
 
     def findSymbol(self, name):
         return self.table.at[name, "Value"]
-
