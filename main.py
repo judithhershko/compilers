@@ -18,6 +18,8 @@ def main(argv):
     result=EvalVisitor().visit(tree)
     walker = ParseTreeWalker()
     walker.walk(printer, tree)
+    printer.asT.generateDot("dot_output")
+
 
 
 

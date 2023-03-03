@@ -38,6 +38,36 @@ class BinaryOperator(AST_node):
     def __init__(self, oper):
         self.operator = oper
 
+    def has_left_child(self):
+        return self.leftChild is not None
+
+    def has_right_child(self):
+        return self.rightChild is not None
+
+    def find_parent(self, start, id_: str, parent: str):
+        if start is None:
+            return
+        if start.getId() == id_:
+            return parent
+        else:
+            self.find_parent(start.leftChild,
+                             start.leftChild.getId(), start.getId())
+            self.find_parent(start.rightChild,
+                             start.rightChild.getId(), start.getId())
+
+    def find_node(self, n_id,node):
+        pass
+
+    def find_parent_node(self, n_id):
+        pass
+    def get_level(self,val:str):
+        nr=""
+        i=0
+        while val[i:i+1:1]!='.':
+            nr+=val[i:i+1:1]
+            i+=1
+        return int(nr)
+
     def __eq__(self, other):
         if not isinstance(other, BinaryOperator):
             return False

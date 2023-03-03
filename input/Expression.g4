@@ -4,6 +4,13 @@ start_rule: (dec)*(expr)*;
 
 dec : ID EQ NUM;
 
+INT: 'i32';
+BIG_INT: 'i64';
+FLOAT: 'float';
+DOUBLE: 'double';
+BOOL: 'i1';
+CHAR: 'i8';
+
 binop:
      MULT
      | MIN
