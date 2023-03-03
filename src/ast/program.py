@@ -7,7 +7,7 @@ class program():
     def __init__(self):
         self.symbols = symbolTable.symbolTable()
         self.ast = AST.AST()
-        self.blocks = None
+        self.blocks = []
 
     def getAst(self):
         return self.ast
@@ -15,10 +15,15 @@ class program():
     def getSymbolTable(self):
         return self.symbols
 
+    def addBlock(self, block):
+        self.blocks.append(block)
+
     def fillLiterals(self):
         variables = self.ast.getVariables()
         notFound = []
         values = dict()
+        if not variables:
+            return "filled"
         for elem in variables:
             temp = self.symbols.findSymbol(elem)
             if temp:
@@ -27,6 +32,7 @@ class program():
                 notFound.append(elem)
 
         if notFound:
-            print("There are undeclared variables", file=sys.stderr)
+            return "missing"
 
         self.ast.replaceVariables(values)
+        return "filled"

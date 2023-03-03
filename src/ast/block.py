@@ -1,19 +1,26 @@
 import symbolTable
 import AST
 import sys
+import program
 
 class block():
     def __init__(self, parent):
         self.symbols = symbolTable.symbolTable()
         self.ast = AST.AST()
         self.parent = parent
-        self.blocks = None
+        self.blocks = []
 
     def getSymbolTable(self):
         return self.symbols
 
     def getParent(self):
         return self.parent
+
+    def addBlock(self, newBlock):
+        self.blocks.append(newBlock)
+
+    def getAst(self):
+        return self.ast
 
     def fillLiterals(self):
         variables = self.ast.getVariables()
@@ -27,7 +34,7 @@ class block():
                 notFound.append(elem)
 
         current = self
-        while current.getParent() and notFound:
+        while not isinstance(current, program.program) and notFound:
             current = self.getParent()
             variables = notFound
             notFound = []
