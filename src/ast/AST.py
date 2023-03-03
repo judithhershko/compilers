@@ -1,4 +1,5 @@
-import node
+from . import node
+from .node import *
 
 
 class AST():
@@ -75,3 +76,6 @@ class AST():
 
     def getVariables(self):
         variables = self.root.getVariables()
+
+    def replaceVariables(self, values):
+        self.root.replaceVariables(values)
