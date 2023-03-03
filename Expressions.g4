@@ -1,41 +1,62 @@
+grammar Expression;
 
-grammar Expressions;
+start_rule: (dec)*(expr)*;
 
+dec : ID EQ NUM;
 
-program
-    : stat EOF
-    | def EOF
+expr:
+    term
+    | expr PLUS term
+    | expr MIN term
     ;
-
-stat: ID '=' expr ';'
-    | expr ';'
-    ;
-
-def : ID '(' ID (',' ID)* ')' '{' stat* '}' ;
-
-expr: ID
-    | INT
-    | func
-    | expr PLUS expr
-    | expr MINUS expr
-    | expr MULT expr
-    | expr DEV expr
-    ;
-
-func : ID '(' expr (',' expr)* ')' ;
-
-// DELETE THIS CONTENT IF YOU PUT COMBINED GRAMMAR IN Parser TAB
+term:
+    fac
+    | term MULT fac
+    | term DIV fac
+fac:
+    pri
+    | LBRAK expr RBRAK
+pri:
+    ID
+    | NUM
 
 
-PLUS : '+' ;
-MINUS : '-' ;
-EQ : '=' ;
+
+
+
+
+ID          : [a-zA-Z_][a-zA-Z_0-9]*;
+INT_ID      : [0-9]+ ;
+FLOAT_ID    : [0-9]+[.]?[0-9]*;
+VAR_NAME    : [a-zA-Z_0-9.]+;
+STRING_ID   : '"' .*? '\\00"';
+
+INT: 'i32';
+BIG_INT: 'i64';
+FLOAT: 'float';
+DOUBLE: 'double';
+BOOL: 'i1';
+CHAR: 'i8';
+
+PTR         : '*';
+
+WS   : [ \t\n\r\f]+ -> skip ;
+GT   : '>' ;
+LT   : '<' ;
+DIV  : '/' ;
 MULT : '*' ;
-DEV : '/' ;
-LPAREN : '(' ;
-RPAREN : ')' ;
+MIN  : '-' ;
+PLUS : '+' ;
+EQ   : '=' ;
+LBRAK: '(' ;
+RBRAK: ')' ;
+ISEQ : '==';
+AND  : '&&';
+OR   : '||';
+NOT  :  '!';
+GOE  :  '>=';
+LOE  :  '<=';
+MOD  :  '%' ;
 
-INT : [0-9]+ ;
-ID: [a-zA-Z_][a-zA-Z_0-9]* ;
-WS: [ \t\n\r\f]+ -> skip ;
+NLINE:';' .*? '\n' -> skip;
 

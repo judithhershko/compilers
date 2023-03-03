@@ -23,8 +23,7 @@ class Expression(ExpressionListener):
             print("enter xpr")
 
     def exitExpr(self, ctx):
-        self.count = 1
-        self.asT.setRoot(self.node)
+        pass
 
     def enterDec(self, ctx):
         print("enter declaration is: " + ctx.getText())
