@@ -39,5 +39,6 @@ class block():
                     notFound.append(elem)
 
         if notFound:
-            print("This variable was not declared", file=sys.stderr)
+            print("There are undeclared variables", file=sys.stderr)
 
+        self.ast.replaceVariables(values)

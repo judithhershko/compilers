@@ -56,6 +56,10 @@ class Value(AST_node):
         else:
             return []
 
+    def replaceVariables(self, values):
+        self.value = values[self.value]
+        self.type = LiteralType.NUM
+
 
 class BinaryOperator(AST_node):
     leftChild = None
