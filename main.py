@@ -14,6 +14,6 @@ def main(argv):
     parser = ExpressionParser(stream)
     tree = parser.start_rule()
     printer=Expression()
-    result=EvalVisitor().visit(tree)
+    #result=EvalVisitor().visit(tree)
     walker = ParseTreeWalker()
     walker.walk(printer, tree)

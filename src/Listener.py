@@ -20,7 +20,7 @@ class Expression(ExpressionListener):
         # print(ctx.getToken(int))
 
         if (ctx.binop()):
-            pass
+            print("enter xpr")
 
     def exitExpr(self, ctx):
         self.count = 1
