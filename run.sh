@@ -11,7 +11,8 @@ java -jar antlr-4.12.0-complete.jar -o generated -visitor -listener -Dlanguage=P
 #execute main
 #python3 main.py input/Expression.g4
 python3 main.py input/input.c
-dot -Tpng dotFiles/expression_dot.dot -o dotFiles/DocName.png
+
+dot -Tpng dotFiles/*.dot -o dotFiles/result.png
 
 #install bindings for AST
 #pip install antlr4-python3-runtime
