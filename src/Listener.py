@@ -62,7 +62,7 @@ class Expression(ExpressionListener):
             self.parent = self.current.parent
 
     def enterDec(self, ctx):
-        print("enter dec:"+ctx.getText())
+        print("enter dec:" + ctx.getText())
         """
         if self.current is not None:
             self.asT.setRoot(self.current)
@@ -76,7 +76,7 @@ class Expression(ExpressionListener):
         """
 
     def exitDec(self, ctx):
-        print("exit dec:"+ctx.getText())
+        print("exit dec:" + ctx.getText())
         """
         self.asT.setRoot(self.current)
         self.trees.append(self.asT)

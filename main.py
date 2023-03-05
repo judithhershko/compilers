@@ -21,14 +21,14 @@ def main(argv):
     print("end of walk")
     printer.asT.setRoot(printer.current)
     printer.trees.append(printer.asT)
-    i=0
+    i = 0
     for tree in printer.trees:
         if tree is not None:
             tree.setNodeIds(printer.asT.root)
-            tree.generateDot("expression_dot"+str(i))
-            i+=1
-    #printer.asT.setNodeIds(printer.asT.root)
-    #printer.asT.generateDot("expression_dot")
+            tree.generateDot("expression_dot" + str(i))
+            i += 1
+    # printer.asT.setNodeIds(printer.asT.root)
+    # printer.asT.generateDot("expression_dot")
     # printer.asT.generateDot("dot_output")
 
 

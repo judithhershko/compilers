@@ -85,8 +85,10 @@ class BinaryOperator(AST_node):
 
     def setRightChild(self, child):
         self.rightChild = child
+
     def getRightChild(self):
         return self.rightChild
+
     def getLeftChild(self):
         return self.leftChild
 
@@ -164,6 +166,7 @@ class UnaryOperator(AST_node):
 
     def getVariables(self):
         return self.getChild.getVariables()
+
 
 class LogicalOperator(AST_node):
     leftChild = None

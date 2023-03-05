@@ -7,4 +7,3 @@ class program():
         self.symbols = symbolTable.symbolTable()
         self.ast = AST.AST()
         self.blocks = None
-

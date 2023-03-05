@@ -1,6 +1,7 @@
 import pandas as pd
 import sys
 
+
 class symbolTable():
     def __init__(self):
         self.table = pd.DataFrame({"Value": pd.Series(dtype="str"),

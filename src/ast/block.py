@@ -2,6 +2,7 @@ import symbolTable
 import AST
 import sys
 
+
 class block():
     def __init__(self, parent):
         self.symbols = symbolTable.symbolTable()
