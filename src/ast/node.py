@@ -85,6 +85,10 @@ class BinaryOperator(AST_node):
 
     def setRightChild(self, child):
         self.rightChild = child
+    def getRightChild(self):
+        return self.rightChild
+    def getLeftChild(self):
+        return self.leftChild
 
     def fold(self):
         if not isinstance(self.leftChild, Value):
