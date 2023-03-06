@@ -61,6 +61,31 @@ class Value(AST_node):
         self.type = LiteralType.NUM
 
 
+class Declaration(AST_node):
+    def __init__(self, parent=None, var=Value):
+        self.parent = parent
+        self.leftChild = var
+        self.rightChild = None
+        self.operator = "="
+
+    def __eq__(self, other):
+        if not isinstance(other, Declaration):
+            return False
+        return self.leftChild == other.leftChild and self.rightChild == other.rightChild
+    def getLabel(self):
+        return "\" Declaration: " + self.operator + "\""
+    def setLeftChild(self, child):
+        self.leftChild = child
+
+    def setRightChild(self, child):
+        self.rightChild = child
+
+    def getRightChild(self):
+        return self.rightChild
+
+    def getLeftChild(self):
+        return self.leftChild
+
 class BinaryOperator(AST_node):
     leftChild = None
     rightChild = None
@@ -68,6 +93,8 @@ class BinaryOperator(AST_node):
     def __init__(self, oper, parent=None):
         self.operator = oper
         self.parent = parent
+    def getValue(self):
+        return self.rightChild.getValue()
 
     def __eq__(self, other):
         if not isinstance(other, BinaryOperator):

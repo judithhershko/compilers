@@ -18,14 +18,15 @@ class Expression(ExpressionListener):
         return ctx.getChildCount() > 1
 
     def set_val(self, ctx: ParserRuleContext):
-        self.current = Value(ctx.getText(), node.LiteralType.STR)
-        if self.left:
+        self.current = Value(ctx.getText(), node.LiteralType.STR, self.parent)
+        if self.left and not self.right:
             self.parent.setLeftChild(self.current)
         else:
             self.parent.setRightChild(self.current)
         self.current.parent = self.parent
 
     def enterExpr(self, ctx):
+        print("enter expr:"+ctx.getText())
         if self.has_children(ctx):
             self.left = True
             if self.parent is None:
@@ -36,7 +37,7 @@ class Expression(ExpressionListener):
                 self.parent.setRightChild(self.current)
 
             elif self.right:
-                self.current = BinaryOperator(ctx.getText())
+                self.current = BinaryOperator(ctx.getText(), self.parent)
                 self.current.parent = self.parent
                 self.parent.setRightChild(self.current)
                 self.parent = self.current
@@ -44,7 +45,7 @@ class Expression(ExpressionListener):
                 self.right = False
 
             else:
-                self.current = BinaryOperator(ctx.getText())
+                self.current = BinaryOperator(ctx.getText(), self.parent)
                 self.current.parent = self.parent
                 self.parent.setLeftChild(self.current)
                 self.parent = self.current
@@ -63,6 +64,17 @@ class Expression(ExpressionListener):
 
     def enterDec(self, ctx):
         print("enter dec:" + ctx.getText())
+        if self.parent or self.current is not None:
+            self.asT.setRoot(self.current)
+            self.trees.append(self.asT)
+        self.asT = create_tree()
+        self.parent = BinaryOperator("=")
+        var = getVariable(ctx.getText())
+        self.current = Value(var, node.LiteralType.VAR, self.parent)
+        self.parent.setLeftChild(self.current)
+        self.current = self.parent.rightChild
+        self.right = True
+
         """
         if self.current is not None:
             self.asT.setRoot(self.current)
@@ -77,6 +89,23 @@ class Expression(ExpressionListener):
 
     def exitDec(self, ctx):
         print("exit dec:" + ctx.getText())
+        if isinstance(self.current, Value):
+            print("current:" + self.current.value)
+        if isinstance(self.current, BinaryOperator):
+            print("current:" + self.current.operator)
+        f=True
+        while f:
+            if isinstance(self.current,BinaryOperator) and self.current.operator=="=":
+                f=False
+            else:
+                self.current = self.current.parent
+        print("op:"+self.current.operator)
+        print("lchild:"+self.current.leftChild.value)
+        self.asT.setRoot(self.current)
+        self.trees.append(self.asT)
+        self.parent = None
+        self.current = None
+        self.asT = create_tree()
         """
         self.asT.setRoot(self.current)
         self.trees.append(self.asT)

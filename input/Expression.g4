@@ -2,7 +2,7 @@ grammar Expression;
 
 start_rule: (dec)*(expr)*;
 
-dec : ID EQ NUM
+dec : ID EQ expr
     ;
 binop:
      MULT
