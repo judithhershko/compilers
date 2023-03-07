@@ -60,11 +60,6 @@ class Expression(ExpressionListener):
                 self.parent = self.current
                 self.current = self.parent.leftChild
         else:
-            """
-            self.set_val(ctx)
-            if self.left:
-                self.need_token = True
-            """
             return
 
     def exitExpr(self, ctx):
@@ -120,15 +115,12 @@ class Expression(ExpressionListener):
     def exitBinop_md(self, ctx):
         pass
     def enterTerm(self, ctx:ParserRuleContext):
-        #print("enter term:"+ctx.getText())
         self.set_exptr(ctx)
 
     # Exit a parse tree produced by ExpressionParser#term.
     def exitTerm(self, ctx:ParserRuleContext):
-        #print("exit term:"+ctx.getText())
         self.move_up(ctx)
     def enterPri(self, ctx:ParserRuleContext):
-        print("enter pri:"+ctx.getText())
         return self.set_val(ctx)
 
     # Exit a parse tree produced by ExpressionParser#pri.
@@ -159,11 +151,7 @@ class Expression(ExpressionListener):
                 self.parent = self.current
                 self.current = self.parent.leftChild
         else:
-            """
-            self.set_val(ctx)
-            if self.left:
-                self.need_token = True
-            """
+            return
     def move_up(self,ctx:ParserRuleContext):
         if self.has_children(ctx):
             if self.parent.rightChild is None:
