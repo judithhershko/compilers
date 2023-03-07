@@ -19,8 +19,9 @@ def main(argv):
     walker = ParseTreeWalker()
     walker.walk(printer, tree)
     print("end of walk")
-    printer.asT.setRoot(printer.current)
-    printer.trees.append(printer.asT)
+    if printer.current is not None:
+        printer.asT.setRoot(printer.current)
+        printer.trees.append(printer.asT)
     i = 0
     for tree in printer.trees:
         if tree is not None:
@@ -30,6 +31,7 @@ def main(argv):
     # printer.asT.setNodeIds(printer.asT.root)
     # printer.asT.generateDot("expression_dot")
     # printer.asT.generateDot("dot_output")
+
 
 
 if __name__ == '__main__':

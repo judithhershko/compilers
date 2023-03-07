@@ -2,11 +2,16 @@
 import enum
 import sys
 
-
+types=\
+    {"double": 4, "int": 5, "char": 6, "bool": 7, "string":8};
 class LiteralType(enum.Enum):
     NUM = 1
     STR = 2
     VAR = 3
+    DOUBLE = 4
+    INT = 5
+    CHAR = 6
+    BOOL = 7
 
 
 class AST_node():
@@ -40,6 +45,10 @@ class Value(AST_node):
 
     def getValue(self):
         return self.value
+    def setValue(self,val):
+        self.value=val
+    def setType(self,type):
+        self.type=type
 
     def getLabel(self):
         if isinstance(self.value, int) or isinstance(self.value, float):
@@ -72,8 +81,10 @@ class Declaration(AST_node):
         if not isinstance(other, Declaration):
             return False
         return self.leftChild == other.leftChild and self.rightChild == other.rightChild
+
     def getLabel(self):
         return "\" Declaration: " + self.operator + "\""
+
     def setLeftChild(self, child):
         self.leftChild = child
 
@@ -86,6 +97,7 @@ class Declaration(AST_node):
     def getLeftChild(self):
         return self.leftChild
 
+
 class BinaryOperator(AST_node):
     leftChild = None
     rightChild = None
@@ -93,6 +105,7 @@ class BinaryOperator(AST_node):
     def __init__(self, oper, parent=None):
         self.operator = oper
         self.parent = parent
+
     def getValue(self):
         return self.rightChild.getValue()
 

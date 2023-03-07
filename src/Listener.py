@@ -13,9 +13,18 @@ class Expression(ExpressionListener):
         self.trees = []
         self.left = True
         self.right = False
+        self.declaration=False
+        self.type=None
 
     def has_children(self, ctx: ParserRuleContext):
         return ctx.getChildCount() > 1
+    def enterTyped_var(self, ctx:ParserRuleContext):
+        print("enter typed var:"+ctx.getText())
+        if not self.declaration:
+            return
+        self.parent.leftChild.setType(find_type(ctx.getText()))
+        self.parent.leftChild.setValue(separate_type_variable(self.parent.leftChild.getValue(),ctx.getText()))
+        self.declaration=False
 
     def set_val(self, ctx: ParserRuleContext):
         self.current = Value(ctx.getText(), node.LiteralType.STR, self.parent)
@@ -63,7 +72,8 @@ class Expression(ExpressionListener):
             self.parent = self.current.parent
 
     def enterDec(self, ctx):
-        print("enter dec:" + ctx.getText())
+        #ctx.getToken(0)
+        print("enter dec:"+ctx.getText())
         if self.parent or self.current is not None:
             self.asT.setRoot(self.current)
             self.trees.append(self.asT)
@@ -74,43 +84,20 @@ class Expression(ExpressionListener):
         self.parent.setLeftChild(self.current)
         self.current = self.parent.rightChild
         self.right = True
-
-        """
-        if self.current is not None:
-            self.asT.setRoot(self.current)
-            self.trees.append(self.asT)
-        self.asT = create_tree()
-        self.parent = BinaryOperator("=")
-        self.parent.leftChild = Value(getVariable(ctx.getText()), node.LiteralType.VAR)
-        self.parent.rightChild = Value(ctx.getText(), node.LiteralType.STR, self.parent)
-        self.current=self.parent.rightChild
-        self.right=True
-        """
+        self.declaration=True
 
     def exitDec(self, ctx):
-        print("exit dec:" + ctx.getText())
-        if isinstance(self.current, Value):
-            print("current:" + self.current.value)
-        if isinstance(self.current, BinaryOperator):
-            print("current:" + self.current.operator)
         f=True
         while f:
             if isinstance(self.current,BinaryOperator) and self.current.operator=="=":
                 f=False
             else:
                 self.current = self.current.parent
-        print("op:"+self.current.operator)
-        print("lchild:"+self.current.leftChild.value)
         self.asT.setRoot(self.current)
         self.trees.append(self.asT)
         self.parent = None
         self.current = None
         self.asT = create_tree()
-        """
-        self.asT.setRoot(self.current)
-        self.trees.append(self.asT)
-        self.asT = create_tree()
-        """
 
     def enterBinop(self, ctx):
         if self.need_token:
