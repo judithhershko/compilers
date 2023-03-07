@@ -14,12 +14,10 @@ class Expression(ExpressionListener):
         self.left = True
         self.right = False
         self.declaration=False
-        self.type=None
 
     def has_children(self, ctx: ParserRuleContext):
         return ctx.getChildCount() > 1
     def enterTyped_var(self, ctx:ParserRuleContext):
-        print("enter typed var:"+ctx.getText())
         if not self.declaration:
             return
         self.parent.leftChild.setType(find_type(ctx.getText()))
@@ -30,18 +28,20 @@ class Expression(ExpressionListener):
         self.current = Value(ctx.getText(), node.LiteralType.STR, self.parent)
         if self.left and not self.right:
             self.parent.setLeftChild(self.current)
+            self.right=True
         else:
             self.parent.setRightChild(self.current)
+            self.right=False
         self.current.parent = self.parent
+        if self.left:
+            self.need_token = True
 
     def enterExpr(self, ctx):
-        print("enter expr:"+ctx.getText())
         if self.has_children(ctx):
             self.left = True
             if self.parent is None:
                 self.parent = BinaryOperator("")
-                self.current = BinaryOperator("")
-                self.current.parent = self.parent
+                self.current = BinaryOperator("",self.parent)
                 self.parent.setLeftChild(self.current)
                 self.parent.setRightChild(self.current)
 
@@ -60,20 +60,18 @@ class Expression(ExpressionListener):
                 self.parent = self.current
                 self.current = self.parent.leftChild
         else:
+            """
             self.set_val(ctx)
             if self.left:
                 self.need_token = True
+            """
+            return
 
     def exitExpr(self, ctx):
-        if self.has_children(ctx):
-            if self.parent.rightChild is None:
-                self.parent.setRightChild(Value("", node.LiteralType.STR))
-            self.current = self.current.parent
-            self.parent = self.current.parent
+        #print("exit expr:"+ctx.getText())
+        return self.move_up(ctx)
 
     def enterDec(self, ctx):
-        #ctx.getToken(0)
-        print("enter dec:"+ctx.getText())
         if self.parent or self.current is not None:
             self.asT.setRoot(self.current)
             self.trees.append(self.asT)
@@ -112,3 +110,56 @@ class Expression(ExpressionListener):
             self.current = self.parent.getRightChild()
             self.left = False
             self.right = True
+    def enterTerm(self, ctx:ParserRuleContext):
+        #print("enter term:"+ctx.getText())
+        self.set_exptr(ctx)
+
+    # Exit a parse tree produced by ExpressionParser#term.
+    def exitTerm(self, ctx:ParserRuleContext):
+        #print("exit term:"+ctx.getText())
+        self.move_up(ctx)
+    def enterPri(self, ctx:ParserRuleContext):
+        print("enter pri:"+ctx.getText())
+        return self.set_val(ctx)
+
+    # Exit a parse tree produced by ExpressionParser#pri.
+    def exitPri(self, ctx:ParserRuleContext):
+        #print("exit pri:"+ctx.getText())
+        pass
+    def set_exptr(self,ctx:ParserRuleContext):
+        if self.has_children(ctx):
+            self.left = True
+            if self.parent is None:
+                self.parent = BinaryOperator("")
+                self.current = BinaryOperator("",self.parent)
+                self.parent.setLeftChild(self.current)
+                self.parent.setRightChild(self.current)
+
+            elif self.right:
+                self.current = BinaryOperator(ctx.getText(), self.parent)
+                self.current.parent = self.parent
+                self.parent.setRightChild(self.current)
+                self.parent = self.current
+                self.current = self.parent.leftChild
+                self.right = False
+
+            else:
+                self.current = BinaryOperator(ctx.getText(), self.parent)
+                self.current.parent = self.parent
+                self.parent.setLeftChild(self.current)
+                self.parent = self.current
+                self.current = self.parent.leftChild
+        else:
+            """
+            self.set_val(ctx)
+            if self.left:
+                self.need_token = True
+            """
+    def move_up(self,ctx:ParserRuleContext):
+        if self.has_children(ctx):
+            if self.parent.rightChild is None:
+                self.parent.setRightChild(Value("", node.LiteralType.STR))
+            self.current = self.current.parent
+            self.parent = self.current.parent
+
+

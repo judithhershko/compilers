@@ -20,10 +20,6 @@ def getVariable(ctx):
 
 
 def separate_type_variable(old, type_):
-
     return old.replace(type_,'')
-
-
-
 def find_type(txt):
     return types.get(txt)
