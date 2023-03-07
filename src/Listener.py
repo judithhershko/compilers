@@ -98,6 +98,9 @@ class Expression(ExpressionListener):
         self.asT = create_tree()
 
     def enterBinop(self, ctx):
+        return self.set_token(ctx)
+    # Enter a parse tree produced by ExpressionParser#binop_md.
+    def set_token(self,ctx):
         if self.need_token:
             self.parent.operator = ctx.getText()
             self.current.parent = self.parent
@@ -110,6 +113,12 @@ class Expression(ExpressionListener):
             self.current = self.parent.getRightChild()
             self.left = False
             self.right = True
+    def enterBinop_md(self, ctx):
+        return self.set_token(ctx)
+
+    # Exit a parse tree produced by ExpressionParser#binop_md.
+    def exitBinop_md(self, ctx):
+        pass
     def enterTerm(self, ctx:ParserRuleContext):
         #print("enter term:"+ctx.getText())
         self.set_exptr(ctx)
