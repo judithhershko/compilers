@@ -173,7 +173,6 @@ class LogicalOperator(AST_node):
     leftChild = None
     rightChild = None
 
-
     def __init__(self, oper, parent=None):
         self.operator = oper
         self.parent = parent

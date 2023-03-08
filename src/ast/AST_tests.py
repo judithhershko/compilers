@@ -252,5 +252,6 @@ class nodeTestCase(unittest.TestCase):
 
         self.assertEqual(scope.getAst().root, res)
 
+
 if __name__ == '__main__':
     unittest.main()
