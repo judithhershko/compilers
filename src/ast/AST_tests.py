@@ -1,6 +1,8 @@
 import unittest
 import AST
 import node
+import program
+import block
 
 
 class nodeTestCase(unittest.TestCase):
@@ -128,13 +130,127 @@ class nodeTestCase(unittest.TestCase):
 
         ast.foldTree()
         ast.setNodeIds(ast.root)
-        dot = ast.generateDot("test_fold")
+        ast.generateDot("test_fold")
 
         res = node.Value(94, node.LiteralType.NUM)
         res.setLevel(0)
         res.setNumber(0)
 
         self.assertEqual(ast.root, res)
+
+    def test_fillSymbolTable(self):
+        prog = program.program()
+
+        val = prog.getSymbolTable()
+        a = val.addSymbol("x", 5, "int", False)
+        b = val.addSymbol("y", 22, "int", True)
+        c = val.addSymbol("z", -78, "int", False)
+        d = val.addSymbol("x", 7, "int", False)
+        e = val.addSymbol("y", 25, int, True)
+        f = val.addSymbol("z", "abc", "str", False)
+
+        self.assertEqual(a, "placed")
+        self.assertEqual(b, "placed")
+        self.assertEqual(c, "placed")
+        self.assertEqual(d, "replaced")
+        self.assertEqual(e, "const")
+        self.assertEqual(f, "type")
+
+        self.assertEqual(val.findSymbol("x"), 7)
+        self.assertEqual(val.findSymbol("y"), 22)
+        self.assertEqual(val.findSymbol("z"), -78)
+
+    def test_fillLiterals(self):
+        div = node.BinaryOperator("/")
+
+        add = node.BinaryOperator("+")
+        div.setLeftChild(add)
+
+        mult = node.BinaryOperator("*")
+        add.setLeftChild(mult)
+
+        leaf1 = node.Value("x", node.LiteralType.VAR)
+        mult.setLeftChild(leaf1)
+
+        leaf2 = node.Value("y", node.LiteralType.VAR)
+        mult.setRightChild(leaf2)
+
+        neg = node.UnaryOperator("-")
+        add.setRightChild(neg)
+
+        leaf3 = node.Value("z", node.LiteralType.VAR)
+        neg.setChild(leaf3)
+
+        leaf4 = node.Value("w", node.LiteralType.VAR)
+        div.setRightChild(leaf4)
+
+        prog = program.program()
+        prog.getAst().setRoot(div)
+        prog.getAst().setNodeIds(prog.getAst().root)
+
+        val = prog.getSymbolTable()
+        val.addSymbol("x", 5, "int", False)
+        val.addSymbol("y", 22, "int", False)
+        val.addSymbol("z", -78, "int", False)
+        val.addSymbol("w", 2, "int", False)
+
+        prog.fillLiterals()
+        prog.getAst().foldTree()
+        prog.getAst().setNodeIds(prog.getAst().root)
+
+        res = node.Value(94, node.LiteralType.NUM)
+        res.setLevel(0)
+        res.setNumber(0)
+
+        self.assertEqual(prog.getAst().root, res)
+
+    def test_fillLiteralsBlock(self):
+        div = node.BinaryOperator("/")
+
+        add = node.BinaryOperator("+")
+        div.setLeftChild(add)
+
+        mult = node.BinaryOperator("*")
+        add.setLeftChild(mult)
+
+        leaf1 = node.Value("x", node.LiteralType.VAR)
+        mult.setLeftChild(leaf1)
+
+        leaf2 = node.Value("y", node.LiteralType.VAR)
+        mult.setRightChild(leaf2)
+
+        neg = node.UnaryOperator("-")
+        add.setRightChild(neg)
+
+        leaf3 = node.Value("z", node.LiteralType.VAR)
+        neg.setChild(leaf3)
+
+        leaf4 = node.Value("w", node.LiteralType.VAR)
+        div.setRightChild(leaf4)
+
+        prog = program.program()
+        scope = block.block(prog)
+        scope.getAst().setRoot(div)
+        scope.getAst().setNodeIds(scope.getAst().root)
+        prog.addBlock(scope)
+
+        val = prog.getSymbolTable()
+        val.addSymbol("x", 5, "int", False)
+        val.addSymbol("y", 22, "int", False)
+
+        valBlock = scope.getSymbolTable()
+        valBlock.addSymbol("z", -78, "int", False)
+        valBlock.addSymbol("w", 2, "int", False)
+
+        scope.fillLiterals()
+        scope.getAst().foldTree()
+        scope.getAst().setNodeIds(scope.getAst().root)
+
+        res = node.Value(94, node.LiteralType.NUM)
+        res.setLevel(0)
+        res.setNumber(0)
+
+        self.assertEqual(scope.getAst().root, res)
 
 if __name__ == '__main__':
     unittest.main()
