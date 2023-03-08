@@ -173,8 +173,10 @@ class LogicalOperator(AST_node):
     leftChild = None
     rightChild = None
 
-    def __init__(self, oper):
+
+    def __init__(self, oper, parent=None):
         self.operator = oper
+        self.parent = parent
 
     def __eq__(self, other):
         if not isinstance(other, LogicalOperator):
@@ -222,4 +224,43 @@ class LogicalOperator(AST_node):
 
     def replaceVariables(self, values):
         self.leftChild.replaceVariables(values)
+        self.rightChild.replaceVaribles(values)
+
+
+class Declaration(AST_node):
+    leftChild = None
+    rightChild = None
+
+    def __init__(self, parent=None):
+        self.parent = parent
+
+    def __eq__(self, other):
+        if not isinstance(other, LogicalOperator):
+            return False
+        return self.leftChild == other.leftChild and self.rightChild == other.rightChild
+
+    def getLabel(self):
+        return "\"Value declaration\""
+
+    def setLeftChild(self, child):
+        self.leftChild = child
+
+    def setRightChild(self, child):
+        self.rightChild = child
+
+    def fold(self):
+        if not isinstance(self.leftChild, Value):
+            self.leftChild = self.leftChild.fold()
+        if not isinstance(self.rightChild, Value):
+            self.rightChild = self.rightChild.fold()
+
+        if not isinstance(self.leftChild, Value) or not isinstance(self.rightChild, Value):
+            return self
+        else:
+            return self.rightChild
+
+    def getVariables(self):
+        return self.rightChild.getVariables()
+
+    def replaceVariables(self, values):
         self.rightChild.replaceVaribles(values)
