@@ -12,7 +12,7 @@ to_pointer: (pointer)* pri ;
 to_reference: REF pri ;
 
 //dec :variable_dec EQ expr ;
-dec:(const)? typed_var (pointer)* ID EQ (char_op|expr) |(pointer)* ID EQ (char_op|expr);
+dec:(const)? typed_var (pointer)* ID EQ (char_expr|expr) |(pointer)* ID EQ (char_expr|expr);
 variable_dec:typed_var ID;
 //variable_dec:const typed_var pointer_variable | typed_var pointer_variable;
 
@@ -28,7 +28,7 @@ term: fac |term binop_md fac;
 fac:LBRAK expr RBRAK|pri;
 
 pri: NUM | ID;
-char_expr: char_pri| char_expr PLUS char_expr | char_expr MIN char_expr
+char_expr: char_pri| char_expr PLUS char_expr | char_expr MIN char_expr;
 char_pri:CHAR_ID ID CHAR_ID ;
 
 INT     : 'int'     ;

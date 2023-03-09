@@ -193,6 +193,6 @@ class Expression(ExpressionListener):
     def enterPointer_variable(self, ctx: ParserRuleContext):
         print("pointer var:"+ctx.getText())
 
-    def enterChar_op(self, ctx:ParserRuleContext):
+    def enterChar_pri(self, ctx:ParserRuleContext):
         print("enter char op:"+ctx.getText())
         self.set_val(ctx)
