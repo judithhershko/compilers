@@ -30,10 +30,10 @@ class Expression(ExpressionListener):
         self.declaration = False
 
     def set_val(self, ctx: ParserRuleContext):
-        type_ =find_value_type(ctx.getText())
+        type_ = find_value_type(ctx.getText())
         print("val type")
         print(type_)
-        self.current = Value(ctx.getText(),type_, self.parent)
+        self.current = Value(ctx.getText(), type_, self.parent)
         if self.left and not self.right:
             self.parent.setLeftChild(self.current)
             self.right = True
@@ -43,8 +43,7 @@ class Expression(ExpressionListener):
         self.current.parent = self.parent
         if self.left:
             self.need_token = True
-
-    def enterExpr(self, ctx):
+    def set_expression(self,ctx:ParserRuleContext):
         if self.has_children(ctx):
             self.left = True
             if self.parent is None:
@@ -69,13 +68,16 @@ class Expression(ExpressionListener):
                 self.current = self.parent.leftChild
         else:
             return
+    def enterExpr(self, ctx):
+        return self.set_expression(ctx)
+
 
     def exitExpr(self, ctx):
         # print("exit expr:"+ctx.getText())
         return self.move_up(ctx)
 
     def enterDec(self, ctx):
-        print("enter dec:"+ctx.getText())
+        print("enter dec:" + ctx.getText())
         if self.parent or self.current is not None:
             self.asT.setRoot(self.current)
             self.trees.append(self.asT)
@@ -89,7 +91,7 @@ class Expression(ExpressionListener):
         self.declaration = True
 
     def exitDec(self, ctx):
-        print("exit declaration:"+ctx.getText())
+        print("exit declaration:" + ctx.getText())
         f = True
         """
         while f:
@@ -99,10 +101,10 @@ class Expression(ExpressionListener):
                 self.current = self.current.parent
         """
         while self.parent is not None:
-            self.current=self.parent
-            self.parent=self.current.parent
+            self.current = self.parent
+            self.parent = self.current.parent
         print("current:")
-        if isinstance(self.current,BinaryOperator):
+        if isinstance(self.current, BinaryOperator):
             print(self.current.leftChild.getValue())
 
         self.asT.setRoot(self.current)
@@ -188,11 +190,19 @@ class Expression(ExpressionListener):
         if isinstance(self.parent, BinaryOperator) or isinstance(self.parent, LogicalOperator):
             self.parent.leftChild.const = True
             self.parent.leftChild.setValue(self.parent.leftChild.getValue()[5:])
-    def enterPointer(self, ctx: ParserRuleContext):
-        print("enter pointer:"+ctx.getText())
-    def enterPointer_variable(self, ctx: ParserRuleContext):
-        print("pointer var:"+ctx.getText())
 
-    def enterChar_pri(self, ctx:ParserRuleContext):
-        print("enter char op:"+ctx.getText())
+    def enterPointer(self, ctx: ParserRuleContext):
+        print("enter pointer:" + ctx.getText())
+
+    def enterPointer_variable(self, ctx: ParserRuleContext):
+        print("pointer var:" + ctx.getText())
+
+    def enterChar_pri(self, ctx: ParserRuleContext):
+        print("enter char op:" + ctx.getText())
         self.set_val(ctx)
+
+    def enterChar_expr(self, ctx: ParserRuleContext):
+        return self.set_expression(ctx)
+
+    def enterChar_op(self, ctx: ParserRuleContext):
+        return self.set_token(ctx)

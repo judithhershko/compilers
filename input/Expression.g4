@@ -28,7 +28,9 @@ term: fac |term binop_md fac;
 fac:LBRAK expr RBRAK|pri;
 
 pri: NUM | ID;
-char_expr: char_pri| char_expr PLUS char_expr | char_expr MIN char_expr;
+
+char_op: PLUS | MIN;
+char_expr: char_pri| char_expr char_op char_expr;
 char_pri:CHAR_ID ID CHAR_ID ;
 
 INT     : 'int'     ;
