@@ -87,12 +87,22 @@ class Expression(ExpressionListener):
         self.declaration = True
 
     def exitDec(self, ctx):
+        print("exit declaration:"+ctx.getText())
         f = True
+        """
         while f:
             if isinstance(self.current, BinaryOperator) and self.current.operator == "=":
                 f = False
             else:
                 self.current = self.current.parent
+        """
+        while self.parent is not None:
+            self.current=self.parent
+            self.parent=self.current.parent
+        print("current:")
+        if isinstance(self.current,BinaryOperator):
+            print(self.current.leftChild.getValue())
+
         self.asT.setRoot(self.current)
         self.trees.append(self.asT)
         self.parent = None

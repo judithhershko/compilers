@@ -5,8 +5,9 @@ start_rule: (dec)*(expr)*;
 typed_var: (INT| DOUBLE | FLOAT | CHAR);
 
 const : CONST;
-dec :(const)? typed_var ID EQ expr;
 
+variable_dec:const typed_var |typed_var;
+dec :variable_dec ID EQ expr | ID EQ expr ;
 binop:MIN | PLUS | GT | LT | AND | OR | ISEQ | GOE | LOE ;
 
 binop_md: MULT| DIV ;
@@ -25,8 +26,8 @@ FLOAT   : 'float'   ;
 CHAR    : 'char'    ;
 CONST   : 'const'   ;
 
-ID   : [a-zA-Z_][a-zA-Z_0-9]*;
 NUM  : [0-9]+ ;
+ID   : [a-zA-Z_][a-zA-Z_0-9]*;
 WS   : [ \t\n\r\f]+ -> skip ;
 GT   : '>' ;
 LT   : '<' ;
