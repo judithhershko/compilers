@@ -186,3 +186,7 @@ class Expression(ExpressionListener):
         if isinstance(self.parent, BinaryOperator) or isinstance(self.parent, LogicalOperator):
             self.parent.leftChild.const = True
             self.parent.leftChild.setValue(self.parent.leftChild.getValue()[5:])
+    def enterPointer(self, ctx: ParserRuleContext):
+        print("enter pointer:"+ctx.getText())
+    def enterPointer_variable(self, ctx: ParserRuleContext):
+        print("pointer var:"+ctx.getText())

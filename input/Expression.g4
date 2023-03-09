@@ -5,10 +5,15 @@ start_rule: (dec)*(expr)*;
 typed_var: (INT| DOUBLE | FLOAT | CHAR);
 
 const : CONST;
+pointer_variable: (pointer)* var=ID;
+pointer:MULT;
 
-variable_dec:const typed_var |typed_var;
-dec :variable_dec ID EQ expr | ID EQ expr ;
+
+dec :variable_dec EQ expr ;
+variable_dec:const typed_var pointer_variable|typed_var pointer_variable;
+
 binop:MIN | PLUS | GT | LT | AND | OR | ISEQ | GOE | LOE ;
+
 
 binop_md: MULT| DIV ;
 
