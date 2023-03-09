@@ -2,7 +2,7 @@ grammar Expression;
 
 start_rule: (dec)*(expr)*;
 
-typed_var: INT| DOUBLE | FLOAT | CHAR;
+typed_var: INT| DOUBLE | FLOAT |CHAR;
 
 const : CONST;
 pointer_variable: (pointer)* var=ID;
@@ -12,7 +12,7 @@ to_pointer: (pointer)* pri ;
 to_reference: REF pri ;
 
 //dec :variable_dec EQ expr ;
-dec:(const)? typed_var (pointer)* ID EQ expr |(pointer)* ID EQ expr;
+dec:(const)? typed_var (pointer)* ID EQ (char_op|expr) |(pointer)* ID EQ (char_op|expr);
 variable_dec:typed_var ID;
 //variable_dec:const typed_var pointer_variable | typed_var pointer_variable;
 
@@ -20,13 +20,16 @@ binop:MIN | PLUS | GT | LT | AND | OR | ISEQ | GOE | LOE ;
 
 
 binop_md: MULT| DIV ;
+
 expr: term| expr binop term ;
 
 term: fac |term binop_md fac;
 
 fac:LBRAK expr RBRAK|pri;
 
-pri: NUM | ID| CHAR_ID ID CHAR_ID;
+pri: NUM | ID;
+char_expr: char_pri| char_expr PLUS char_expr | char_expr MIN char_expr
+char_pri:CHAR_ID ID CHAR_ID ;
 
 INT     : 'int'     ;
 DOUBLE  : 'double'  ;
@@ -54,7 +57,7 @@ NOT  :  '!';
 GOE  :  '>=';
 LOE  :  '<=';
 MOD  :  '%' ;
-CHAR_ID:'\'' . '\'';
+CHAR_ID:'\'';
 
 EOL: ';' -> skip;
 NLINE:';' .*? '\n' -> skip;

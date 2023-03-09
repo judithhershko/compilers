@@ -31,6 +31,8 @@ class Expression(ExpressionListener):
 
     def set_val(self, ctx: ParserRuleContext):
         type_ =find_value_type(ctx.getText())
+        print("val type")
+        print(type_)
         self.current = Value(ctx.getText(),type_, self.parent)
         if self.left and not self.right:
             self.parent.setLeftChild(self.current)
@@ -190,3 +192,7 @@ class Expression(ExpressionListener):
         print("enter pointer:"+ctx.getText())
     def enterPointer_variable(self, ctx: ParserRuleContext):
         print("pointer var:"+ctx.getText())
+
+    def enterChar_op(self, ctx:ParserRuleContext):
+        print("enter char op:"+ctx.getText())
+        self.set_val(ctx)
