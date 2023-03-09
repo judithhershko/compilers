@@ -1,3 +1,4 @@
+from src.ast import node
 from src.ast.AST import AST
 from src.ast.node import *
 
@@ -40,3 +41,11 @@ def is_valid_variable(v: str):
     if v[0].isdigit():
         return False
     return True
+
+
+def find_value_type(v: str):
+    if v[0] == '\'' and v[-1] == '\'':
+        return node.LiteralType.STR
+    if v[0].isdigit() or v[0] == '.':
+        return node.LiteralType.NUM
+    return node.LiteralType.VAR

@@ -30,14 +30,7 @@ class Expression(ExpressionListener):
         self.declaration = False
 
     def set_val(self, ctx: ParserRuleContext):
-        type_ = None
-        print("var:"+ctx.getText())
-        if is_variable(ctx.getText()):
-            type_ = node.LiteralType.STR
-            print("is string")
-        else:
-            type_ = node.LiteralType.NUM
-            print("is digit")
+        type_ =find_value_type(ctx.getText())
         self.current = Value(ctx.getText(),type_, self.parent)
         if self.left and not self.right:
             self.parent.setLeftChild(self.current)
