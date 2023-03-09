@@ -1,7 +1,4 @@
-
-const int** v = 3+9+7*(6+8*9);
-
-char a='b';
-
-
-3+9+7*(6+8*9);
+int v = 3*98+76+8;
+const float ** x=a;
+int z=89+0;
+ z+y
