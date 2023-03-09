@@ -21,7 +21,11 @@ class Expression(ExpressionListener):
         if not self.declaration:
             return
         self.parent.leftChild.setType(find_type(ctx.getText()))
-        self.parent.leftChild.setValue(separate_type_variable(self.parent.leftChild.getValue(),ctx.getText()))
+        v=self.parent.leftChild.getValue()
+        v=v[len(ctx.getText()):]
+
+        #self.parent.leftChild.setValue(separate_type_variable(self.parent.leftChild.getValue(),ctx.getText()))
+        self.parent.leftChild.setValue(v)
         self.declaration=False
 
     def set_val(self, ctx: ParserRuleContext):
@@ -158,5 +162,8 @@ class Expression(ExpressionListener):
                 self.parent.setRightChild(Value("", node.LiteralType.STR))
             self.current = self.current.parent
             self.parent = self.current.parent
-
+    def enterConst(self, ctx:ParserRuleContext):
+        if isinstance(self.parent,BinaryOperator) or isinstance(self.parent,LogicalOperator):
+            self.parent.leftChild.const=True
+            self.parent.leftChild.setValue(self.parent.leftChild.getValue()[5:])
 

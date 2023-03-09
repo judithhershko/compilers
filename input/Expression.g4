@@ -4,7 +4,8 @@ start_rule: (dec)*(expr)*;
 
 typed_var: (INT| DOUBLE | FLOAT | CHAR);
 
-dec : typed_var ID EQ expr;
+const : CONST;
+dec :(const)? typed_var ID EQ expr;
 
 binop:MIN | PLUS | GT | LT | AND | OR | ISEQ | GOE | LOE ;
 
@@ -22,6 +23,7 @@ INT     : 'int'     ;
 DOUBLE  : 'double'  ;
 FLOAT   : 'float'   ;
 CHAR    : 'char'    ;
+CONST   : 'const'   ;
 
 ID   : [a-zA-Z_][a-zA-Z_0-9]*;
 NUM  : [0-9]+ ;

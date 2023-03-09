@@ -2,8 +2,10 @@
 import enum
 import sys
 
-types=\
-    {"double": 4, "int": 5, "char": 6, "bool": 7, "string":8};
+types = \
+    {"double": 4, "int": 5, "char": 6, "bool": 7, "string": 8};
+
+
 class LiteralType(enum.Enum):
     NUM = 1
     STR = 2
@@ -12,6 +14,9 @@ class LiteralType(enum.Enum):
     INT = 5
     CHAR = 6
     BOOL = 7
+
+    def __init__(self, const=False):
+        self.const = const
 
 
 class AST_node():
@@ -33,10 +38,11 @@ class AST_node():
 
 
 class Value(AST_node):
-    def __init__(self, lit, valueType, parent=None):
+    def __init__(self, lit, valueType, parent=None,const=False):
         self.value = lit
         self.type = valueType
         self.parent = parent
+        self.const=const
 
     def __eq__(self, other):
         if not isinstance(other, Value):
@@ -45,10 +51,12 @@ class Value(AST_node):
 
     def getValue(self):
         return self.value
-    def setValue(self,val):
-        self.value=val
-    def setType(self,type):
-        self.type=type
+
+    def setValue(self, val):
+        self.value = val
+
+    def setType(self, type):
+        self.type = type
 
     def getLabel(self):
         if isinstance(self.value, int) or isinstance(self.value, float):
