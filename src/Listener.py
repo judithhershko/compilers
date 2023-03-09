@@ -31,8 +31,8 @@ class Expression(ExpressionListener):
 
     def set_val(self, ctx: ParserRuleContext):
         type_ = find_value_type(ctx.getText())
-        print("val type")
-        print(type_)
+        #print("val type")
+        #print(type_)
         self.current = Value(ctx.getText(), type_, self.parent)
         if self.left and not self.right:
             self.parent.setLeftChild(self.current)
@@ -77,7 +77,7 @@ class Expression(ExpressionListener):
         return self.move_up(ctx)
 
     def enterDec(self, ctx):
-        print("enter dec:" + ctx.getText())
+        #print("enter dec:" + ctx.getText())
         if self.parent or self.current is not None:
             self.asT.setRoot(self.current)
             self.trees.append(self.asT)
@@ -91,7 +91,7 @@ class Expression(ExpressionListener):
         self.declaration = True
 
     def exitDec(self, ctx):
-        print("exit declaration:" + ctx.getText())
+        #print("exit declaration:" + ctx.getText())
         f = True
         """
         while f:
@@ -103,9 +103,10 @@ class Expression(ExpressionListener):
         while self.parent is not None:
             self.current = self.parent
             self.parent = self.current.parent
-        print("current:")
+        #print("current:")
         if isinstance(self.current, BinaryOperator):
-            print(self.current.leftChild.getValue())
+            #print(self.current.leftChild.getValue())
+            pass
 
         self.asT.setRoot(self.current)
         self.trees.append(self.asT)
@@ -192,13 +193,15 @@ class Expression(ExpressionListener):
             self.parent.leftChild.setValue(self.parent.leftChild.getValue()[5:])
 
     def enterPointer(self, ctx: ParserRuleContext):
-        print("enter pointer:" + ctx.getText())
+        #print("enter pointer:" + ctx.getText())
+        pass
 
     def enterPointer_variable(self, ctx: ParserRuleContext):
-        print("pointer var:" + ctx.getText())
+        #print("pointer var:" + ctx.getText())
+        pass
 
     def enterChar_pri(self, ctx: ParserRuleContext):
-        print("enter char op:" + ctx.getText())
+        #print("enter char op:" + ctx.getText())
         self.set_val(ctx)
 
     def enterChar_expr(self, ctx: ParserRuleContext):
