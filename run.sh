@@ -12,7 +12,7 @@ java -jar antlr-4.12.0-complete.jar -o generated -visitor -listener -Dlanguage=P
 #python3 main.py input/Expression.g4
 python3 main.py input/input.c
 
-dot -Tpng dotFiles/expression_dot0.dot -o dotFiles/result.png
+dot -Tpng dotFiles/expression_dot1.dot -o dotFiles/result.png
 
 #install bindings for AST
 #pip install antlr4-python3-runtime

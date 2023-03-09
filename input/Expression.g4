@@ -17,7 +17,7 @@ term: fac |term binop_md fac;
 
 fac:LBRAK expr RBRAK|pri;
 
-pri:ID| NUM;
+pri: ID| NUM | CHAR_ID ID CHAR_ID;
 
 INT     : 'int'     ;
 DOUBLE  : 'double'  ;
@@ -44,6 +44,7 @@ NOT  :  '!';
 GOE  :  '>=';
 LOE  :  '<=';
 MOD  :  '%' ;
+CHAR_ID:'\'' . '\'';
 
 EOL: ';' -> skip;
 NLINE:';' .*? '\n' -> skip;
