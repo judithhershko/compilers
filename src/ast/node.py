@@ -308,10 +308,7 @@ class Declaration(AST_node):
         if not isinstance(self.rightChild, Value):
             self.rightChild = self.rightChild.fold()
 
-        if not isinstance(self.leftChild, Value) or not isinstance(self.rightChild, Value):
-            return self
-        else:
-            return self.rightChild
+        return self
 
     def getVariables(self):
         return self.rightChild.getVariables()
