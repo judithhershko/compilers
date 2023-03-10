@@ -23,7 +23,7 @@ class block():
     def getAst(self):
         return self.ast
 
-    def fillLiterals(self):
+    def fillLiterals(self): #TODO: give ast as input
         variables = self.ast.getVariables()
         notFound = []
         values = dict()

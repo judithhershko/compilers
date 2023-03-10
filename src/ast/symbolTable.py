@@ -6,13 +6,16 @@ class symbolTable():
     def __init__(self):
         self.table = pd.DataFrame({"Value": pd.Series(dtype="str"),
                                    "Type": pd.Series(dtype="str"),
-                                   "Const": pd.Series(dtype="bool")})
+                                   "Const": pd.Series(dtype="bool"),
+                                   "ref": pd.Series(dtype="str")})
 
-    def addSymbol(self, name, value, symType, const):
+    def addSymbol(self, name, value, symType, const, decl = False):
         if name not in self.table.index:
             self.table.loc[name] = [value, symType, const]
             return "placed"
         else:
+            if decl:
+                return "redeclarations"
             row = self.table.loc[name]
             if row["Const"]:
                 return "const"
