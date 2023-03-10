@@ -210,8 +210,13 @@ class UnaryOperator(AST_node):
         else:
             if self.operator == "-":
                 res = - self.child.getValue()
+            elif self.operator == "++":
+                res = self.child.getValue() + 1
+            elif self.operator == "--":
+                res = self.child.getValue() - 1
             else:
                 res = + self.child.getValue()
+
         newNode = Value(res, LiteralType.NUM)
 
         return newNode
