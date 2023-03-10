@@ -1,46 +1,35 @@
 grammar Expression;
 
-//start_rule: (dec)*(expr)*;
+start_rule: (dec)*(expr)*;
 
 dec : ID EQ NUM;
 
-expr:
-    term
-    | expr PLUS term
-    | expr MIN term
+brak:
+    LBRAK expr RBRAK
+    |expr
     ;
-term:
-    fac
-    | term MULT fac
-    | term DIV fac
-fac:
-
-    pri
-    | LBRAK expr RBRAK
-pri:
-    ID
+expr: expr PLUS expr
+    | expr MIN expr
+    | expr MULT expr
+    | expr DIV expr
+    | expr GT expr
+    | expr LT expr
+    | expr AND expr
+    | expr OR expr
+    | NOT  expr
+    | expr ISEQ expr
+    | expr GOE expr
+    | expr LOE expr
+    | expr PLUS PLUS
+    | expr MIN  MIN
+    | PLUS PLUS expr
+    | MIN MIN expr
+    | ID
     | NUM
+    ;
 
-
-
-
-
-
-ID          : [a-zA-Z_][a-zA-Z_0-9]*;
-INT_ID      : [0-9]+ ;
-FLOAT_ID    : [0-9]+[.]?[0-9]*;
-VAR_NAME    : [a-zA-Z_0-9.]+;
-STRING_ID   : '"' .*? '\\00"';
-
-INT: 'i32';
-BIG_INT: 'i64';
-FLOAT: 'float';
-DOUBLE: 'double';
-BOOL: 'i1';
-CHAR: 'i8';
-
-PTR         : '*';
-
+ID   : [a-zA-Z_][a-zA-Z_0-9]*;
+NUM  : [0-9]+ ;
 WS   : [ \t\n\r\f]+ -> skip ;
 GT   : '>' ;
 LT   : '<' ;
