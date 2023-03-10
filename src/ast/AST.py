@@ -53,7 +53,8 @@ class AST():
         nodes = "\n" + root.getId() + " [label=" + root.getLabel() + "]"
         edges = ""
 
-        if isinstance(root, node.BinaryOperator) or isinstance(root, node.LogicalOperator):
+        if isinstance(root, node.BinaryOperator) or isinstance(root, node.LogicalOperator) or \
+                isinstance(root, node.Declaration):
             edges = "\n" + root.getId() + "--" + root.leftChild.getId() + "\n" + root.getId() + "--" + \
                     root.rightChild.getId()
             res = self.toDot(root.leftChild)
