@@ -9,16 +9,20 @@ class symbolTable():
                                    "Const": pd.Series(dtype="bool")})
 
     def addSymbol(self, name, value, symType, const):
-        row = self.table.where(self.table["Name"] == name)
-        if not row:
+        if name not in self.table.index:
             self.table.loc[name] = [value, symType, const]
+            return "placed"
         else:
+            row = self.table.loc[name]
             if row["Const"]:
-                print("This variable is an already defined const", file=sys.stderr)
+                return "const"
             elif row["Type"] != symType:
-                print("This variable is already defined with another type", file=sys.stderr)
+                return "type"
             else:
                 self.table.loc[name, ["Value"]] = value
+                return "replaced"
 
     def findSymbol(self, name):
+        if name not in self.table.index:
+            return None
         return self.table.at[name, "Value"]

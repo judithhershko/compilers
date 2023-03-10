@@ -1,4 +1,5 @@
 from . import node
+# import node
 
 
 class AST():
@@ -74,7 +75,7 @@ class AST():
             self.root = self.root.fold()
 
     def getVariables(self):
-        variables = self.root.getVariables()
+        return self.root.getVariables()
 
     def replaceVariables(self, values):
         self.root.replaceVariables(values)
