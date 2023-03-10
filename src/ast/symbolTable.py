@@ -6,18 +6,32 @@ class symbolTable():
     def __init__(self):
         self.table = pd.DataFrame({"Value": pd.Series(dtype="str"),
                                    "Type": pd.Series(dtype="str"),
-                                   "Const": pd.Series(dtype="bool")})
+                                   "Const": pd.Series(dtype="bool"),
+                                   "Ref": pd.Series(dtype="str"),
+                                   "Level": pd.Series(dtype="int")})
 
-    def addSymbol(self, name, value, symType, const):
+    def addSymbol(self, name, value, symType, const=False, ref=None, level=0, decl=False):
+        if (ref is None and level != 0) or (level == 0 and ref is not None):
+            return "faulty pointer levels"
         if name not in self.table.index:
-            self.table.loc[name] = [value, symType, const]
+            self.table.loc[name] = [value, symType, const, ref, level]
             return "placed"
         else:
             row = self.table.loc[name]
-            if row["Const"]:
+            if decl:
+                return "redeclaration"
+            elif row["Const"]:
                 return "const"
             elif row["Type"] != symType:
                 return "type"
+            elif row["Level"] != level:
+                return "level"
+            elif row["Level"] > 0:
+                refRow = self.table.loc[ref]
+                if refRow["level"] != level - 1:
+                    return "pointerLevel"
+                self.table.loc[name, ["Value"]] = value
+                return "replaced"
             else:
                 self.table.loc[name, ["Value"]] = value
                 return "replaced"
