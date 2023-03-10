@@ -15,10 +15,23 @@ def main(argv):
     parser = ExpressionParser(stream)
     tree = parser.start_rule()
     printer = Expression()
-    result = EvalVisitor().visit(tree)
+    #result = EvalVisitor().visit(tree)
     walker = ParseTreeWalker()
     walker.walk(printer, tree)
+    print("end of walk")
+    if printer.current is not None:
+        printer.asT.setRoot(printer.current)
+        printer.trees.append(printer.asT)
+    i = 0
+    for tree in printer.trees:
+        if tree is not None:
+            tree.setNodeIds(printer.asT.root)
+            tree.generateDot("expression_dot" + str(i))
+            i += 1
+    # printer.asT.setNodeIds(printer.asT.root)
+    # printer.asT.generateDot("expression_dot")
     # printer.asT.generateDot("dot_output")
+
 
 
 if __name__ == '__main__':
