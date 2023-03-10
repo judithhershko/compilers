@@ -38,11 +38,11 @@ class AST_node():
 
 
 class Value(AST_node):
-    def __init__(self, lit, valueType, parent=None,const=False):
+    def __init__(self, lit, valueType, parent=None, const=False):
         self.value = lit
         self.type = valueType
         self.parent = parent
-        self.const=const
+        self.const = const
 
     def __eq__(self, other):
         if not isinstance(other, Value):
@@ -221,7 +221,6 @@ class UnaryOperator(AST_node):
 
     def replaceVariables(self, values):
         self.child.replaceVariables(values)
-
 
 
 class LogicalOperator(AST_node):

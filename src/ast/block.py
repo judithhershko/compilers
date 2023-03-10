@@ -4,7 +4,6 @@ import sys
 import program
 
 
-
 class block():
     def __init__(self, parent):
         self.symbols = symbolTable.symbolTable()

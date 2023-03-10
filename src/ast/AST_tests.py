@@ -282,6 +282,5 @@ class nodeTestCase(unittest.TestCase):
         self.assertEqual(dot, exp)
 
 
-
 if __name__ == '__main__':
     unittest.main()

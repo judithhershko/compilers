@@ -28,7 +28,7 @@ class symbolTable():
                 return "level"
             elif row["Level"] > 0:
                 refRow = self.table.loc[ref]
-                if refRow["level"] != level-1:
+                if refRow["level"] != level - 1:
                     return "pointerLevel"
                 self.table.loc[name, ["Value"]] = value
                 return "replaced"
