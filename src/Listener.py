@@ -11,6 +11,7 @@ class Expression(ExpressionListener):
         self.parent = None
         self.need_token = False
         self.trees = []
+        self.declarations=[]
         self.left = True
         self.right = False
         self.declaration = False
@@ -82,7 +83,7 @@ class Expression(ExpressionListener):
             self.asT.setRoot(self.current)
             self.trees.append(self.asT)
         self.asT = create_tree()
-        self.parent = BinaryOperator("=")
+        self.parent = Declaration()
         var = getVariable(ctx.getText())
         self.current = Value(var, node.LiteralType.VAR, self.parent)
         self.parent.setLeftChild(self.current)
@@ -104,8 +105,8 @@ class Expression(ExpressionListener):
             self.current = self.parent
             self.parent = self.current.parent
         #print("current:")
-        if isinstance(self.current, BinaryOperator):
-            #print(self.current.leftChild.getValue())
+        if isinstance(self.current, BinaryOperator) or isinstance(self.current,Declaration):
+            print(self.current.leftChild.getValue())
             pass
 
         self.asT.setRoot(self.current)
@@ -115,6 +116,8 @@ class Expression(ExpressionListener):
         self.asT = create_tree()
 
     def enterBinop(self, ctx):
+        return self.set_token(ctx)
+    def enterComparators(self, ctx):
         return self.set_token(ctx)
 
     # Enter a parse tree produced by ExpressionParser#binop_md.
@@ -139,6 +142,11 @@ class Expression(ExpressionListener):
     def exitBinop_md(self, ctx):
         pass
 
+    def enterCterm(self, ctx: ParserRuleContext):
+        self.set_exptr(ctx)
+    def exitCterm(self, ctx):
+        print("xit cterm")
+        self.move_up(ctx)
     def enterTerm(self, ctx: ParserRuleContext):
         self.set_exptr(ctx)
 
@@ -155,6 +163,7 @@ class Expression(ExpressionListener):
         pass
 
     def set_exptr(self, ctx: ParserRuleContext):
+        #print("enter expr:"+ctx.getText())
         if self.has_children(ctx):
             self.left = True
             if self.parent is None:
@@ -182,6 +191,7 @@ class Expression(ExpressionListener):
 
     def move_up(self, ctx: ParserRuleContext):
         if self.has_children(ctx):
+            print("has children")
             if self.parent.rightChild is None:
                 self.parent.setRightChild(Value("", node.LiteralType.STR))
             self.current = self.current.parent

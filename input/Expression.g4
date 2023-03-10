@@ -11,19 +11,21 @@ pointer:MULT;
 to_pointer: (pointer)* pri ;
 to_reference: REF pri ;
 
-//dec :variable_dec EQ expr ;
 dec:(const)? typed_var (pointer)* ID EQ (char_expr|expr) |(pointer)* ID EQ (char_expr|expr);
 variable_dec:typed_var ID;
-//variable_dec:const typed_var pointer_variable | typed_var pointer_variable;
 
-binop:MIN | PLUS | GT | LT | AND | OR | ISEQ | GOE | LOE ;
+comparators: GT | LT | AND | OR |NEQ | ISEQ | GOE | LOE ;
+binop: MIN | PLUS | ;
 
+bin_lhs: NOT | MOD;
+bin_rhs: PLUS PLUS | MIN MIN;
 
 binop_md: MULT| DIV ;
 
-expr: term| expr binop term ;
+expr: cterm | term | expr binop term | bin_lhs term | term bin_rhs;
 
-term: fac |term binop_md fac;
+cterm : cterm comparators fac | fac ;
+term: fac | term binop_md fac;
 
 fac:LBRAK expr RBRAK|pri;
 
@@ -58,6 +60,7 @@ OR   : '||';
 NOT  :  '!';
 GOE  :  '>=';
 LOE  :  '<=';
+NEQ  :  '!=';
 MOD  :  '%' ;
 CHAR_ID:'\'';
 
