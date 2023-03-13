@@ -270,6 +270,18 @@ class LogicalOperator(AST_node):
                 res = self.leftChild.getValue() and self.rightChild.getValue()
             elif self.operator == "||":
                 res = self.leftChild.getValue() or self.rightChild.getValue()
+            elif self.operator ==">=":
+                res = self.leftChild.getValue() >= self.rightChild.getValue()
+            elif self.operator == "<=":
+                res = self.leftChild.getValue() <= self.rightChild.getValue()
+            elif self.operator ==">":
+                res = self.leftChild.getValue() > self.rightChild.getValue()
+            elif self.operator =="<":
+                res = self.leftChild.getValue() < self.rightChild.getValue()
+            elif self.operator =="==":
+                res = self.leftChild.getValue() == self.rightChild.getValue()
+            elif self.operator =="!=":
+                res = self.leftChild.getValue() != self.rightChild.getValue()
             else:
                 res = not self.leftChild.getValue()
             newNode = Value(res, LiteralType.NUM)

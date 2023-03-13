@@ -3,7 +3,7 @@ const int **y='0'+ 'bla';
 bui
 pb
 **/
-int v=9;
+int v=9*7 >67;
 9+9090-890;
 
 

@@ -67,9 +67,11 @@ class CustomListener(ExpressionListener):
             self.left = True
             self.right = False
 
-    def set_token(self, ctx):
-
-        operator = BinaryOperator(ctx.getText())
+    def set_token(self, ctx,Operator=None):
+        if Operator is not None:
+            operator=Operator
+        else:
+            operator = BinaryOperator(ctx.getText())
         if self.parent is not None and not isinstance(self.parent, Declaration) and self.parent.operator == "":
             self.current.parent = operator
             operator.leftChild = self.current
@@ -224,7 +226,7 @@ class CustomListener(ExpressionListener):
     def enterEquality(self, ctx: ParserRuleContext):
         # self.set_operation(ctx.getText())
         print("bin eq:" + ctx.getText())
-        self.set_token(ctx)
+        self.set_token(ctx,LogicalOperator(ctx.getText()))
 
     # Exit a parse tree produced by ExpressionParser#equality.
     def exitEquality(self, ctx: ParserRuleContext):
@@ -234,7 +236,7 @@ class CustomListener(ExpressionListener):
     def enterComparator(self, ctx: ParserRuleContext):
         print("comparator:" + ctx.getText())
         # self.set_operation(ctx.getText())
-        self.set_token(ctx)
+        self.set_token(ctx,LogicalOperator(ctx.getText()))
 
     # Exit a parse tree produced by ExpressionParser#comparator.
     def exitComparator(self, ctx: ParserRuleContext):
@@ -244,7 +246,7 @@ class CustomListener(ExpressionListener):
     def enterOr_and(self, ctx: ParserRuleContext):
         # self.set_operation(ctx.getText())
         print("or and:" + ctx.getText())
-        self.set_token(ctx)
+        self.set_token(ctx,LogicalOperator(ctx.getText()))
 
     # Exit a parse tree produced by ExpressionParser#or_and.
     def exitOr_and(self, ctx: ParserRuleContext):
