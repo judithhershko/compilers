@@ -6,6 +6,7 @@ types = \
     {"double": 4, "int": 5, "char": 6, "bool": 7, "string": 8};
 
 
+# TODO: Do we still need NUM and VAR?
 class LiteralType(enum.Enum):
     NUM = 1
     STR = 2
@@ -14,7 +15,9 @@ class LiteralType(enum.Enum):
     INT = 5
     CHAR = 6
     BOOL = 7
+    FLOAT = 8
 
+    # TODO: does initiator need a const param?
     def __init__(self, const=False):
         self.const = const
 
@@ -23,6 +26,8 @@ class AST_node():
     number = None
     level = None
     parent = None
+    line = None  # TODO: added line, mention this
+    variable = False  # TODO: variable check is now boolean
 
     def getId(self):
         return str(self.level) + "." + str(self.number)
@@ -36,12 +41,25 @@ class AST_node():
     def setLevel(self, level):
         self.level = level
 
+    def getLine(self):
+        return self.line
+
+    def setLine(self, line):
+        self.line = line
+
+    def isVariable(self):
+        return self.variable
+
+    def setVariable(self, var):
+        self.variable = var
+
 
 class Value(AST_node):
-    def __init__(self, lit, valueType, parent=None, const=False):
+    def __init__(self, lit, valueType, parent=None, variable=False, const=False):
         self.value = lit
         self.type = valueType
         self.parent = parent
+        self.variable = variable
         self.const = const
 
     def __eq__(self, other):
@@ -68,42 +86,64 @@ class Value(AST_node):
         return self.type
 
     def getVariables(self):
-        if self.type == LiteralType.VAR:
+        if self.variable:
             return [self.value]
         else:
             return []
 
     def replaceVariables(self, values):
-        self.value = values[self.value]
-        self.type = LiteralType.NUM
+        if self.variable:
+            self.value = values[self.value]
+            self.variable = False
+        # self.type = LiteralType.NUM  # TODO: why NUM? don't we need this as input?
+
+    def getHigherType(self, node2):
+        type1 = self.type
+        type2 = node2.getType()
+        if (type1 == LiteralType.STR and type2 in (LiteralType.STR, LiteralType.CHAR)) or \
+                (type2 == LiteralType.STR and type1 == LiteralType.CHAR):
+            return LiteralType.STR
+        elif type1 == LiteralType.CHAR and type2 == LiteralType.CHAR:
+            return LiteralType.CHAR
+        elif (type1 == LiteralType.DOUBLE and type2 in (LiteralType.DOUBLE, LiteralType.FLOAT, LiteralType.INT)) or \
+                (type2 == LiteralType.DOUBLE and type1 in (LiteralType.FLOAT, LiteralType.INT)):
+            return LiteralType.DOUBLE
+        elif (type1 == LiteralType.FLOAT and type2 in (LiteralType.FLOAT, LiteralType.INT)) or \
+                (type2 == LiteralType.FLOAT and type1 == LiteralType.INT):
+            return LiteralType.FLOAT
+        elif type1 == LiteralType.INT and type2 == LiteralType.INT:
+            return LiteralType.INT
+        else:
+            return None
 
 
-class Declaration(AST_node):
-    def __init__(self, parent=None, var=Value):
-        self.parent = parent
-        self.leftChild = var
-        self.rightChild = None
-        self.operator = "="
-
-    def __eq__(self, other):
-        if not isinstance(other, Declaration):
-            return False
-        return self.leftChild == other.leftChild and self.rightChild == other.rightChild
-
-    def getLabel(self):
-        return "\" Declaration: " + self.operator + "\""
-
-    def setLeftChild(self, child):
-        self.leftChild = child
-
-    def setRightChild(self, child):
-        self.rightChild = child
-
-    def getRightChild(self):
-        return self.rightChild
-
-    def getLeftChild(self):
-        return self.leftChild
+# TODO: where did this one come from? seems to be a partial copy of class further down
+# class Declaration(AST_node):
+#     def __init__(self, parent=None, var=Value):
+#         self.parent = parent
+#         self.leftChild = var
+#         self.rightChild = None
+#         self.operator = "="
+#
+#     def __eq__(self, other):
+#         if not isinstance(other, Declaration):
+#             return False
+#         return self.leftChild == other.leftChild and self.rightChild == other.rightChild
+#
+#     def getLabel(self):
+#         return "\" Declaration: " + self.operator + "\""
+#
+#     def setLeftChild(self, child):
+#         self.leftChild = child
+#
+#     def setRightChild(self, child):
+#         self.rightChild = child
+#
+#     def getRightChild(self):
+#         return self.rightChild
+#
+#     def getLeftChild(self):
+#         return self.leftChild
 
 
 class BinaryOperator(AST_node):
@@ -114,13 +154,15 @@ class BinaryOperator(AST_node):
         self.operator = oper
         self.parent = parent
 
+    # TODO: what is this used for??? overwrites other function
     def getValue(self):
         return self.rightChild.getValue()
 
     def __eq__(self, other):
         if not isinstance(other, BinaryOperator):
             return False
-        return self.operator == other.operator and self.leftChild == other.leftChild and self.rightChild == other.rightChild
+        return self.operator == other.operator and self.leftChild == other.leftChild and \
+               self.rightChild == other.rightChild
 
     def getValue(self):
         return self.operator
@@ -146,9 +188,12 @@ class BinaryOperator(AST_node):
         if not isinstance(self.rightChild, Value):
             self.rightChild = self.rightChild.fold()
 
+        typeOfValue = None
+
         if not isinstance(self.leftChild, Value) or not isinstance(self.rightChild, Value):
             return self
-        elif not self.leftChild.getType() == LiteralType.NUM or not self.rightChild.getType() == LiteralType.NUM:
+        elif not self.leftChild.getType() in (LiteralType.DOUBLE, LiteralType.FLOAT, LiteralType.INT) or \
+                not self.rightChild.getType() in (LiteralType.DOUBLE, LiteralType.FLOAT, LiteralType.INT):
             return self
         else:
             if self.operator == "*":
@@ -161,12 +206,19 @@ class BinaryOperator(AST_node):
                 res = self.leftChild.getValue() - self.rightChild.getValue()
             elif self.operator == ">":
                 res = self.leftChild.getValue() > self.rightChild.getValue()
+                typeOfValue = LiteralType.BOOL
             elif self.operator == "<":
                 res = self.leftChild.getValue() < self.rightChild.getValue()
+                typeOfValue = LiteralType.BOOL
             else:
                 res = self.leftChild.getValue() == self.rightChild.getValue()
-            newNode = Value(res, LiteralType.NUM)
+                typeOfValue = LiteralType.BOOL
+            if not typeOfValue:
+                typeOfValue = self.leftChild.getHigherType(self.rightChild)
+            if not typeOfValue:
+                return "impossible operation"
 
+            newNode = Value(res, typeOfValue, self.parent)
             return newNode
 
     def getVariables(self):
@@ -217,8 +269,10 @@ class UnaryOperator(AST_node):
             else:
                 res = + self.child.getValue()
 
-        newNode = Value(res, LiteralType.NUM)
+        if self.child.getType() not in (LiteralType.FLOAT, LiteralType.DOUBLE, LiteralType.INT):
+            return "impossible operation"
 
+        newNode = Value(res, self.child.getType(), self.parent)
         return newNode
 
     def getVariables(self):
@@ -270,8 +324,8 @@ class LogicalOperator(AST_node):
                 res = self.leftChild.getValue() or self.rightChild.getValue()
             else:
                 res = not self.leftChild.getValue()
-            newNode = Value(res, LiteralType.NUM)
 
+            newNode = Value(res, LiteralType.BOOL, self.parent)
             return newNode
 
     def getVariables(self):
@@ -311,6 +365,10 @@ class Declaration(AST_node):
             self.leftChild = self.leftChild.fold()
         if not isinstance(self.rightChild, Value):
             self.rightChild = self.rightChild.fold()
+
+        highestType = self.leftChild.getHigherType(self.rightChild)
+        if self.leftChild.getType() != highestType:
+            return "invalid declaration"
 
         return self
 

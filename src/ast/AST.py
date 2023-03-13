@@ -2,7 +2,7 @@
 import node
 
 
-class AST():
+class AST:
     root = None
 
     def __eq__(self, other):

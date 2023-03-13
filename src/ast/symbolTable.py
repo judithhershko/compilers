@@ -2,7 +2,7 @@ import pandas as pd
 import sys
 
 
-class symbolTable():
+class symbolTable:  #TODO: ask to add memory location?
     def __init__(self):
         self.table = pd.DataFrame({"Value": pd.Series(dtype="str"),
                                    "Type": pd.Series(dtype="str"),

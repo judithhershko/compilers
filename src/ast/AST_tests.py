@@ -22,15 +22,15 @@ class nodeTestCase(unittest.TestCase):
         mult = node.BinaryOperator("*")
         add.setLeftChild(mult)
 
-        leaf1 = node.Value(5, node.LiteralType.NUM)
+        leaf1 = node.Value(5, node.LiteralType.INT, variable=False)
         mult.setLeftChild(leaf1)
-        leaf2 = node.Value(22, node.LiteralType.NUM)
+        leaf2 = node.Value(22, node.LiteralType.INT, variable=False)
         mult.setRightChild(leaf2)
 
         neg = node.UnaryOperator("-")
         add.setRightChild(neg)
 
-        leaf3 = node.Value(-79, node.LiteralType.NUM)
+        leaf3 = node.Value(-79, node.LiteralType.INT, variable=False)
         neg.setChild(leaf3)
 
         ast1.setRoot(add)
@@ -46,12 +46,12 @@ class nodeTestCase(unittest.TestCase):
         mult2.setNumber(1)
         add2.setLeftChild(mult2)
 
-        leaf4 = node.Value(5, node.LiteralType.NUM)
+        leaf4 = node.Value(5, node.LiteralType.INT, variable=False)
         leaf4.setLevel(2)
         leaf4.setNumber(2)
         mult2.setLeftChild(leaf4)
 
-        leaf5 = node.Value(22, node.LiteralType.NUM)
+        leaf5 = node.Value(22, node.LiteralType.INT, variable=False)
         leaf5.setLevel(2)
         leaf5.setNumber(3)
         mult2.setRightChild(leaf5)
@@ -61,7 +61,7 @@ class nodeTestCase(unittest.TestCase):
         neg2.setNumber(4)
         add2.setRightChild(neg2)
 
-        leaf6 = node.Value(-79, node.LiteralType.NUM)
+        leaf6 = node.Value(-79, node.LiteralType.INT, variable=False)
         leaf6.setLevel(2)
         leaf6.setNumber(5)
         neg2.setChild(leaf6)
@@ -78,16 +78,16 @@ class nodeTestCase(unittest.TestCase):
         mult = node.BinaryOperator("*")
         add.setLeftChild(mult)
 
-        leaf1 = node.Value(5, node.LiteralType.NUM)
+        leaf1 = node.Value(5, node.LiteralType.INT, variable=False)
         mult.setLeftChild(leaf1)
 
-        leaf2 = node.Value(22, node.LiteralType.NUM)
+        leaf2 = node.Value(22, node.LiteralType.INT, variable=False)
         mult.setRightChild(leaf2)
 
         neg = node.UnaryOperator("-")
         add.setRightChild(neg)
 
-        leaf3 = node.Value(-79, node.LiteralType.NUM)
+        leaf3 = node.Value(-79, node.LiteralType.INT, variable=False)
         neg.setChild(leaf3)
 
         ast.setRoot(add)
@@ -110,19 +110,19 @@ class nodeTestCase(unittest.TestCase):
         mult = node.BinaryOperator("*")
         add.setLeftChild(mult)
 
-        leaf1 = node.Value(5, node.LiteralType.NUM)
+        leaf1 = node.Value(5, node.LiteralType.INT, variable=False)
         mult.setLeftChild(leaf1)
 
-        leaf2 = node.Value(22, node.LiteralType.NUM)
+        leaf2 = node.Value(22, node.LiteralType.INT, variable=False)
         mult.setRightChild(leaf2)
 
         neg = node.UnaryOperator("-")
         add.setRightChild(neg)
 
-        leaf3 = node.Value(-78, node.LiteralType.NUM)
+        leaf3 = node.Value(-78, node.LiteralType.INT, variable=False)
         neg.setChild(leaf3)
 
-        leaf4 = node.Value(2, node.LiteralType.NUM)
+        leaf4 = node.Value(2, node.LiteralType.INT, variable=True)
         div.setRightChild(leaf4)
 
         ast.setRoot(div)
@@ -132,7 +132,7 @@ class nodeTestCase(unittest.TestCase):
         ast.setNodeIds(ast.root)
         ast.generateDot("test_fold")
 
-        res = node.Value(94, node.LiteralType.NUM)
+        res = node.Value(94, node.LiteralType.INT, variable=False)
         res.setLevel(0)
         res.setNumber(0)
 
@@ -169,19 +169,19 @@ class nodeTestCase(unittest.TestCase):
         mult = node.BinaryOperator("*")
         add.setLeftChild(mult)
 
-        leaf1 = node.Value("x", node.LiteralType.VAR)
+        leaf1 = node.Value("x", node.LiteralType.INT, variable=True)
         mult.setLeftChild(leaf1)
 
-        leaf2 = node.Value("y", node.LiteralType.VAR)
+        leaf2 = node.Value("y", node.LiteralType.INT, variable=True)
         mult.setRightChild(leaf2)
 
         neg = node.UnaryOperator("-")
         add.setRightChild(neg)
 
-        leaf3 = node.Value("z", node.LiteralType.VAR)
+        leaf3 = node.Value("z", node.LiteralType.FLOAT, variable=True)
         neg.setChild(leaf3)
 
-        leaf4 = node.Value("w", node.LiteralType.VAR)
+        leaf4 = node.Value("w", node.LiteralType.INT, variable=True)
         div.setRightChild(leaf4)
 
         prog = program.program()
@@ -198,7 +198,7 @@ class nodeTestCase(unittest.TestCase):
         prog.getAst().foldTree()
         prog.getAst().setNodeIds(prog.getAst().root)
 
-        res = node.Value(94, node.LiteralType.NUM)
+        res = node.Value(94, node.LiteralType.INT, variable=False)
         res.setLevel(0)
         res.setNumber(0)
 
@@ -213,19 +213,19 @@ class nodeTestCase(unittest.TestCase):
         mult = node.BinaryOperator("*")
         add.setLeftChild(mult)
 
-        leaf1 = node.Value("x", node.LiteralType.VAR)
+        leaf1 = node.Value("x", node.LiteralType.INT, variable=True)
         mult.setLeftChild(leaf1)
 
-        leaf2 = node.Value("y", node.LiteralType.VAR)
+        leaf2 = node.Value("y", node.LiteralType.DOUBLE, variable=True)
         mult.setRightChild(leaf2)
 
         neg = node.UnaryOperator("-")
         add.setRightChild(neg)
 
-        leaf3 = node.Value("z", node.LiteralType.VAR)
+        leaf3 = node.Value("z", node.LiteralType.FLOAT, variable=True)
         neg.setChild(leaf3)
 
-        leaf4 = node.Value("w", node.LiteralType.VAR)
+        leaf4 = node.Value("w", node.LiteralType.INT, variable=True)
         div.setRightChild(leaf4)
 
         prog = program.program()
@@ -246,7 +246,7 @@ class nodeTestCase(unittest.TestCase):
         scope.getAst().foldTree()
         scope.getAst().setNodeIds(scope.getAst().root)
 
-        res = node.Value(94, node.LiteralType.NUM)
+        res = node.Value(94, node.LiteralType.INT, variable=False)
         res.setLevel(0)
         res.setNumber(0)
 
@@ -254,16 +254,16 @@ class nodeTestCase(unittest.TestCase):
 
     def test_toDotDeclaration(self):
         dec = node.Declaration()
-        var = node.Value("x", node.LiteralType.VAR, parent=dec)
+        var = node.Value("x", node.LiteralType.DOUBLE, parent=dec, variable=True)
         dec.setLeftChild(var)
 
         mul = node.BinaryOperator("*", parent=dec)
         dec.setRightChild(mul)
 
-        leaf1 = node.Value(5, node.LiteralType.NUM, parent=mul)
+        leaf1 = node.Value(5, node.LiteralType.INT, parent=mul, variable=False)
         mul.setLeftChild(leaf1)
 
-        leaf2 = node.Value(3, node.LiteralType.NUM, parent=mul)
+        leaf2 = node.Value(3, node.LiteralType.INT, parent=mul, variable=False)
         mul.setRightChild(leaf2)
 
         ast = AST.AST()
