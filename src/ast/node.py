@@ -16,13 +16,14 @@ class LiteralType(enum.Enum):
     CHAR = 6
     BOOL = 7
     FLOAT = 8
+    POINTER = 9
 
     # TODO: does initiator need a const param?
     def __init__(self, const=False):
         self.const = const
 
 
-class AST_node():
+class AST_node:
     number = None
     level = None
     parent = None
@@ -65,7 +66,9 @@ class Value(AST_node):
     def __eq__(self, other):
         if not isinstance(other, Value):
             return False
-        return self.value == other.value
+        return self.value == other.value and self.type == other.type and self.parent == other.parent and \
+               self.variable == other.variable and self.const == other.const and self.level == other.level and \
+               self.number == other.number and self.line == other.line
 
     def getValue(self):
         return self.value
@@ -162,7 +165,9 @@ class BinaryOperator(AST_node):
         if not isinstance(other, BinaryOperator):
             return False
         return self.operator == other.operator and self.leftChild == other.leftChild and \
-               self.rightChild == other.rightChild
+               self.rightChild == other.rightChild and self.parent == other.parent and \
+               self.variable == other.variable and self.level == other.level and \
+               self.number == other.number and self.line == other.line
 
     def getValue(self):
         return self.operator
@@ -242,7 +247,9 @@ class UnaryOperator(AST_node):
     def __eq__(self, other):
         if not isinstance(other, UnaryOperator):
             return False
-        return self.operator == other.operator and self.child == other.child
+        return self.operator == other.operator and self.child == other.child and self.parent == other.parent and \
+               self.variable == other.variable and self.level == other.level and \
+               self.number == other.number and self.line == other.line
 
     def getValue(self):
         return self.operator
@@ -293,7 +300,10 @@ class LogicalOperator(AST_node):
     def __eq__(self, other):
         if not isinstance(other, LogicalOperator):
             return False
-        return self.operator == other.operator and self.leftChild == other.leftChild and self.rightChild == other.rightChild
+        return self.operator == other.operator and self.leftChild == other.leftChild and \
+               self.rightChild == other.rightChild  and self.parent == other.parent and \
+               self.variable == other.variable and self.level == other.level and \
+               self.number == other.number and self.line == other.line
 
     def getValue(self):
         return self.operator
@@ -349,7 +359,9 @@ class Declaration(AST_node):
     def __eq__(self, other):
         if not isinstance(other, LogicalOperator):
             return False
-        return self.leftChild == other.leftChild and self.rightChild == other.rightChild
+        return self.leftChild == other.leftChild and self.rightChild == other.rightChild and \
+               self.parent == other.parent and self.variable == other.variable and self.level == other.level and \
+               self.number == other.number and self.line == other.line
 
     def getLabel(self):
         return "\"Value declaration\""
@@ -377,3 +389,39 @@ class Declaration(AST_node):
 
     def replaceVariables(self, values):
         self.rightChild.replaceVaribles(values)
+
+
+class Pointer(AST_node):
+    def __init__(self, location, parent=None, variable=True, const=False):
+        self.value = location
+        self.type = LiteralType.POINTER
+        self.parent = parent
+        self.variable = variable
+        self.const = const
+
+    def __eq__(self, other):
+        if not isinstance(other, Pointer):
+            return False
+        return self.value == other.value and self.type == other.type and self.parent == other.parent and \
+               self.variable == other.variable and self.level == other.level and self.const == other.const and \
+               self.number == other.number and self.line == other.line
+
+    def getValue(self):
+        return self.value
+
+    def setValue(self, val):
+        self.value = val
+
+    def getLabel(self):
+        return "\"Pointer: " + str(self.value) + "\""
+
+    def getType(self):
+        return self.type
+
+    def getVariables(self):
+        return [self.value]
+
+    def replaceVariables(self, values):
+        if self.variable:
+            self.value = values[self.value]
+            self.variable = False

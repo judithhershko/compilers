@@ -1,12 +1,12 @@
-import symbolTable
+import SymbolTable
 import AST
 import sys
-import program
+import Program
 
 
-class block():
+class Block:
     def __init__(self, parent):
-        self.symbols = symbolTable.symbolTable()
+        self.symbols = SymbolTable.SymbolTable()
         self.ast = AST.AST()
         self.parent = parent
         self.blocks = []
@@ -35,7 +35,7 @@ class block():
                 notFound.append(elem)
 
         current = self
-        while not isinstance(current, program.program) and notFound:
+        while not isinstance(current, Program.Program) and notFound:
             current = self.getParent()
             variables = notFound
             notFound = []

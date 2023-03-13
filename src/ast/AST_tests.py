@@ -1,7 +1,7 @@
 import unittest
 import AST
 import node
-import program
+import Program
 import block
 
 
@@ -139,7 +139,7 @@ class nodeTestCase(unittest.TestCase):
         self.assertEqual(ast.root, res)
 
     def test_fillSymbolTable(self):
-        prog = program.program()
+        prog = Program.Program()
 
         val = prog.getSymbolTable()
         a = val.addSymbol("x", 5, "int", False)
@@ -184,7 +184,7 @@ class nodeTestCase(unittest.TestCase):
         leaf4 = node.Value("w", node.LiteralType.INT, variable=True)
         div.setRightChild(leaf4)
 
-        prog = program.program()
+        prog = Program.Program()
         prog.getAst().setRoot(div)
         prog.getAst().setNodeIds(prog.getAst().root)
 
@@ -198,7 +198,7 @@ class nodeTestCase(unittest.TestCase):
         prog.getAst().foldTree()
         prog.getAst().setNodeIds(prog.getAst().root)
 
-        res = node.Value(94, node.LiteralType.INT, variable=False)
+        res = node.Value(94, node.LiteralType.FLOAT, variable=False)
         res.setLevel(0)
         res.setNumber(0)
 
@@ -228,8 +228,8 @@ class nodeTestCase(unittest.TestCase):
         leaf4 = node.Value("w", node.LiteralType.INT, variable=True)
         div.setRightChild(leaf4)
 
-        prog = program.program()
-        scope = block.block(prog)
+        prog = Program.Program()
+        scope = block.Block(prog)
         scope.getAst().setRoot(div)
         scope.getAst().setNodeIds(scope.getAst().root)
         prog.addBlock(scope)
@@ -246,7 +246,7 @@ class nodeTestCase(unittest.TestCase):
         scope.getAst().foldTree()
         scope.getAst().setNodeIds(scope.getAst().root)
 
-        res = node.Value(94, node.LiteralType.INT, variable=False)
+        res = node.Value(94, node.LiteralType.DOUBLE, variable=False)
         res.setLevel(0)
         res.setNumber(0)
 

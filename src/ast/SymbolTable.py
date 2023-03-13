@@ -2,7 +2,7 @@ import pandas as pd
 import sys
 
 
-class symbolTable:  # TODO: ask to add memory location?
+class SymbolTable:  # TODO: ask to add memory location?
     def __init__(self):
         self.table = pd.DataFrame({"Value": pd.Series(dtype="str"),
                                    "Type": pd.Series(dtype="str"),
@@ -36,7 +36,12 @@ class symbolTable:  # TODO: ask to add memory location?
                 self.table.loc[name, ["Value"]] = value
                 return "replaced"
 
-    def findSymbol(self, name):
+    def findSymbol(self, name, deref=0):
         if name not in self.table.index:
             return None
-        return self.table.at[name, "Value"]
+        elif deref == 0:
+            return self.table.at[name, "Value"]
+        elif deref > 0 and self.table.at[name, "type"] == "pointer":
+            return self.findSymbol(self.table.at[name, "ref"], deref=deref - 1)
+        else:
+            return None
