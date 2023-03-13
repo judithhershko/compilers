@@ -10,7 +10,7 @@ fi
 java -jar antlr-4.12.0-complete.jar -o generated -visitor -listener -Dlanguage=Python3 input/Expression.g4;
 #execute main
 #python3 main.py input/Expression.g4
-python3 main.py input/input.c
+python3 main.py
 
 dot -Tpng dotFiles/expression_dot0.dot -o dotFiles/result.png
 

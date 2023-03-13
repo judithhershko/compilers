@@ -1,5 +1,5 @@
 from . import node
-# import node
+#import node
 
 
 class AST():
@@ -16,7 +16,8 @@ class AST():
     def setNodeIds(self, nextNode, level=0, number=0):
         nextNode.setNumber(number)
         nextNode.setLevel(level)
-        if isinstance(nextNode, node.BinaryOperator) or isinstance(nextNode, node.LogicalOperator):
+        if isinstance(nextNode, node.BinaryOperator) or isinstance(nextNode, node.LogicalOperator) or \
+                isinstance(nextNode, node.Declaration):
             number = self.setNodeIds(nextNode.leftChild, level + 1, number + 1)
             number = self.setNodeIds(nextNode.rightChild, level + 1, number + 1)
         elif isinstance(nextNode, node.UnaryOperator):
@@ -28,7 +29,8 @@ class AST():
         nodes = self.root.getId() + " [label=" + self.root.getLabel() + "]"
         edges = ""
 
-        if isinstance(self.root, node.BinaryOperator) or isinstance(self.root, node.LogicalOperator):
+        if isinstance(self.root, node.BinaryOperator) or isinstance(self.root, node.LogicalOperator) or \
+                isinstance(self.root, node.Declaration):
             edges = self.root.getId() + "--" + self.root.leftChild.getId() + "\n" + self.root.getId() + "--" + \
                     self.root.rightChild.getId()
             res = self.toDot(self.root.leftChild)
@@ -53,7 +55,8 @@ class AST():
         nodes = "\n" + root.getId() + " [label=" + root.getLabel() + "]"
         edges = ""
 
-        if isinstance(root, node.BinaryOperator) or isinstance(root, node.LogicalOperator):
+        if isinstance(root, node.BinaryOperator) or isinstance(root, node.LogicalOperator) or \
+                isinstance(root, node.Declaration):
             edges = "\n" + root.getId() + "--" + root.leftChild.getId() + "\n" + root.getId() + "--" + \
                     root.rightChild.getId()
             res = self.toDot(root.leftChild)

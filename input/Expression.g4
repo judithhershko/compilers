@@ -11,25 +11,33 @@ pointer:MULT;
 to_pointer: (pointer)* pri ;
 to_reference: REF pri ;
 
+//dec :variable_dec EQ expr ;
 dec:(const)? typed_var (pointer)* ID EQ (char_expr|expr) |(pointer)* ID EQ (char_expr|expr);
 variable_dec:typed_var ID;
+//variable_dec:const typed_var pointer_variable | typed_var pointer_variable;
 
-comparators: GT | LT | AND | OR |NEQ | ISEQ | GOE | LOE ;
-binop: MIN | PLUS | ;
+binop:MIN | PLUS ;
+binop_md: MULT| DIV | MOD;
+equality: ISEQ | NEQ;
+comparator: LOE | GOE | LT | GT;
+or_and: OR | AND ;
 
-bin_lhs: NOT | MOD;
-bin_rhs: PLUS PLUS | MIN MIN;
-
-binop_md: MULT| DIV ;
-
-expr: cterm | term | expr binop term | bin_lhs term | term bin_rhs;
-
-cterm : cterm comparators fac | fac ;
-term: fac | term binop_md fac;
-
+expr: expr or_and term_1 | term_1;
+term_1: term_1 equality term_2 | term_2;
+term_2: term_2 comparator term_3 | term_3;
+term_3: term_3 binop term_4 | term_4 ;
+term_4: term_4 binop_md fac | term_5;
+term_5: NOT term_5 | term_6;
+term_6: PP term_6 | MM term_6 | term_7;
+term_7: term_7 PP | term_7 MM | fac;
 fac:LBRAK expr RBRAK|pri;
-
 pri: NUM | ID;
+
+//term: fac |term binop_md fac;
+
+
+
+
 
 char_op: PLUS | MIN;
 char_expr: char_pri| char_expr char_op char_expr;
@@ -46,6 +54,9 @@ MULT : '*' ;
 NUM  : [0-9]+ ;
 ID   : [a-zA-Z_][a-zA-Z_0-9]*;
 WS   : [ \t\n\r\f]+ -> skip ;
+NEQ  : '!=';
+PP   : '++';
+MM   : '--';
 GT   : '>' ;
 LT   : '<' ;
 DIV  : '/' ;
@@ -60,7 +71,6 @@ OR   : '||';
 NOT  :  '!';
 GOE  :  '>=';
 LOE  :  '<=';
-NEQ  :  '!=';
 MOD  :  '%' ;
 CHAR_ID:'\'';
 
