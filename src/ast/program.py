@@ -5,7 +5,7 @@ import sys
 
 class program():
     def __init__(self):
-        self.symbols = symbolTable()
+        self.symbols = SymbolTable()
         self.ast = AST()
         self.blocks = []
 

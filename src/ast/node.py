@@ -14,7 +14,7 @@ class LiteralType(enum.Enum):
     INT = 5
     CHAR = 6
     BOOL = 7
-    FLOAT=8
+    FLOAT = 8
 
     def __init__(self, const=False):
         self.const = const
@@ -44,6 +44,7 @@ class Value(AST_node):
         self.type = valueType
         self.parent = parent
         self.const = const
+        self.nr_pointers = 0
 
     def __eq__(self, other):
         if not isinstance(other, Value):

@@ -121,7 +121,9 @@ class CustomListener(ExpressionListener):
 
     # Enter a parse tree produced by ExpressionParser#pointer.
     def enterPointer(self, ctx: ParserRuleContext):
-        pass
+        print("pointer is" + ctx.getText())
+        self.dec_op.leftChild.nr_pointers+=1
+        self.dec_op.leftChild.setValue(self.dec_op.leftChild.getValue()[1:])
 
     # Exit a parse tree produced by ExpressionParser#pointer.
     def exitPointer(self, ctx: ParserRuleContext):
@@ -173,7 +175,14 @@ class CustomListener(ExpressionListener):
         self.asT.foldTree()
         self.asT.setNodeIds(self.asT.root)
         self.asT.generateDot("yes_fold_expression_dot" + str(self.counter))
-        self.c_block.getSymbolTable().addSymbol(self.asT.root.leftChild.getValue(),self.asT.root.rightChild.getValue(),self.asT.root.leftChild.type,self.asT.root.leftChild.const)
+        pointer=""
+        level=0
+        if self.asT.root.leftChild.nr_pointers>0:
+            pointer="*"
+            level=self.asT.root.leftChild.nr_pointers
+        self.c_block.getSymbolTable().addSymbol(self.asT.root.leftChild.getValue(),self.asT.root.rightChild.getValue(),
+                                                self.asT.root.leftChild.type,self.asT.root.leftChild.const,
+                                                pointer,level)
         self.counter += 1
         self.parent = None
         self.current = None
