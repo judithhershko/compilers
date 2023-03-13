@@ -2,9 +2,11 @@ grammar Expression;
 
 start_rule: (expr|dec|comments)*;
 
-comments: one_line_comment | multi_line_comment;
-one_line_comment: ONE_LINE_COMMENT (ID)*;
-multi_line_comment: STRT_COMMENT (NUM|ID)* END_COMMENT;
+//comments: one_line_comment | multi_line_comment;
+comments: ML_COMMENT | SL_COMMENT;
+//one_line_comment: ONE_LINE_COMMENT (ID)*;
+
+//multi_line_comment: STRT_COMMENT (NUM|ID)* END_COMMENT;
 
 typed_var: INT| DOUBLE | FLOAT |CHAR;
 
@@ -78,6 +80,10 @@ CHAR_ID:'\'';
 ONE_LINE_COMMENT:'//';
 STRT_COMMENT:'/**';
 END_COMMENT:'**/' ;
+ML_COMMENT:  '/*' .* '*/';
+
+SL_COMMENT:  '//' ~('\r' | '\n')*;
+
 
 EOL: ';' -> skip;
 NLINE:';' .*? '\n' -> skip;

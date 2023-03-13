@@ -16,6 +16,7 @@ class CustomListener(ExpressionListener):
         self.counter = 0
         self.program=program.program()
         self.c_block=block(None)
+        self.line_nr=0
 
     def has_children(self, ctx: ParserRuleContext):
         return ctx.getChildCount() > 1
@@ -60,6 +61,8 @@ class CustomListener(ExpressionListener):
             self.left = True
             self.right = False
         elif self.parent is None:
+            self.line_nr+=1
+            print("line nr:",self.line_nr)
             self.parent = BinaryOperator("")
             self.left = True
             self.right = False
@@ -145,6 +148,8 @@ class CustomListener(ExpressionListener):
     # Enter a parse tree produced by ExpressionParser#dec.
     def enterDec(self, ctx: ParserRuleContext):
         print("enter dec")
+        self.line_nr+=1
+        print("line nr:",self.line_nr)
         self.asT = create_tree()
         self.parent = Declaration()
         var = getVariable(ctx.getText())
@@ -378,6 +383,8 @@ class CustomListener(ExpressionListener):
     # Enter a parse tree produced by ExpressionParser#one_line_comment.
     def enterOne_line_comment(self,  ctx: ParserRuleContext):
         print("one line comment"+ctx.getText())
+        self.line_nr+=1
+        print("line nr:",self.line_nr)
 
     # Exit a parse tree produced by ExpressionParser#one_line_comment.
     def exitOne_line_comment(self,  ctx: ParserRuleContext):
