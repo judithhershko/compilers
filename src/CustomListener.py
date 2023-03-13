@@ -171,6 +171,7 @@ class CustomListener(ExpressionListener):
         self.asT.setNodeIds(self.asT.root)
         self.asT.generateDot("no_fold_expression_dot" + str(self.counter))
         self.asT.foldTree()
+        self.asT.setNodeIds(self.asT.root)
         self.asT.generateDot("yes_fold_expression_dot" + str(self.counter))
         self.c_block.getSymbolTable().addSymbol(self.asT.root.leftChild.getValue(),self.asT.root.rightChild.getValue(),self.asT.root.leftChild.type,self.asT.root.leftChild.const)
         self.counter += 1
