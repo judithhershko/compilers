@@ -8,14 +8,11 @@ class CustomListener(ExpressionListener):
         self.asT = create_tree()
         self.current = None
         self.parent = None
-        self.need_token = False
         self.trees = []
-        self.declarations = []
         self.left = True
         self.right = False
         self.declaration = False
         self.dec_op = None
-        self.pri_dec = False
         self.counter = 0
         self.program=program.program()
         self.c_block=block(None)
@@ -159,6 +156,7 @@ class CustomListener(ExpressionListener):
 
     # Exit a parse tree produced by ExpressionParser#dec.
     def exitDec(self, ctx: ParserRuleContext):
+        print("exit dec")
         while self.current.parent is not None:
             self.current = self.parent
         if isinstance(self.current,BinaryOperator) and self.current.operator=="" :
@@ -355,16 +353,41 @@ class CustomListener(ExpressionListener):
 
     # Enter a parse tree produced by ExpressionParser#char_expr.
     def enterChar_expr(self, ctx: ParserRuleContext):
+        print("char expr:" + ctx.getText())
         return self.set_expression(ctx)
 
     # Exit a parse tree produced by ExpressionParser#char_expr.
-    def exitChar_expr(self, ctx: ParserRuleContext):
+    def exitChar_expr(self,  ctx: ParserRuleContext):
         pass
 
     # Enter a parse tree produced by ExpressionParser#char_pri.
-    def enterChar_pri(self, ctx: ParserRuleContext):
+    def enterChar_pri(self,  ctx: ParserRuleContext):
         self.set_val(ctx)
 
     # Exit a parse tree produced by ExpressionParser#char_pri.
-    def exitChar_pri(self, ctx: ParserRuleContext):
+    def exitChar_pri(self,  ctx: ParserRuleContext):
+        pass
+    def enterComments(self,  ctx: ParserRuleContext):
+        pass
+
+    # Exit a parse tree produced by ExpressionParser#comments.
+    def exitComments(self,  ctx: ParserRuleContext):
+        print("eter comment"+ctx.getText())
+
+
+    # Enter a parse tree produced by ExpressionParser#one_line_comment.
+    def enterOne_line_comment(self,  ctx: ParserRuleContext):
+        print("one line comment"+ctx.getText())
+
+    # Exit a parse tree produced by ExpressionParser#one_line_comment.
+    def exitOne_line_comment(self,  ctx: ParserRuleContext):
+        pass
+
+
+    # Enter a parse tree produced by ExpressionParser#multi_line_comment.
+    def enterMulti_line_comment(self,  ctx: ParserRuleContext):
+        print("multiline comment"+ctx.getText())
+
+    # Exit a parse tree produced by ExpressionParser#multi_line_comment.
+    def exitMulti_line_comment(self,  ctx: ParserRuleContext):
         pass

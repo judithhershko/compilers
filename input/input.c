@@ -1,4 +1,10 @@
-const int **y=90+90-90;
+const int **y='0'+ 'bla';
+//this is comment;
+int v=9;
+9+9090-890;
+
+
+
 
 
 

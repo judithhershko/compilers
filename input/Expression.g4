@@ -1,6 +1,10 @@
 grammar Expression;
 
-start_rule: (expr)*(dec)*;
+start_rule: (expr|dec|comments)*;
+
+comments: one_line_comment | multi_line_comment;
+one_line_comment: ONE_LINE_COMMENT (ID)*;
+multi_line_comment: STRT_COMMENT (NUM|ID)* END_COMMENT;
 
 typed_var: INT| DOUBLE | FLOAT |CHAR;
 
@@ -11,10 +15,8 @@ pointer:MULT;
 to_pointer: (pointer)* pri ;
 to_reference: REF pri ;
 
-//dec :variable_dec EQ expr ;
 dec:(const)? typed_var (pointer)* ID EQ (char_expr|expr) |(pointer)* ID EQ (char_expr|expr);
 variable_dec:typed_var ID;
-//variable_dec:const typed_var pointer_variable | typed_var pointer_variable;
 
 binop:MIN | PLUS ;
 binop_md: MULT| DIV | MOD;
@@ -41,7 +43,7 @@ pri: NUM | ID;
 
 char_op: PLUS | MIN;
 char_expr: char_pri| char_expr char_op char_expr;
-char_pri:CHAR_ID ID CHAR_ID ;
+char_pri:CHAR_ID (NUM)*(ID)* CHAR_ID ;
 
 INT     : 'int'     ;
 DOUBLE  : 'double'  ;
@@ -73,6 +75,9 @@ GOE  :  '>=';
 LOE  :  '<=';
 MOD  :  '%' ;
 CHAR_ID:'\'';
+ONE_LINE_COMMENT:'//';
+STRT_COMMENT:'/**';
+END_COMMENT:'**/' ;
 
 EOL: ';' -> skip;
 NLINE:';' .*? '\n' -> skip;
