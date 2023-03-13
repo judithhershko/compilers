@@ -1,8 +1,7 @@
-from .ast.AST import *
 from generated.input.ExpressionListener import *
-from .ast.node import Value, BinaryOperator
 from src.HelperFunctions import *
-
+from .ast.program import *
+from .ast.block import *
 
 class CustomListener(ExpressionListener):
     def __init__(self):
@@ -18,6 +17,8 @@ class CustomListener(ExpressionListener):
         self.dec_op = None
         self.pri_dec = False
         self.counter = 0
+        self.program=program.program()
+        self.c_block=block(None)
 
     def has_children(self, ctx: ParserRuleContext):
         return ctx.getChildCount() > 1
@@ -26,17 +27,12 @@ class CustomListener(ExpressionListener):
 
         print("set val:" + ctx.getText())
         type_ = find_value_type(ctx.getText())
-        # print("val type")
-        # print(type_)
         self.current = Value(ctx.getText(), type_, self.parent)
-        """
-        if self.declaration and self.parent.operator == "":
-            self.current.parent = self.dec_op
-            self.dec_op.rightChild = self.current
-            self.dec_op.leftChild.parent = self.dec_op
-            # self.parent=self.dec_op
-            self.pri_dec = True
-        """
+        if type_==LiteralType.NUM:
+            if isFloat(ctx.getText()):
+                self.current = Value(float(ctx.getText()), type_, self.parent)
+            else:
+                self.current = Value(int(ctx.getText()), type_, self.parent)
         if self.right:
             print("right")
             self.parent.setRightChild(self.current)
@@ -87,7 +83,7 @@ class CustomListener(ExpressionListener):
     ########################################################################
     # Enter a parse tree produced by ExpressionParser#start_rule.
     def enterStart_rule(self, ctx: ParserRuleContext):
-        pass
+        print("start rule:"+ctx.getText())
 
     # Exit a parse tree produced by ExpressionParser#start_rule.
     def exitStart_rule(self, ctx: ParserRuleContext):
@@ -161,21 +157,6 @@ class CustomListener(ExpressionListener):
 
     # Exit a parse tree produced by ExpressionParser#dec.
     def exitDec(self, ctx: ParserRuleContext):
-        """
-        if self.pri_dec:
-            print("pri expr")
-            self.dec_op.leftChild.parent = self.dec_op
-            self.dec_op.rightChild.parent = self.dec_op
-            self.asT = create_tree()
-            p = Declaration()
-            p.leftChild = self.dec_op.leftChild
-            p.leftChild.parent = p
-            p.rightChild = self.dec_op.rightChild
-            p.rightChild.parent = p
-            self.asT.setRoot(p)
-            self.trees.append(self.asT)
-        """
-        #else:
         while self.current.parent is not None:
             self.current = self.parent
         if isinstance(self.current,BinaryOperator) and self.current.operator=="" :
@@ -188,7 +169,10 @@ class CustomListener(ExpressionListener):
         self.asT.setRoot(self.current)
         self.trees.append(self.asT)
         self.asT.setNodeIds(self.asT.root)
-        self.asT.generateDot("expression_dot" + str(self.counter))
+        self.asT.generateDot("no_fold_expression_dot" + str(self.counter))
+        self.asT.foldTree()
+        self.asT.generateDot("yes_fold_expression_dot" + str(self.counter))
+        self.c_block.getSymbolTable().addSymbol(self.asT.root.leftChild.getValue(),self.asT.root.rightChild.getValue(),self.asT.root.leftChild.type,self.asT.root.leftChild.const)
         self.counter += 1
         self.parent = None
         self.current = None

@@ -14,6 +14,7 @@ class LiteralType(enum.Enum):
     INT = 5
     CHAR = 6
     BOOL = 7
+    FLOAT=8
 
     def __init__(self, const=False):
         self.const = const

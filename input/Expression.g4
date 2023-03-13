@@ -1,6 +1,6 @@
 grammar Expression;
 
-start_rule: (dec)*(expr)*;
+start_rule: (expr)*(dec)*;
 
 typed_var: INT| DOUBLE | FLOAT |CHAR;
 
