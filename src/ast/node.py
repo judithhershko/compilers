@@ -301,7 +301,7 @@ class LogicalOperator(AST_node):
         if not isinstance(other, LogicalOperator):
             return False
         return self.operator == other.operator and self.leftChild == other.leftChild and \
-               self.rightChild == other.rightChild  and self.parent == other.parent and \
+               self.rightChild == other.rightChild and self.parent == other.parent and \
                self.variable == other.variable and self.level == other.level and \
                self.number == other.number and self.line == other.line
 
