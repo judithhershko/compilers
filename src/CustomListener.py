@@ -68,8 +68,7 @@ class CustomListener(ExpressionListener):
             self.right = True
 
     def set_expression(self, ctx: ParserRuleContext):
-
-        if self.declaration:
+        if self.declaration and isinstance(self.parent,Declaration):
             self.dec_op = self.parent
             self.parent = BinaryOperator("")
             self.current = self.parent.leftChild
