@@ -35,17 +35,16 @@ term_5: NOT term_5 | term_6;
 term_6: PP term_6 | MM term_6 | term_7;
 term_7: term_7 PP | term_7 MM | fac;
 fac:LBRAK expr RBRAK|pri;
-pri: NUM | ID;
+pri:  ID | num+ '.' num* | '.' num+ | num;
+fnum: num | num+ '.' num* | '.' num+ ;
+num: NUM;
 
 //term: fac |term binop_md fac;
 
-
-
-
-
 char_op: PLUS | MIN;
 char_expr: char_pri| char_expr char_op char_expr;
-char_pri:CHAR_ID (NUM)*(ID)* CHAR_ID ;
+//char_pri:CHAR_ID SEARCH_TYPE CHAR_ID ;
+char_pri:CHAR_ID (ID | NUM)* CHAR_ID ;
 
 INT     : 'int'     ;
 DOUBLE  : 'double'  ;
@@ -54,6 +53,8 @@ CHAR    : 'char'    ;
 CONST   : 'const'   ;
 REF     : '&'       ;
 
+//SEARCH_TYPE: '"' ~'"'* '"';
+PT   : '.' ;
 MULT : '*' ;
 NUM  : [0-9]+ ;
 ID   : [a-zA-Z_][a-zA-Z_0-9]*;
