@@ -213,10 +213,8 @@ class BinaryOperator(AST_node):
                 res = self.leftChild.getValue() + self.rightChild.getValue()
             elif self.operator == "-":
                 res = self.leftChild.getValue() - self.rightChild.getValue()
-            elif self.operator == ">":
-                res = self.leftChild.getValue() > self.rightChild.getValue()
-            elif self.operator == "<":
-                res = self.leftChild.getValue() < self.rightChild.getValue()
+            elif self.operator == "%":
+                res = self.leftChild.getValue() % self.rightChild.getValue()
             else:
                 res = self.leftChild.getValue() == self.rightChild.getValue()
             newNode = Value(res, LiteralType.NUM)
