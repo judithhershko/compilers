@@ -35,14 +35,6 @@ def main():
             tree.generateDot("expression_dot" + str(i))
             i += 1
     """
-    c=Comment("/** this is a comment in a node **/",CommentType.ML)
-    tt = AST()
-    tt.setRoot(c)
-    tt.setNodeIds(tt.root)
-    tt.generateDot("comment_test_dot")
-
-
-
     p=Declaration()
     p.leftChild=Value('x',LiteralType.VAR,p)
     p.rightChild=BinaryOperator("+")

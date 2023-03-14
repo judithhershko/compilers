@@ -18,6 +18,7 @@ class CustomListener(ExpressionListener):
         self.program=program.program()
         self.c_block=block(None)
         self.line_nr=0
+        self.comments=[]
 
     def has_children(self, ctx: ParserRuleContext):
         return ctx.getChildCount() > 1
@@ -377,7 +378,9 @@ class CustomListener(ExpressionListener):
     def exitChar_pri(self,  ctx: ParserRuleContext):
         pass
     def enterComments(self,  ctx: ParserRuleContext):
-        pass
+        type=commentType(ctx.getText())
+        comment=Comment(ctx.getText(),type)
+        self.comments.append(comment)
 
     # Exit a parse tree produced by ExpressionParser#comments.
     def exitComments(self,  ctx: ParserRuleContext):
@@ -387,6 +390,7 @@ class CustomListener(ExpressionListener):
     # Enter a parse tree produced by ExpressionParser#one_line_comment.
     def enterOne_line_comment(self,  ctx: ParserRuleContext):
         self.line_nr+=1
+        print("SM comment"+ctx.getText())
 
     # Exit a parse tree produced by ExpressionParser#one_line_comment.
     def exitOne_line_comment(self,  ctx: ParserRuleContext):

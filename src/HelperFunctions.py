@@ -56,3 +56,8 @@ def isFloat(v:str):
         if i=='.':
             f=True
     return f
+def commentType(v:str):
+    if v[1]=="/":
+        return CommentType.SL
+    else:
+        return CommentType.ML
