@@ -7,6 +7,7 @@ line comment
 //this is single line
 int v=9*7 >67;
 9+9090-890;
+printf(3)
 
 
 

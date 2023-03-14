@@ -64,10 +64,30 @@ class Comment(AST_node):
         self.type = type
 
     def getLabel(self):
-            return "\"Comment: " + self.value + "\""
+        return "\"Comment: " + self.value + "\""
 
     def getType(self):
         return self.type
+
+
+class Print(AST_node):
+    def __init__(self, lit):
+        self.parent = None
+        self.value = lit
+
+    def __eq__(self, other):
+        if not isinstance(other, Print):
+            return False
+        return self.value == other.value
+
+    def getValue(self):
+        return self.value
+
+    def setValue(self, val):
+        self.value = val
+
+    def getLabel(self):
+        return "\"Print: " + self.value + "\""
 
 
 class Value(AST_node):

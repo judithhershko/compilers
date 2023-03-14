@@ -3,6 +3,7 @@ from src.HelperFunctions import *
 from .ast.program import *
 from .ast.block import *
 
+
 class CustomListener(ExpressionListener):
     def __init__(self):
         self.asT = create_tree()
@@ -13,25 +14,38 @@ class CustomListener(ExpressionListener):
         self.right = False
         self.declaration = False
         self.dec_op = None
-        self.is_char=False
+        self.is_char = False
         self.counter = 0
-        self.program=program.program()
-        self.c_block=block(None)
-        self.line_nr=0
-        self.comments=[]
+        self.program = program.program()
+        self.c_block = block(None)
+        self.line_nr = 0
+        self.comments = []
+        self.print=False
 
     def has_children(self, ctx: ParserRuleContext):
         return ctx.getChildCount() > 1
 
     def set_val(self, ctx: ParserRuleContext):
+
         print("set val:" + ctx.getText())
         type_ = find_value_type(ctx.getText())
         self.current = Value(ctx.getText(), type_, self.parent)
-        if type_==LiteralType.NUM:
+        if type_ == LiteralType.NUM:
             if isFloat(ctx.getText()):
                 self.current = Value(float(ctx.getText()), type_, self.parent)
             else:
                 self.current = Value(int(ctx.getText()), type_, self.parent)
+
+        if self.print:
+            val= self.current.getValue()
+            if self.current.type==LiteralType.VAR:
+                val=self.c_block.getSymbolTable().findSymbol(self.current.getValue())
+            p=Print(val)
+            self.asT=create_tree()
+            self.asT.setRoot(p)
+            self.c_block.trees.append(self.asT)
+            self.asT=create_tree()
+            return
         if self.right:
             print("right")
             self.parent.setRightChild(self.current)
@@ -62,15 +76,15 @@ class CustomListener(ExpressionListener):
             self.left = True
             self.right = False
         elif self.parent is None:
-            self.line_nr+=1
-            print("line nr:",self.line_nr)
+            self.line_nr += 1
+            print("line nr:", self.line_nr)
             self.parent = BinaryOperator("")
             self.left = True
             self.right = False
 
-    def set_token(self, ctx,Operator=None):
+    def set_token(self, ctx, Operator=None):
         if Operator is not None:
-            operator=Operator
+            operator = Operator
         else:
             operator = BinaryOperator(ctx.getText())
         if self.parent is not None and not isinstance(self.parent, Declaration) and self.parent.operator == "":
@@ -91,6 +105,16 @@ class CustomListener(ExpressionListener):
     # Exit a parse tree produced by ExpressionParser#start_rule.
     def exitStart_rule(self, ctx: ParserRuleContext):
         pass
+
+
+    # Enter a parse tree produced by ExpressionParser#print.
+    def enterPrint(self, ctx: ParserRuleContext):
+        print("enter print:"+ctx.getText())
+        self.print=True
+
+    # Exit a parse tree produced by ExpressionParser#print.
+    def exitPrint(self, ctx: ParserRuleContext):
+        self.print=False
 
     # Enter a parse tree produced by ExpressionParser#typed_var.
     def enterTyped_var(self, ctx: ParserRuleContext):
@@ -125,7 +149,7 @@ class CustomListener(ExpressionListener):
     # Enter a parse tree produced by ExpressionParser#pointer.
     def enterPointer(self, ctx: ParserRuleContext):
         print("pointer is" + ctx.getText())
-        self.dec_op.leftChild.nr_pointers+=1
+        self.dec_op.leftChild.nr_pointers += 1
         self.dec_op.leftChild.setValue(self.dec_op.leftChild.getValue()[1:])
 
     # Exit a parse tree produced by ExpressionParser#pointer.
@@ -151,8 +175,8 @@ class CustomListener(ExpressionListener):
     # Enter a parse tree produced by ExpressionParser#dec.
     def enterDec(self, ctx: ParserRuleContext):
         print("enter dec")
-        self.line_nr+=1
-        print("line nr:",self.line_nr)
+        self.line_nr += 1
+        print("line nr:", self.line_nr)
         self.asT = create_tree()
         self.parent = Declaration()
         var = getVariable(ctx.getText())
@@ -167,10 +191,10 @@ class CustomListener(ExpressionListener):
         print("exit dec")
         while self.current.parent is not None:
             self.current = self.parent
-        if isinstance(self.current,BinaryOperator) and self.current.operator=="" :
+        if isinstance(self.current, BinaryOperator) and self.current.operator == "":
             print("parentop is """)
-            self.current=self.current.leftChild
-        print(isinstance(self.current,BinaryOperator))
+            self.current = self.current.leftChild
+        print(isinstance(self.current, BinaryOperator))
 
         self.dec_op.rightChild = self.current
         self.current = self.dec_op
@@ -181,14 +205,14 @@ class CustomListener(ExpressionListener):
         self.asT.foldTree()
         self.asT.setNodeIds(self.asT.root)
         self.asT.generateDot("yes_fold_expression_dot" + str(self.counter))
-        pointer=""
-        level=0
-        if self.asT.root.leftChild.nr_pointers>0:
-            pointer="*"
-            level=self.asT.root.leftChild.nr_pointers
-        self.c_block.getSymbolTable().addSymbol(self.asT.root.leftChild.getValue(),self.asT.root.rightChild.getValue(),
-                                                self.asT.root.leftChild.type,self.asT.root.leftChild.const,
-                                                pointer,level)
+        pointer = ""
+        level = 0
+        if self.asT.root.leftChild.nr_pointers > 0:
+            pointer = "*"
+            level = self.asT.root.leftChild.nr_pointers
+        self.c_block.getSymbolTable().addSymbol(self.asT.root.leftChild.getValue(), self.asT.root.rightChild.getValue(),
+                                                self.asT.root.leftChild.type, self.asT.root.leftChild.const,
+                                                pointer, level)
         self.counter += 1
         self.parent = None
         self.current = None
@@ -227,7 +251,7 @@ class CustomListener(ExpressionListener):
     def enterEquality(self, ctx: ParserRuleContext):
         # self.set_operation(ctx.getText())
         print("bin eq:" + ctx.getText())
-        self.set_token(ctx,LogicalOperator(ctx.getText()))
+        self.set_token(ctx, LogicalOperator(ctx.getText()))
 
     # Exit a parse tree produced by ExpressionParser#equality.
     def exitEquality(self, ctx: ParserRuleContext):
@@ -237,7 +261,7 @@ class CustomListener(ExpressionListener):
     def enterComparator(self, ctx: ParserRuleContext):
         print("comparator:" + ctx.getText())
         # self.set_operation(ctx.getText())
-        self.set_token(ctx,LogicalOperator(ctx.getText()))
+        self.set_token(ctx, LogicalOperator(ctx.getText()))
 
     # Exit a parse tree produced by ExpressionParser#comparator.
     def exitComparator(self, ctx: ParserRuleContext):
@@ -247,7 +271,7 @@ class CustomListener(ExpressionListener):
     def enterOr_and(self, ctx: ParserRuleContext):
         # self.set_operation(ctx.getText())
         print("or and:" + ctx.getText())
-        self.set_token(ctx,LogicalOperator(ctx.getText()))
+        self.set_token(ctx, LogicalOperator(ctx.getText()))
 
     # Exit a parse tree produced by ExpressionParser#or_and.
     def exitOr_and(self, ctx: ParserRuleContext):
@@ -267,6 +291,7 @@ class CustomListener(ExpressionListener):
             while self.current.parent is not None:
                 self.current = self.current.parent
             self.asT.setRoot(self.current)
+            self.c_block.trees.append(self.asT)
             self.trees.append(self.asT)
             self.asT.setNodeIds(self.asT.root)
             self.asT.generateDot("expression_dot" + str(self.counter))
@@ -362,46 +387,27 @@ class CustomListener(ExpressionListener):
     # Enter a parse tree produced by ExpressionParser#char_expr.
     def enterChar_expr(self, ctx: ParserRuleContext):
         print("char expr:" + ctx.getText())
-        self.is_char=True
+        self.is_char = True
         return self.set_expression(ctx)
 
     # Exit a parse tree produced by ExpressionParser#char_expr.
-    def exitChar_expr(self,  ctx: ParserRuleContext):
-        self.is_char=False
-        print("exit char expr:"+ctx.getText())
+    def exitChar_expr(self, ctx: ParserRuleContext):
+        self.is_char = False
+        print("exit char expr:" + ctx.getText())
 
     # Enter a parse tree produced by ExpressionParser#char_pri.
-    def enterChar_pri(self,  ctx: ParserRuleContext):
+    def enterChar_pri(self, ctx: ParserRuleContext):
         self.set_val(ctx)
 
     # Exit a parse tree produced by ExpressionParser#char_pri.
-    def exitChar_pri(self,  ctx: ParserRuleContext):
+    def exitChar_pri(self, ctx: ParserRuleContext):
         pass
-    def enterComments(self,  ctx: ParserRuleContext):
-        type=commentType(ctx.getText())
-        comment=Comment(ctx.getText(),type)
+
+    def enterComments(self, ctx: ParserRuleContext):
+        type = commentType(ctx.getText())
+        comment = Comment(ctx.getText(), type)
         self.comments.append(comment)
 
     # Exit a parse tree produced by ExpressionParser#comments.
-    def exitComments(self,  ctx: ParserRuleContext):
+    def exitComments(self, ctx: ParserRuleContext):
         pass
-
-
-    # Enter a parse tree produced by ExpressionParser#one_line_comment.
-    def enterOne_line_comment(self,  ctx: ParserRuleContext):
-        self.line_nr+=1
-        print("SM comment"+ctx.getText())
-
-    # Exit a parse tree produced by ExpressionParser#one_line_comment.
-    def exitOne_line_comment(self,  ctx: ParserRuleContext):
-        pass
-
-
-    # Enter a parse tree produced by ExpressionParser#multi_line_comment.
-    def enterMulti_line_comment(self,  ctx: ParserRuleContext):
-        print("multiline comment"+ctx.getText())
-
-    # Exit a parse tree produced by ExpressionParser#multi_line_comment.
-    def exitMulti_line_comment(self,  ctx: ParserRuleContext):
-        pass
-    # Enter a parse tree produced by ExpressionParser#fnum.

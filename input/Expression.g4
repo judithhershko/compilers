@@ -1,13 +1,9 @@
 grammar Expression;
 
-start_rule: (expr|dec|comments)*;
+start_rule: (print|expr|dec|comments)*;
 
-//comments: one_line_comment | multi_line_comment;
+print   : PRINT LBRAK (char_pri | pri) RBRAK ;
 comments: ML_COMMENT | SL_COMMENT;
-//one_line_comment: ONE_LINE_COMMENT (ID)*;
-
-//multi_line_comment: STRT_COMMENT (NUM|ID)* END_COMMENT;
-
 typed_var: INT| DOUBLE | FLOAT |CHAR;
 
 const : CONST;
@@ -52,6 +48,7 @@ FLOAT   : 'float'   ;
 CHAR    : 'char'    ;
 CONST   : 'const'   ;
 REF     : '&'       ;
+PRINT   : 'printf'  ;
 
 //SEARCH_TYPE: '"' ~'"'* '"';
 PT   : '.' ;
@@ -82,7 +79,6 @@ ONE_LINE_COMMENT:'//';
 STRT_COMMENT:'/**';
 END_COMMENT:'**/' ;
 ML_COMMENT:  '/*' .* '*/';
-
 SL_COMMENT:  '//' ~('\r' | '\n')*;
 
 
