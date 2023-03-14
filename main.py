@@ -35,15 +35,23 @@ def main():
             tree.generateDot("expression_dot" + str(i))
             i += 1
     """
-
+    c=Comment("/** this is a comment in a node **/",CommentType.ML)
+    tt = AST()
+    tt.setRoot(c)
+    tt.setNodeIds(tt.root)
+    tt.generateDot("comment_test_dot")
 
 
 
     p=Declaration()
     p.leftChild=Value('x',LiteralType.VAR,p)
-    p.rightChild=Value(2,LiteralType.NUM,p)
+    p.rightChild=BinaryOperator("+")
+    p.rightChild.leftChild=Value(4.7,LiteralType.FLOAT)
+    p.rightChild.rightChild=Value(7.98,LiteralType.FLOAT)
     t=AST()
     t.setRoot(p)
+    t.setNodeIds(t.root)
+    t.foldTree()
     t.setNodeIds(t.root)
     t.generateDot("test_dot")
 

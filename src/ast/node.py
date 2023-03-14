@@ -6,6 +6,11 @@ types = \
     {"double": 4, "int": 5, "char": 6, "bool": 7, "string": 8};
 
 
+class CommentType(enum.Enum):
+    ML = 0
+    SL = 1
+
+
 class LiteralType(enum.Enum):
     NUM = 1
     STR = 2
@@ -36,6 +41,33 @@ class AST_node():
 
     def setLevel(self, level):
         self.level = level
+
+
+class Comment(AST_node):
+    def __init__(self, lit, commentType):
+        self.parent = None
+        self.type = commentType
+        self.value = lit
+
+    def __eq__(self, other):
+        if not isinstance(other, Comment):
+            return False
+        return self.value == other.value
+
+    def getValue(self):
+        return self.value
+
+    def setValue(self, val):
+        self.value = val
+
+    def setType(self, type):
+        self.type = type
+
+    def getLabel(self):
+            return "\"Comment: " + self.value + "\""
+
+    def getType(self):
+        return self.type
 
 
 class Value(AST_node):
@@ -270,17 +302,17 @@ class LogicalOperator(AST_node):
                 res = self.leftChild.getValue() and self.rightChild.getValue()
             elif self.operator == "||":
                 res = self.leftChild.getValue() or self.rightChild.getValue()
-            elif self.operator ==">=":
+            elif self.operator == ">=":
                 res = self.leftChild.getValue() >= self.rightChild.getValue()
             elif self.operator == "<=":
                 res = self.leftChild.getValue() <= self.rightChild.getValue()
-            elif self.operator ==">":
+            elif self.operator == ">":
                 res = self.leftChild.getValue() > self.rightChild.getValue()
-            elif self.operator =="<":
+            elif self.operator == "<":
                 res = self.leftChild.getValue() < self.rightChild.getValue()
-            elif self.operator =="==":
+            elif self.operator == "==":
                 res = self.leftChild.getValue() == self.rightChild.getValue()
-            elif self.operator =="!=":
+            elif self.operator == "!=":
                 res = self.leftChild.getValue() != self.rightChild.getValue()
             else:
                 res = not self.leftChild.getValue()

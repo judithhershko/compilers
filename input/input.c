@@ -1,6 +1,6 @@
+const int **y='0 space space IU'+ 'bla';
 float w=34.99;
 float w=3.87 +7.98;
-const int **y='0 space space IU'+ 'bla';
 /**this is comment;
 bui
 pb
