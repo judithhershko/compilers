@@ -12,15 +12,27 @@ chmod 777 run.sh
 - [x] Binary operations >, <, and ==.
 - [x] Unary operators + and -.
 - [x] Brackets to overwrite the order of operations.
-- [x] Logical operators &&, ||, and !.
+- [ ] Logical operators &&, ||, and !.
 
 
 ### optioneel:
-- [x] Comparison operators >=, <=, and !=.
-- [x] Binary operator %.
-
-## problemen:
-- [x] berekenen van waardes
-- [x] bin_lhs/bin_rhs berekenen
-- GenDot voor declarations
+- [x] Comparison operators >=, <=, and !=
+- [x] Binary operator %
+## project 2:
+### verplicht:
+- [x] Types
+- [ ] Reserved words
+- [ ] Pointer Operations
+### optioneel:
+- [ ] Increment/Decrement Operations
+- [ ] Conversions
+## project 3:
+### verplicht:
+- [x]  comments
+- [x]  Support for single line comments and multi line comments.
+- [ ]   Outputting to the standard output using printf
+- [ ]   to LLVM
+### optioneel:
+- [x]  retaining the comments from the input code during compilation
+- [ ]  retaining comment that contains the original statement from the input code
 
