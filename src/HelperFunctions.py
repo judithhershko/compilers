@@ -1,7 +1,7 @@
 from src.ast import node
 from src.ast.AST import AST
 from src.ast.node import *
-from .ast.program import *
+from .ast.Program import *
 
 def create_tree():
     expression_tree = AST()
