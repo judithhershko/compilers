@@ -1,7 +1,6 @@
 from . import node
 #import node
 
-
 class AST():
     root = None
 
