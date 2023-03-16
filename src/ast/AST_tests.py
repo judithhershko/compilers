@@ -229,7 +229,7 @@ class nodeTestCase(unittest.TestCase):
         div.setRightChild(leaf4)
 
         prog = Program.Program()
-        scope = block.Block(prog)
+        scope = block.block(prog)
         scope.getAst().setRoot(div)
         scope.getAst().setNodeIds(scope.getAst().root)
         prog.addBlock(scope)

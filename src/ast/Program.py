@@ -1,5 +1,7 @@
-from .AST import AST
-from .SymbolTable import *
+#from .AST import AST
+#from .SymbolTable import *
+import AST
+import SymbolTable
 import sys
 
 

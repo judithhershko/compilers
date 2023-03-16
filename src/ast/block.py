@@ -1,18 +1,20 @@
 import SymbolTable
 import AST
 import sys
-from src.ast import Program
-from src.ast.AST import AST
-from src.ast.SymbolTable import *
+import Program
+#from src.ast import Program
+#from src.ast.AST import AST
+#from src.ast.SymbolTable import *
 
-class block():
+
+class block:
     def __init__(self, parent):
         self.symbols = SymbolTable.SymbolTable()
         self.ast = AST.AST()
         self.parent = parent
         self.blocks = []
-        #moet weg?
-        self.trees=[]
+        # moet weg?
+        self.trees = []
 
     def getSymbolTable(self):
         return self.symbols
