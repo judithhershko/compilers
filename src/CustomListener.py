@@ -21,7 +21,12 @@ class CustomListener(ExpressionListener):
         self.c_block = block(None)
         self.line_nr = 0
         self.comments = []
-        self.print=False
+        self.print = False
+
+    def descend(self, operator: BinaryOperator):
+        operator.parent = self.parent
+        operator.leftChild = self.parent.rightChild
+        self.parent.rightChild = operator
 
     def has_children(self, ctx: ParserRuleContext):
         return ctx.getChildCount() > 1
@@ -38,14 +43,14 @@ class CustomListener(ExpressionListener):
                 self.current = Value(int(ctx.getText()), type_, self.parent)
 
         if self.print:
-            val= self.current.getValue()
-            if self.current.type==LiteralType.VAR:
-                val=self.c_block.getSymbolTable().findSymbol(self.current.getValue())
-            p=Print(val)
-            self.asT=create_tree()
+            val = self.current.getValue()
+            if self.current.type == LiteralType.VAR:
+                val = self.c_block.getSymbolTable().findSymbol(self.current.getValue())
+            p = Print(val)
+            self.asT = create_tree()
             self.asT.setRoot(p)
             self.c_block.trees.append(self.asT)
-            self.asT=create_tree()
+            self.asT = create_tree()
             return
         if self.right:
             print("right")
@@ -69,7 +74,7 @@ class CustomListener(ExpressionListener):
             self.right = True
 
     def set_expression(self, ctx: ParserRuleContext):
-        if self.declaration and isinstance(self.parent,Declaration):
+        if self.declaration and isinstance(self.parent, Declaration):
             self.dec_op = self.parent
             self.parent = BinaryOperator("")
             self.current = self.parent.leftChild
@@ -83,25 +88,30 @@ class CustomListener(ExpressionListener):
             self.right = False
 
     def set_token(self, ctx, Operator=None):
-        if isinstance(Operator,LogicalOperator):
-            self.hierarchy=True
+        if isinstance(Operator, LogicalOperator):
+            self.hierarchy = True
         if Operator is not None:
             operator = Operator
         else:
             operator = BinaryOperator(ctx.getText())
-        if self.hierarchy and not isinstance(operator,LogicalOperator):
-            if isinstance(self.parent,LogicalOperator):
-                r=self.parent.rightChild
-                r.parent=operator
-                operator.parent=self.parent
-                operator.leftChild=r
-                self.parent.rightChild=operator
+        if self.hierarchy and not isinstance(operator, LogicalOperator):
+            if isinstance(self.parent, LogicalOperator):
+                r = self.parent.rightChild
+                r.parent = operator
+                operator.parent = self.parent
+                operator.leftChild = r
+                self.parent.rightChild = operator
             else:
-                t=self.parent
-                operator.parent=self.parent.parent
-                self.parent.parent.rightChild=operator
-                t.parent=operator
-                operator.leftChild=t
+                if order(self.parent.operator)<order(operator.operator):
+                    t = self.parent
+                    operator.parent = self.parent.parent
+                    self.parent.parent.rightChild = operator
+                    t.parent = operator
+                    operator.leftChild = t
+                else:
+                    operator.parent=self.parent
+                    operator.leftChild=self.parent.rightChild
+                    self.parent.rightChild=operator
 
 
 
@@ -109,9 +119,10 @@ class CustomListener(ExpressionListener):
             self.current.parent = operator
             operator.leftChild = self.current
         else:
-            operator.leftChild = self.parent
-
-
+            if order(self.parent.operator) > order(operator.operator):
+                self.descend(operator)
+            else:
+                operator.leftChild = self.parent
 
         self.parent = operator
         self.current = self.parent.rightChild
@@ -127,15 +138,14 @@ class CustomListener(ExpressionListener):
     def exitStart_rule(self, ctx: ParserRuleContext):
         pass
 
-
     # Enter a parse tree produced by ExpressionParser#print.
     def enterPrint(self, ctx: ParserRuleContext):
-        print("enter print:"+ctx.getText())
-        self.print=True
+        print("enter print:" + ctx.getText())
+        self.print = True
 
     # Exit a parse tree produced by ExpressionParser#print.
     def exitPrint(self, ctx: ParserRuleContext):
-        self.print=False
+        self.print = False
 
     # Enter a parse tree produced by ExpressionParser#typed_var.
     def enterTyped_var(self, ctx: ParserRuleContext):
@@ -211,7 +221,7 @@ class CustomListener(ExpressionListener):
     def exitDec(self, ctx: ParserRuleContext):
         print("exit dec")
         while self.current.parent is not None:
-            print("current parent"+str(self.current.getValue()))
+            print("current parent" + str(self.current.getValue()))
             self.current = self.current.parent
         if isinstance(self.current, BinaryOperator) and self.current.operator == "":
             print("parentop is """)

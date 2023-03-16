@@ -61,3 +61,8 @@ def commentType(v:str):
         return CommentType.SL
     else:
         return CommentType.ML
+def order(op:str):
+    if op=="/" or op=="*":
+        return 0
+    else:
+        return 1

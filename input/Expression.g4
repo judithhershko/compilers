@@ -22,14 +22,15 @@ equality: ISEQ | NEQ;
 comparator: LOE | GOE | LT | GT;
 or_and: OR | AND ;
 
-expr: expr or_and term_1 | term_1;
-term_1: term_1 equality term_2 | term_2;
-term_2: term_2 comparator term_3 | term_3;
-term_3: term_3 binop term_4 | term_4 ;
-term_4: term_4 binop_md fac | term_5;
-term_5: NOT term_5 | term_6;
-term_6: PP term_6 | MM term_6 | term_7;
-term_7: term_7 PP | term_7 MM | fac;
+expr: expr or_and expr | expr equality expr | expr comparator expr | expr binop expr |expr binop_md expr| NOT expr |
+     PP expr | MM expr |  expr PP | expr MM | fac;
+//term_1: term_1 equality term_2 | term_2;
+//term_2: term_2 comparator term_3 | term_3;
+//term_3: term_3 binop term_4 | term_4 ;
+//term_4: term_4 binop_md fac | term_5;
+//term_5: NOT term_5 | term_6;
+//term_6: PP term_6 | MM term_6 | term_7;
+//term_7: term_7 PP | term_7 MM | fac;
 fac:LBRAK expr RBRAK|pri;
 pri:  ID | num+ '.' num* | '.' num+ | num;
 fnum: num | num+ '.' num* | '.' num+ ;
@@ -75,12 +76,16 @@ GOE  :  '>=';
 LOE  :  '<=';
 MOD  :  '%' ;
 CHAR_ID:'\'';
+ONE_LINE_COMMENT:'//';
+STRT_COMMENT:'/**';
+END_COMMENT:'**/' ;
 ML_COMMENT:  '/*' .* '*/';
 SL_COMMENT:  '//' ~('\r' | '\n')*;
 
 
 EOL: ';' -> skip;
 NLINE:';' .*? '\n' -> skip;
+
 
 
 
