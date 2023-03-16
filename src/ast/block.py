@@ -1,15 +1,16 @@
-import symbolTable
-import AST
 import sys
-import program
-
+from src.ast import program
+from src.ast.AST import AST
+from src.ast.symbolTable import *
 
 class block():
     def __init__(self, parent):
-        self.symbols = symbolTable.symbolTable()
-        self.ast = AST.AST()
+        self.symbols = SymbolTable()
+        self.ast = AST()
         self.parent = parent
         self.blocks = []
+        #moet weg?
+        self.trees=[]
 
     def getSymbolTable(self):
         return self.symbols

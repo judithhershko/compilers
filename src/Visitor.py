@@ -1,5 +1,5 @@
 from generated.input.ExpressionVisitor import *
-from HelperFunctions import *
+from src.HelperFunctions import *
 from .ast.node import Value, BinaryOperator, AST_node
 from .ast.AST import *
 

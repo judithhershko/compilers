@@ -1,7 +1,7 @@
 from src.ast import node
 from src.ast.AST import AST
 from src.ast.node import *
-
+from .ast.program import *
 
 def create_tree():
     expression_tree = AST()
@@ -49,3 +49,15 @@ def find_value_type(v: str):
     if v[0].isdigit() or v[0] == '.':
         return node.LiteralType.NUM
     return node.LiteralType.VAR
+
+def isFloat(v:str):
+    f=False
+    for i in v:
+        if i=='.':
+            f=True
+    return f
+def commentType(v:str):
+    if v[1]=="/":
+        return CommentType.SL
+    else:
+        return CommentType.ML

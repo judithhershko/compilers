@@ -6,6 +6,11 @@ types = \
     {"double": 4, "int": 5, "char": 6, "bool": 7, "string": 8};
 
 
+class CommentType(enum.Enum):
+    ML = 0
+    SL = 1
+
+
 class LiteralType(enum.Enum):
     NUM = 1
     STR = 2
@@ -14,6 +19,7 @@ class LiteralType(enum.Enum):
     INT = 5
     CHAR = 6
     BOOL = 7
+    FLOAT = 8
 
     def __init__(self, const=False):
         self.const = const
@@ -37,12 +43,60 @@ class AST_node():
         self.level = level
 
 
+class Comment(AST_node):
+    def __init__(self, lit, commentType):
+        self.parent = None
+        self.type = commentType
+        self.value = lit
+
+    def __eq__(self, other):
+        if not isinstance(other, Comment):
+            return False
+        return self.value == other.value
+
+    def getValue(self):
+        return self.value
+
+    def setValue(self, val):
+        self.value = val
+
+    def setType(self, type):
+        self.type = type
+
+    def getLabel(self):
+        return "\"Comment: " + self.value + "\""
+
+    def getType(self):
+        return self.type
+
+
+class Print(AST_node):
+    def __init__(self, lit):
+        self.parent = None
+        self.value = lit
+
+    def __eq__(self, other):
+        if not isinstance(other, Print):
+            return False
+        return self.value == other.value
+
+    def getValue(self):
+        return self.value
+
+    def setValue(self, val):
+        self.value = val
+
+    def getLabel(self):
+        return "\"Print: " + self.value + "\""
+
+
 class Value(AST_node):
     def __init__(self, lit, valueType, parent=None, const=False):
         self.value = lit
         self.type = valueType
         self.parent = parent
         self.const = const
+        self.nr_pointers = 0
 
     def __eq__(self, other):
         if not isinstance(other, Value):
@@ -159,10 +213,8 @@ class BinaryOperator(AST_node):
                 res = self.leftChild.getValue() + self.rightChild.getValue()
             elif self.operator == "-":
                 res = self.leftChild.getValue() - self.rightChild.getValue()
-            elif self.operator == ">":
-                res = self.leftChild.getValue() > self.rightChild.getValue()
-            elif self.operator == "<":
-                res = self.leftChild.getValue() < self.rightChild.getValue()
+            elif self.operator == "%":
+                res = self.leftChild.getValue() % self.rightChild.getValue()
             else:
                 res = self.leftChild.getValue() == self.rightChild.getValue()
             newNode = Value(res, LiteralType.NUM)
@@ -268,6 +320,18 @@ class LogicalOperator(AST_node):
                 res = self.leftChild.getValue() and self.rightChild.getValue()
             elif self.operator == "||":
                 res = self.leftChild.getValue() or self.rightChild.getValue()
+            elif self.operator == ">=":
+                res = self.leftChild.getValue() >= self.rightChild.getValue()
+            elif self.operator == "<=":
+                res = self.leftChild.getValue() <= self.rightChild.getValue()
+            elif self.operator == ">":
+                res = self.leftChild.getValue() > self.rightChild.getValue()
+            elif self.operator == "<":
+                res = self.leftChild.getValue() < self.rightChild.getValue()
+            elif self.operator == "==":
+                res = self.leftChild.getValue() == self.rightChild.getValue()
+            elif self.operator == "!=":
+                res = self.leftChild.getValue() != self.rightChild.getValue()
             else:
                 res = not self.leftChild.getValue()
             newNode = Value(res, LiteralType.NUM)
