@@ -6,6 +6,7 @@ from .ast.block import *
 
 class CustomListener(ExpressionListener):
     def __init__(self):
+        self.hierarchy = None
         self.asT = create_tree()
         self.current = None
         self.parent = None
@@ -82,15 +83,36 @@ class CustomListener(ExpressionListener):
             self.right = False
 
     def set_token(self, ctx, Operator=None):
+        if isinstance(Operator,LogicalOperator):
+            self.hierarchy=True
         if Operator is not None:
             operator = Operator
         else:
             operator = BinaryOperator(ctx.getText())
-        if self.parent is not None and not isinstance(self.parent, Declaration) and self.parent.operator == "":
+        if self.hierarchy and not isinstance(operator,LogicalOperator):
+            if isinstance(self.parent,LogicalOperator):
+                r=self.parent.rightChild
+                r.parent=operator
+                operator.parent=self.parent
+                operator.leftChild=r
+                self.parent.rightChild=operator
+            else:
+                t=self.parent
+                operator.parent=self.parent.parent
+                self.parent.parent.rightChild=operator
+                t.parent=operator
+                operator.leftChild=t
+
+
+
+        elif self.parent is not None and not isinstance(self.parent, Declaration) and self.parent.operator == "":
             self.current.parent = operator
             operator.leftChild = self.current
         else:
             operator.leftChild = self.parent
+
+
+
         self.parent = operator
         self.current = self.parent.rightChild
         self.right = True
@@ -189,7 +211,8 @@ class CustomListener(ExpressionListener):
     def exitDec(self, ctx: ParserRuleContext):
         print("exit dec")
         while self.current.parent is not None:
-            self.current = self.parent
+            print("current parent"+str(self.current.getValue()))
+            self.current = self.current.parent
         if isinstance(self.current, BinaryOperator) and self.current.operator == "":
             print("parentop is """)
             self.current = self.current.leftChild

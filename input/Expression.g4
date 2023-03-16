@@ -75,16 +75,12 @@ GOE  :  '>=';
 LOE  :  '<=';
 MOD  :  '%' ;
 CHAR_ID:'\'';
-ONE_LINE_COMMENT:'//';
-STRT_COMMENT:'/**';
-END_COMMENT:'**/' ;
 ML_COMMENT:  '/*' .* '*/';
 SL_COMMENT:  '//' ~('\r' | '\n')*;
 
 
 EOL: ';' -> skip;
 NLINE:';' .*? '\n' -> skip;
-
 
 
 

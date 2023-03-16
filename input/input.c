@@ -1,4 +1,9 @@
-int y=23+68+8-678;
+//const char='ih'+'bo';
+const char y='f'+'g';
+/**
+long
+comment
+**/
 
 
 
