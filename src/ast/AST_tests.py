@@ -252,5 +252,35 @@ class nodeTestCase(unittest.TestCase):
 
         self.assertEqual(scope.getAst().root, res)
 
+    def test_toDotDeclaration(self):
+        dec = node.Declaration()
+        var = node.Value("x", node.LiteralType.VAR, parent=dec)
+        dec.setLeftChild(var)
+
+        mul = node.BinaryOperator("*", parent=dec)
+        dec.setRightChild(mul)
+
+        leaf1 = node.Value(5, node.LiteralType.NUM, parent=mul)
+        mul.setLeftChild(leaf1)
+
+        leaf2 = node.Value(3, node.LiteralType.NUM, parent=mul)
+        mul.setRightChild(leaf2)
+
+        ast = AST.AST()
+        ast.setRoot(dec)
+        ast.setNodeIds(ast.root)
+        dot = ast.generateDot("Declaration")
+        exp = "graph ast {\n0.0 [label=\"Value declaration\"]\n1.1 [label=\"Literal: x\"]\n1.2 [label=" \
+              "\"Binary operator: *\"]\n2.3 [label=\"Literal: 5\"]\n2.4 [label=\"Literal: 3\"]\n\n0.0--1.1\n0.0--1.2" \
+              "\n1.2--2.3\n1.2--2.4\n}"
+        self.assertEqual(dot, exp)
+        ast.foldTree()
+        ast.setNodeIds(ast.root)
+        dot = ast.generateDot("DeclarationFolded")
+        exp = "graph ast {\n0.0 [label=\"Value declaration\"]\n1.1 [label=\"Literal: x\"]\n1.2 [label=" \
+              "\"Literal: 15\"]\n\n0.0--1.1\n0.0--1.2\n}"
+        self.assertEqual(dot, exp)
+
+
 if __name__ == '__main__':
     unittest.main()
