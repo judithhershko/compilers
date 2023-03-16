@@ -1,4 +1,3 @@
-# TODO: check different operators and how to group them
 import enum
 import sys
 
@@ -6,7 +5,6 @@ types = \
     {"double": 4, "int": 5, "char": 6, "bool": 7, "string": 8};
 
 
-# TODO: Do we still need NUM and VAR?
 class LiteralType(enum.Enum):
     NUM = 1
     STR = 2
@@ -18,17 +16,13 @@ class LiteralType(enum.Enum):
     FLOAT = 8
     POINTER = 9
 
-    # TODO: does initiator need a const param?
-    def __init__(self, const=False):
-        self.const = const
-
 
 class AST_node:
     number = None
     level = None
     parent = None
-    line = None  # TODO: added line, mention this
-    variable = False  # TODO: variable check is now boolean
+    line = None
+    variable = False
 
     def getId(self):
         return str(self.level) + "." + str(self.number)
@@ -98,7 +92,6 @@ class Value(AST_node):
         if self.variable:
             self.value = values[self.value]
             self.variable = False
-        # self.type = LiteralType.NUM  # TODO: why NUM? don't we need this as input?
 
     def getHigherType(self, node2):
         type1 = self.type
@@ -120,35 +113,6 @@ class Value(AST_node):
             return None
 
 
-# TODO: where did this one come from? seems to be a partial copy of class further down
-# class Declaration(AST_node):
-#     def __init__(self, parent=None, var=Value):
-#         self.parent = parent
-#         self.leftChild = var
-#         self.rightChild = None
-#         self.operator = "="
-#
-#     def __eq__(self, other):
-#         if not isinstance(other, Declaration):
-#             return False
-#         return self.leftChild == other.leftChild and self.rightChild == other.rightChild
-#
-#     def getLabel(self):
-#         return "\" Declaration: " + self.operator + "\""
-#
-#     def setLeftChild(self, child):
-#         self.leftChild = child
-#
-#     def setRightChild(self, child):
-#         self.rightChild = child
-#
-#     def getRightChild(self):
-#         return self.rightChild
-#
-#     def getLeftChild(self):
-#         return self.leftChild
-
-
 class BinaryOperator(AST_node):
     leftChild = None
     rightChild = None
@@ -156,10 +120,6 @@ class BinaryOperator(AST_node):
     def __init__(self, oper, parent=None):
         self.operator = oper
         self.parent = parent
-
-    # TODO: what is this used for??? overwrites other function
-    def getValue(self):
-        return self.rightChild.getValue()
 
     def __eq__(self, other):
         if not isinstance(other, BinaryOperator):
