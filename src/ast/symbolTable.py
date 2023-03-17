@@ -1,5 +1,4 @@
 import pandas as pd
-import sys
 
 
 class SymbolTable:  # TODO: ask to add memory location?

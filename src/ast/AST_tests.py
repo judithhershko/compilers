@@ -1,8 +1,8 @@
 import unittest
-import AST
-import node
-import program
-import block
+from .AST import *
+from .node import *
+from .program import program
+from .block import *
 
 
 class nodeTestCase(unittest.TestCase):
@@ -13,8 +13,8 @@ class nodeTestCase(unittest.TestCase):
         self.assertEqual(testNode.getId(), "12.55", "should be 12.55")
 
     def test_setNodeIds(self):
-        ast1 = AST.AST()
-        ast2 = AST.AST()
+        ast1 = AST()
+        ast2 = AST()
 
         # first ast
         add = node.BinaryOperator("+")
@@ -71,7 +71,7 @@ class nodeTestCase(unittest.TestCase):
         self.assertEqual(ast1, ast2, "both ASTs should be the same")
 
     def test_generateDot(self):
-        ast = AST.AST()
+        ast = AST()
 
         add = node.BinaryOperator("+")
 
@@ -100,7 +100,7 @@ class nodeTestCase(unittest.TestCase):
         self.assertEqual(dot, expected)
 
     def test_fold(self):
-        ast = AST.AST()
+        ast = AST()
 
         div = node.BinaryOperator("/")
 
@@ -229,7 +229,7 @@ class nodeTestCase(unittest.TestCase):
         div.setRightChild(leaf4)
 
         prog = program.program()
-        scope = block.block(prog)
+        scope = block(prog)
         scope.getAst().setRoot(div)
         scope.getAst().setNodeIds(scope.getAst().root)
         prog.addBlock(scope)
@@ -266,7 +266,7 @@ class nodeTestCase(unittest.TestCase):
         leaf2 = node.Value(3, node.LiteralType.NUM, parent=mul)
         mul.setRightChild(leaf2)
 
-        ast = AST.AST()
+        ast = AST()
         ast.setRoot(dec)
         ast.setNodeIds(ast.root)
         dot = ast.generateDot("Declaration")

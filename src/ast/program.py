@@ -1,9 +1,8 @@
-from .AST import AST
 from .symbolTable import *
-import sys
+from .AST import*
 
 
-class program():
+class program:
     def __init__(self):
         self.symbols = SymbolTable()
         self.ast = AST()

@@ -1,11 +1,6 @@
-import sys
-
 from generated.input.ExpressionLexer import ExpressionLexer
 from generated.input.ExpressionParser import ExpressionParser
 from antlr4 import *
-from src import Listener
-from src.Listener import *
-from src.Visitor import *
 from src.CustomListener import *
 
 
