@@ -1,16 +1,20 @@
-import symbolTable
+import SymbolTable
 import AST
 import sys
-import program
+import Program
+#from src.ast import Program
+#from src.ast.AST import AST
+#from src.ast.SymbolTable import *
 
 
-
-class block():
+class block:
     def __init__(self, parent):
-        self.symbols = symbolTable.symbolTable()
+        self.symbols = SymbolTable.SymbolTable()
         self.ast = AST.AST()
         self.parent = parent
         self.blocks = []
+        # moet weg?
+        self.trees = []
 
     def getSymbolTable(self):
         return self.symbols
@@ -36,7 +40,7 @@ class block():
                 notFound.append(elem)
 
         current = self
-        while not isinstance(current, program.program) and notFound:
+        while not isinstance(current, Program.Program) and notFound:
             current = self.getParent()
             variables = notFound
             notFound = []
