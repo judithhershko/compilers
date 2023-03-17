@@ -1,4 +1,4 @@
-from .symbolTable import *
+from .SymbolTable import *
 from .AST import*
 
 

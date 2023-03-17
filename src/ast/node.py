@@ -356,6 +356,12 @@ class LogicalOperator(AST_node):
     def setLeftChild(self, child):
         self.leftChild = child
 
+    def getType(self):
+        return self.type
+
+    def setType(self, type):
+        self.type = type
+
     def setRightChild(self, child):
         if self.operator == "!":
             print("! operator can only have a left child", file=sys.stderr)

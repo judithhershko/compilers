@@ -1,6 +1,6 @@
 import unittest
 from .AST import *
-from .program import program
+from .Program import program
 from .block import *
 
 
@@ -138,7 +138,7 @@ class nodeTestCase(unittest.TestCase):
         self.assertEqual(ast.root, res)
 
     def test_fillSymbolTable(self):
-        prog = Program.Program()
+        prog = Program.program()
 
         val = prog.getSymbolTable()
         a = val.addSymbol("x", 5, "int", False)
@@ -183,7 +183,7 @@ class nodeTestCase(unittest.TestCase):
         leaf4 = node.Value("w", node.LiteralType.INT, variable=True)
         div.setRightChild(leaf4)
 
-        prog = Program.Program()
+        prog = Program.program()
         prog.getAst().setRoot(div)
         prog.getAst().setNodeIds(prog.getAst().root)
 
@@ -227,8 +227,8 @@ class nodeTestCase(unittest.TestCase):
         leaf4 = node.Value("w", node.LiteralType.INT, variable=True)
         div.setRightChild(leaf4)
 
-        prog = Program.Program()
-        scope = block.block(prog)
+        prog = Program.program()
+        scope = block(prog)
         scope.getAst().setRoot(div)
         scope.getAst().setNodeIds(scope.getAst().root)
         prog.addBlock(scope)

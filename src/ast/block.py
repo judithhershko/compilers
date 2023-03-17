@@ -1,7 +1,7 @@
 import sys
-from src.ast import program
+from src.ast import Program
 from src.ast.AST import AST
-from src.ast.symbolTable import *
+from src.ast.SymbolTable import *
 
 class block:
     def __init__(self, parent):
@@ -36,7 +36,7 @@ class block:
                 notFound.append(elem)
 
         current = self
-        while not isinstance(current, Program.Program) and notFound:
+        while not isinstance(current, Program.program) and notFound:
             current = self.getParent()
             variables = notFound
             notFound = []

@@ -1,6 +1,6 @@
 from generated.input.ExpressionListener import *
 from src.HelperFunctions import *
-from .ast.program import *
+from .ast.Program import *
 from .ast.block import *
 
 
@@ -17,7 +17,7 @@ class CustomListener(ExpressionListener):
         self.dec_op = None
         self.is_char = False
         self.counter = 0
-        self.program = program.program()
+        self.program = Program.program()
         self.c_block = block(None)
         self.line_nr = 0
         self.comments = []

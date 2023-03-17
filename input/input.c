@@ -1,4 +1,4 @@
-int y=5> 4/2 + (4+90)*10 > 5+23;
+int y=4/2 + 5;
 const char i='ih'+'bo';
 
 
