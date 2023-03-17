@@ -56,10 +56,11 @@ class AST_node:
 
 
 class Comment(AST_node):
-    def __init__(self, lit, commentType):
+    def __init__(self, lit, commentType, line=None):
         self.parent = None
         self.type = commentType
         self.value = lit
+        self.line = line
 
     def __eq__(self, other):
         if not isinstance(other, Comment):
@@ -103,13 +104,14 @@ class Print(AST_node):
 
 
 class Value(AST_node):
-    def __init__(self, lit, valueType, parent=None, variable=False, const=False):
+    def __init__(self, lit, valueType, parent=None, line=None, variable=False, const=False):
         self.value = lit
         self.type = valueType
         self.parent = parent
         self.variable = variable
         self.const = const
         self.nr_pointers = 0
+        self.line = line
 
     def __eq__(self, other):
         if not isinstance(other, Value):
@@ -124,7 +126,7 @@ class Value(AST_node):
     def setValue(self, val):
         self.value = val
 
-    def setType(self, type):
+    def setType(self, type: LiteralType):
         self.type = type
 
     def getLabel(self):
@@ -166,6 +168,23 @@ class Value(AST_node):
         else:
             return None
 
+
+class Declaration(AST_node):
+    def __init__(self, parent=None, var=Value, line=None):
+        self.parent = parent
+        self.leftChild = var
+        self.rightChild = None
+        self.operator = "="
+        self.line = line
+
+    def __eq__(self, other):
+        if not isinstance(other, Declaration):
+            return False
+        return self.leftChild == other.leftChild and self.rightChild == other.rightChild
+
+    def getLabel(self):
+        return "\" Declaration: " + self.operator + "\""
+
     def setLeftChild(self, child):
         self.leftChild = child
 
@@ -183,9 +202,10 @@ class BinaryOperator(AST_node):
     leftChild = None
     rightChild = None
 
-    def __init__(self, oper, parent=None):
+    def __init__(self, oper, parent=None, line=None):
         self.operator = oper
         self.parent = parent
+        self.line = line
 
     def __eq__(self, other):
         if not isinstance(other, BinaryOperator):
@@ -220,7 +240,7 @@ class BinaryOperator(AST_node):
             self.rightChild = self.rightChild.fold()
 
         typeOfValue = None
-
+        # TODO: does char + char need to be supported?
         if not isinstance(self.leftChild, Value) or not isinstance(self.rightChild, Value):
             return self
         elif not self.leftChild.getType() in (LiteralType.DOUBLE, LiteralType.FLOAT, LiteralType.INT) or \
@@ -228,18 +248,19 @@ class BinaryOperator(AST_node):
             return self
         else:
             if self.operator == "*":
-                res = self.leftChild.getValue() * self.rightChild.getValue()
+                res = int(self.leftChild.getValue()) * int(self.rightChild.getValue())
             elif self.operator == "/":
-                res = self.leftChild.getValue() / self.rightChild.getValue()
+                res = int(self.leftChild.getValue()) / int(self.rightChild.getValue())
             elif self.operator == "+":
-                res = self.leftChild.getValue() + self.rightChild.getValue()
+                res = int(self.leftChild.getValue()) + int(self.rightChild.getValue())
             elif self.operator == "-":
-                res = self.leftChild.getValue() - self.rightChild.getValue()
+                res = int(self.leftChild.getValue()) - int(self.rightChild.getValue())
             elif self.operator == "%":
-                res = self.leftChild.getValue() % self.rightChild.getValue()
-            else:
-                res = self.leftChild.getValue() == self.rightChild.getValue()
-                typeOfValue = LiteralType.BOOL
+                res = int(self.leftChild.getValue()) % int(self.rightChild.getValue())
+            # else:
+            #     res = int(self.leftChild.getValue()) == int(self.rightChild.getValue())
+            #     typeOfValue = LiteralType.BOOL
+
             if not typeOfValue:
                 typeOfValue = self.leftChild.getHigherType(self.rightChild)
             if not typeOfValue:
@@ -262,9 +283,10 @@ class BinaryOperator(AST_node):
 class UnaryOperator(AST_node):
     child = None
 
-    def __init__(self, oper, parent=None):
+    def __init__(self, oper, parent=None, line=None):
         self.operator = oper
         self.parent = parent
+        self.line = line
 
     def __eq__(self, other):
         if not isinstance(other, UnaryOperator):
@@ -315,9 +337,10 @@ class LogicalOperator(AST_node):
     leftChild = None
     rightChild = None
 
-    def __init__(self, oper, parent=None):
+    def __init__(self, oper, parent=None, line=None):
         self.operator = oper
         self.parent = parent
+        self.line = line
 
     def __eq__(self, other):
         if not isinstance(other, LogicalOperator):
@@ -335,6 +358,12 @@ class LogicalOperator(AST_node):
 
     def setLeftChild(self, child):
         self.leftChild = child
+
+    def getType(self):
+        return self.type
+
+    def setType(self, type):
+        self.type = type
 
     def setRightChild(self, child):
         if self.operator == "!":
@@ -387,8 +416,9 @@ class Declaration(AST_node):
     leftChild = None
     rightChild = None
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, line=None):
         self.parent = parent
+        self.line = line
 
     def __eq__(self, other):
         if not isinstance(other, LogicalOperator):

@@ -1,11 +1,6 @@
-import sys
-
 from generated.input.ExpressionLexer import ExpressionLexer
 from generated.input.ExpressionParser import ExpressionParser
 from antlr4 import *
-from src import Listener
-from src.Listener import *
-from src.Visitor import *
 from src.CustomListener import *
 
 
@@ -36,7 +31,7 @@ def main():
             i += 1
     """
     p=Declaration()
-    p.leftChild=Value('x',LiteralType.VAR,p)
+    p.leftChild=Value('x',LiteralType.FLOAT,p)
     p.rightChild=BinaryOperator("+")
     p.rightChild.leftChild=Value(4.7,LiteralType.FLOAT)
     p.rightChild.rightChild=Value(7.98,LiteralType.FLOAT)

@@ -1,7 +1,8 @@
 grammar Expression;
 
-start_rule: (print|expr|dec|comments)*;
+start_rule: (print|expr|dec|comments|line)*;
 
+line:NLINE;
 print   : PRINT LBRAK (char_pri | pri) RBRAK ;
 comments: ML_COMMENT | SL_COMMENT;
 typed_var: INT| DOUBLE | FLOAT |CHAR;
@@ -22,14 +23,15 @@ equality: ISEQ | NEQ;
 comparator: LOE | GOE | LT | GT;
 or_and: OR | AND ;
 
-expr: expr or_and term_1 | term_1;
-term_1: term_1 equality term_2 | term_2;
-term_2: term_2 comparator term_3 | term_3;
-term_3: term_3 binop term_4 | term_4 ;
-term_4: term_4 binop_md fac | term_5;
-term_5: NOT term_5 | term_6;
-term_6: PP term_6 | MM term_6 | term_7;
-term_7: term_7 PP | term_7 MM | fac;
+expr: expr PP | expr MM | NOT expr |PP expr | MM expr | expr binop_md expr | expr binop expr | expr comparator expr |  expr equality expr | expr or_and expr  | fac;
+//expr:  expr PP | expr MM | NOT expr |PP expr | MM expr | expr binop_md expr| |expr binop expr | expr comparator expr | expr equality expr |  expr or_and expr fac;
+//term_1: term_1 equality term_2 | term_2;
+//term_2: term_2 comparator term_3 | term_3;
+//term_3: term_3 binop term_4 | term_4 ;
+//term_4: term_4 binop_md fac | term_5;
+//term_5: NOT term_5 | term_6;
+//term_6: PP term_6 | MM term_6 | term_7;
+//term_7: term_7 PP | term_7 MM | fac;
 fac:LBRAK expr RBRAK|pri;
 pri:  ID | num+ '.' num* | '.' num+ | num;
 fnum: num | num+ '.' num* | '.' num+ ;
@@ -83,7 +85,10 @@ SL_COMMENT:  '//' ~('\r' | '\n')*;
 
 
 EOL: ';' -> skip;
-NLINE:';' .*? '\n' -> skip;
+LINE: '\n';
+//NLINE:';' .*? -> skip;
+NLINE:';' .*? '\n' ;
+//NLINE:';' .*? '\n' -> skip;
 
 
 
