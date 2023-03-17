@@ -3,6 +3,7 @@ from src.ast.AST import AST
 from src.ast.node import *
 from .ast.program import *
 
+
 def create_tree():
     expression_tree = AST()
     expression_tree.setRoot(None)
@@ -50,19 +51,53 @@ def find_value_type(v: str):
         return node.LiteralType.NUM
     return node.LiteralType.VAR
 
-def isFloat(v:str):
-    f=False
+
+def isFloat(v: str):
+    f = False
     for i in v:
-        if i=='.':
-            f=True
+        if i == '.':
+            f = True
     return f
-def commentType(v:str):
-    if v[1]=="/":
+
+
+def commentType(v: str):
+    if v[1] == "/":
         return CommentType.SL
     else:
         return CommentType.ML
-def order(op:str):
-    if op=="/" or op=="*":
+
+
+def order(op: str):
+    if op == "/" or op == "*":
         return 0
     else:
         return 1
+
+
+class stack:
+    def __init__(self):
+        self.__index = []
+
+    def __len__(self):
+        return len(self.__index)
+
+    def push(self, item):
+        self.__index.insert(0, item)
+
+    def peek(self):
+        if len(self) == 0:
+            raise Exception("peek() called on empty stack.")
+        return self.__index[0]
+
+    def pop(self):
+        if len(self) == 0:
+            raise Exception("pop() called on empty stack.")
+        return self.__index.pop(0)
+
+    def __str__(self):
+        return str(self.__index)
+class brackets:
+    def __init__(self):
+        self.hierarchy=None
+        self.tree=None
+

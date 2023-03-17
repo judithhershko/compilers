@@ -22,8 +22,8 @@ equality: ISEQ | NEQ;
 comparator: LOE | GOE | LT | GT;
 or_and: OR | AND ;
 
-expr: expr or_and expr | expr equality expr | expr comparator expr | expr binop expr |expr binop_md expr| NOT expr |
-     PP expr | MM expr |  expr PP | expr MM | fac;
+expr: expr PP | expr MM | NOT expr |PP expr | MM expr | expr binop_md expr | expr binop expr | expr comparator expr |  expr equality expr | expr or_and expr  | fac;
+//expr:  expr PP | expr MM | NOT expr |PP expr | MM expr | expr binop_md expr| |expr binop expr | expr comparator expr | expr equality expr |  expr or_and expr fac;
 //term_1: term_1 equality term_2 | term_2;
 //term_2: term_2 comparator term_3 | term_3;
 //term_3: term_3 binop term_4 | term_4 ;
