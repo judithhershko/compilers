@@ -204,7 +204,7 @@ class CustomListener(ExpressionListener):
         pass
 
     # Enter a parse tree produced by ExpressionParser#dec.
-    def enterDec(self, ctx: ParserRuleContext):
+    def enterDec(self, ctx: ParserRuleContext): #TODO: declaration needs to get right type
         print("enter dec")
         self.line_nr += 1
         self.asT = create_tree()

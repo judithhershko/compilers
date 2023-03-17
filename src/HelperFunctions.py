@@ -47,9 +47,12 @@ def is_valid_variable(v: str):
 def find_value_type(v: str):
     if v[0] == '\'' and v[-1] == '\'':
         return node.LiteralType.STR
-    if v[0].isdigit() or v[0] == '.':
-        return node.LiteralType.NUM
-    return node.LiteralType.VAR
+    elif isFloat(v):
+        return node.LiteralType.FLOAT
+    elif v[0].isdigit():
+        return node.LiteralType.INT
+    else:
+        return node.LiteralType.VAR
 
 
 def isFloat(v: str):

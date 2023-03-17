@@ -246,18 +246,19 @@ class BinaryOperator(AST_node):
             return self
         else:
             if self.operator == "*":
-                res = self.leftChild.getValue() * self.rightChild.getValue()
+                res = int(self.leftChild.getValue()) * int(self.rightChild.getValue())
             elif self.operator == "/":
-                res = self.leftChild.getValue() / self.rightChild.getValue()
+                res = int(self.leftChild.getValue()) / int(self.rightChild.getValue())
             elif self.operator == "+":
-                res = self.leftChild.getValue() + self.rightChild.getValue()
+                res = int(self.leftChild.getValue()) + int(self.rightChild.getValue())
             elif self.operator == "-":
-                res = self.leftChild.getValue() - self.rightChild.getValue()
+                res = int(self.leftChild.getValue()) - int(self.rightChild.getValue())
             elif self.operator == "%":
-                res = self.leftChild.getValue() % self.rightChild.getValue()
-            else:
-                res = self.leftChild.getValue() == self.rightChild.getValue()
-                typeOfValue = LiteralType.BOOL
+                res = int(self.leftChild.getValue()) % int(self.rightChild.getValue())
+            # else:
+            #     res = int(self.leftChild.getValue()) == int(self.rightChild.getValue())
+            #     typeOfValue = LiteralType.BOOL
+
             if not typeOfValue:
                 typeOfValue = self.leftChild.getHigherType(self.rightChild)
             if not typeOfValue:
