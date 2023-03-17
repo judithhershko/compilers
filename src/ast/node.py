@@ -238,7 +238,7 @@ class BinaryOperator(AST_node):
             self.rightChild = self.rightChild.fold()
 
         typeOfValue = None
-
+        #TODO: does char + char need to be supported?
         if not isinstance(self.leftChild, Value) or not isinstance(self.rightChild, Value):
             return self
         elif not self.leftChild.getType() in (LiteralType.DOUBLE, LiteralType.FLOAT, LiteralType.INT) or \

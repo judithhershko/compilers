@@ -37,15 +37,21 @@ class CustomListener(ExpressionListener):
         print("set val:" + ctx.getText())
         type_ = find_value_type(ctx.getText())
         self.current = Value(ctx.getText(), type_, self.parent)
-        if type_ == LiteralType.NUM:
-            if isFloat(ctx.getText()):
-                self.current = Value(float(ctx.getText()), type_, self.parent)
-            else:
-                self.current = Value(int(ctx.getText()), type_, self.parent)
+        # if type_ == LiteralType.NUM:
+        #     if isFloat(ctx.getText()):
+        #         self.current = Value(float(ctx.getText()), type_, self.parent)
+        #     else:
+        #         self.current = Value(int(ctx.getText()), type_, self.parent)
+        if type_ == LiteralType.INT:
+            self.current = Value(int(ctx.getText()), type_, self.parent)
+        elif type_ == LiteralType.FLOAT:
+            self.current = Value(float(ctx.getText()), type_, self.parent)
+        elif type_ == LiteralType.DOUBLE:
+            self.current = Value(float(ctx.getText()), type_, self.parent)
 
         if self.print:
             val = self.current.getValue()
-            if self.current.type == LiteralType.VAR:
+            if self.current.type == LiteralType.VAR: #TODO: ask when this is done, printFunction? -> should VAR be an actual type?
                 val = self.c_block.getSymbolTable().findSymbol(self.current.getValue())
             p = Print(val)
             self.asT = create_tree()

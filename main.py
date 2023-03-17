@@ -31,7 +31,7 @@ def main():
             i += 1
     """
     p=Declaration()
-    p.leftChild=Value('x',LiteralType.VAR,p)
+    p.leftChild=Value('x',LiteralType.FLOAT,p)
     p.rightChild=BinaryOperator("+")
     p.rightChild.leftChild=Value(4.7,LiteralType.FLOAT)
     p.rightChild.rightChild=Value(7.98,LiteralType.FLOAT)
