@@ -43,8 +43,24 @@ def separate_type_variable(old, type_):
     return old.replace(type_, '')
 
 
-def find_type(txt):
-    return types.get(txt)
+def find_type(txt): #TODO: check if this gives no problems
+    #type = types.get(txt)
+    if txt[0] == 'i':
+        return LiteralType.INT
+    elif txt[0] == 'f':
+        return LiteralType.FLOAT
+    elif txt[0] == 'd':
+        return LiteralType.DOUBLE
+    elif txt[0] == 's':
+        return LiteralType.STR
+    elif txt[0] == 'b':
+        return LiteralType.BOOL
+    elif txt[0] == 'c':
+        return LiteralType.CHAR
+    elif txt[0] == 'p':
+        return LiteralType.POINTER
+    else:
+        return False
 
 
 def is_variable(v: str):

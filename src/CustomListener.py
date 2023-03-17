@@ -211,7 +211,7 @@ class CustomListener(ExpressionListener):
         self.parent = Declaration()
         var = getVariable(ctx.getText())
         type = getType(var)
-        self.current = Value(var, type, self.parent)
+        self.current = Value(var, type, self.parent, variable=True)
         self.parent.leftChild = self.current
         self.current = self.parent.rightChild
         self.dec_op = self.parent

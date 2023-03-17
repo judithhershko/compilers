@@ -126,7 +126,7 @@ class Value(AST_node):
     def setValue(self, val):
         self.value = val
 
-    def setType(self, type):
+    def setType(self, type:LiteralType):
         self.type = type
 
     def getLabel(self):
