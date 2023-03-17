@@ -1,19 +1,28 @@
-import symbolTable
-import AST
 import sys
+from src.ast import program
+from src.ast.AST import AST
+from src.ast.symbolTable import *
 
 class block():
     def __init__(self, parent):
-        self.symbols = symbolTable.symbolTable()
-        self.ast = AST.AST()
+        self.symbols = SymbolTable()
+        self.ast = AST()
         self.parent = parent
-        self.blocks = None
+        self.blocks = []
+        #moet weg?
+        self.trees=[]
 
     def getSymbolTable(self):
         return self.symbols
 
     def getParent(self):
         return self.parent
+
+    def addBlock(self, newBlock):
+        self.blocks.append(newBlock)
+
+    def getAst(self):
+        return self.ast
 
     def fillLiterals(self):
         variables = self.ast.getVariables()
@@ -27,7 +36,7 @@ class block():
                 notFound.append(elem)
 
         current = self
-        while current.getParent() and notFound:
+        while not isinstance(current, program.program) and notFound:
             current = self.getParent()
             variables = notFound
             notFound = []
@@ -39,5 +48,6 @@ class block():
                     notFound.append(elem)
 
         if notFound:
-            print("This variable was not declared", file=sys.stderr)
+            print("There are undeclared variables", file=sys.stderr)
 
+        self.ast.replaceVariables(values)
