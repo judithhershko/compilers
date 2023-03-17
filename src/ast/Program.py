@@ -1,5 +1,5 @@
 from .SymbolTable import *
-from .AST import*
+from .AST import *
 
 
 class program:

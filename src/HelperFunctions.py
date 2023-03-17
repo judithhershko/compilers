@@ -20,6 +20,7 @@ def getVariable(ctx):
             var += i
     return var
 
+
 def getType(var):
     if var[0] == 'i':
         return LiteralType.INT
@@ -43,8 +44,8 @@ def separate_type_variable(old, type_):
     return old.replace(type_, '')
 
 
-def find_type(txt): #TODO: check if this gives no problems
-    #type = types.get(txt)
+def find_type(txt):  # TODO: check if this gives no problems
+    # type = types.get(txt)
     if txt[0] == 'i':
         return LiteralType.INT
     elif txt[0] == 'f':
@@ -133,8 +134,9 @@ class stack:
 
     def __str__(self):
         return str(self.__index)
+
+
 class brackets:
     def __init__(self):
-        self.hierarchy=None
-        self.tree=None
-
+        self.hierarchy = None
+        self.tree = None

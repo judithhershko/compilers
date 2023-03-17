@@ -22,7 +22,7 @@ class CustomListener(ExpressionListener):
         self.line_nr = 0
         self.comments = []
         self.print = False
-        self.line=0
+        self.line = 0
 
     def descend(self, operator: BinaryOperator):
         operator.parent = self.parent
@@ -51,7 +51,7 @@ class CustomListener(ExpressionListener):
 
         if self.print:
             val = self.current.getValue()
-            if self.current.type == LiteralType.VAR: #TODO: ask when this is done, printFunction? -> should VAR be an actual type?
+            if self.current.type == LiteralType.VAR:  # TODO: ask when this is done, printFunction? -> should VAR be an actual type?
                 val = self.c_block.getSymbolTable().findSymbol(self.current.getValue())
             p = Print(val)
             self.asT = create_tree()
@@ -108,16 +108,16 @@ class CustomListener(ExpressionListener):
                 operator.leftChild = r
                 self.parent.rightChild = operator
             else:
-                if order(self.parent.operator)<order(operator.operator):
+                if order(self.parent.operator) < order(operator.operator):
                     t = self.parent
                     operator.parent = self.parent.parent
                     self.parent.parent.rightChild = operator
                     t.parent = operator
                     operator.leftChild = t
                 else:
-                    operator.parent=self.parent
-                    operator.leftChild=self.parent.rightChild
-                    self.parent.rightChild=operator
+                    operator.parent = self.parent
+                    operator.leftChild = self.parent.rightChild
+                    self.parent.rightChild = operator
 
 
 
@@ -210,7 +210,7 @@ class CustomListener(ExpressionListener):
         pass
 
     # Enter a parse tree produced by ExpressionParser#dec.
-    def enterDec(self, ctx: ParserRuleContext): #TODO: declaration needs to get right type
+    def enterDec(self, ctx: ParserRuleContext):  # TODO: declaration needs to get right type
         print("enter dec")
         self.line_nr += 1
         self.asT = create_tree()
@@ -449,10 +449,11 @@ class CustomListener(ExpressionListener):
     # Exit a parse tree produced by ExpressionParser#comments.
     def exitComments(self, ctx: ParserRuleContext):
         pass
+
     # Enter a parse tree produced by ExpressionParser#line.
     def enterLine(self, ctx: ParserRuleContext):
-        print("new line:"+str(self.line))
-        self.line+=1
+        print("new line:" + str(self.line))
+        self.line += 1
 
     # Exit a parse tree produced by ExpressionParser#line.
     def exitLine(self, ctx: ParserRuleContext):

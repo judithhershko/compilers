@@ -3,6 +3,7 @@ from src.ast import Program
 from src.ast.AST import AST
 from src.ast.SymbolTable import *
 
+
 class block:
     def __init__(self, parent):
         self.symbols = SymbolTable()

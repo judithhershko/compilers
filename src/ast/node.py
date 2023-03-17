@@ -126,7 +126,7 @@ class Value(AST_node):
     def setValue(self, val):
         self.value = val
 
-    def setType(self, type:LiteralType):
+    def setType(self, type: LiteralType):
         self.type = type
 
     def getLabel(self):
@@ -167,6 +167,8 @@ class Value(AST_node):
             return LiteralType.INT
         else:
             return None
+
+
 class Declaration(AST_node):
     def __init__(self, parent=None, var=Value, line=None):
         self.parent = parent
@@ -238,7 +240,7 @@ class BinaryOperator(AST_node):
             self.rightChild = self.rightChild.fold()
 
         typeOfValue = None
-        #TODO: does char + char need to be supported?
+        # TODO: does char + char need to be supported?
         if not isinstance(self.leftChild, Value) or not isinstance(self.rightChild, Value):
             return self
         elif not self.leftChild.getType() in (LiteralType.DOUBLE, LiteralType.FLOAT, LiteralType.INT) or \
