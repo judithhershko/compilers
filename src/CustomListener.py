@@ -210,7 +210,8 @@ class CustomListener(ExpressionListener):
         self.asT = create_tree()
         self.parent = Declaration()
         var = getVariable(ctx.getText())
-        self.current = Value(var, node.LiteralType.VAR, self.parent)
+        type = getType(var)
+        self.current = Value(var, type, self.parent)
         self.parent.leftChild = self.current
         self.current = self.parent.rightChild
         self.dec_op = self.parent

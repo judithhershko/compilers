@@ -20,6 +20,24 @@ def getVariable(ctx):
             var += i
     return var
 
+def getType(var):
+    if var[0] == 'i':
+        return LiteralType.INT
+    elif var[0] == 'f':
+        return LiteralType.FLOAT
+    elif var[0] == 'd':
+        return LiteralType.DOUBLE
+    elif var[0] == 's':
+        return LiteralType.STR
+    elif var[0] == 'b':
+        return LiteralType.BOOL
+    elif var[0] == 'c':
+        return LiteralType.CHAR
+    elif var[0] == 'p':
+        return LiteralType.POINTER
+    else:
+        return False
+
 
 def separate_type_variable(old, type_):
     return old.replace(type_, '')
