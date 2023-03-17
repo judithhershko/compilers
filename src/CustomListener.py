@@ -22,6 +22,7 @@ class CustomListener(ExpressionListener):
         self.line_nr = 0
         self.comments = []
         self.print = False
+        self.line=0
 
     def descend(self, operator: BinaryOperator):
         operator.parent = self.parent
@@ -82,7 +83,6 @@ class CustomListener(ExpressionListener):
             self.right = False
         elif self.parent is None:
             self.line_nr += 1
-            print("line nr:", self.line_nr)
             self.parent = BinaryOperator("")
             self.left = True
             self.right = False
@@ -207,7 +207,6 @@ class CustomListener(ExpressionListener):
     def enterDec(self, ctx: ParserRuleContext):
         print("enter dec")
         self.line_nr += 1
-        print("line nr:", self.line_nr)
         self.asT = create_tree()
         self.parent = Declaration()
         var = getVariable(ctx.getText())
@@ -280,7 +279,7 @@ class CustomListener(ExpressionListener):
         pass
 
     # Enter a parse tree produced by ExpressionParser#equality.
-    def enterEquality(self, ctx: ParserRuleContext):
+    def Equality(self, ctx: ParserRuleContext):
         # self.set_operation(ctx.getText())
         print("bin eq:" + ctx.getText())
         self.set_token(ctx, LogicalOperator(ctx.getText()))
@@ -442,4 +441,12 @@ class CustomListener(ExpressionListener):
 
     # Exit a parse tree produced by ExpressionParser#comments.
     def exitComments(self, ctx: ParserRuleContext):
+        pass
+    # Enter a parse tree produced by ExpressionParser#line.
+    def enterLine(self, ctx: ParserRuleContext):
+        print("new line:"+str(self.line))
+        self.line+=1
+
+    # Exit a parse tree produced by ExpressionParser#line.
+    def exitLine(self, ctx: ParserRuleContext):
         pass

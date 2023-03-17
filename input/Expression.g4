@@ -1,7 +1,8 @@
 grammar Expression;
 
-start_rule: (print|expr|dec|comments)*;
+start_rule: (print|expr|dec|comments|line)*;
 
+line:NLINE;
 print   : PRINT LBRAK (char_pri | pri) RBRAK ;
 comments: ML_COMMENT | SL_COMMENT;
 typed_var: INT| DOUBLE | FLOAT |CHAR;
@@ -84,7 +85,10 @@ SL_COMMENT:  '//' ~('\r' | '\n')*;
 
 
 EOL: ';' -> skip;
-NLINE:';' .*? '\n' -> skip;
+LINE: '\n';
+//NLINE:';' .*? -> skip;
+NLINE:';' .*? '\n' ;
+//NLINE:';' .*? '\n' -> skip;
 
 
 

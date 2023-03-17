@@ -1,6 +1,5 @@
 import unittest
 from .AST import *
-from .node import *
 from .program import program
 from .block import *
 

@@ -29,6 +29,7 @@ class AST_node():
     number = None
     level = None
     parent = None
+    line = 0
 
     def getId(self):
         return str(self.level) + "." + str(self.number)
@@ -44,10 +45,11 @@ class AST_node():
 
 
 class Comment(AST_node):
-    def __init__(self, lit, commentType):
+    def __init__(self, lit, commentType, line=None):
         self.parent = None
         self.type = commentType
         self.value = lit
+        self.line = line
 
     def __eq__(self, other):
         if not isinstance(other, Comment):
@@ -71,9 +73,10 @@ class Comment(AST_node):
 
 
 class Print(AST_node):
-    def __init__(self, lit):
+    def __init__(self, lit, line=None):
         self.parent = None
         self.value = lit
+        self.line = line
 
     def __eq__(self, other):
         if not isinstance(other, Print):
@@ -91,12 +94,13 @@ class Print(AST_node):
 
 
 class Value(AST_node):
-    def __init__(self, lit, valueType, parent=None, const=False):
+    def __init__(self, lit, valueType, parent=None, const=False, line=None):
         self.value = lit
         self.type = valueType
         self.parent = parent
         self.const = const
         self.nr_pointers = 0
+        self.line = line
 
     def __eq__(self, other):
         if not isinstance(other, Value):
@@ -133,11 +137,12 @@ class Value(AST_node):
 
 
 class Declaration(AST_node):
-    def __init__(self, parent=None, var=Value):
+    def __init__(self, parent=None, var=Value, line=None):
         self.parent = parent
         self.leftChild = var
         self.rightChild = None
         self.operator = "="
+        self.line = line
 
     def __eq__(self, other):
         if not isinstance(other, Declaration):
@@ -164,9 +169,10 @@ class BinaryOperator(AST_node):
     leftChild = None
     rightChild = None
 
-    def __init__(self, oper, parent=None):
+    def __init__(self, oper, parent=None, line=None):
         self.operator = oper
         self.parent = parent
+        self.line = line
 
     def getValue(self):
         return self.rightChild.getValue()
@@ -235,9 +241,10 @@ class BinaryOperator(AST_node):
 class UnaryOperator(AST_node):
     child = None
 
-    def __init__(self, oper, parent=None):
+    def __init__(self, oper, parent=None, line=None):
         self.operator = oper
         self.parent = parent
+        self.line = line
 
     def __eq__(self, other):
         if not isinstance(other, UnaryOperator):
@@ -284,9 +291,10 @@ class LogicalOperator(AST_node):
     leftChild = None
     rightChild = None
 
-    def __init__(self, oper, parent=None):
+    def __init__(self, oper, parent=None, line=None):
         self.operator = oper
         self.parent = parent
+        self.line = line
 
     def __eq__(self, other):
         if not isinstance(other, LogicalOperator):
@@ -353,8 +361,9 @@ class Declaration(AST_node):
     leftChild = None
     rightChild = None
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, line=None):
         self.parent = parent
+        self.line = line
 
     def __eq__(self, other):
         if not isinstance(other, LogicalOperator):
