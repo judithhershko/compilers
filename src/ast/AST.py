@@ -3,7 +3,7 @@ import os
 from . import node
 #import node
 
-class AST():
+class AST:
     root = None
 
     def __eq__(self, other):

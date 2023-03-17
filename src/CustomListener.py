@@ -279,7 +279,7 @@ class CustomListener(ExpressionListener):
         pass
 
     # Enter a parse tree produced by ExpressionParser#equality.
-    def Equality(self, ctx: ParserRuleContext):
+    def enterEquality(self, ctx: ParserRuleContext):
         # self.set_operation(ctx.getText())
         print("bin eq:" + ctx.getText())
         self.set_token(ctx, LogicalOperator(ctx.getText()))

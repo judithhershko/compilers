@@ -20,16 +20,15 @@ class LiteralType(enum.Enum):
     CHAR = 6
     BOOL = 7
     FLOAT = 8
-
-    def __init__(self, const=False):
-        self.const = const
+    POINTER = 9
 
 
-class AST_node():
+class AST_node:
     number = None
     level = None
     parent = None
-    line = 0
+    line = None
+    variable = False
 
     def getId(self):
         return str(self.level) + "." + str(self.number)
@@ -42,6 +41,18 @@ class AST_node():
 
     def setLevel(self, level):
         self.level = level
+
+    def getLine(self):
+        return self.line
+
+    def setLine(self, line):
+        self.line = line
+
+    def isVariable(self):
+        return self.variable
+
+    def setVariable(self, var):
+        self.variable = var
 
 
 class Comment(AST_node):
@@ -73,10 +84,9 @@ class Comment(AST_node):
 
 
 class Print(AST_node):
-    def __init__(self, lit, line=None):
+    def __init__(self, lit):
         self.parent = None
         self.value = lit
-        self.line = line
 
     def __eq__(self, other):
         if not isinstance(other, Print):
@@ -94,10 +104,11 @@ class Print(AST_node):
 
 
 class Value(AST_node):
-    def __init__(self, lit, valueType, parent=None, const=False, line=None):
+    def __init__(self, lit, valueType, parent=None, line=None, variable=False, const=False):
         self.value = lit
         self.type = valueType
         self.parent = parent
+        self.variable = variable
         self.const = const
         self.nr_pointers = 0
         self.line = line
@@ -105,7 +116,9 @@ class Value(AST_node):
     def __eq__(self, other):
         if not isinstance(other, Value):
             return False
-        return self.value == other.value
+        return self.value == other.value and self.type == other.type and self.parent == other.parent and \
+               self.variable == other.variable and self.const == other.const and self.level == other.level and \
+               self.number == other.number and self.line == other.line
 
     def getValue(self):
         return self.value
@@ -126,16 +139,34 @@ class Value(AST_node):
         return self.type
 
     def getVariables(self):
-        if self.type == LiteralType.VAR:
+        if self.variable:
             return [self.value]
         else:
             return []
 
     def replaceVariables(self, values):
-        self.value = values[self.value]
-        self.type = LiteralType.NUM
+        if self.variable:
+            self.value = values[self.value]
+            self.variable = False
 
-
+    def getHigherType(self, node2):
+        type1 = self.type
+        type2 = node2.getType()
+        if (type1 == LiteralType.STR and type2 in (LiteralType.STR, LiteralType.CHAR)) or \
+                (type2 == LiteralType.STR and type1 == LiteralType.CHAR):
+            return LiteralType.STR
+        elif type1 == LiteralType.CHAR and type2 == LiteralType.CHAR:
+            return LiteralType.CHAR
+        elif (type1 == LiteralType.DOUBLE and type2 in (LiteralType.DOUBLE, LiteralType.FLOAT, LiteralType.INT)) or \
+                (type2 == LiteralType.DOUBLE and type1 in (LiteralType.FLOAT, LiteralType.INT)):
+            return LiteralType.DOUBLE
+        elif (type1 == LiteralType.FLOAT and type2 in (LiteralType.FLOAT, LiteralType.INT)) or \
+                (type2 == LiteralType.FLOAT and type1 == LiteralType.INT):
+            return LiteralType.FLOAT
+        elif type1 == LiteralType.INT and type2 == LiteralType.INT:
+            return LiteralType.INT
+        else:
+            return None
 class Declaration(AST_node):
     def __init__(self, parent=None, var=Value, line=None):
         self.parent = parent
@@ -174,13 +205,13 @@ class BinaryOperator(AST_node):
         self.parent = parent
         self.line = line
 
-    def getValue(self):
-        return self.rightChild.getValue()
-
     def __eq__(self, other):
         if not isinstance(other, BinaryOperator):
             return False
-        return self.operator == other.operator and self.leftChild == other.leftChild and self.rightChild == other.rightChild
+        return self.operator == other.operator and self.leftChild == other.leftChild and \
+               self.rightChild == other.rightChild and self.parent == other.parent and \
+               self.variable == other.variable and self.level == other.level and \
+               self.number == other.number and self.line == other.line
 
     def getValue(self):
         return self.operator
@@ -206,9 +237,12 @@ class BinaryOperator(AST_node):
         if not isinstance(self.rightChild, Value):
             self.rightChild = self.rightChild.fold()
 
+        typeOfValue = None
+
         if not isinstance(self.leftChild, Value) or not isinstance(self.rightChild, Value):
             return self
-        elif not self.leftChild.getType() == LiteralType.NUM or not self.rightChild.getType() == LiteralType.NUM:
+        elif not self.leftChild.getType() in (LiteralType.DOUBLE, LiteralType.FLOAT, LiteralType.INT) or \
+                not self.rightChild.getType() in (LiteralType.DOUBLE, LiteralType.FLOAT, LiteralType.INT):
             return self
         else:
             if self.operator == "*":
@@ -223,8 +257,13 @@ class BinaryOperator(AST_node):
                 res = self.leftChild.getValue() % self.rightChild.getValue()
             else:
                 res = self.leftChild.getValue() == self.rightChild.getValue()
-            newNode = Value(res, LiteralType.NUM)
+                typeOfValue = LiteralType.BOOL
+            if not typeOfValue:
+                typeOfValue = self.leftChild.getHigherType(self.rightChild)
+            if not typeOfValue:
+                return "impossible operation"
 
+            newNode = Value(res, typeOfValue, self.parent)
             return newNode
 
     def getVariables(self):
@@ -249,7 +288,9 @@ class UnaryOperator(AST_node):
     def __eq__(self, other):
         if not isinstance(other, UnaryOperator):
             return False
-        return self.operator == other.operator and self.child == other.child
+        return self.operator == other.operator and self.child == other.child and self.parent == other.parent and \
+               self.variable == other.variable and self.level == other.level and \
+               self.number == other.number and self.line == other.line
 
     def getValue(self):
         return self.operator
@@ -276,8 +317,10 @@ class UnaryOperator(AST_node):
             else:
                 res = + self.child.getValue()
 
-        newNode = Value(res, LiteralType.NUM)
+        if self.child.getType() not in (LiteralType.FLOAT, LiteralType.DOUBLE, LiteralType.INT):
+            return "impossible operation"
 
+        newNode = Value(res, self.child.getType(), self.parent)
         return newNode
 
     def getVariables(self):
@@ -299,7 +342,10 @@ class LogicalOperator(AST_node):
     def __eq__(self, other):
         if not isinstance(other, LogicalOperator):
             return False
-        return self.operator == other.operator and self.leftChild == other.leftChild and self.rightChild == other.rightChild
+        return self.operator == other.operator and self.leftChild == other.leftChild and \
+               self.rightChild == other.rightChild and self.parent == other.parent and \
+               self.variable == other.variable and self.level == other.level and \
+               self.number == other.number and self.line == other.line
 
     def getValue(self):
         return self.operator
@@ -342,8 +388,8 @@ class LogicalOperator(AST_node):
                 res = self.leftChild.getValue() != self.rightChild.getValue()
             else:
                 res = not self.leftChild.getValue()
-            newNode = Value(res, LiteralType.NUM)
 
+            newNode = Value(res, LiteralType.BOOL, self.parent)
             return newNode
 
     def getVariables(self):
@@ -368,7 +414,9 @@ class Declaration(AST_node):
     def __eq__(self, other):
         if not isinstance(other, LogicalOperator):
             return False
-        return self.leftChild == other.leftChild and self.rightChild == other.rightChild
+        return self.leftChild == other.leftChild and self.rightChild == other.rightChild and \
+               self.parent == other.parent and self.variable == other.variable and self.level == other.level and \
+               self.number == other.number and self.line == other.line
 
     def getLabel(self):
         return "\"Value declaration\""
@@ -385,6 +433,10 @@ class Declaration(AST_node):
         if not isinstance(self.rightChild, Value):
             self.rightChild = self.rightChild.fold()
 
+        highestType = self.leftChild.getHigherType(self.rightChild)
+        if self.leftChild.getType() != highestType:
+            return "invalid declaration"
+
         return self
 
     def getVariables(self):
@@ -392,3 +444,39 @@ class Declaration(AST_node):
 
     def replaceVariables(self, values):
         self.rightChild.replaceVaribles(values)
+
+
+class Pointer(AST_node):
+    def __init__(self, location, parent=None, variable=True, const=False):
+        self.value = location
+        self.type = LiteralType.POINTER
+        self.parent = parent
+        self.variable = variable
+        self.const = const
+
+    def __eq__(self, other):
+        if not isinstance(other, Pointer):
+            return False
+        return self.value == other.value and self.type == other.type and self.parent == other.parent and \
+               self.variable == other.variable and self.level == other.level and self.const == other.const and \
+               self.number == other.number and self.line == other.line
+
+    def getValue(self):
+        return self.value
+
+    def setValue(self, val):
+        self.value = val
+
+    def getLabel(self):
+        return "\"Pointer: " + str(self.value) + "\""
+
+    def getType(self):
+        return self.type
+
+    def getVariables(self):
+        return [self.value]
+
+    def replaceVariables(self, values):
+        if self.variable:
+            self.value = values[self.value]
+            self.variable = False
