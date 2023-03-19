@@ -2,6 +2,8 @@ from .SymbolTable import *
 from .AST import *
 from src.ErrorHandeling.GenerateError import *
 import sys
+
+
 # from colorama import Fore
 # from colorama import Style
 # from colorama import init as colorama_init
@@ -43,9 +45,5 @@ class program:
                 self.ast.replaceVariables(values)
                 return "filled"
 
-        except Undeclared as arg:
-            # print(arg)
+        except Undeclared:
             raise
-            # for elem in notFound:
-            #     err = "Error: Line " + str(elem[1]) + " has an undefined " + str(elem[0]) + "\n"
-            #     print(err, file=sys.stderr)

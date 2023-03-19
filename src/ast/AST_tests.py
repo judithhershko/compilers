@@ -4,6 +4,12 @@ from .Program import program
 from .block import *
 
 
+# TODO: force input of functions to be of a certain type
+# TODO: write documentation for function
+# TODO: add more test for new functionality
+# TODO: check based on input files if all exceptions are generated (correctly)
+# TODO: check functionality for pointers
+
 class nodeTestCase(unittest.TestCase):
     def test_getId(self):
         testNode = node.AST_node()
@@ -168,7 +174,7 @@ class nodeTestCase(unittest.TestCase):
         mult = node.BinaryOperator("*")
         add.setLeftChild(mult)
 
-        leaf1 = node.Value("x", node.LiteralType.INT, variable=True)
+        leaf1 = node.Value("x", node.LiteralType.STR, variable=True)
         mult.setLeftChild(leaf1)
 
         leaf2 = node.Value("y", node.LiteralType.INT, variable=True)
@@ -188,7 +194,7 @@ class nodeTestCase(unittest.TestCase):
         prog.getAst().setNodeIds(prog.getAst().root)
 
         val = prog.getSymbolTable()
-        val.addSymbol("x", 5, "int", False)
+        val.addSymbol("x", "5", "str", False)
         val.addSymbol("y", 22, "int", False)
         val.addSymbol("z", -78, "int", False)
         val.addSymbol("w", 2, "int", False)

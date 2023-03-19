@@ -55,6 +55,4 @@ class block:
                 self.ast.replaceVariables(values)
 
         except Undeclared:
-            for elem in notFound:
-                err = "Error: Line " + str(elem[1]) + " has an undefined " + str(elem[0]) + "\n"
-                print(err)
+            raise

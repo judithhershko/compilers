@@ -1,6 +1,7 @@
 # TODO: check different operators and how to group them
 import enum
 import sys
+from src.ErrorHandeling.GenerateError import *
 
 types = \
     {"double": 4, "int": 5, "char": 6, "bool": 7, "string": 8};
@@ -152,21 +153,25 @@ class Value(AST_node):
     def getHigherType(self, node2):
         type1 = self.type
         type2 = node2.getType()
-        if (type1 == LiteralType.STR and type2 in (LiteralType.STR, LiteralType.CHAR)) or \
-                (type2 == LiteralType.STR and type1 == LiteralType.CHAR):
-            return LiteralType.STR
-        elif type1 == LiteralType.CHAR and type2 == LiteralType.CHAR:
-            return LiteralType.CHAR
-        elif (type1 == LiteralType.DOUBLE and type2 in (LiteralType.DOUBLE, LiteralType.FLOAT, LiteralType.INT)) or \
-                (type2 == LiteralType.DOUBLE and type1 in (LiteralType.FLOAT, LiteralType.INT)):
-            return LiteralType.DOUBLE
-        elif (type1 == LiteralType.FLOAT and type2 in (LiteralType.FLOAT, LiteralType.INT)) or \
-                (type2 == LiteralType.FLOAT and type1 == LiteralType.INT):
-            return LiteralType.FLOAT
-        elif type1 == LiteralType.INT and type2 == LiteralType.INT:
-            return LiteralType.INT
-        else:
-            return None
+        try:
+            if (type1 == LiteralType.STR and type2 in (LiteralType.STR, LiteralType.CHAR)) or \
+                    (type2 == LiteralType.STR and type1 == LiteralType.CHAR):
+                return LiteralType.STR
+            elif type1 == LiteralType.CHAR and type2 == LiteralType.CHAR:
+                return LiteralType.CHAR
+            elif (type1 == LiteralType.DOUBLE and type2 in (LiteralType.DOUBLE, LiteralType.FLOAT, LiteralType.INT)) or \
+                    (type2 == LiteralType.DOUBLE and type1 in (LiteralType.FLOAT, LiteralType.INT)):
+                return LiteralType.DOUBLE
+            elif (type1 == LiteralType.FLOAT and type2 in (LiteralType.FLOAT, LiteralType.INT)) or \
+                    (type2 == LiteralType.FLOAT and type1 == LiteralType.INT):
+                return LiteralType.FLOAT
+            elif type1 == LiteralType.INT and type2 == LiteralType.INT:
+                return LiteralType.INT
+            else:
+                raise WrongType(type1, type2, self.line)
+
+        except WrongType:
+            raise
 
 
 class Declaration(AST_node):
@@ -239,35 +244,35 @@ class BinaryOperator(AST_node):
         if not isinstance(self.rightChild, Value):
             self.rightChild = self.rightChild.fold()
 
-        typeOfValue = None
         # TODO: does char + char need to be supported?
-        if not isinstance(self.leftChild, Value) or not isinstance(self.rightChild, Value):
-            return self
-        elif not self.leftChild.getType() in (LiteralType.DOUBLE, LiteralType.FLOAT, LiteralType.INT) or \
-                not self.rightChild.getType() in (LiteralType.DOUBLE, LiteralType.FLOAT, LiteralType.INT):
-            return self
-        else:
-            if self.operator == "*":
-                res = int(self.leftChild.getValue()) * int(self.rightChild.getValue())
-            elif self.operator == "/":
-                res = int(self.leftChild.getValue()) / int(self.rightChild.getValue())
-            elif self.operator == "+":
-                res = int(self.leftChild.getValue()) + int(self.rightChild.getValue())
-            elif self.operator == "-":
-                res = int(self.leftChild.getValue()) - int(self.rightChild.getValue())
-            elif self.operator == "%":
-                res = int(self.leftChild.getValue()) % int(self.rightChild.getValue())
-            # else:
-            #     res = int(self.leftChild.getValue()) == int(self.rightChild.getValue())
-            #     typeOfValue = LiteralType.BOOL
+        try:
+            if not isinstance(self.leftChild, Value) or not isinstance(self.rightChild, Value):
+                return self
+            elif not self.leftChild.getType() in (LiteralType.DOUBLE, LiteralType.FLOAT, LiteralType.INT) or \
+                    not self.rightChild.getType() in (LiteralType.DOUBLE, LiteralType.FLOAT, LiteralType.INT):
+                raise BinaryOp(self.leftChild.getType(), self.rightChild.getType(), self.operator, self.line)
+            else:
+                if self.operator == "*":
+                    res = int(self.leftChild.getValue()) * int(self.rightChild.getValue())
+                elif self.operator == "/":
+                    res = int(self.leftChild.getValue()) / int(self.rightChild.getValue())
+                elif self.operator == "+":
+                    res = int(self.leftChild.getValue()) + int(self.rightChild.getValue())
+                elif self.operator == "-":
+                    res = int(self.leftChild.getValue()) - int(self.rightChild.getValue())
+                elif self.operator == "%":
+                    res = int(self.leftChild.getValue()) % int(self.rightChild.getValue())
 
-            if not typeOfValue:
                 typeOfValue = self.leftChild.getHigherType(self.rightChild)
-            if not typeOfValue:
-                return "impossible operation"
+                # TODO: check if this if is still necessary, is caught in the error of getHigherType
+                if not typeOfValue:
+                    return "impossible operation"
 
-            newNode = Value(res, typeOfValue, self.parent)
-            return newNode
+                newNode = Value(res, typeOfValue, self.parent)
+                return newNode
+
+        except BinaryOp:
+            raise
 
     def getVariables(self):
         res = self.leftChild.getVariables()
@@ -376,30 +381,47 @@ class LogicalOperator(AST_node):
         if not isinstance(self.rightChild, Value):
             self.rightChild = self.rightChild.fold()
 
-        if not isinstance(self.leftChild, Value) or not isinstance(self.rightChild, Value):
-            return self
+        leftType = self.leftChild.getType()
+        if self.operator == "!":
+            rightType = leftType
         else:
-            if self.operator == "&&":
-                res = self.leftChild.getValue() and self.rightChild.getValue()
-            elif self.operator == "||":
-                res = self.leftChild.getValue() or self.rightChild.getValue()
-            elif self.operator == ">=":
-                res = self.leftChild.getValue() >= self.rightChild.getValue()
-            elif self.operator == "<=":
-                res = self.leftChild.getValue() <= self.rightChild.getValue()
-            elif self.operator == ">":
-                res = self.leftChild.getValue() > self.rightChild.getValue()
-            elif self.operator == "<":
-                res = self.leftChild.getValue() < self.rightChild.getValue()
-            elif self.operator == "==":
-                res = self.leftChild.getValue() == self.rightChild.getValue()
-            elif self.operator == "!=":
-                res = self.leftChild.getValue() != self.rightChild.getValue()
-            else:
-                res = not self.leftChild.getValue()
+            rightType = self.rightChild.getType()
 
-            newNode = Value(res, LiteralType.BOOL, self.parent)
-            return newNode
+        try:
+            if not isinstance(self.leftChild, Value) or not isinstance(self.rightChild, Value):
+                return self
+            elif leftType != rightType:
+                raise LogicalOp
+            else:
+                if self.operator == "&&":
+                    res = self.leftChild.getValue() and self.rightChild.getValue()
+                elif self.operator == "||":
+                    res = self.leftChild.getValue() or self.rightChild.getValue()
+                elif self.operator == ">=":
+                    res = self.leftChild.getValue() >= self.rightChild.getValue()
+                elif self.operator == "<=":
+                    res = self.leftChild.getValue() <= self.rightChild.getValue()
+                elif self.operator == ">":
+                    res = self.leftChild.getValue() > self.rightChild.getValue()
+                elif self.operator == "<":
+                    res = self.leftChild.getValue() < self.rightChild.getValue()
+                elif self.operator == "==":
+                    res = self.leftChild.getValue() == self.rightChild.getValue()
+                elif self.operator == "!=":
+                    res = self.leftChild.getValue() != self.rightChild.getValue()
+                else:
+                    if self.leftChild.getType() == LiteralType.BOOL:
+                        res = not self.leftChild.getValue()
+                    else:
+                        raise NotOp
+
+                newNode = Value(res, LiteralType.BOOL, self.parent)
+                return newNode
+
+        except LogicalOp:
+            raise
+        except NotOp:
+            raise
 
     def getVariables(self):
         res = self.leftChild.getVariables()
@@ -443,10 +465,14 @@ class Declaration(AST_node):
             self.rightChild = self.rightChild.fold()
 
         highestType = self.leftChild.getHigherType(self.rightChild)
-        if self.leftChild.getType() != highestType:
-            return "invalid declaration"
+        try:
+            if self.leftChild.getType() == highestType:
+                return self
+            else:
+                raise WrongDeclaration
 
-        return self
+        except WrongDeclaration:
+            raise
 
     def getVariables(self):
         return self.rightChild.getVariables()

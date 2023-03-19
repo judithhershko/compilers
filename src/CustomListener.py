@@ -249,8 +249,8 @@ class CustomListener(ExpressionListener):
             pointer = "*"
             level = self.asT.root.leftChild.nr_pointers
         self.c_block.getSymbolTable().addSymbol(self.asT.root.leftChild.getValue(), self.asT.root.rightChild.getValue(),
-                                                self.asT.root.leftChild.type, self.asT.root.leftChild.const,
-                                                pointer, level)
+                                                self.asT.root.leftChild.type, self.asT.root.level,
+                                                self.asT.root.leftChild.const, pointer, level)
         self.counter += 1
         self.parent = None
         self.current = None
