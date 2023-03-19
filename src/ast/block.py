@@ -2,6 +2,7 @@ import sys
 from src.ast import Program
 from src.ast.AST import AST
 from src.ast.SymbolTable import *
+from src.ErrorHandeling.GenerateError import *
 
 
 class block:
@@ -30,9 +31,9 @@ class block:
         notFound = []
         values = dict()
         for elem in variables:
-            temp = self.symbols.findSymbol(elem)
+            temp = self.symbols.findSymbol(elem[0])
             if temp:
-                values[elem] = temp
+                values[elem[0]] = temp
             else:
                 notFound.append(elem)
 
@@ -42,13 +43,18 @@ class block:
             variables = notFound
             notFound = []
             for elem in variables:
-                temp = current.symbols.findSymbol(elem)
+                temp = current.symbols.findSymbol(elem[0])
                 if temp:
-                    values[elem] = temp
+                    values[elem[0]] = temp
                 else:
                     notFound.append(elem)
+        try:
+            if notFound:
+                raise Undeclared(notFound)
+            else:
+                self.ast.replaceVariables(values)
 
-        if notFound:
-            print("There are undeclared variables", file=sys.stderr)
-
-        self.ast.replaceVariables(values)
+        except Undeclared:
+            for elem in notFound:
+                err = "Error: Line " + str(elem[1]) + " has an undefined " + str(elem[0]) + "\n"
+                print(err)

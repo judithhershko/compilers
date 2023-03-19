@@ -140,7 +140,7 @@ class Value(AST_node):
 
     def getVariables(self):
         if self.variable:
-            return [self.value]
+            return [(self.value, self.line)]
         else:
             return []
 
@@ -483,7 +483,7 @@ class Pointer(AST_node):
         return self.type
 
     def getVariables(self):
-        return [self.value]
+        return [(self.value, self.line)]
 
     def replaceVariables(self, values):
         if self.variable:
