@@ -105,11 +105,12 @@ def commentType(v: str):
         return CommentType.ML
 
 
+order_prec = {"++": 0, "--": 1, "!": 2, "*": 3, "/": 3, "+": 4, "-": 4,"":4, "<": 5, ">": 5, "<=": 5, ">=": 5, "==": 6,
+              "!=": 6, "&&": 7, "||": 8}
+
+
 def order(op: str):
-    if op == "/" or op == "*":
-        return 0
-    else:
-        return 1
+    return order_prec[op]
 
 
 class stack:
