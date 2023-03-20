@@ -23,6 +23,7 @@ class CustomListener(ExpressionListener):
         self.comments = []
         self.print = False
         self.line = 0
+        self.expr_layer = 0
 
     def descend(self, operator: BinaryOperator):
         operator.parent = self.parent
@@ -81,6 +82,7 @@ class CustomListener(ExpressionListener):
             self.right = True
 
     def set_expression(self, ctx: ParserRuleContext):
+        self.expr_layer+=1
         if self.declaration and isinstance(self.parent, Declaration):
             self.dec_op = self.parent
             self.parent = BinaryOperator("")
@@ -99,12 +101,12 @@ class CustomListener(ExpressionListener):
         if self.parent is not None and not isinstance(self.parent, Declaration) and self.parent.operator == "":
             self.current.parent = operator
             operator.leftChild = self.current
-            self.parent=operator
-        elif self.parent.operator=="":
-            lc=self.parent.leftChild
-            lc.parent=operator
-            operator.leftChild=self.parent.leftChild
-            self.parent=operator
+            self.parent = operator
+        elif self.parent.operator == "":
+            lc = self.parent.leftChild
+            lc.parent = operator
+            operator.leftChild = self.parent.leftChild
+            self.parent = operator
         else:
             while order_prec[operator.operator] >= order_prec[self.parent.operator] and self.parent.parent is not None:
                 self.parent = self.parent.parent
@@ -113,8 +115,8 @@ class CustomListener(ExpressionListener):
                 # has parents
                 if self.parent.parent is None:
                     if self.current is not None:
-                        self.current.parent=self.parent
-                        self.parent.rightChild=self.current
+                        self.current.parent = self.parent
+                        self.parent.rightChild = self.current
                     self.parent.parent = operator
                     operator.leftChild = self.parent
                     self.parent = operator
@@ -130,10 +132,10 @@ class CustomListener(ExpressionListener):
                 # richtchild none
                 if self.parent.rightChild is None:
                     operator.parent = self.parent
-                    self.current.parent=operator
-                    operator.leftChild=self.current
+                    self.current.parent = operator
+                    operator.leftChild = self.current
                     self.parent.rightChild = operator
-                    self.parent=operator
+                    self.parent = operator
                 # richtchild needs to be reattached
                 else:
                     rc = self.parent.rightChild
@@ -141,17 +143,17 @@ class CustomListener(ExpressionListener):
                     operator.leftChild = rc
                     operator.parent = self.parent
                     self.parent.rightChild = operator
-                    self.parent=operator
+                    self.parent = operator
             # parent op==operator op
             elif order_prec[self.parent.operator] == order_prec[operator.operator]:
                 # parent is None:
                 if self.parent.parent is None:
                     if self.parent.rightChild is None:
-                        self.current.parent=self.parent
-                        self.parent.rightChild=self.current
+                        self.current.parent = self.parent
+                        self.parent.rightChild = self.current
                     self.parent.parent = operator
                     operator.leftChild = self.parent
-                    self.parent=operator
+                    self.parent = operator
                 else:
                     rc = self.parent.parent.rightChild
                     rc.parent = operator
@@ -161,12 +163,12 @@ class CustomListener(ExpressionListener):
                     self.parent = operator
 
             # terug resetten
-            #while self.parent.rightChild is not None and not isinstance(self.parent.rightChild,Value):
+            # while self.parent.rightChild is not None and not isinstance(self.parent.rightChild,Value):
             #    self.parent = self.parent.rightChild
-            #while self.parent.parent is not None:
+            # while self.parent.parent is not None:
             #    self.parent=self.parent.parent
-            self.right=True
-            self.left=False
+            self.right = True
+            self.left = False
 
     ########################################################################
     # Enter a parse tree produced by ExpressionParser#start_rule.
@@ -256,6 +258,7 @@ class CustomListener(ExpressionListener):
         self.dec_op = self.parent
         self.declaration = True
 
+
     # Exit a parse tree produced by ExpressionParser#dec.
     def exitDec(self, ctx: ParserRuleContext):
         print("exit dec")
@@ -274,9 +277,11 @@ class CustomListener(ExpressionListener):
         self.asT.setNodeIds(self.asT.root)
         self.asT.generateDot("no_fold_expression_dot" + str(self.counter))
 #        self.asT.foldTree()
-#       self.asT.setNodeIds(self.asT.root)
+        #       self.asT.setNodeIds(self.asT.root)
+        # TODO: deze hele stuk # en """ moet ook uit de comment werken!
+        #        self.asT.foldTree()
+        #       self.asT.setNodeIds(self.asT.root)
         """
-
         self.asT.generateDot("yes_fold_expression_dot" + str(self.counter))
         pointer = ""
         level = 0
@@ -360,15 +365,19 @@ class CustomListener(ExpressionListener):
 
     # Exit a parse tree produced by ExpressionParser#expr.
     def exitExpr(self, ctx: ParserRuleContext):
+        self.expr_layer-=1
         print("exit epr:" + ctx.getText())
-        if not self.declaration:
+        if not self.declaration and self.expr_layer==0:
             while self.current.parent is not None:
                 self.current = self.current.parent
             self.asT.setRoot(self.current)
             self.c_block.trees.append(self.asT)
             self.trees.append(self.asT)
             self.asT.setNodeIds(self.asT.root)
-            self.asT.generateDot("expression_dot" + str(self.counter))
+            self.asT.generateDot("no_fold_expression_dot" + str(self.counter))
+            self.asT.foldTree()
+            self.asT.setNodeIds(self.asT.root)
+            self.c_block.trees.append(self.asT)
             self.counter += 1
             self.parent = None
             self.current = None
