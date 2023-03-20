@@ -1,4 +1,5 @@
 import pandas as pd
+from src.ErrorHandeling.GenerateError import *
 
 
 class SymbolTable:  # TODO: ask to add memory location?
@@ -9,31 +10,60 @@ class SymbolTable:  # TODO: ask to add memory location?
                                    "Ref": pd.Series(dtype="str"),
                                    "Level": pd.Series(dtype="int")})
 
-    def addSymbol(self, name, value, symType, const=False, ref=None, level=0, decl=False):
-        if (ref is None and level != 0) or (level == 0 and ref is not None):
-            return "faulty pointer levels"
-        if name not in self.table.index:
-            self.table.loc[name] = [value, symType, const, ref, level]
-            return "placed"
-        else:
-            row = self.table.loc[name]
-            if decl:
-                return "redeclaration"
-            elif row["Const"]:
-                return "const"
-            elif row["Type"] != symType:
-                return "type"
-            elif row["Level"] != level:
-                return "level"
-            elif row["Level"] > 0:
-                refRow = self.table.loc[ref]
-                if refRow["level"] != level - 1:
-                    return "pointerLevel"
-                self.table.loc[name, ["Value"]] = value
-                return "replaced"
+    # TODO: change function to accept tree with as root declaration instead of massive amount of parameters
+    def addSymbol(self, name, value, symType, line, const=False, ref=None, level=0, decl=False):
+        try:
+            if (ref is None and level != 0) or (level == 0 and ref is not None):
+                raise WrongPointer(line)
+            elif name not in self.table.index:
+                if ref is None:
+                    self.table.loc[name] = [value, symType, const, ref, level]
+                    return "placed"
+                elif ref not in self.table.index:
+                    raise ImpossibleRef(ref, line)
+                refValue = self.table.loc[ref]
+                if level - 1 != refValue["Level"]:
+                    raise RefPointerLevel(name, refValue["Level"], level, line)
+                elif symType != refValue["Type"]:
+                    raise PointerType(name, refValue["Type"], symType, line)
+                self.table.loc[name] = [value, symType, const, ref, level]
+                return "placed"
             else:
-                self.table.loc[name, ["Value"]] = value
-                return "replaced"
+                row = self.table.loc[name]
+                if decl:
+                    raise Redeclaration(name, line)
+                elif row["Const"]:
+                    raise ResetConst(name, line)
+                elif row["Type"] != symType:
+                    raise TypeDeclaration(name, row["type"], symType, line)
+                elif row["Level"] != level:
+                    raise PointerLevel(name, row["Level"], level, line)
+                # elif row["Level"] > 0:
+                #     refRow = self.table.loc[ref]
+                #     if refRow["level"] != level - 1:
+                #         return "pointerLevel"
+                #     self.table.loc[name, ["Value"]] = value
+                #     return "replaced"
+                else:
+                    self.table.loc[name, ["Value"]] = value
+                    return "replaced"
+
+        except WrongPointer:
+            raise
+        except ImpossibleRef:
+            raise
+        except RefPointerLevel:
+            raise
+        except PointerType:
+            raise
+        except Redeclaration:
+            raise
+        except ResetConst:
+            raise
+        except TypeDeclaration:
+            raise
+        except PointerLevel:
+            raise
 
     def findSymbol(self, name, deref=0):
         if name not in self.table.index:
