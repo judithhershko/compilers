@@ -276,7 +276,9 @@ class CustomListener(ExpressionListener):
         self.trees.append(self.asT)
         self.asT.setNodeIds(self.asT.root)
         self.asT.generateDot("no_fold_expression_dot" + str(self.counter))
-#        self.asT.foldTree()
+        self.asT.foldTree()
+        self.asT.setNodeIds(self.asT.root)
+        self.asT.generateDot("folded_expression_dot" + str(self.counter))
         #       self.asT.setNodeIds(self.asT.root)
         # TODO: deze hele stuk # en """ moet ook uit de comment werken!
         #        self.asT.foldTree()
@@ -289,8 +291,8 @@ class CustomListener(ExpressionListener):
             pointer = "*"
             level = self.asT.root.leftChild.nr_pointers
         self.c_block.getSymbolTable().addSymbol(self.asT.root.leftChild.getValue(), self.asT.root.rightChild.getValue(),
-                                                self.asT.root.leftChild.type, self.asT.root.leftChild.const,
-                                                pointer, level)
+                                                self.asT.root.leftChild.type, self.asT.root.level,
+                                                self.asT.root.leftChild.const, pointer, level)
         self.counter += 1
         self.parent = None
         self.current = None
