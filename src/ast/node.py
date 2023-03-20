@@ -117,9 +117,10 @@ class Value(AST_node):
     def __eq__(self, other):
         if not isinstance(other, Value):
             return False
-        return self.value == other.value and self.type == other.type and self.parent == other.parent and \
+        res =  self.value == other.value and self.type == other.type and self.parent == other.parent and \
                self.variable == other.variable and self.const == other.const and self.level == other.level and \
                self.number == other.number and self.line == other.line
+        return res
 
     def getValue(self):
         return self.value
@@ -167,6 +168,8 @@ class Value(AST_node):
                 return LiteralType.FLOAT
             elif type1 == LiteralType.INT and type2 == LiteralType.INT:
                 return LiteralType.INT
+            elif type1 == LiteralType.BOOL and type2 == LiteralType.BOOL:
+                return LiteralType.BOOL
             else:
                 raise WrongType(type1, type2, self.line)
 
@@ -252,16 +255,24 @@ class BinaryOperator(AST_node):
                     not self.rightChild.getType() in (LiteralType.DOUBLE, LiteralType.FLOAT, LiteralType.INT):
                 raise BinaryOp(self.leftChild.getType(), self.rightChild.getType(), self.operator, self.line)
             else:
+                if self.leftChild.getType() == LiteralType.FLOAT:
+                    leftValue = float(self.leftChild.getValue())
+                else:
+                    leftValue = int(self.leftChild.getValue())
+                if self.rightChild.getType() == LiteralType.FLOAT:
+                    rightValue = float(self.rightChild.getValue())
+                else:
+                    rightValue = int(self.rightChild.getValue())
                 if self.operator == "*":
-                    res = int(self.leftChild.getValue()) * int(self.rightChild.getValue())
+                    res = leftValue * rightValue
                 elif self.operator == "/":
-                    res = int(self.leftChild.getValue()) / int(self.rightChild.getValue())
+                    res = leftValue / rightValue
                 elif self.operator == "+":
-                    res = int(self.leftChild.getValue()) + int(self.rightChild.getValue())
+                    res = leftValue + rightValue
                 elif self.operator == "-":
-                    res = int(self.leftChild.getValue()) - int(self.rightChild.getValue())
+                    res = leftValue - rightValue
                 elif self.operator == "%":
-                    res = int(self.leftChild.getValue()) % int(self.rightChild.getValue())
+                    res = leftValue % rightValue
 
                 typeOfValue = self.leftChild.getHigherType(self.rightChild)
                 # TODO: check if this if is still necessary, is caught in the error of getHigherType

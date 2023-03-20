@@ -276,7 +276,9 @@ class CustomListener(ExpressionListener):
         self.trees.append(self.asT)
         self.asT.setNodeIds(self.asT.root)
         self.asT.generateDot("no_fold_expression_dot" + str(self.counter))
-#        self.asT.foldTree()
+        self.asT.foldTree()
+        self.asT.setNodeIds(self.asT.root)
+        self.asT.generateDot("folded_expression_dot" + str(self.counter))
         #       self.asT.setNodeIds(self.asT.root)
         # TODO: deze hele stuk # en """ moet ook uit de comment werken!
         #        self.asT.foldTree()
