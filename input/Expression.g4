@@ -5,7 +5,7 @@ start_rule: (print|expr|dec|comments|line)*;
 line:NLINE;
 print   : PRINT LBRAK (char_pri | pri) RBRAK ;
 comments: ML_COMMENT | SL_COMMENT;
-typed_var: INT| DOUBLE | FLOAT |CHAR;
+typed_var: INT| DOUBLE | FLOAT |CHAR | BOOL;
 
 const : CONST;
 pointer_variable: (pointer)* var=ID;
@@ -48,6 +48,7 @@ INT     : 'int'     ;
 DOUBLE  : 'double'  ;
 FLOAT   : 'float'   ;
 CHAR    : 'char'    ;
+BOOL    : 'bool'    ;
 CONST   : 'const'   ;
 REF     : '&'       ;
 PRINT   : 'printf'  ;
