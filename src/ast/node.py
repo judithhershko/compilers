@@ -3,7 +3,7 @@ import enum
 import sys
 
 types = \
-    {"double": 4, "int": 5, "char": 6, "bool": 7, "string": 8};
+    {"double": 4, "int": 5, "char": 6, "bool": 7, "string": 2,"float":8,"pointer":9,"nr":1,"var":3};
 
 
 class CommentType(enum.Enum):

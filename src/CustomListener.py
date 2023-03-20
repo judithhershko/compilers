@@ -93,47 +93,80 @@ class CustomListener(ExpressionListener):
             self.left = True
             self.right = False
 
-    def set_token(self, ctx, Operator=None):
-        if isinstance(Operator, LogicalOperator):
-            self.hierarchy = True
-        if Operator is not None:
-            operator = Operator
-        else:
+    def set_token(self, ctx, operator=None):
+        if operator is None:
             operator = BinaryOperator(ctx.getText())
-        if self.hierarchy and not isinstance(operator, LogicalOperator):
-            if isinstance(self.parent, LogicalOperator):
-                r = self.parent.rightChild
-                r.parent = operator
-                operator.parent = self.parent
-                operator.leftChild = r
-                self.parent.rightChild = operator
-            else:
-                if order(self.parent.operator) < order(operator.operator):
-                    t = self.parent
-                    operator.parent = self.parent.parent
-                    self.parent.parent.rightChild = operator
-                    t.parent = operator
-                    operator.leftChild = t
-                else:
-                    operator.parent = self.parent
-                    operator.leftChild = self.parent.rightChild
-                    self.parent.rightChild = operator
-
-
-
-        elif self.parent is not None and not isinstance(self.parent, Declaration) and self.parent.operator == "":
+        if self.parent is not None and not isinstance(self.parent, Declaration) and self.parent.operator == "":
             self.current.parent = operator
             operator.leftChild = self.current
+            self.parent=operator
+        elif self.parent.operator=="":
+            lc=self.parent.leftChild
+            lc.parent=operator
+            operator.leftChild=self.parent.leftChild
+            self.parent=operator
         else:
-            if order(self.parent.operator) > order(operator.operator):
-                self.descend(operator)
-            else:
-                operator.leftChild = self.parent
+            while order_prec[operator.operator] >= order_prec[self.parent.operator] and self.parent.parent is not None:
+                self.parent = self.parent.parent
+            # is operator >parent.op?
+            if order_prec[operator.operator] > order_prec[self.parent.operator]:
+                # has parents
+                if self.parent.parent is None:
+                    if self.current is not None:
+                        self.current.parent=self.parent
+                        self.parent.rightChild=self.current
+                    self.parent.parent = operator
+                    operator.leftChild = self.parent
+                    self.parent = operator
+                else:
+                    # doesn't have parents
+                    pp = self.parent.parent
+                    self.parent.parent = operator
+                    operator.leftChild = self.parent
+                    operator.parent = pp
+                    pp.rightChild = operator
+                    # parent op> operator op
+            elif order_prec[operator.operator] < order_prec[self.parent.operator]:
+                # richtchild none
+                if self.parent.rightChild is None:
+                    operator.parent = self.parent
+                    self.current.parent=operator
+                    operator.leftChild=self.current
+                    self.parent.rightChild = operator
+                    self.parent=operator
+                # richtchild needs to be reattached
+                else:
+                    rc = self.parent.rightChild
+                    rc.parent = operator
+                    operator.leftChild = rc
+                    operator.parent = self.parent
+                    self.parent.rightChild = operator
+                    self.parent=operator
+            # parent op==operator op
+            elif order_prec[self.parent.operator] == order_prec[operator.operator]:
+                # parent is None:
+                if self.parent.parent is None:
+                    if self.parent.rightChild is None:
+                        self.current.parent=self.parent
+                        self.parent.rightChild=self.current
+                    self.parent.parent = operator
+                    operator.leftChild = self.parent
+                    self.parent=operator
+                else:
+                    rc = self.parent.parent.rightChild
+                    rc.parent = operator
+                    operator.parent = self.parent.parent
+                    operator.leftChild = rc
+                    self.parent.parent.rightChild = operator
+                    self.parent = operator
 
-        self.parent = operator
-        self.current = self.parent.rightChild
-        self.right = True
-        self.left = False
+            # terug resetten
+            #while self.parent.rightChild is not None and not isinstance(self.parent.rightChild,Value):
+            #    self.parent = self.parent.rightChild
+            #while self.parent.parent is not None:
+            #    self.parent=self.parent.parent
+            self.right=True
+            self.left=False
 
     ########################################################################
     # Enter a parse tree produced by ExpressionParser#start_rule.
@@ -240,8 +273,10 @@ class CustomListener(ExpressionListener):
         self.trees.append(self.asT)
         self.asT.setNodeIds(self.asT.root)
         self.asT.generateDot("no_fold_expression_dot" + str(self.counter))
-        self.asT.foldTree()
-        self.asT.setNodeIds(self.asT.root)
+#        self.asT.foldTree()
+#       self.asT.setNodeIds(self.asT.root)
+        """
+
         self.asT.generateDot("yes_fold_expression_dot" + str(self.counter))
         pointer = ""
         level = 0
@@ -256,6 +291,7 @@ class CustomListener(ExpressionListener):
         self.current = None
         self.declaration = False
         self.asT = create_tree()
+        """
 
     # Enter a parse tree produced by ExpressionParser#variable_dec.
     def enterVariable_dec(self, ctx: ParserRuleContext):
