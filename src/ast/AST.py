@@ -1,5 +1,4 @@
 from . import node
-#import node
 
 
 class AST:
@@ -46,7 +45,7 @@ class AST:
             edges = edges + res[1]
 
         output = "graph ast {\n" + nodes + "\n\n" + edges + "\n}"
-        file = open("dotFiles/" + fileName + ".dot", "w")
+        file = open("src/ast/dotFiles/" + fileName + ".dot", "w")
         file.write(output)
         file.close()
         return output

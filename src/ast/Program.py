@@ -1,14 +1,11 @@
-from .AST import AST
 from .SymbolTable import *
-#import AST
-#import SymbolTable
-import sys
+from .AST import *
 
 
-class Program:
+class program:
     def __init__(self):
-        self.symbols = SymbolTable.SymbolTable()
-        self.ast = AST.AST()
+        self.symbols = SymbolTable()
+        self.ast = AST()
         self.blocks = []
 
     def getAst(self):
