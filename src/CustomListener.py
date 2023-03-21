@@ -28,6 +28,7 @@ class CustomListener(ExpressionListener):
     def set_bracket(self):
         if self.bracket_stack.__len__()==0:
             return
+
         non_brack = self.bracket_stack.pop()
         if non_brack is None:
             return
