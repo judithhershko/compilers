@@ -5,7 +5,6 @@ from .ast.block import *
 
 class CustomListener(ExpressionListener):
     def __init__(self):
-        self.hierarchy = None
         self.asT = create_tree()
         self.current = None
         self.parent = None
@@ -33,10 +32,10 @@ class CustomListener(ExpressionListener):
             return
 
         non_brack = self.bracket_stack.pop()
-        layer=self.bracket_layer.pop()
+        layer = self.bracket_layer.pop()
         if non_brack is None:
             return
-        if layer!=self.bracket_count:
+        if layer != self.bracket_count:
             self.bracket_layer.push(layer)
             self.bracket_stack.push(non_brack)
             return
@@ -282,12 +281,15 @@ class CustomListener(ExpressionListener):
     def exitDec(self, ctx: ParserRuleContext):
         if self.bracket_stack.__len__() > 0:
             self.set_bracket()
-        while self.current.parent is not None:
-            self.current = self.current.parent
-        if isinstance(self.current, BinaryOperator) and self.current.operator == "":
-            self.current = self.current.leftChild
+        if self.current is None:
+            self.dec_op.rightChild = Value(0,self.dec_op.leftChild.getType(),self.dec_op)
+        else:
+            while self.current.parent is not None:
+                self.current = self.current.parent
+            if isinstance(self.current, BinaryOperator) and self.current.operator == "":
+                self.current = self.current.leftChild
 
-        self.dec_op.rightChild = self.current
+            self.dec_op.rightChild = self.current
         self.current = self.dec_op
         self.asT.setRoot(self.current)
         self.trees.append(self.asT)
@@ -541,3 +543,19 @@ class CustomListener(ExpressionListener):
         self.set_bracket()
         self.bracket_count -= 1
         return
+
+    # Enter a parse tree produced by ExpressionParser#prefix_op.
+    def enterPrefix_op(self, ctx: ParserRuleContext):
+        return self.set_token(UnaryOperator(ctx.getText()))
+
+    # Exit a parse tree produced by ExpressionParser#prefix_op.
+    def exitPrefix_op(self, ctx: ParserRuleContext):
+        pass
+
+    # Enter a parse tree produced by ExpressionParser#suffix_op.
+    def enterSuffix_op(self, ctx: ParserRuleContext):
+        pass
+
+    # Exit a parse tree produced by ExpressionParser#suffix_op.
+    def exitSuffix_op(self, ctx: ParserRuleContext):
+        pass
