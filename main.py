@@ -30,17 +30,6 @@ def main():
             tree.generateDot("expression_dot" + str(i))
             i += 1
     """
-    p=Declaration()
-    p.leftChild=Value('x',LiteralType.FLOAT,p)
-    p.rightChild=BinaryOperator("+")
-    p.rightChild.leftChild=Value(4.7,LiteralType.FLOAT)
-    p.rightChild.rightChild=Value(7.98,LiteralType.FLOAT)
-    t=AST()
-    t.setRoot(p)
-    t.setNodeIds(t.root)
-    t.foldTree()
-    t.setNodeIds(t.root)
-    t.generateDot("test_dot")
 
 
 if __name__ == '__main__':
