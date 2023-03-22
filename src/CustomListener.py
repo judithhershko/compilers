@@ -292,33 +292,32 @@ class CustomListener(ExpressionListener):
             self.dec_op.rightChild = self.current
         self.current = self.dec_op
         self.asT.setRoot(self.current)
-        self.trees.append(self.asT)
         self.asT.setNodeIds(self.asT.root)
         self.asT.generateDot("no_fold_expression_dot" + str(self.counter))
         self.asT.foldTree()
         self.asT.setNodeIds(self.asT.root)
         self.asT.generateDot("folded_expression_dot" + str(self.counter))
+        self.trees.append(self.asT)
+        self.asT.foldTree()
+        self.asT.setNodeIds(self.asT.root)
 
-        #       self.asT.setNodeIds(self.asT.root)
-        # TODO: deze hele stuk # en """ moet ook uit de comment werken!
-        #        self.asT.foldTree()
-        #       self.asT.setNodeIds(self.asT.root)
-        """
         self.asT.generateDot("yes_fold_expression_dot" + str(self.counter))
         pointer = ""
         level = 0
+
         if self.asT.root.leftChild.nr_pointers > 0:
             pointer = "*"
             level = self.asT.root.leftChild.nr_pointers
+        self.c_block.trees.append(self.asT)
         self.c_block.getSymbolTable().addSymbol(self.asT.root.leftChild.getValue(), self.asT.root.rightChild.getValue(),
                                                 self.asT.root.leftChild.type, self.asT.root.level,
-                                                self.asT.root.leftChild.const, pointer, level)
+                                                self.asT.root.leftChild.const)
         self.counter += 1
         self.parent = None
         self.current = None
         self.declaration = False
         self.asT = create_tree()
-        """
+        
 
     # Enter a parse tree produced by ExpressionParser#variable_dec.
     def enterVariable_dec(self, ctx: ParserRuleContext):
