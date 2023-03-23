@@ -11,7 +11,7 @@ class SymbolTable:  # TODO: ask to add memory location?
                                    "Ref": pd.Series(dtype="str"),
                                    "Level": pd.Series(dtype="int")})
 
-    def addSymbol(self, root):
+    def addSymbol(self, root: AST_node):
         try:
             line = root.getLine()
             if not isinstance(root, Declaration):
@@ -86,7 +86,7 @@ class SymbolTable:  # TODO: ask to add memory location?
         except PointerLevel:
             raise
 
-    def findSymbol(self, name, deref=0):
+    def findSymbol(self, name: str, deref: int = 0):
         if name not in self.table.index:
             return None
         elif deref == 0:

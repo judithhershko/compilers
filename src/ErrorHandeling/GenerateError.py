@@ -3,6 +3,8 @@
 # def printError(error):
 #     print(Fore.RED + error)
 
+from src.ast.node import *
+
 
 class Undeclared(Exception):
     def __init__(self, unresolved):

@@ -1,6 +1,7 @@
 from .SymbolTable import *
 from .AST import *
 from src.ErrorHandeling.GenerateError import *
+from .block import *
 import sys
 
 
@@ -23,7 +24,7 @@ class program:
     def getSymbolTable(self):
         return self.symbols
 
-    def addBlock(self, block):
+    def addBlock(self, block: block):
         self.blocks.append(block)
 
     def fillLiterals(self):

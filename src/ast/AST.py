@@ -4,15 +4,15 @@ from . import node
 class AST:
     root = None
 
-    def __eq__(self, other: node.Value):
+    def __eq__(self, other):
         if not isinstance(other, AST):
             return False
         return self.root == other.root
 
-    def setRoot(self, root):
+    def setRoot(self, root: node.AST_node):
         self.root = root
 
-    def setNodeIds(self, nextNode, level=0, number=0):
+    def setNodeIds(self, nextNode: node.AST_node, level: int = 0, number: int = 0):
         nextNode.setNumber(number)
         nextNode.setLevel(level)
         if isinstance(nextNode, node.BinaryOperator) or isinstance(nextNode, node.LogicalOperator) or \
@@ -24,7 +24,7 @@ class AST:
 
         return number
 
-    def generateDot(self, fileName):
+    def generateDot(self, fileName: str):
         nodes = self.root.getId() + " [label=" + self.root.getLabel() + "]"
         edges = ""
 
@@ -50,7 +50,7 @@ class AST:
         file.close()
         return output
 
-    def toDot(self, root):
+    def toDot(self, root: node.AST_node):
         nodes = "\n" + root.getId() + " [label=" + root.getLabel() + "]"
         edges = ""
 

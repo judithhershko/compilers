@@ -1,4 +1,3 @@
-# TODO: check different operators and how to group them
 import enum
 import sys
 from src.ErrorHandeling.GenerateError import *
