@@ -1,5 +1,6 @@
 import pandas as pd
 from src.ErrorHandeling.GenerateError import *
+from src.ast.node import *
 
 
 class SymbolTable:  # TODO: ask to add memory location?
@@ -11,8 +12,25 @@ class SymbolTable:  # TODO: ask to add memory location?
                                    "Level": pd.Series(dtype="int")})
 
     # TODO: change function to accept tree with as root declaration instead of massive amount of parameters
-    def addSymbol(self, name, value, symType, line, const=False, ref=None, level=0, decl=False):
+    def addSymbol(self, root):
         try:
+            line = root.getLine()
+            if not isinstance(root, Declaration):
+                raise NotDeclaration(line)
+            else:
+                name = root.getLeftChild().getValue()
+                value = root.getRightChild().getValue()
+                symType = root.getLeftChild().getType()
+                const = root.getLeftChild().const
+                decl = root.getLeftChild().declaration
+                if isinstance(root.getLeftChild(), Value) and root.getLeftChild().isVariable():
+                    ref = None
+                    level = 0
+                elif isinstance(root.getLeftChild(), Pointer):
+                    level = root.getLeftChild().level
+                    ref = root.getRightChild().getValue()
+                else:
+                    raise LeftSideDeclaration(line)
             if (ref is None and level != 0) or (level == 0 and ref is not None):
                 raise WrongPointer(line)
             elif name not in self.table.index:
@@ -48,6 +66,10 @@ class SymbolTable:  # TODO: ask to add memory location?
                     self.table.loc[name, ["Value"]] = value
                     return "replaced"
 
+        except NotDeclaration:
+            raise
+        except LeftSideDeclaration:
+            raise
         except WrongPointer:
             raise
         except ImpossibleRef:

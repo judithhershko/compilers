@@ -180,6 +180,24 @@ class ChildType(Exception):
             return "\n\tError in line " + str(self.line) + ": the " + str(self.oper) + \
                    " does not support the following child type: " + str(self.type1)
         else:
-            return "\n\tError in line " + str(self.line) + ": the " + str(self.oper) +\
+            return "\n\tError in line " + str(self.line) + ": the " + str(self.oper) + \
                    " does not support one of the following child types: " + str(self.type1) + ", " + str(self.type2)
+
+
+class NotDeclaration(Exception):
+    def __init__(self, line):
+        self.line = line
+
+    def __str__(self):
+        return "\n\tError in line " + str(self.line) + \
+               ": only objects of type Declaration can be added to the symbol table"
+
+
+class LeftSideDeclaration(Exception):
+    def __init__(self, line):
+        self.line = line
+
+    def __str__(self):
+        return "\n\tError in line " + str(self.line) + \
+               ": the left hand side of the declaration should be a variable or a pointer"
 

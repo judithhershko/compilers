@@ -4,7 +4,7 @@ import sys
 from src.ErrorHandeling.GenerateError import *
 
 types = \
-    {"double": 4, "int": 5, "char": 6, "bool": 7, "string": 2,"float":8,"pointer":9,"nr":1,"var":3};
+    {"double": 4, "int": 5, "char": 6, "bool": 7, "string": 2, "float": 8, "pointer": 9, "nr": 1, "var": 3};
 
 
 class CommentType(enum.Enum):
@@ -105,21 +105,21 @@ class Print(AST_node):
 
 
 class Value(AST_node):
-    def __init__(self, lit, valueType, parent=None, line=None, variable=False, const=False):
+    def __init__(self, lit, valueType, line, parent=None, variable=False, const=False, decl=False):
         self.value = lit
         self.type = valueType
         self.parent = parent
         self.variable = variable
         self.const = const
-        self.nr_pointers = 0
+        self.declaration = decl
         self.line = line
 
     def __eq__(self, other):
         if not isinstance(other, Value):
             return False
-        res =  self.value == other.value and self.type == other.type and self.parent == other.parent and \
-               self.variable == other.variable and self.const == other.const and self.level == other.level and \
-               self.number == other.number and self.line == other.line
+        res = self.value == other.value and self.type == other.type and self.parent == other.parent and \
+              self.variable == other.variable and self.const == other.const and self.declaration == other.declaration \
+              and self.number == other.number and self.line == other.line
         return res
 
     def getValue(self):
@@ -281,7 +281,7 @@ class BinaryOperator(AST_node):
                 # if not typeOfValue:
                 #     return "impossible operation"
 
-                newNode = Value(res, typeOfValue, self.parent)
+                newNode = Value(res, typeOfValue, self.line, self.parent)
                 return newNode
 
         except BinaryOp:
@@ -347,7 +347,7 @@ class UnaryOperator(AST_node):
                 else:
                     raise NotSupported("unary operator", self.operator, self.line)
 
-            newNode = Value(res, self.child.getType(), self.parent)
+            newNode = Value(res, self.child.getType(), self.line, self.parent)
             return newNode
 
         except ChildType:
@@ -441,7 +441,7 @@ class LogicalOperator(AST_node):
                 #     else:
                 #         raise NotOp
 
-                newNode = Value(res, LiteralType.BOOL, self.parent)
+                newNode = Value(res, LiteralType.BOOL, self.line, self.parent)
                 return newNode
 
         except LogicalOp:

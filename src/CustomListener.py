@@ -37,18 +37,18 @@ class CustomListener(ExpressionListener):
 
         print("set val:" + ctx.getText())
         type_ = find_value_type(ctx.getText())
-        self.current = Value(ctx.getText(), type_, self.parent)
+        self.current = Value(ctx.getText(), type_, self.line_nr, self.parent)
         # if type_ == LiteralType.NUM:
         #     if isFloat(ctx.getText()):
         #         self.current = Value(float(ctx.getText()), type_, self.parent)
         #     else:
         #         self.current = Value(int(ctx.getText()), type_, self.parent)
         if type_ == LiteralType.INT:
-            self.current = Value(int(ctx.getText()), type_, self.parent)
+            self.current = Value(int(ctx.getText()), type_, self.line_nr, self.parent)
         elif type_ == LiteralType.FLOAT:
-            self.current = Value(float(ctx.getText()), type_, self.parent)
+            self.current = Value(float(ctx.getText()), type_, self.line_nr, self.parent)
         elif type_ == LiteralType.DOUBLE:
-            self.current = Value(float(ctx.getText()), type_, self.parent)
+            self.current = Value(float(ctx.getText()), type_, self.line_nr, self.parent)
 
         if self.print:
             val = self.current.getValue()
@@ -252,7 +252,7 @@ class CustomListener(ExpressionListener):
         self.parent = Declaration()
         var = getVariable(ctx.getText())
         type = getType(var)
-        self.current = Value(var, type, self.parent, variable=True)
+        self.current = Value(var, type, self.line_nr, self.parent, variable=True)
         self.parent.leftChild = self.current
         self.current = self.parent.rightChild
         self.dec_op = self.parent
