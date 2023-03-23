@@ -11,7 +11,6 @@ class SymbolTable:  # TODO: ask to add memory location?
                                    "Ref": pd.Series(dtype="str"),
                                    "Level": pd.Series(dtype="int")})
 
-    # TODO: change function to accept tree with as root declaration instead of massive amount of parameters
     def addSymbol(self, root):
         try:
             line = root.getLine()
