@@ -28,6 +28,9 @@ class program:
         self.blocks.append(block)
 
     def fillLiterals(self):
+        """
+         This function will try to replace the variables in the AST with the actual values.
+         """
         variables = self.ast.getVariables()
         notFound = []
         values = dict()

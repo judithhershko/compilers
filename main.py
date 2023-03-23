@@ -30,9 +30,11 @@ def main():
             tree.generateDot("expression_dot" + str(i))
             i += 1
     """
-    p=Declaration()
-    p.leftChild=Value('x',LiteralType.FLOAT,1,p)
-    p.rightChild=BinaryOperator("+")
+    # p=Declaration()
+    left=Value('x',LiteralType.FLOAT,1)
+    p=Declaration(left, 1)
+    left.parent = p
+    p.rightChild=BinaryOperator("+", 1)
     p.rightChild.leftChild=Value(4.7,LiteralType.FLOAT,1)
     p.rightChild.rightChild=Value(7.98,LiteralType.FLOAT,1)
     t=AST()

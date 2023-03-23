@@ -5,11 +5,11 @@ from src.ast.node import *
 
 class SymbolTable:  # TODO: ask to add memory location?
     def __init__(self):
-        self.table = pd.DataFrame({"Value": pd.Series(dtype="str"),
-                                   "Type": pd.Series(dtype="str"),
-                                   "Const": pd.Series(dtype="bool"),
-                                   "Ref": pd.Series(dtype="str"),
-                                   "Level": pd.Series(dtype="int")})
+        self.table = pd.DataFrame({"Value": pd.Series(dtype=str),
+                                   "Type": pd.Series(dtype=str),
+                                   "Const": pd.Series(dtype=bool),
+                                   # "Ref": pd.Series(dtype="str"),
+                                   "Level": pd.Series(dtype=int)})
 
     def addSymbol(self, root: AST_node):
         try:
@@ -34,7 +34,7 @@ class SymbolTable:  # TODO: ask to add memory location?
                 raise WrongPointer(line)
             elif name not in self.table.index:
                 if ref is None:
-                    self.table.loc[name] = [value, symType, const, ref, level]
+                    self.table.loc[name] = [value, symType, const, level]
                     return "placed"
                 elif ref not in self.table.index:
                     raise ImpossibleRef(ref, line)
@@ -43,7 +43,7 @@ class SymbolTable:  # TODO: ask to add memory location?
                     raise RefPointerLevel(name, refValue["Level"], level, line)
                 elif symType != refValue["Type"]:
                     raise PointerType(name, refValue["Type"], symType, line)
-                self.table.loc[name] = [value, symType, const, ref, level]
+                self.table.loc[name] = [value, symType, const, level]
                 return "placed"
             else:
                 row = self.table.loc[name]
@@ -91,7 +91,7 @@ class SymbolTable:  # TODO: ask to add memory location?
             return None
         elif deref == 0:
             return self.table.at[name, "Value"]
-        elif deref > 0 and self.table.at[name, "type"] == "pointer":
-            return self.findSymbol(self.table.at[name, "ref"], deref=deref - 1)
+        elif deref > 0 and self.table.at[name, "level"] > 0:
+            return self.findSymbol(self.table.at[name, "value"], deref=deref - 1)
         else:
             return None

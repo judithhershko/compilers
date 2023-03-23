@@ -75,29 +75,29 @@ class CustomListener(ExpressionListener):
         if self.parent is not None and self.parent.parent:
             self.parent.operator = operation
         else:
-            p = BinaryOperator(operation)
+            p = BinaryOperator(operation, self.line_nr)
             p.leftChild = self.parent
             self.parent = p
             self.current = self.parent.rightChild
             self.right = True
 
     def set_expression(self, ctx: ParserRuleContext):
-        self.expr_layer+=1
+        self.expr_layer += 1
         if self.declaration and isinstance(self.parent, Declaration):
             self.dec_op = self.parent
-            self.parent = BinaryOperator("")
+            self.parent = BinaryOperator("", self.line_nr)
             self.current = self.parent.leftChild
             self.left = True
             self.right = False
         elif self.parent is None:
             self.line_nr += 1
-            self.parent = BinaryOperator("")
+            self.parent = BinaryOperator("", self.line_nr)
             self.left = True
             self.right = False
 
     def set_token(self, ctx, operator=None):
         if operator is None:
-            operator = BinaryOperator(ctx.getText())
+            operator = BinaryOperator(ctx.getText(), self.line_nr)
         if self.parent is not None and not isinstance(self.parent, Declaration) and self.parent.operator == "":
             self.current.parent = operator
             operator.leftChild = self.current
@@ -249,15 +249,15 @@ class CustomListener(ExpressionListener):
         print("enter dec")
         self.line_nr += 1
         self.asT = create_tree()
-        self.parent = Declaration()
+        # self.parent = Declaration()
         var = getVariable(ctx.getText())
         type = getType(var)
         self.current = Value(var, type, self.line_nr, self.parent, variable=True)
-        self.parent.leftChild = self.current
+        # self.parent.leftChild = self.current
+        self.parent = Declaration(self.current, self.line_nr)
         self.current = self.parent.rightChild
         self.dec_op = self.parent
         self.declaration = True
-
 
     # Exit a parse tree produced by ExpressionParser#dec.
     def exitDec(self, ctx: ParserRuleContext):
@@ -367,9 +367,9 @@ class CustomListener(ExpressionListener):
 
     # Exit a parse tree produced by ExpressionParser#expr.
     def exitExpr(self, ctx: ParserRuleContext):
-        self.expr_layer-=1
+        self.expr_layer -= 1
         print("exit epr:" + ctx.getText())
-        if not self.declaration and self.expr_layer==0:
+        if not self.declaration and self.expr_layer == 0:
             while self.current.parent is not None:
                 self.current = self.current.parent
             self.asT.setRoot(self.current)
