@@ -273,16 +273,20 @@ class BinaryOperator(AST_node):
                     res = leftValue - rightValue
                 elif self.operator == "%":
                     res = leftValue % rightValue
+                else:
+                    raise NotSupported("binary operator", self.operator, self.line)
 
                 typeOfValue = self.leftChild.getHigherType(self.rightChild)
                 # TODO: check if this if is still necessary, is caught in the error of getHigherType
-                if not typeOfValue:
-                    return "impossible operation"
+                # if not typeOfValue:
+                #     return "impossible operation"
 
                 newNode = Value(res, typeOfValue, self.parent)
                 return newNode
 
         except BinaryOp:
+            raise
+        except NotSupported:
             raise
 
     def getVariables(self):
@@ -323,24 +327,33 @@ class UnaryOperator(AST_node):
     def fold(self):
         if not isinstance(self.child, Value):
             self.child = self.child.fold()
-
-        if not isinstance(self.child, Value):
-            return self
-        else:
-            if self.operator == "-":
-                res = - self.child.getValue()
-            elif self.operator == "++":
-                res = self.child.getValue() + 1
-            elif self.operator == "--":
-                res = self.child.getValue() - 1
+        try:
+            if not isinstance(self.child, Value):
+                return self
+            elif (self.child.getType() is not LiteralType.BOOL and self.operator == "!") or \
+                    (self.child.getType() not in (LiteralType.FLOAT, LiteralType.DOUBLE, LiteralType.INT)):
+                raise ChildType("unary operator", self.child.getType(), None, self.line)
             else:
-                res = + self.child.getValue()
+                if self.operator == "-":
+                    res = - self.child.getValue()
+                elif self.operator == "++":
+                    res = self.child.getValue() + 1
+                elif self.operator == "--":
+                    res = self.child.getValue() - 1
+                elif self.operator == "+":
+                    res = + self.child.getValue()
+                elif self.operator == "!":
+                    res = not self.child.getValue()
+                else:
+                    raise NotSupported("unary operator", self.operator, self.line)
 
-        if self.child.getType() not in (LiteralType.FLOAT, LiteralType.DOUBLE, LiteralType.INT):
-            return "impossible operation"
+            newNode = Value(res, self.child.getType(), self.parent)
+            return newNode
 
-        newNode = Value(res, self.child.getType(), self.parent)
-        return newNode
+        except ChildType:
+            raise
+        except NotSupported:
+            raise
 
     def getVariables(self):
         return self.child.getVariables()
@@ -382,8 +395,8 @@ class LogicalOperator(AST_node):
         self.type = type
 
     def setRightChild(self, child):
-        if self.operator == "!":
-            print("! operator can only have a left child", file=sys.stderr)
+        # if self.operator == "!":
+        #     print("! operator can only have a left child", file=sys.stderr)
         self.rightChild = child
 
     def fold(self):
@@ -393,10 +406,10 @@ class LogicalOperator(AST_node):
             self.rightChild = self.rightChild.fold()
 
         leftType = self.leftChild.getType()
-        if self.operator == "!":
-            rightType = leftType
-        else:
-            rightType = self.rightChild.getType()
+        # if self.operator == "!":
+        #     rightType = leftType
+        # else:
+        rightType = self.rightChild.getType()
 
         try:
             if not isinstance(self.leftChild, Value) or not isinstance(self.rightChild, Value):
@@ -421,17 +434,21 @@ class LogicalOperator(AST_node):
                 elif self.operator == "!=":
                     res = self.leftChild.getValue() != self.rightChild.getValue()
                 else:
-                    if self.leftChild.getType() == LiteralType.BOOL:
-                        res = not self.leftChild.getValue()
-                    else:
-                        raise NotOp
+                    raise NotSupported("logical operator", self.operator, self.line)
+                # else:
+                #     if self.leftChild.getType() == LiteralType.BOOL:
+                #         res = not self.leftChild.getValue()
+                #     else:
+                #         raise NotOp
 
                 newNode = Value(res, LiteralType.BOOL, self.parent)
                 return newNode
 
         except LogicalOp:
             raise
-        except NotOp:
+        # except NotOp:
+        #     raise
+        except NotSupported:
             raise
 
     def getVariables(self):
