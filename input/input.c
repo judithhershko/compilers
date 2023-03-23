@@ -1,1 +1,7 @@
-int y= ((4/5)*(45-4*8)+78);
+int y;
+//one line comment
+/**
+*multiline comment
+**/
+int x=90+90*87;
+
