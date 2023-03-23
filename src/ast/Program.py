@@ -1,6 +1,7 @@
 from .SymbolTable import *
 from .AST import *
 from src.ErrorHandeling.GenerateError import *
+from .block import *
 import sys
 
 
@@ -23,10 +24,13 @@ class program:
     def getSymbolTable(self):
         return self.symbols
 
-    def addBlock(self, block):
+    def addBlock(self, block: block):
         self.blocks.append(block)
 
     def fillLiterals(self):
+        """
+         This function will try to replace the variables in the AST with the actual values.
+         """
         variables = self.ast.getVariables()
         notFound = []
         values = dict()

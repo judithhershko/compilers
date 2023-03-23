@@ -27,6 +27,10 @@ class block:
         return self.ast
 
     def fillLiterals(self):
+        """
+        This function will try to replace the variables in the AST with the actual values. If it can not find the
+        variables in its own symbol table, it will look at the symbol tables of its parents
+        """
         variables = self.ast.getVariables()
         notFound = []
         values = dict()
