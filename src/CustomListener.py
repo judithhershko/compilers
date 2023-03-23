@@ -504,7 +504,11 @@ class CustomListener(ExpressionListener):
     def enterComments(self, ctx: ParserRuleContext):
         type = commentType(ctx.getText())
         comment = Comment(ctx.getText(), type)
+        self.asT=create_tree()
+        self.asT.root=comment
         self.comments.append(comment)
+        self.c_block.trees.append(self.asT)
+        self.asT=create_tree()
 
     # Exit a parse tree produced by ExpressionParser#comments.
     def exitComments(self, ctx: ParserRuleContext):
