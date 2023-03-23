@@ -4,7 +4,7 @@ from . import node
 class AST:
     root = None
 
-    def __eq__(self, other):
+    def __eq__(self, other: node.Value):
         if not isinstance(other, AST):
             return False
         return self.root == other.root

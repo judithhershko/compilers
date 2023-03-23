@@ -1,5 +1,14 @@
 from .SymbolTable import *
 from .AST import *
+from src.ErrorHandeling.GenerateError import *
+import sys
+
+
+# from colorama import Fore
+# from colorama import Style
+# from colorama import init as colorama_init
+#
+# colorama_init()
 
 
 class program:
@@ -24,14 +33,17 @@ class program:
         if not variables:
             return "filled"
         for elem in variables:
-            temp = self.symbols.findSymbol(elem)
+            temp = self.symbols.findSymbol(elem[0])
             if temp:
-                values[elem] = temp
+                values[elem[0]] = temp
             else:
                 notFound.append(elem)
+        try:
+            if notFound:
+                raise Undeclared(notFound)
+            else:
+                self.ast.replaceVariables(values)
+                return "filled"
 
-        if notFound:
-            return "missing"
-
-        self.ast.replaceVariables(values)
-        return "filled"
+        except Undeclared:
+            raise
