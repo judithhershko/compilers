@@ -60,8 +60,26 @@ class CustomListener(ExpressionListener):
     def has_children(self, ctx: ParserRuleContext):
         return ctx.getChildCount() > 1
 
+    def set_print(self, ctx: ParserRuleContext, type_):
+        if type_ == LiteralType.INT:
+            self.current = Print(int(ctx.getText()))
+        elif type_ == LiteralType.FLOAT:
+            self.current = Print(float(ctx.getText()))
+        elif type_ == LiteralType.STR:
+            self.current = Print(ctx.getText())
+        else:
+            var = self.c_block.getSymbolTable().findSymbol(ctx.getText())
+            self.current = Print(var)
+        self.asT.root = self.current
+        self.c_block.trees.append(self.asT)
+        self.current = None
+        self.asT = create_tree()
+        return
+
     def set_val(self, ctx: ParserRuleContext):
         type_ = find_value_type(ctx.getText())
+        if self.print:
+            return self.set_print(ctx, type_)
         self.current = Value(ctx.getText(), type_, self.parent)
         # if type_ == LiteralType.NUM:
         #     if isFloat(ctx.getText()):
@@ -282,7 +300,7 @@ class CustomListener(ExpressionListener):
         if self.bracket_stack.__len__() > 0:
             self.set_bracket()
         if self.current is None:
-            self.dec_op.rightChild = Value(0,self.dec_op.leftChild.getType(),self.dec_op)
+            self.dec_op.rightChild = Value(0, self.dec_op.leftChild.getType(), self.dec_op)
         else:
             while self.current.parent is not None:
                 self.current = self.current.parent
@@ -317,7 +335,6 @@ class CustomListener(ExpressionListener):
         self.current = None
         self.declaration = False
         self.asT = create_tree()
-        
 
     # Enter a parse tree produced by ExpressionParser#variable_dec.
     def enterVariable_dec(self, ctx: ParserRuleContext):
@@ -504,11 +521,11 @@ class CustomListener(ExpressionListener):
     def enterComments(self, ctx: ParserRuleContext):
         type = commentType(ctx.getText())
         comment = Comment(ctx.getText(), type)
-        self.asT=create_tree()
-        self.asT.root=comment
+        self.asT = create_tree()
+        self.asT.root = comment
         self.comments.append(comment)
         self.c_block.trees.append(self.asT)
-        self.asT=create_tree()
+        self.asT = create_tree()
 
     # Exit a parse tree produced by ExpressionParser#comments.
     def exitComments(self, ctx: ParserRuleContext):
