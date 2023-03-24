@@ -39,6 +39,8 @@ class SymbolTable:
             if (ref is None and level != 0) or (level == 0 and ref is not None):
                 raise WrongPointer(line)
             elif name not in self.table.index:
+                if not decl:
+                    raise NotDeclared(name, line)
                 if ref is None:
                     self.table.loc[name] = [value, symType, const, level]
                     return "placed"

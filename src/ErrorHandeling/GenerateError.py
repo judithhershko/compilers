@@ -219,3 +219,13 @@ class ParamNotFound(Exception):
 
     def __str__(self):
         return "\n\t Error in line " + str(self.line) + ": " + str(self.name) + " has not been declared yet"
+
+
+class NotDeclared(Exception):
+    def __init__(self, name, line):
+        self.name = name
+        self.line = line
+
+    def __str__(self):
+        return "\n\tError in line " + str(self.line) +": " + str(self.line) + " has not been declared yet"
+

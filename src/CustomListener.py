@@ -258,6 +258,7 @@ class CustomListener(ExpressionListener):
         v = self.parent.leftChild.getValue()
         v = v[len(ctx.getText()):]
         self.parent.leftChild.setValue(v)
+        self.parent.leftChild.declaration = True
 
     # Exit a parse tree produced by ExpressionParser#typed_var.
     def exitTyped_var(self, ctx: ParserRuleContext):
@@ -326,6 +327,8 @@ class CustomListener(ExpressionListener):
         # self.parent = Declaration()
         var = getVariable(ctx.getText())
         type = getType(var)
+        if not type:
+            type = self.c_block.getSymbolTable().findSymbol(var, self.line_nr)[1]
         self.current = Value(var, type, self.line_nr, self.parent, variable=True)
         # self.parent.leftChild = self.current
         self.parent = Declaration(self.current, self.line_nr,)

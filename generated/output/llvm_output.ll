@@ -6,3 +6,5 @@
 @z= global i32 1, align 4
 //  float q = 1.75
 @q = global float 1.75, align 4
+//  int y = 5
+@y= global i32 5, align 4
