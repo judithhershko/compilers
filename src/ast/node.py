@@ -540,7 +540,8 @@ class Declaration(AST_node):
         """
         if not (isinstance(self.leftChild, Value) or isinstance(self.leftChild, Pointer)):
             self.leftChild = self.leftChild.fold()
-        if not (isinstance(self.rightChild, Value) or isinstance(self.rightChild, Pointer)):
+        if not (isinstance(self.rightChild, Value) or isinstance(self.rightChild, Pointer) or
+                isinstance(self.rightChild, EmptyNode)):
             self.rightChild = self.rightChild.fold()
 
         highestType = self.leftChild.getHigherType(self.rightChild)
