@@ -11,8 +11,7 @@ const : CONST;
 pointer:MULT;
 ref: REF;
 ref_ref: REF ID;
-pointers:(const)? (typed_var)? (ref |(pointer)+) EQ ref_ref
-        | (const)? (typed_var)? (ref |(pointer)+);
+pointers:(const)? (typed_var)? (ref |(pointer)+) EQ ref_ref;
 
 dec:
 (const)? typed_var ID EQ  (char_expr|expr)
