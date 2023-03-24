@@ -13,19 +13,27 @@ chmod 777 run.sh
 - [x] Unary operators + and -.
 - [x] Brackets to overwrite the order of operations.
 - [ ] Logical operators &&, ||, and !.
-
+- [x] Abstract Syntax Tree
+- [x] Visualization of Graphviz dot format
+- [x] Constant folding
 
 ### optioneel:
 - [x] Comparison operators >=, <=, and !=
 - [x] Binary operator %
+
+
 ## project 2:
 ### verplicht:
 - [x] Types
 - [ ] Reserved words
+- [x] Variables
 - [ ] Pointer Operations
+
 ### optioneel:
 - [ ] Increment/Decrement Operations
 - [ ] Conversions
+
+
 ## project 3:
 ### verplicht:
 - [x]  comments

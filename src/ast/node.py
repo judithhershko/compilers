@@ -522,8 +522,14 @@ class Declaration(AST_node):
     def setLeftChild(self, child):
         self.leftChild = child
 
+    def getLeftChild(self):
+        return self.leftChild
+
     def setRightChild(self, child):
         self.rightChild = child
+
+    def getRightChild(self):
+        return self.rightChild
 
     def fold(self):
         """
@@ -553,19 +559,20 @@ class Declaration(AST_node):
 
 
 class Pointer(AST_node):
-    def __init__(self, refValue: str, valueType: LiteralType, line: int, parent: AST_node = None, const: bool = False,
+    def __init__(self, value: str, valueType: LiteralType, line: int, level: int, parent: AST_node = None, const: bool = False,
                  decl: bool = False):
         """
-        :param refValue: string referring to the name of the variable this pointer points to
+        :param value: string referring to the name of the pointer
         :param valueType: LiteralType containing the type of the variable stored in the variable
         :param line: int telling the line where the pointer is positioned
+        :param level: int telling the level of the pointer
         :param parent: AST_node type containing the parent of the current node in the AST
         :param const: bool telling if the pointer is a constant pointer
         :param decl: bool telling if this is a declaration of the pointer
         """
-
-        self.value = refValue
+        self.value = value
         self.line = line
+        self.level = level
         self.type = valueType
         self.parent = parent
         self.variable = True
@@ -585,11 +592,50 @@ class Pointer(AST_node):
     def setValue(self, val):
         self.value = val
 
+    def getLine(self):
+        return self.line
+
+    def setLine(self, line):
+        self.line = line
+
+    def getLevel(self):
+        return self.level
+
+    def setLevel(self, level):
+        self.level = level
+
     def getLabel(self):
         return "\"Pointer: " + str(self.value) + "\""
 
     def getType(self):
         return self.type
+
+    def setType(self, type):
+        self.type = type
+
+    def getParent(self):
+        return self.parent
+
+    def setParent(self, parent):
+        self.parent = parent
+
+    def getVariable(self):
+        return self.variable
+
+    def setVariable(self, var):
+        self.variable = var
+
+    def getConst(self):
+        return self.const
+
+    def setConst(self, const):
+        self.const = const
+
+    def getDeclaration(self):
+        return self.declaration
+
+    def setDeclaration(self, decl):
+        self.declaration = decl
 
     def getVariables(self):
         return [(self.value, self.line)]
@@ -598,3 +644,32 @@ class Pointer(AST_node):
         if self.variable:
             self.value = values[self.value]
             self.variable = False
+
+    def getHigherType(self, node2: AST_node):
+        """
+        :param node2: AST_node type containing the other child of the parent node in the AST
+        :return: returns the LiteralType with the highest priority (str>char; double>float>int)
+        """
+        type1 = self.type
+        type2 = node2.getType()
+        try:
+            if (type1 == LiteralType.STR and type2 in (LiteralType.STR, LiteralType.CHAR)) or \
+                    (type2 == LiteralType.STR and type1 == LiteralType.CHAR):
+                return LiteralType.STR
+            elif type1 == LiteralType.CHAR and type2 == LiteralType.CHAR:
+                return LiteralType.CHAR
+            elif (type1 == LiteralType.DOUBLE and type2 in (LiteralType.DOUBLE, LiteralType.FLOAT, LiteralType.INT)) or \
+                    (type2 == LiteralType.DOUBLE and type1 in (LiteralType.FLOAT, LiteralType.INT)):
+                return LiteralType.DOUBLE
+            elif (type1 == LiteralType.FLOAT and type2 in (LiteralType.FLOAT, LiteralType.INT)) or \
+                    (type2 == LiteralType.FLOAT and type1 == LiteralType.INT):
+                return LiteralType.FLOAT
+            elif type1 == LiteralType.INT and type2 == LiteralType.INT:
+                return LiteralType.INT
+            elif type1 == LiteralType.BOOL and type2 == LiteralType.BOOL:
+                return LiteralType.BOOL
+            else:
+                raise WrongType(type1, type2, self.line)
+
+        except WrongType:
+            raise
