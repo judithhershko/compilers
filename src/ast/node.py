@@ -560,8 +560,7 @@ class Declaration(AST_node):
 
 class Pointer(AST_node):
     def __init__(self, value: str, valueType: LiteralType, line: int, level: int, parent: AST_node = None,
-                 const: bool = False,
-                 decl: bool = False):
+                 const: bool = False, decl: bool = False):
         """
         :param value: string referring to the name of the pointer
         :param valueType: LiteralType containing the type of the variable stored in the variable
