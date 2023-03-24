@@ -14,8 +14,7 @@ pointer:MULT;
 to_pointer: (pointer)* pri ;
 to_reference: REF pri ;
 
-dec:(const)? typed_var (pointer)* ID EQ (char_expr|expr) |(pointer)* ID EQ (char_expr|expr)
-| (const)? typed_var (pointer)* ID;
+dec:(const)? typed_var (pointer)* ID EQ (char_expr|expr) |(pointer)* ID EQ (char_expr|expr) | (const)? typed_var (pointer)* ID;
 variable_dec:typed_var ID;
 
 binop:MIN | PLUS ;

@@ -3,6 +3,8 @@
 # def printError(error):
 #     print(Fore.RED + error)
 
+from src.ast.node import *
+
 
 class Undeclared(Exception):
     def __init__(self, unresolved):
@@ -155,3 +157,49 @@ class PointerType(Exception):
     def __str__(self):
         return "\n\tError in line " + str(self.line) + ": the pointer has type " + str(self.valueType) + \
                ", while the referenced variable " + str(self.reference) + " has type " + str(self.type)
+
+
+class NotSupported(Exception):
+    def __init__(self, typeOp, valueOp, line):
+        self.typeOp = typeOp
+        self.valueOp = valueOp
+        self.line = line
+
+    def __str__(self):
+        return "\n\tError in line " + str(self.line) + ": the " + str(self.typeOp) + " does not support the " + \
+               str(self.valueOp) + " operator."
+
+
+class ChildType(Exception):
+    def __init__(self, oper, type1, type2, line):
+        self.oper = oper
+        self.type1 = type1
+        self.type2 = type2
+        self.line = line
+
+    def __str__(self):
+        if self.type2 is None:
+            return "\n\tError in line " + str(self.line) + ": the " + str(self.oper) + \
+                   " does not support the following child type: " + str(self.type1)
+        else:
+            return "\n\tError in line " + str(self.line) + ": the " + str(self.oper) + \
+                   " does not support one of the following child types: " + str(self.type1) + ", " + str(self.type2)
+
+
+class NotDeclaration(Exception):
+    def __init__(self, line):
+        self.line = line
+
+    def __str__(self):
+        return "\n\tError in line " + str(self.line) + \
+               ": only objects of type Declaration can be added to the symbol table"
+
+
+class LeftSideDeclaration(Exception):
+    def __init__(self, line):
+        self.line = line
+
+    def __str__(self):
+        return "\n\tError in line " + str(self.line) + \
+               ": the left hand side of the declaration should be a variable or a pointer"
+

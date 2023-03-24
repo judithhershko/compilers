@@ -34,6 +34,20 @@ def main():
             i += 1
     """
 
+    # p=Declaration()
+    left=Value('x',LiteralType.FLOAT,1)
+    p=Declaration(left, 1)
+    left.parent = p
+    p.rightChild=BinaryOperator("+", 1)
+    p.rightChild.leftChild=Value(4.7,LiteralType.FLOAT,1)
+    p.rightChild.rightChild=Value(7.98,LiteralType.FLOAT,1)
+    t=AST()
+    t.setRoot(p)
+    t.setNodeIds(t.root)
+    t.foldTree()
+    t.setNodeIds(t.root)
+    t.generateDot("test_dot")
+
 
 if __name__ == '__main__':
     main()
