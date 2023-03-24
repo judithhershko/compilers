@@ -321,6 +321,13 @@ class CustomListener(ExpressionListener):
 
     # Exit a parse tree produced by ExpressionParser#dec.
     def exitDec(self, ctx: ParserRuleContext):
+        """
+        eerst fill literals
+        fold
+        add to symboltable
+        :param ctx:
+        :return:
+        """
         if self.bracket_stack.__len__() > 0:
             self.set_bracket()
         if self.current is None:
@@ -347,13 +354,11 @@ class CustomListener(ExpressionListener):
         pointer = ""
         level = 0
 
-        if self.asT.root.leftChild.nr_pointers > 0:
+        if self.nr_pointers > 0:
             pointer = "*"
             level = self.asT.root.leftChild.nr_pointers
         self.c_block.trees.append(self.asT)
-        self.c_block.getSymbolTable().addSymbol(self.asT.root.leftChild.getValue(), self.asT.root.rightChild.getValue(),
-                                                self.asT.root.leftChild.type, self.asT.root.level,
-                                                self.asT.root.leftChild.const)
+        self.c_block.getSymbolTable().addSymbol(self.asT.root)
         self.counter += 1
         self.parent = None
         self.current = None
@@ -612,6 +617,10 @@ class CustomListener(ExpressionListener):
         self.parent = Declaration(None, self.line)
         var = getVariable(ctx.getText())
         type_ = getType(var)
+        """
+        def __init__(self, refValue: str, valueType: LiteralType, line: int, parent: AST_node = None, const: bool = False,
+                 decl: bool = False):
+        """
         self.current = Pointer(var, type_, self.parent)
         # self.current = Value(var, type, self.parent, variable=True)
         self.parent.leftChild = self.current
