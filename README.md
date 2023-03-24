@@ -37,6 +37,15 @@ chmod 777 run.sh
 - [ ] Reserved words
 - [x] Variables
 - [ ] Pointer Operations
+- [x] Constant Propagation
+- [ ] Error analysis
+  - [ ] Syntax Errors
+  - [ ] Semantic Errors
+    - [ ] Use of undefined or uninitialized variable
+    - [ ] Redeclaration or redefinition of an existing variable
+    - [ ] Operations or assignments of incompatible types
+    - [ ] Assigment of a rvalue
+    - [ ] Assignment to a const value
 
 ### optioneel:
 
@@ -49,8 +58,8 @@ chmod 777 run.sh
 
 - [x]  comments
 - [x]  Support for single line comments and multi line comments.
-- [ ]   Outputting to the standard output using printf
-- [ ]   to LLVM
+- [ ]  Outputting to the standard output using printf
+- [ ]  To LLVM
 
 ### optioneel:
 
