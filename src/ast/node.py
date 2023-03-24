@@ -682,3 +682,17 @@ class EmptyNode(AST_node):
         self.declaration = False
         self.line = line
 
+    def getValue(self):
+        return self.value
+
+    def setValue(self, val):
+        self.value = val
+
+    def setType(self, type):
+        self.type = type
+
+    def getLabel(self):
+        return "\"Comment: " + self.value + "\""
+
+    def getType(self):
+        return self.type
