@@ -26,6 +26,9 @@ class CustomListener(ExpressionListener):
         self.bracket_layer = stack()
         self.bracket_count = 0
         self.bracket_start = None
+        self.nr_pointers = 0
+        self.ref_pointers = 0
+        self.pointer=False
 
     def set_bracket(self):
         if self.bracket_stack.__len__() == 0:
@@ -75,11 +78,20 @@ class CustomListener(ExpressionListener):
         self.current = None
         self.asT = create_tree()
         return
+    def set_pointer(self,ctx: ParserRuleContext, type_):
+        if self.dec_op.rightChild is None:
+            self.dec_op.rightChild=Value(ctx.getText(),type_,self.dec_op,self.line,True)
+        else:
+            print("former value:")
+            print(self.dec_op.rightChild.getValue())
+            self.dec_op.rightChild.setValue(ctx.getText())
 
     def set_val(self, ctx: ParserRuleContext):
         type_ = find_value_type(ctx.getText())
         if self.print:
             return self.set_print(ctx, type_)
+        if self.pointer:
+            return self.set_pointer(ctx,type_)
         self.current = Value(ctx.getText(), type_, self.parent)
         # if type_ == LiteralType.NUM:
         #     if isFloat(ctx.getText()):
@@ -230,7 +242,7 @@ class CustomListener(ExpressionListener):
 
     # Enter a parse tree produced by ExpressionParser#typed_var.
     def enterTyped_var(self, ctx: ParserRuleContext):
-        self.parent.leftChild.setType(find_type(ctx.getText()))
+        self.parent.leftChild.type = find_type(ctx.getText())
         v = self.parent.leftChild.getValue()
         v = v[len(ctx.getText()):]
         self.parent.leftChild.setValue(v)
@@ -244,6 +256,8 @@ class CustomListener(ExpressionListener):
         if isinstance(self.parent, Declaration):
             self.parent.leftChild.const = True
             self.parent.leftChild.setValue(self.parent.leftChild.getValue()[5:])
+            type_ = getType(self.parent.leftChild.getValue())
+            self.parent.leftChild.setType(type_)
 
     # Exit a parse tree produced by ExpressionParser#const.
     def exitConst(self, ctx: ParserRuleContext):
@@ -259,29 +273,37 @@ class CustomListener(ExpressionListener):
 
     # Enter a parse tree produced by ExpressionParser#pointer.
     def enterPointer(self, ctx: ParserRuleContext):
-        self.dec_op.leftChild.nr_pointers += 1
+        self.nr_pointers += 1
         self.dec_op.leftChild.setValue(self.dec_op.leftChild.getValue()[1:])
 
     # Exit a parse tree produced by ExpressionParser#pointer.
     def exitPointer(self, ctx: ParserRuleContext):
         pass
 
-    # Enter a parse tree produced by ExpressionParser#to_pointer.
-    def enterTo_pointer(self, ctx: ParserRuleContext):
-        pass
+    # Enter a parse tree produced by ExpressionParser#ref.
+    def enterRef(self, ctx: ParserRuleContext):
+        print("ref is :"+ctx.getText())
+        self.dec_op.leftChild.setValue(self.dec_op.leftChild.getValue()[1:])
 
-    # Exit a parse tree produced by ExpressionParser#to_pointer.
-    def exitTo_pointer(self, ctx: ParserRuleContext):
+    # Exit a parse tree produced by ExpressionParser#ref.
+    def exitRef(self, ctx: ParserRuleContext):
         pass
+    # Enter a parse tree produced by ExpressionParser#pointer_ref.
+    def enterPointer_ref(self,ctx: ParserRuleContext):
+        self.ref_pointers+=1
+        print("pointer rightside:"+ctx.getText())
 
-    # Enter a parse tree produced by ExpressionParser#to_reference.
-    def enterTo_reference(self, ctx: ParserRuleContext):
+    # Exit a parse tree produced by ExpressionParser#pointer_ref.
+    def exitPointer_ref(self, ctx: ParserRuleContext):
         pass
+    # Enter a parse tree produced by ExpressionParser#ref_ref.
+    def enterRef_ref(self, ctx: ParserRuleContext):
+        self.ref_pointers+=1
+        self.dec_op.rightChild=Pointer(self.ref_pointers,self.dec_op,True)
 
-    # Exit a parse tree produced by ExpressionParser#to_reference.
-    def exitTo_reference(self, ctx: ParserRuleContext):
+    # Exit a parse tree produced by ExpressionParser#ref_ref.
+    def exitRef_ref(self, ctx: ParserRuleContext):
         pass
-
     # Enter a parse tree produced by ExpressionParser#dec.
     def enterDec(self, ctx: ParserRuleContext):  # TODO: declaration needs to get right type
         self.line_nr += 1
@@ -300,7 +322,7 @@ class CustomListener(ExpressionListener):
         if self.bracket_stack.__len__() > 0:
             self.set_bracket()
         if self.current is None:
-            self.dec_op.rightChild = Value(0, self.dec_op.leftChild.getType(), self.dec_op)
+            self.dec_op.rightChild = Value(0, self.dec_op.leftChild.getType(), self.dec_op, self.line, False)
         else:
             while self.current.parent is not None:
                 self.current = self.current.parent
@@ -579,3 +601,22 @@ class CustomListener(ExpressionListener):
     # Exit a parse tree produced by ExpressionParser#suffix_op.
     def exitSuffix_op(self, ctx: ParserRuleContext):
         pass
+
+    # Enter a parse tree produced by ExpressionParser#pointers.
+    def enterPointers(self, ctx: ParserRuleContext):
+        print("pointer def is:" + ctx.getText())
+        self.pointer=True
+        self.asT = create_tree()
+        self.parent = Declaration(None, self.line)
+        var = getVariable(ctx.getText())
+        type_ = getType(var)
+        self.current = Pointer(var, type_, self.parent)
+        # self.current = Value(var, type, self.parent, variable=True)
+        self.parent.leftChild = self.current
+        self.current = self.parent.rightChild
+        self.dec_op = self.parent
+        self.declaration = True
+
+    # Exit a parse tree produced by ExpressionParser#pointers.
+    def exitPointers(self, ctx: ParserRuleContext):
+        self.pointer=False
