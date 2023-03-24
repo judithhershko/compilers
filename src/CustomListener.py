@@ -17,10 +17,9 @@ class CustomListener(ExpressionListener):
         self.counter = 0
         self.program = Program.program()
         self.c_block = block(None)
-        self.line_nr = 0
+        self.line = 1
         self.comments = []
         self.print = False
-        self.line = 0
         self.expr_layer = 0
         self.bracket_stack = stack()
         self.bracket_layer = stack()
@@ -104,18 +103,18 @@ class CustomListener(ExpressionListener):
             var = True
         else:
             var = False
-        self.current = Value(ctx.getText(), type_, self.line_nr, self.parent, variable=var)
+        self.current = Value(ctx.getText(), type_, self.line, self.parent, variable=var)
         # if type_ == LiteralType.NUM:
         #     if isFloat(ctx.getText()):
         #         self.current = Value(float(ctx.getText()), type_, self.parent)
         #     else:
         #         self.current = Value(int(ctx.getText()), type_, self.parent)
         if type_ == LiteralType.INT:
-            self.current = Value(int(ctx.getText()), type_, self.line_nr, self.parent)
+            self.current = Value(int(ctx.getText()), type_, self.line, self.parent)
         elif type_ == LiteralType.FLOAT:
-            self.current = Value(float(ctx.getText()), type_, self.line_nr, self.parent)
+            self.current = Value(float(ctx.getText()), type_, self.line, self.parent)
         elif type_ == LiteralType.DOUBLE:
-            self.current = Value(float(ctx.getText()), type_, self.line_nr, self.parent)
+            self.current = Value(float(ctx.getText()), type_, self.line, self.parent)
 
         if self.print:
             val = self.current.getValue()
@@ -139,7 +138,7 @@ class CustomListener(ExpressionListener):
         if self.parent is not None and self.parent.parent:
             self.parent.operator = operation
         else:
-            p = BinaryOperator(operation, self.line_nr)
+            p = BinaryOperator(operation, self.line)
             p.leftChild = self.parent
             self.parent = p
             self.current = self.parent.rightChild
@@ -149,19 +148,18 @@ class CustomListener(ExpressionListener):
         self.expr_layer += 1
         if self.declaration and isinstance(self.parent, Declaration):
             self.dec_op = self.parent
-            self.parent = BinaryOperator("", self.line_nr)
+            self.parent = BinaryOperator("", self.line)
             self.current = self.parent.leftChild
             self.left = True
             self.right = False
         elif self.parent is None:
-            self.line_nr += 1
-            self.parent = BinaryOperator("", self.line_nr)
+            self.parent = BinaryOperator("", self.line)
             self.left = True
             self.right = False
 
     def set_token(self, ctx, operator=None):
         if operator is None:
-            operator = BinaryOperator(ctx.getText(), self.line_nr)
+            operator = BinaryOperator(ctx.getText(), self.line)
         if self.parent is not None and not isinstance(self.parent, Declaration) and self.parent.operator == "":
             self.current.parent = operator
             operator.leftChild = self.current
@@ -322,16 +320,15 @@ class CustomListener(ExpressionListener):
 
     # Enter a parse tree produced by ExpressionParser#dec.
     def enterDec(self, ctx: ParserRuleContext):  # TODO: declaration needs to get right type
-        self.line_nr += 1
         self.asT = create_tree()
         # self.parent = Declaration()
         var = getVariable(ctx.getText())
         type = getType(var)
         if not type:
-            type = self.c_block.getSymbolTable().findSymbol(var, self.line_nr)[1]
-        self.current = Value(var, type, self.line_nr, self.parent, variable=True)
+            type = self.c_block.getSymbolTable().findSymbol(var, self.line)[1]
+        self.current = Value(var, type, self.line, self.parent, variable=True)
         # self.parent.leftChild = self.current
-        self.parent = Declaration(self.current, self.line_nr,)
+        self.parent = Declaration(self.current, self.line,)
         self.current = self.parent.rightChild
         self.dec_op = self.parent
         self.declaration = True
