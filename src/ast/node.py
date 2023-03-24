@@ -549,7 +549,7 @@ class Declaration(AST_node):
             if self.leftChild.getType() == highestType:
                 return self
             else:
-                raise WrongDeclaration
+                raise WrongDeclaration(self.leftChild.getType(), self.rightChild.getType(), self.line)
 
         except WrongDeclaration:
             raise
