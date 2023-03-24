@@ -10,12 +10,17 @@ typed_var: INT| DOUBLE | FLOAT |CHAR | BOOL;
 const : CONST;
 pointer_variable: (pointer)* var=ID;
 pointer:MULT;
+ref: REF;
+ref_ref: REF;
+pointer_ref: MULT;
+pointers:(const)? (typed_var)? (ref |(pointer)+) ID (EQ (ref_ref |(pointer_ref)*) pri)? ;
 
-to_pointer: (pointer)* pri ;
-to_reference: REF pri ;
+dec:
+(const)? typed_var ID EQ  (char_expr|expr)
+|pointers
+| ID EQ (char_expr|expr)
+| (const)? typed_var ID;
 
-dec:(const)? typed_var (pointer)* ID EQ (char_expr|expr) |(pointer)* ID EQ (char_expr|expr) | (const)? typed_var (pointer)* ID;
-variable_dec:typed_var ID;
 
 binop:MIN | PLUS ;
 binop_md: MULT| DIV | MOD;
