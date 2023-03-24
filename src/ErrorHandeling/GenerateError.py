@@ -212,3 +212,10 @@ class ReservedWord(Exception):
         return "\n \t Error in line  {} \n: rename {}. It is a reserved word.".format( str(self.line),self.variable)
 
 
+class ParamNotFound(Exception):
+    def __init__(self, name, line):
+        self.name = name
+        self.line = line
+
+    def __str__(self):
+        return "\n\t Error in line " + str(self.line) + ": " + str(self.name) + " has not been declared yet"

@@ -160,7 +160,8 @@ class Value(AST_node):
 
     def replaceVariables(self, values):
         if self.variable:
-            self.value = values[self.value]
+            self.type = values[self.value][1]
+            self.value = values[self.value][0]
             self.variable = False
 
     def getHigherType(self, node2: AST_node):
@@ -281,6 +282,9 @@ class BinaryOperator(AST_node):
                 # TODO: check if this if is still necessary, is caught in the error of getHigherType
                 # if not typeOfValue:
                 #     return "impossible operation"
+
+                if typeOfValue == LiteralType.INT:
+                    res = int(res)
 
                 newNode = Value(str(res), typeOfValue, self.line, self.parent)
                 return newNode
@@ -558,7 +562,7 @@ class Declaration(AST_node):
         return self.rightChild.getVariables()
 
     def replaceVariables(self, values):
-        self.rightChild.replaceVaribles(values)
+        self.rightChild.replaceVariables(values)
 
 
 class Pointer(AST_node):

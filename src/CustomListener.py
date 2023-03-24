@@ -30,8 +30,8 @@ class CustomListener(ExpressionListener):
         self.ref_pointers = 0
         self.pointer = False
 
-    def is_declaration(self,var:str):
-        if var[:3]=="int" or var[:5]=="float" or var[:4]=="bool" or var[:5]=="const":
+    def is_declaration(self, var: str):
+        if var[:3] == "int" or var[:5] == "float" or var[:4] == "bool" or var[:5] == "const":
             return True
         else:
             return False
@@ -100,7 +100,11 @@ class CustomListener(ExpressionListener):
             return self.set_print(ctx, type_)
         if self.pointer:
             return self.set_pointer(ctx, type_)
-        self.current = Value(ctx.getText(), type_, self.line_nr, self.parent)
+        if type_ == LiteralType.VAR:
+            var = True
+        else:
+            var = False
+        self.current = Value(ctx.getText(), type_, self.line_nr, self.parent, variable=var)
         # if type_ == LiteralType.NUM:
         #     if isFloat(ctx.getText()):
         #         self.current = Value(float(ctx.getText()), type_, self.parent)
@@ -351,12 +355,13 @@ class CustomListener(ExpressionListener):
             self.dec_op.rightChild = self.current
         self.current = self.dec_op
         self.asT.setRoot(self.current)
-        if isinstance(self.asT.root.leftChild,Pointer):
+        if isinstance(self.asT.root.leftChild, Pointer):
             self.asT.root.leftChild.setLevel(self.nr_pointers)
-            self.nr_pointers=0
+            self.nr_pointers = 0
 
         self.asT.setNodeIds(self.asT.root)
         self.asT.generateDot("no_fold_expression_dot" + str(self.counter))
+        self.c_block.fillLiterals(self.asT)  # TODO: check
         self.asT.foldTree()
         self.asT.setNodeIds(self.asT.root)
         self.asT.generateDot("folded_expression_dot" + str(self.counter))
@@ -449,6 +454,7 @@ class CustomListener(ExpressionListener):
             self.trees.append(self.asT)
             self.asT.setNodeIds(self.asT.root)
             self.asT.generateDot("no_fold_expression_dot" + str(self.counter))
+            self.c_block.fillLiterals(self.asT)  # TODO: check
             self.asT.foldTree()
             self.asT.setNodeIds(self.asT.root)
             self.c_block.trees.append(self.asT)
@@ -627,7 +633,7 @@ class CustomListener(ExpressionListener):
         self.parent = Declaration(None, self.line)
         var = getVariable(ctx.getText())
         type_ = getType(var)
-        self.current = Pointer(var, type_,self.line,self.nr_pointers, self.parent,False,self.is_declaration(var))
+        self.current = Pointer(var, type_, self.line, self.nr_pointers, self.parent, False, self.is_declaration(var))
         self.parent.leftChild = self.current
         self.current = self.parent.rightChild
         self.dec_op = self.parent

@@ -27,11 +27,11 @@ class program:
     def addBlock(self, block: block):
         self.blocks.append(block)
 
-    def fillLiterals(self):
+    def fillLiterals(self, tree: AST):
         """
          This function will try to replace the variables in the AST with the actual values.
          """
-        variables = self.ast.getVariables()
+        variables = tree.getVariables()
         notFound = []
         values = dict()
         if not variables:
@@ -46,7 +46,7 @@ class program:
             if notFound:
                 raise Undeclared(notFound)
             else:
-                self.ast.replaceVariables(values)
+                tree.replaceVariables(values)
                 return "filled"
 
         except Undeclared:
