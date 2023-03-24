@@ -1,23 +1,40 @@
 import pandas as pd
 from src.ErrorHandeling.GenerateError import *
+from src.ast.node import *
 
 
 class SymbolTable:  # TODO: ask to add memory location?
     def __init__(self):
-        self.table = pd.DataFrame({"Value": pd.Series(dtype="str"),
-                                   "Type": pd.Series(dtype="str"),
-                                   "Const": pd.Series(dtype="bool"),
-                                   "Ref": pd.Series(dtype="str"),
-                                   "Level": pd.Series(dtype="int")})
+        self.table = pd.DataFrame({"Value": pd.Series(dtype=str),
+                                   "Type": pd.Series(dtype=str),
+                                   "Const": pd.Series(dtype=bool),
+                                   # "Ref": pd.Series(dtype="str"),
+                                   "Level": pd.Series(dtype=int)})
 
-    # TODO: change function to accept tree with as root declaration instead of massive amount of parameters
-    def addSymbol(self, name, value, symType, line, const=False, ref=None, level=0, decl=False):
+    def addSymbol(self, root: AST_node):
         try:
+            line = root.getLine()
+            if not isinstance(root, Declaration):
+                raise NotDeclaration(line)
+            else:
+                name = root.getLeftChild().getValue()
+                value = root.getRightChild().getValue()
+                symType = root.getLeftChild().getType()
+                const = root.getLeftChild().const
+                decl = root.getLeftChild().declaration
+                if isinstance(root.getLeftChild(), Value) and root.getLeftChild().isVariable():
+                    ref = None
+                    level = 0
+                elif isinstance(root.getLeftChild(), Pointer):
+                    level = root.getLeftChild().level
+                    ref = root.getRightChild().getValue()
+                else:
+                    raise LeftSideDeclaration(line)
             if (ref is None and level != 0) or (level == 0 and ref is not None):
                 raise WrongPointer(line)
             elif name not in self.table.index:
                 if ref is None:
-                    self.table.loc[name] = [value, symType, const, ref, level]
+                    self.table.loc[name] = [value, symType, const, level]
                     return "placed"
                 elif ref not in self.table.index:
                     raise ImpossibleRef(ref, line)
@@ -26,7 +43,7 @@ class SymbolTable:  # TODO: ask to add memory location?
                     raise RefPointerLevel(name, refValue["Level"], level, line)
                 elif symType != refValue["Type"]:
                     raise PointerType(name, refValue["Type"], symType, line)
-                self.table.loc[name] = [value, symType, const, ref, level]
+                self.table.loc[name] = [value, symType, const, level]
                 return "placed"
             else:
                 row = self.table.loc[name]
@@ -48,6 +65,10 @@ class SymbolTable:  # TODO: ask to add memory location?
                     self.table.loc[name, ["Value"]] = value
                     return "replaced"
 
+        except NotDeclaration:
+            raise
+        except LeftSideDeclaration:
+            raise
         except WrongPointer:
             raise
         except ImpossibleRef:
@@ -65,12 +86,12 @@ class SymbolTable:  # TODO: ask to add memory location?
         except PointerLevel:
             raise
 
-    def findSymbol(self, name, deref=0):
+    def findSymbol(self, name: str, deref: int = 0):
         if name not in self.table.index:
             return None
         elif deref == 0:
             return self.table.at[name, "Value"]
-        elif deref > 0 and self.table.at[name, "type"] == "pointer":
-            return self.findSymbol(self.table.at[name, "ref"], deref=deref - 1)
+        elif deref > 0 and self.table.at[name, "level"] > 0:
+            return self.findSymbol(self.table.at[name, "value"], deref=deref - 1)
         else:
             return None

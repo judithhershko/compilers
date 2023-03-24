@@ -1,10 +1,9 @@
-# TODO: check different operators and how to group them
 import enum
 import sys
 from src.ErrorHandeling.GenerateError import *
 
 types = \
-    {"double": 4, "int": 5, "char": 6, "bool": 7, "string": 2,"float":8,"pointer":9,"nr":1,"var":3};
+    {"double": 4, "int": 5, "char": 6, "bool": 7, "string": 2, "float": 8, "pointer": 9, "nr": 1, "var": 3};
 
 
 class CommentType(enum.Enum):
@@ -22,6 +21,9 @@ class LiteralType(enum.Enum):
     BOOL = 7
     FLOAT = 8
     POINTER = 9
+
+    def __str__(self):
+        return self.name
 
 
 class AST_node:
@@ -105,21 +107,31 @@ class Print(AST_node):
 
 
 class Value(AST_node):
-    def __init__(self, lit, valueType, parent=None, line=None, variable=False, const=False):
+    def __init__(self, lit: str, valueType, line: int, parent: AST_node = None, variable: bool = False,
+                 const: bool = False, decl: bool = False):
+        """
+        :param lit: string containing the value (int, string, variable, ...) of the node
+        :param valueType: LiteralType containing the type of element saved in the node
+        :param line: int telling the line where the element from the node is located
+        :param parent: AST_node-object containing the parent of the current node in the AST
+        :param variable: boolean telling if the saved element is a variable or an actual value
+        :param const: boolean telling if the saved element is a const (only used when talking about variables)
+        :param decl: boolean telling if the saved element is a declaration of the variable
+        """
         self.value = lit
         self.type = valueType
         self.parent = parent
         self.variable = variable
         self.const = const
-        self.nr_pointers = 0
+        self.declaration = decl
         self.line = line
 
     def __eq__(self, other):
         if not isinstance(other, Value):
             return False
-        res =  self.value == other.value and self.type == other.type and self.parent == other.parent and \
-               self.variable == other.variable and self.const == other.const and self.level == other.level and \
-               self.number == other.number and self.line == other.line
+        res = self.value == other.value and self.type == other.type and self.parent == other.parent and \
+              self.variable == other.variable and self.const == other.const and self.declaration == other.declaration \
+              and self.number == other.number and self.line == other.line
         return res
 
     def getValue(self):
@@ -151,7 +163,11 @@ class Value(AST_node):
             self.value = values[self.value]
             self.variable = False
 
-    def getHigherType(self, node2):
+    def getHigherType(self, node2: AST_node):
+        """
+        :param node2: AST_node type containing the other child of the parent node in the AST
+        :return: returns the LiteralType with the highest priority (str>char; double>float>int)
+        """
         type1 = self.type
         type2 = node2.getType()
         try:
@@ -177,40 +193,16 @@ class Value(AST_node):
             raise
 
 
-class Declaration(AST_node):
-    def __init__(self, parent=None, var=Value, line=None):
-        self.parent = parent
-        self.leftChild = var
-        self.rightChild = None
-        self.operator = "="
-        self.line = line
-
-    def __eq__(self, other):
-        if not isinstance(other, Declaration):
-            return False
-        return self.leftChild == other.leftChild and self.rightChild == other.rightChild
-
-    def getLabel(self):
-        return "\" Declaration: " + self.operator + "\""
-
-    def setLeftChild(self, child):
-        self.leftChild = child
-
-    def setRightChild(self, child):
-        self.rightChild = child
-
-    def getRightChild(self):
-        return self.rightChild
-
-    def getLeftChild(self):
-        return self.leftChild
-
-
 class BinaryOperator(AST_node):
     leftChild = None
     rightChild = None
 
-    def __init__(self, oper, parent=None, line=None):
+    def __init__(self, oper: str, line: int, parent: AST_node = None):
+        """
+        :param oper:string containing the operator of the binary operation
+        :param parent: AST_node type containing the parent of the current node in the AST
+        :param line: int telling the line of the binary operator
+        """
         self.operator = oper
         self.parent = parent
         self.line = line
@@ -242,27 +234,34 @@ class BinaryOperator(AST_node):
         return self.leftChild
 
     def fold(self):
-        if not isinstance(self.leftChild, Value):
+        """
+        This function will try to reduce the whole binary operation by first folding both children of the node.
+        Thereafter, the binary operation will be calculated and a Value node will replace the current BinaryOperator
+        node.
+        :return: the replacing Value node
+        """
+        if not (isinstance(self.leftChild, Value) or isinstance(self.leftChild, Pointer)):
             self.leftChild = self.leftChild.fold()
-        if not isinstance(self.rightChild, Value):
+        if not (isinstance(self.rightChild, Value) or isinstance(self.rightChild, Pointer)):
             self.rightChild = self.rightChild.fold()
 
         # TODO: does char + char need to be supported?
         try:
-            if not isinstance(self.leftChild, Value) or not isinstance(self.rightChild, Value):
+            if not (isinstance(self.leftChild, Value) or isinstance(self.leftChild, Pointer)) or \
+                    not (isinstance(self.rightChild, Value) or isinstance(self.rightChild, Pointer)):
                 return self
             elif not self.leftChild.getType() in (LiteralType.DOUBLE, LiteralType.FLOAT, LiteralType.INT) or \
                     not self.rightChild.getType() in (LiteralType.DOUBLE, LiteralType.FLOAT, LiteralType.INT):
                 raise BinaryOp(self.leftChild.getType(), self.rightChild.getType(), self.operator, self.line)
             else:
-                if self.leftChild.getType() == LiteralType.FLOAT:
-                    leftValue = float(self.leftChild.getValue())
-                else:
-                    leftValue = int(self.leftChild.getValue())
-                if self.rightChild.getType() == LiteralType.FLOAT:
-                    rightValue = float(self.rightChild.getValue())
-                else:
-                    rightValue = int(self.rightChild.getValue())
+                # if self.leftChild.getType() == LiteralType.FLOAT: TODO: how to proceed with integers that become floats because of calculations (division)
+                leftValue = float(self.leftChild.getValue())
+                # else:
+                # leftValue = float(self.leftChild.getValue())
+                # if self.rightChild.getType() == LiteralType.FLOAT:
+                rightValue = float(self.rightChild.getValue())
+                # else:
+                #     rightValue = int(self.rightChild.getValue())
                 if self.operator == "*":
                     res = leftValue * rightValue
                 elif self.operator == "/":
@@ -273,16 +272,20 @@ class BinaryOperator(AST_node):
                     res = leftValue - rightValue
                 elif self.operator == "%":
                     res = leftValue % rightValue
+                else:
+                    raise NotSupported("binary operator", self.operator, self.line)
 
                 typeOfValue = self.leftChild.getHigherType(self.rightChild)
                 # TODO: check if this if is still necessary, is caught in the error of getHigherType
-                if not typeOfValue:
-                    return "impossible operation"
+                # if not typeOfValue:
+                #     return "impossible operation"
 
-                newNode = Value(res, typeOfValue, self.parent)
+                newNode = Value(str(res), typeOfValue, self.line, self.parent)
                 return newNode
 
         except BinaryOp:
+            raise
+        except NotSupported:
             raise
 
     def getVariables(self):
@@ -297,9 +300,14 @@ class BinaryOperator(AST_node):
 
 
 class UnaryOperator(AST_node):
-    child = None
+    rightChild = None
 
     def __init__(self, oper, parent=None, line=None):
+        """
+        :param oper:string containing the operator of the binary operation
+        :param parent: AST_node type containing the parent of the current node in the AST
+        :param line: int telling the line of the binary operator
+        """
         self.operator = oper
         self.parent = parent
         self.line = line
@@ -307,8 +315,8 @@ class UnaryOperator(AST_node):
     def __eq__(self, other):
         if not isinstance(other, UnaryOperator):
             return False
-        return self.operator == other.operator and self.child == other.child and self.parent == other.parent and \
-               self.variable == other.variable and self.level == other.level and \
+        return self.operator == other.operator and self.rightChild == other.rightChild and self.parent == other.parent \
+               and self.variable == other.variable and self.level == other.level and \
                self.number == other.number and self.line == other.line
 
     def getValue(self):
@@ -317,36 +325,57 @@ class UnaryOperator(AST_node):
     def getLabel(self):
         return "\"Unary operator: " + self.operator + "\""
 
-    def setChild(self, child):
-        self.child = child
+    def setRightChild(self, child):
+        self.rightChild = child
 
     def fold(self):
-        if not isinstance(self.child, Value):
-            self.child = self.child.fold()
-
-        if not isinstance(self.child, Value):
-            return self
-        else:
-            if self.operator == "-":
-                res = - self.child.getValue()
-            elif self.operator == "++":
-                res = self.child.getValue() + 1
-            elif self.operator == "--":
-                res = self.child.getValue() - 1
+        """
+        This function will try to reduce the whole unary operation by first folding the child of the node.
+        Thereafter, the unary operation will be calculated and a Value node will replace the current UnaryOperator
+        node.
+        :return: the replacing Value node
+        """
+        if not (isinstance(self.rightChild, Value) or isinstance(self.rightChild, Pointer)):
+            self.rightChild = self.rightChild.fold()
+        try:
+            if not (isinstance(self.rightChild, Value) or isinstance(self.rightChild, Pointer)):
+                return self
+            elif (self.rightChild.getType() is not LiteralType.BOOL and self.operator == "!") or \
+                    (self.rightChild.getType() not in (LiteralType.FLOAT, LiteralType.DOUBLE, LiteralType.INT)):
+                raise ChildType("unary operator", self.rightChild.getType(), None, self.line)
             else:
-                res = + self.child.getValue()
+                if self.rightChild.getType() == LiteralType.FLOAT:  # TODO: how to proceed with integers that become floats because of calculations (division)
+                    child = float(self.rightChild.getValue())
+                elif self.rightChild.getType() == LiteralType.BOOL:
+                    child = bool(self.rightChild.getValue())
+                else:
+                    child = float(self.rightChild.getValue())  # TODO: originally int, see question above
+                if self.operator == "-":
+                    res = - child
+                elif self.operator == "++":
+                    res = child + 1
+                elif self.operator == "--":
+                    res = child - 1
+                elif self.operator == "+":
+                    res = + child
+                elif self.operator == "!":
+                    res = not child
+                else:
+                    raise NotSupported("unary operator", self.operator, self.line)
 
-        if self.child.getType() not in (LiteralType.FLOAT, LiteralType.DOUBLE, LiteralType.INT):
-            return "impossible operation"
+            newNode = Value(str(res), self.rightChild.getType(), self.line, self.parent)
+            return newNode
 
-        newNode = Value(res, self.child.getType(), self.parent)
-        return newNode
+        except ChildType:
+            raise
+        except NotSupported:
+            raise
 
     def getVariables(self):
-        return self.child.getVariables()
+        return self.rightChild.getVariables()
 
     def replaceVariables(self, values):
-        self.child.replaceVariables(values)
+        self.rightChild.replaceVariables(values)
 
 
 class LogicalOperator(AST_node):
@@ -354,6 +383,11 @@ class LogicalOperator(AST_node):
     rightChild = None
 
     def __init__(self, oper, parent=None, line=None):
+        """
+        :param oper:string containing the operator of the binary operation
+        :param parent: AST_node type containing the parent of the current node in the AST
+        :param line: int telling the line of the binary operator
+        """
         self.operator = oper
         self.parent = parent
         self.line = line
@@ -382,27 +416,37 @@ class LogicalOperator(AST_node):
         self.type = type
 
     def setRightChild(self, child):
-        if self.operator == "!":
-            print("! operator can only have a left child", file=sys.stderr)
+        # if self.operator == "!":
+        #     print("! operator can only have a left child", file=sys.stderr)
         self.rightChild = child
 
     def fold(self):
-        if not isinstance(self.leftChild, Value):
+        """
+        This function will try to reduce the whole logical operation by first folding the children of the node.
+        Thereafter, the logical operation will be calculated and a Value node will replace the current LogicalOperator
+        node.
+        :return: the replacing Value node
+        """
+        if not (isinstance(self.leftChild, Value) or isinstance(self.leftChild, Pointer)):
             self.leftChild = self.leftChild.fold()
-        if not isinstance(self.rightChild, Value):
+        if not (isinstance(self.rightChild, Value) or isinstance(self.rightChild, Pointer)):
             self.rightChild = self.rightChild.fold()
 
         leftType = self.leftChild.getType()
-        if self.operator == "!":
-            rightType = leftType
-        else:
-            rightType = self.rightChild.getType()
+        # if self.operator == "!":
+        #     rightType = leftType
+        # else:
+        rightType = self.rightChild.getType()
 
         try:
-            if not isinstance(self.leftChild, Value) or not isinstance(self.rightChild, Value):
+            if not (isinstance(self.leftChild, Value) or isinstance(self.leftChild, Pointer)) or \
+                    not (isinstance(self.rightChild, Value) or isinstance(self.rightChild, Pointer)):
                 return self
             elif leftType != rightType:
-                raise LogicalOp
+                raise LogicalOp(self.leftChild.getType(), self.rightChild.getType(), self.operator, self.line)
+            elif self.operator in ("&&", "||") and self.leftChild.getType() != LiteralType.BOOL and \
+                    self.rightChild.getType() != LiteralType.BOOL:
+                raise LogicalOp(self.leftChild.getType(), self.rightChild.getType(), self.operator, self.line)
             else:
                 if self.operator == "&&":
                     res = self.leftChild.getValue() and self.rightChild.getValue()
@@ -421,17 +465,21 @@ class LogicalOperator(AST_node):
                 elif self.operator == "!=":
                     res = self.leftChild.getValue() != self.rightChild.getValue()
                 else:
-                    if self.leftChild.getType() == LiteralType.BOOL:
-                        res = not self.leftChild.getValue()
-                    else:
-                        raise NotOp
+                    raise NotSupported("logical operator", self.operator, self.line)
+                # else:
+                #     if self.leftChild.getType() == LiteralType.BOOL:
+                #         res = not self.leftChild.getValue()
+                #     else:
+                #         raise NotOp
 
-                newNode = Value(res, LiteralType.BOOL, self.parent)
+                newNode = Value(res, LiteralType.BOOL, self.line, self.parent)
                 return newNode
 
         except LogicalOp:
             raise
-        except NotOp:
+        # except NotOp:
+        #     raise
+        except NotSupported:
             raise
 
     def getVariables(self):
@@ -449,8 +497,16 @@ class Declaration(AST_node):
     leftChild = None
     rightChild = None
 
-    def __init__(self, parent=None, line=None):
+    def __init__(self, var: Value, line: int, parent: AST_node = None):
+        """
+        :param var: Value type that contains the variable that is being declared
+        :param line: int telling the line at which the declaration is taking place
+        :param parent: AST_node type containing the parent of this node in the AST
+        """
         self.parent = parent
+        self.leftChild = var
+        self.rightChild = None
+        self.operator = "="
         self.line = line
 
     def __eq__(self, other):
@@ -461,7 +517,7 @@ class Declaration(AST_node):
                self.number == other.number and self.line == other.line
 
     def getLabel(self):
-        return "\"Value declaration\""
+        return "\" Declaration: " + self.operator + "\""
 
     def setLeftChild(self, child):
         self.leftChild = child
@@ -470,9 +526,13 @@ class Declaration(AST_node):
         self.rightChild = child
 
     def fold(self):
-        if not isinstance(self.leftChild, Value):
+        """
+        This function will try to fold the tree by folding both children until they are a single Value-type node
+        :return: it returns itself, but now with the folded children (if possible)
+        """
+        if not (isinstance(self.leftChild, Value) or isinstance(self.leftChild, Pointer)):
             self.leftChild = self.leftChild.fold()
-        if not isinstance(self.rightChild, Value):
+        if not (isinstance(self.rightChild, Value) or isinstance(self.rightChild, Pointer)):
             self.rightChild = self.rightChild.fold()
 
         highestType = self.leftChild.getHigherType(self.rightChild)
@@ -493,12 +553,24 @@ class Declaration(AST_node):
 
 
 class Pointer(AST_node):
-    def __init__(self, location, parent=None, variable=True, const=False):
-        self.value = location
-        self.type = LiteralType.POINTER
+    def __init__(self, refValue: str, valueType: LiteralType, line: int, parent: AST_node = None, const: bool = False,
+                 decl: bool = False):
+        """
+        :param refValue: string referring to the name of the variable this pointer points to
+        :param valueType: LiteralType containing the type of the variable stored in the variable
+        :param line: int telling the line where the pointer is positioned
+        :param parent: AST_node type containing the parent of the current node in the AST
+        :param const: bool telling if the pointer is a constant pointer
+        :param decl: bool telling if this is a declaration of the pointer
+        """
+
+        self.value = refValue
+        self.line = line
+        self.type = valueType
         self.parent = parent
-        self.variable = variable
+        self.variable = True
         self.const = const
+        self.declaration = decl
 
     def __eq__(self, other):
         if not isinstance(other, Pointer):

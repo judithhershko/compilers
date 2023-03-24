@@ -88,22 +88,23 @@ class CustomListener(ExpressionListener):
 
     def set_val(self, ctx: ParserRuleContext):
         type_ = find_value_type(ctx.getText())
+
         if self.print:
             return self.set_print(ctx, type_)
         if self.pointer:
             return self.set_pointer(ctx,type_)
-        self.current = Value(ctx.getText(), type_, self.parent)
+        self.current = Value(ctx.getText(), type_, self.line_nr, self.parent)
         # if type_ == LiteralType.NUM:
         #     if isFloat(ctx.getText()):
         #         self.current = Value(float(ctx.getText()), type_, self.parent)
         #     else:
         #         self.current = Value(int(ctx.getText()), type_, self.parent)
         if type_ == LiteralType.INT:
-            self.current = Value(int(ctx.getText()), type_, self.parent)
+            self.current = Value(int(ctx.getText()), type_, self.line_nr, self.parent)
         elif type_ == LiteralType.FLOAT:
-            self.current = Value(float(ctx.getText()), type_, self.parent)
+            self.current = Value(float(ctx.getText()), type_, self.line_nr, self.parent)
         elif type_ == LiteralType.DOUBLE:
-            self.current = Value(float(ctx.getText()), type_, self.parent)
+            self.current = Value(float(ctx.getText()), type_, self.line_nr, self.parent)
 
         if self.print:
             val = self.current.getValue()
@@ -127,7 +128,7 @@ class CustomListener(ExpressionListener):
         if self.parent is not None and self.parent.parent:
             self.parent.operator = operation
         else:
-            p = BinaryOperator(operation)
+            p = BinaryOperator(operation, self.line_nr)
             p.leftChild = self.parent
             self.parent = p
             self.current = self.parent.rightChild
@@ -137,19 +138,19 @@ class CustomListener(ExpressionListener):
         self.expr_layer += 1
         if self.declaration and isinstance(self.parent, Declaration):
             self.dec_op = self.parent
-            self.parent = BinaryOperator("")
+            self.parent = BinaryOperator("", self.line_nr)
             self.current = self.parent.leftChild
             self.left = True
             self.right = False
         elif self.parent is None:
             self.line_nr += 1
-            self.parent = BinaryOperator("")
+            self.parent = BinaryOperator("", self.line_nr)
             self.left = True
             self.right = False
 
     def set_token(self, ctx, operator=None):
         if operator is None:
-            operator = BinaryOperator(ctx.getText())
+            operator = BinaryOperator(ctx.getText(), self.line_nr)
         if self.parent is not None and not isinstance(self.parent, Declaration) and self.parent.operator == "":
             self.current.parent = operator
             operator.leftChild = self.current
@@ -308,11 +309,12 @@ class CustomListener(ExpressionListener):
     def enterDec(self, ctx: ParserRuleContext):  # TODO: declaration needs to get right type
         self.line_nr += 1
         self.asT = create_tree()
-        self.parent = Declaration()
+        # self.parent = Declaration()
         var = getVariable(ctx.getText())
         type = getType(var)
-        self.current = Value(var, type, self.parent, variable=True)
-        self.parent.leftChild = self.current
+        self.current = Value(var, type, self.line_nr, self.parent, variable=True)
+        # self.parent.leftChild = self.current
+        self.parent = Declaration(self.current, self.line_nr)
         self.current = self.parent.rightChild
         self.dec_op = self.parent
         self.declaration = True
