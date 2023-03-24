@@ -248,7 +248,6 @@ class BinaryOperator(AST_node):
         if not (isinstance(self.rightChild, Value) or isinstance(self.rightChild, Pointer)):
             self.rightChild = self.rightChild.fold()
 
-        # TODO: does char + char need to be supported?
         try:
             if not (isinstance(self.leftChild, Value) or isinstance(self.leftChild, Pointer)) or \
                     not (isinstance(self.rightChild, Value) or isinstance(self.rightChild, Pointer)):
@@ -257,14 +256,8 @@ class BinaryOperator(AST_node):
                     not self.rightChild.getType() in (LiteralType.DOUBLE, LiteralType.FLOAT, LiteralType.INT):
                 raise BinaryOp(self.leftChild.getType(), self.rightChild.getType(), self.operator, self.line)
             else:
-                # if self.leftChild.getType() == LiteralType.FLOAT: TODO: how to proceed with integers that become floats because of calculations (division)
                 leftValue = float(self.leftChild.getValue())
-                # else:
-                # leftValue = float(self.leftChild.getValue())
-                # if self.rightChild.getType() == LiteralType.FLOAT:
                 rightValue = float(self.rightChild.getValue())
-                # else:
-                #     rightValue = int(self.rightChild.getValue())
                 if self.operator == "*":
                     res = leftValue * rightValue
                 elif self.operator == "/":
@@ -279,9 +272,6 @@ class BinaryOperator(AST_node):
                     raise NotSupported("binary operator", self.operator, self.line)
 
                 typeOfValue = self.leftChild.getHigherType(self.rightChild)
-                # TODO: check if this if is still necessary, is caught in the error of getHigherType
-                # if not typeOfValue:
-                #     return "impossible operation"
 
                 if typeOfValue == LiteralType.INT:
                     res = int(res)
@@ -350,12 +340,12 @@ class UnaryOperator(AST_node):
                     (self.rightChild.getType() not in (LiteralType.FLOAT, LiteralType.DOUBLE, LiteralType.INT)):
                 raise ChildType("unary operator", self.rightChild.getType(), None, self.line)
             else:
-                if self.rightChild.getType() == LiteralType.FLOAT:  # TODO: how to proceed with integers that become floats because of calculations (division)
+                if self.rightChild.getType() == LiteralType.FLOAT:
                     child = float(self.rightChild.getValue())
                 elif self.rightChild.getType() == LiteralType.BOOL:
                     child = bool(self.rightChild.getValue())
                 else:
-                    child = float(self.rightChild.getValue())  # TODO: originally int, see question above
+                    child = int(self.rightChild.getValue())
                 if self.operator == "-":
                     res = - child
                 elif self.operator == "++":

@@ -11,6 +11,7 @@ from .node import *
 # TODO: check based on input files if all exceptions are generated (correctly)
 # TODO: check functionality for pointers
 # TODO: catch generated errors in tests
+# TODO: rewrite all tests
 
 class nodeTestCase(unittest.TestCase):
     def test_getId(self):
@@ -145,7 +146,7 @@ class nodeTestCase(unittest.TestCase):
 
         self.assertEqual(ast.root, res)
 
-    # def test_fillSymbolTable(self): TODO: adjust addSymbol function en retry tests
+    # def test_fillSymbolTable(self):
     #     prog = Program.program()
     #
     #     val = prog.getSymbolTable()

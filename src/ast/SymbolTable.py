@@ -3,7 +3,7 @@ from src.ErrorHandeling.GenerateError import *
 from src.ast.node import *
 
 
-class SymbolTable:  # TODO: ask to add memory location?
+class SymbolTable:
     def __init__(self):
         self.table = pd.DataFrame({"Value": pd.Series(dtype=str),
                                    "Type": pd.Series(dtype=str),

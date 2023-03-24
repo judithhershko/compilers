@@ -361,7 +361,7 @@ class CustomListener(ExpressionListener):
 
         self.asT.setNodeIds(self.asT.root)
         self.asT.generateDot("no_fold_expression_dot" + str(self.counter))
-        self.c_block.fillLiterals(self.asT)  # TODO: check
+        self.c_block.fillLiterals(self.asT)
         self.asT.foldTree()
         self.asT.setNodeIds(self.asT.root)
         self.asT.generateDot("folded_expression_dot" + str(self.counter))
@@ -454,7 +454,7 @@ class CustomListener(ExpressionListener):
             self.trees.append(self.asT)
             self.asT.setNodeIds(self.asT.root)
             self.asT.generateDot("no_fold_expression_dot" + str(self.counter))
-            self.c_block.fillLiterals(self.asT)  # TODO: check
+            self.c_block.fillLiterals(self.asT)
             self.asT.foldTree()
             self.asT.setNodeIds(self.asT.root)
             self.c_block.trees.append(self.asT)
