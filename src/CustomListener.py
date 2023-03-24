@@ -313,7 +313,7 @@ class CustomListener(ExpressionListener):
     # Enter a parse tree produced by ExpressionParser#ref_ref.
     def enterRef_ref(self, ctx: ParserRuleContext):
         self.ref_pointers += 1
-        self.dec_op.rightChild = Pointer(self.ref_pointers, self.dec_op, True)
+        self.dec_op.rightChild = Value(ctx.getText()[1:],self.dec_op.leftChild.getType(),self.line,self.dec_op,variable=True)
 
     # Exit a parse tree produced by ExpressionParser#ref_ref.
     def exitRef_ref(self, ctx: ParserRuleContext):
@@ -328,7 +328,7 @@ class CustomListener(ExpressionListener):
         type = getType(var)
         self.current = Value(var, type, self.line_nr, self.parent, variable=True)
         # self.parent.leftChild = self.current
-        self.parent = Declaration(self.current, self.line_nr)
+        self.parent = Declaration(self.current, self.line_nr,)
         self.current = self.parent.rightChild
         self.dec_op = self.parent
         self.declaration = True
