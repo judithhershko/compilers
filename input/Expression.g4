@@ -8,12 +8,11 @@ comments: ML_COMMENT | SL_COMMENT;
 typed_var: INT| DOUBLE | FLOAT |CHAR | BOOL;
 
 const : CONST;
-pointer_variable: (pointer)* var=ID;
 pointer:MULT;
 ref: REF;
-ref_ref: REF;
-pointer_ref: MULT;
-pointers:(const)? (typed_var)? (ref |(pointer)+) ID (EQ (ref_ref |(pointer_ref)*) pri)? ;
+ref_ref: REF ID;
+pointers:(const)? (typed_var)? (ref |(pointer)+) EQ ref_ref
+        | (const)? (typed_var)? (ref |(pointer)+);
 
 dec:
 (const)? typed_var ID EQ  (char_expr|expr)

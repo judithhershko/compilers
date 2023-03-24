@@ -1,5 +1,5 @@
-const int **z;
 int x=90+90*87+(78-90)*90;
+//const int **z=&x;
 char z='blabla';
 printf('bla');
 int y;
