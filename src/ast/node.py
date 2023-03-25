@@ -298,7 +298,7 @@ class BinaryOperator(AST_node):
 class UnaryOperator(AST_node):
     rightChild = None
 
-    def __init__(self, oper, parent=None, line=None):
+    def __init__(self, oper: str, parent: AST_node = None, line: int = None):
         """
         :param oper:string containing the operator of the binary operation
         :param parent: AST_node type containing the parent of the current node in the AST
@@ -378,7 +378,7 @@ class LogicalOperator(AST_node):
     leftChild = None
     rightChild = None
 
-    def __init__(self, oper, parent=None, line=None):
+    def __init__(self, oper: str, parent: AST_node = None, line: int = None):
         """
         :param oper:string containing the operator of the binary operation
         :param parent: AST_node type containing the parent of the current node in the AST

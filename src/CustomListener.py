@@ -373,7 +373,7 @@ class CustomListener(ExpressionListener):
         pointer = ""
         level = 0
         self.c_block.trees.append(self.asT)
-        self.c_block.getSymbolTable().addSymbol(self.asT.root)
+        self.c_block.getSymbolTable().addSymbol(self.asT.root, True) # TODO: change global input to depend on scope you're working in
         self.counter += 1
         self.parent = None
         self.current = None

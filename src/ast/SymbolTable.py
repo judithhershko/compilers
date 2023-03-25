@@ -9,9 +9,10 @@ class SymbolTable:
                                    "Type": pd.Series(dtype=str),
                                    "Const": pd.Series(dtype=bool),
                                    # "Ref": pd.Series(dtype="str"),
-                                   "Level": pd.Series(dtype=int)})
+                                   "Level": pd.Series(dtype=int),
+                                   "Global": pd.Series(dtype=bool)})
 
-    def addSymbol(self, root: AST_node):
+    def addSymbol(self, root: AST_node, isGlobal: bool):
         try:
             line = root.getLine()
             if not isinstance(root, Declaration):
@@ -42,7 +43,7 @@ class SymbolTable:
                 if not decl:
                     raise NotDeclared(name, line)
                 if ref is None:
-                    self.table.loc[name] = [value, symType, const, level]
+                    self.table.loc[name] = [value, symType, const, level, isGlobal]
                     return "placed"
                 elif ref not in self.table.index:
                     raise ImpossibleRef(ref, line)
@@ -51,12 +52,14 @@ class SymbolTable:
                     raise RefPointerLevel(name, refValue["Level"], level, line)
                 elif symType != refValue["Type"]:
                     raise PointerType(name, refValue["Type"], symType, line)
-                self.table.loc[name] = [value, symType, const, level]
+                self.table.loc[name] = [value, symType, const, level, isGlobal]
                 return "placed"
             else:
                 row = self.table.loc[name]
                 if decl:
                     raise Redeclaration(name, line)
+                elif row["Global"]:
+                    raise ResetGlobal(name, line)
                 elif row["Const"]:
                     raise ResetConst(name, line)
                 elif row["Type"] != symType:
@@ -86,6 +89,8 @@ class SymbolTable:
         except PointerType:
             raise
         except Redeclaration:
+            raise
+        except ResetGlobal:
             raise
         except ResetConst:
             raise

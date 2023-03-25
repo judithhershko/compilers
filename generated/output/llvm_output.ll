@@ -1,4 +1,4 @@
-//  int x = 6840
+// const int x = 6840
 @x= global i32 6840, align 4
 //  int y = 6845
 @y= global i32 6845, align 4
@@ -8,3 +8,6 @@
 @q = global float 1.75, align 4
 //  int y = 5
 @y= global i32 5, align 4
+@r = global i1 0, align 4
+//  int s = 0
+@s= global i32 0, align 4

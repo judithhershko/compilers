@@ -41,11 +41,11 @@ chmod 777 run.sh
 - [ ] Error analysis
   - [ ] Syntax Errors
   - [ ] Semantic Errors
-    - [ ] Use of undefined or uninitialized variable
-    - [ ] Redeclaration or redefinition of an existing variable
-    - [ ] Operations or assignments of incompatible types
+    - [x] Use of undefined or uninitialized variable
+    - [x] Redeclaration or redefinition of an existing variable
+    - [x] Operations or assignments of incompatible types
     - [ ] Assigment of a rvalue
-    - [ ] Assignment to a const value
+    - [x] Assignment to a const value
 
 ### optioneel:
 
@@ -64,5 +64,5 @@ chmod 777 run.sh
 ### optioneel:
 
 - [x]  retaining the comments from the input code during compilation
-- [ ]  retaining comment that contains the original statement from the input code
+- [x]  retaining comment that contains the original statement from the input code
 

@@ -90,6 +90,16 @@ class Redeclaration(Exception):
                str(self.variable)
 
 
+class ResetGlobal(Exception):
+    def __init__(self, var, line):
+        self.variable = var
+        self.line = line
+
+    def __str__(self):
+        return "\n\tError in line " + str(self.line) + ": there is an reassignment of the global variable " + \
+               str(self.variable)
+
+
 class ResetConst(Exception):
     def __init__(self, var, line):
         self.variable = var
