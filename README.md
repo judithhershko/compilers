@@ -39,7 +39,7 @@ chmod 777 run.sh
 - [ ] Pointer Operations
 - [x] Constant Propagation
 - [ ] Error analysis
-  - [ ] Syntax Errors
+  - [x] Syntax Errors
   - [ ] Semantic Errors
     - [x] Use of undefined or uninitialized variable
     - [x] Redeclaration or redefinition of an existing variable

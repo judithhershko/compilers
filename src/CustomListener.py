@@ -436,7 +436,7 @@ class CustomListener(ExpressionListener):
         pass
 
     # Enter a parse tree produced by ExpressionParser#expr.
-    def enterExpr(self, ctx: ParserRuleContext):
+    def enterExpr(self, ctx: ParserRuleContext): #TODO: start contains line and column values of where the token is located in the original code
         print("enter expr:" + ctx.getText())
         return self.set_expression(ctx)
 
