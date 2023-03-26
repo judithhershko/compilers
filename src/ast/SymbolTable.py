@@ -63,7 +63,7 @@ class SymbolTable:
                 elif row["Const"]:
                     raise ResetConst(name, line)
                 elif row["Type"] != symType:
-                    raise TypeDeclaration(name, row["type"], symType, line)
+                    raise TypeDeclaration(name, row["Type"], symType, line)
                 elif row["Level"] != level:
                     raise PointerLevel(name, row["Level"], level, line)
                 # elif row["Level"] > 0:

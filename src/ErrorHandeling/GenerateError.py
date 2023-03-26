@@ -96,7 +96,7 @@ class ResetGlobal(Exception):
         self.line = line
 
     def __str__(self):
-        return "\n\tError in line " + str(self.line) + ": there is an reassignment of the global variable " + \
+        return "\n\tError in line " + str(self.line) + ": there is a reassignment of the global variable " + \
                str(self.variable)
 
 
@@ -106,7 +106,7 @@ class ResetConst(Exception):
         self.line = line
 
     def __str__(self):
-        return "\n\tError in line " + str(self.line) + ": there is an reassignment of the const variable " + \
+        return "\n\tError in line " + str(self.line) + ": there is a reassignment of the const variable " + \
                str(self.variable)
 
 
@@ -237,5 +237,5 @@ class NotDeclared(Exception):
         self.line = line
 
     def __str__(self):
-        return "\n\tError in line " + str(self.line) +": " + str(self.line) + " has not been declared yet"
+        return "\n\tError in line " + str(self.line) + ": " + str(self.name) + " has not been declared yet"
 

@@ -37,7 +37,7 @@ class program:
         if not variables:
             return "filled"
         for elem in variables:
-            temp = self.symbols.findSymbol(elem[0])
+            temp = self.symbols.findSymbol(elem[0], elem[1])
             if temp:
                 values[elem[0]] = temp
             else:
