@@ -99,9 +99,9 @@ class SymbolTable:
         except PointerLevel:
             raise
 
-    def findSymbol(self, name: str, line, deref: int = 0):
+    def findSymbol(self, name: str, line: int, deref: int = 0):
         if name not in self.table.index:
-            raise ParamNotFound(name, line)
+            return None
         elif deref == 0:
             return self.table.at[name, "Value"], self.table.at[name, "Type"]
         elif deref > 0 and self.table.at[name, "level"] > 0:

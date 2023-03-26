@@ -513,7 +513,7 @@ class Declaration(AST_node):
                self.number == other.number and self.line == other.line
 
     def getLabel(self):
-        return "\" Declaration: " + self.operator + "\""
+        return "\"Declaration: " + self.operator + "\""
 
     def setLeftChild(self, child):
         self.leftChild = child

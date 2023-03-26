@@ -294,34 +294,34 @@ class nodeTestCase(unittest.TestCase):
         prog.fillLiterals(prog.getAst())
         prog.getAst().foldTree()
 
-        res = node.Value(281.0, node.LiteralType.FLOAT, 1, variable=False)
+        res = node.Value("281.0", node.LiteralType.FLOAT, 1, variable=False)
         # res.setLevel(0)
         # res.setNumber(0)
 
         self.assertEqual(prog.getAst().root, res)
 
     def test_fillLiteralsBlock(self):
-        div = node.BinaryOperator("/")
+        div = node.BinaryOperator("/", 1)
 
-        add = node.BinaryOperator("+")
+        add = node.BinaryOperator("+", 1)
         div.setLeftChild(add)
 
-        mult = node.BinaryOperator("*")
+        mult = node.BinaryOperator("*", 1)
         add.setLeftChild(mult)
 
-        leaf1 = node.Value("x", node.LiteralType.INT, variable=True)
+        leaf1 = node.Value("x", node.LiteralType.INT, 1, variable=True)
         mult.setLeftChild(leaf1)
 
-        leaf2 = node.Value("y", node.LiteralType.DOUBLE, variable=True)
+        leaf2 = node.Value("y", node.LiteralType.DOUBLE, 1, variable=True)
         mult.setRightChild(leaf2)
 
-        neg = node.UnaryOperator("-")
+        neg = node.UnaryOperator("-", 1)
         add.setRightChild(neg)
 
-        leaf3 = node.Value("z", node.LiteralType.FLOAT, variable=True)
-        neg.setChild(leaf3)
+        leaf3 = node.Value("z", node.LiteralType.FLOAT, 1, variable=True)
+        neg.setRightChild(leaf3)
 
-        leaf4 = node.Value("w", node.LiteralType.INT, variable=True)
+        leaf4 = node.Value("w", node.LiteralType.INT, 1, variable=True)
         div.setRightChild(leaf4)
 
         prog = Program.program()
@@ -330,53 +330,74 @@ class nodeTestCase(unittest.TestCase):
         scope.getAst().setNodeIds(scope.getAst().root)
         prog.addBlock(scope)
 
+        # First element
+        var1 = Value("x", LiteralType.INT, 1, None, True, False, True)
+        val1 = Value("5", LiteralType.INT, 1, None, False, False, True)
+        dec1 = Declaration(var1, 1)
+        dec1.setRightChild(val1)
+        # Second element
+        var2 = Value("y", LiteralType.INT, 1, None, True, False, True)
+        val2 = Value("22", LiteralType.INT, 1, None, False, False, True)
+        dec2 = Declaration(var2, 1)
+        dec2.setRightChild(val2)
+        # Third element
+        var3 = Value("z", LiteralType.FLOAT, 1, None, True, False, True)
+        val3 = Value("-78.0", LiteralType.FLOAT, 1, None, False, False, True)
+        dec3 = Declaration(var3, 1)
+        dec3.setRightChild(val3)
+        # resubmit first
+        var4 = Value("w", LiteralType.INT, 1, None, True, True, True)
+        val4 = Value("2", LiteralType.INT, 1, None, False, True, True)
+        dec4 = Declaration(var4, 1)
+        dec4.setRightChild(val4)
+
         val = prog.getSymbolTable()
-        val.addSymbol("x", 5, "int", False)
-        val.addSymbol("y", 22, "int", False)
+        val.addSymbol(dec1, True)
+        val.addSymbol(dec2, True)
 
         valBlock = scope.getSymbolTable()
-        valBlock.addSymbol("z", -78, "int", False)
-        valBlock.addSymbol("w", 2, "int", False)
+        valBlock.addSymbol(dec3, False)
+        valBlock.addSymbol(dec4, False)
 
-        scope.fillLiterals()
+        scope.fillLiterals(scope.getAst())
         scope.getAst().foldTree()
         scope.getAst().setNodeIds(scope.getAst().root)
 
-        res = node.Value(94, node.LiteralType.DOUBLE, variable=False)
+        res = node.Value("94.0", node.LiteralType.FLOAT, 1, variable=False)
         res.setLevel(0)
         res.setNumber(0)
 
         self.assertEqual(scope.getAst().root, res)
 
     def test_toDotDeclaration(self):
-        dec = node.Declaration()
-        var = node.Value("x", node.LiteralType.DOUBLE, parent=dec, variable=True)
-        dec.setLeftChild(var)
+        var = node.Value("x", node.LiteralType.DOUBLE, 1, variable=True)
+        dec = node.Declaration(var, 1)
+        var.parent = dec
 
-        mul = node.BinaryOperator("*", parent=dec)
+        mul = node.BinaryOperator("*", 1, parent=dec)
         dec.setRightChild(mul)
 
-        leaf1 = node.Value(5, node.LiteralType.INT, parent=mul, variable=False)
+        leaf1 = node.Value(5, node.LiteralType.INT, 1, parent=mul, variable=False)
         mul.setLeftChild(leaf1)
 
-        leaf2 = node.Value(3, node.LiteralType.INT, parent=mul, variable=False)
+        leaf2 = node.Value(3, node.LiteralType.INT, 1, parent=mul, variable=False)
         mul.setRightChild(leaf2)
 
         ast = AST()
         ast.setRoot(dec)
         ast.setNodeIds(ast.root)
         dot = ast.generateDot("Declaration")
-        exp = "graph ast {\n0.0 [label=\"Value declaration\"]\n1.1 [label=\"Literal: x\"]\n1.2 [label=" \
+        exp = "graph ast {\n0.0 [label=\"Declaration: =\"]\n1.1 [label=\"Literal: x\"]\n1.2 [label=" \
               "\"Binary operator: *\"]\n2.3 [label=\"Literal: 5\"]\n2.4 [label=\"Literal: 3\"]\n\n0.0--1.1\n0.0--1.2" \
               "\n1.2--2.3\n1.2--2.4\n}"
         self.assertEqual(dot, exp)
         ast.foldTree()
         ast.setNodeIds(ast.root)
         dot = ast.generateDot("DeclarationFolded")
-        exp = "graph ast {\n0.0 [label=\"Value declaration\"]\n1.1 [label=\"Literal: x\"]\n1.2 [label=" \
+        exp = "graph ast {\n0.0 [label=\"Declaration: =\"]\n1.1 [label=\"Literal: x\"]\n1.2 [label=" \
               "\"Literal: 15\"]\n\n0.0--1.1\n0.0--1.2\n}"
         self.assertEqual(dot, exp)
 
 
-if __name__ == '__main__':
+if __name__ == '__main__': # TODO: this can't be run?! -> run: class nodeTestCase(unittest.TestCase):
     unittest.main()
