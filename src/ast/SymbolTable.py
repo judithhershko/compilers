@@ -36,7 +36,8 @@ class SymbolTable:  # TODO: ask to add memory location?
                         ref = None
                 else:
                     raise LeftSideDeclaration(line)
-            if (ref is None and level != 0) or (level == 0 and ref is not None):
+            #if (ref is None and level != 0) or
+            if (level == 0 and ref is not None):
                 raise WrongPointer(line)
             elif name not in self.table.index:
                 if ref is None:

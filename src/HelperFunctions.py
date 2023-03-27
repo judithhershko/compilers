@@ -56,8 +56,6 @@ def find_type(txt):  # TODO: check if this gives no problems
         return LiteralType.BOOL
     elif txt[0] == 'c':
         return LiteralType.CHAR
-    elif txt[0] == 'p':
-        return LiteralType.POINTER
     else:
         return False
 

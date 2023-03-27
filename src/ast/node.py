@@ -679,12 +679,22 @@ class Pointer(AST_node):
 
 
 class EmptyNode(AST_node):
-    def __init__(self, line: int, parent: AST_node = None):
+    def __init__(self, line: int, parent: AST_node = None,type_=None):
         self.value = None
-        self.type = None
+        self.type = type_
+        if self.type==LiteralType.CHAR:
+            self.value=''
+        else:
+            self.value=0
         self.parent = parent
         self.variable = False
         self.const = False
         self.declaration = False
         self.line = line
+    def getLabel(self):
+        return "\"Empty Node " + str(self.value) + "\""
+    def getType(self):
+        return self.type
+    def getValue(self):
+        return None
 
