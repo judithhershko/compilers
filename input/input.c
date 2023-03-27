@@ -1,8 +1,4 @@
-char z='b';
-int x=90+90*87+(78-90)*90;
-//const int **z=&x;
-printf('b');
-int y;
+int z=67+(89+90-90)*89-(78+78);
 //one line comment
 /**
 *multiline comment

@@ -96,7 +96,7 @@ class SymbolTable:  # TODO: ask to add memory location?
         if name not in self.table.index:
             return None
         elif deref == 0:
-            return self.table.at[name, "Value"]
+            return self.table.at[name, "Value","Type"]
         elif deref > 0 and self.table.at[name, "level"] > 0:
             return self.findSymbol(self.table.at[name, "value"], deref=deref - 1)
         else:
