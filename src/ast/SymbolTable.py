@@ -99,7 +99,7 @@ class SymbolTable:
         except PointerLevel:
             raise
 
-    def findSymbol(self, name: str, line: int, deref: int = 0):
+    def findSymbol(self, name: str, deref: int = 0):
         if name not in self.table.index:
             return None
         elif deref == 0:
