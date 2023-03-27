@@ -1,6 +1,6 @@
-int x=89;
-int xx=90;
-int *z=&x;
+int *z;
+int v=90;
+//printf(x);
 //comment1
 /**multi
 line
