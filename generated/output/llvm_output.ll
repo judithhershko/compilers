@@ -1,18 +1,28 @@
-//const int x=90+90*87+(78-90)*90;
+//  int z = 0
+@z= global i32 0, align 4
+//  int v = 90
+@v= global i32 90, align 4
+//printf(x);
 
-//int y = x+5;
+//comment1
 
-//int z = 7/4;
+///**multi
+//line
+//comment
+//**/
+//  int zz = 0
+@zz= global i32 0, align 4
+//  int z = 0
+@z= global i32 0, align 4
+//  int v = 90
+@v= global i32 90, align 4
+//printf(x);
 
-//float q = 7/4.0;
+//comment1
 
-////y = 5;
-
-//bool r = (91*2
-
-//<=
-
-//78+3*2);
-
-//int x = 5;
-
+///**multi
+//line
+//comment
+//**/
+//  int zz = 0
+@zz= global i32 0, align 4

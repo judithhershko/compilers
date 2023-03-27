@@ -213,13 +213,34 @@ class LeftSideDeclaration(Exception):
         return "\n \t Error in line " + str(self.line) + \
                ": the left hand side of the declaration should be a variable or a pointer"
 
-class ReservedWord(Exception):
+
+class Redefinition(Exception):
+
     def __init__(self,line,variable):
         self.line=line
         self.variable=variable
 
     def __str__(self):
-        return "\n \t Error in line  {} \n: rename {}. It is a reserved word.".format( str(self.line),self.variable)
+        return "\n \t Error in line  {} \n: Redefinition of {}".format( str(self.line),self.variable)
+
+
+class ReservedWord(Exception):
+
+    def __init__(self,line,variable):
+        self.line=line
+        self.variable=variable
+
+    def __str__(self):
+        return "\n \t Error in line  {} \n: variable name is a reserved word {}".format( str(self.line),self.variable)
+
+
+class RightValRef(Exception):
+
+    def __init__(self,line):
+        self.line=line
+        
+    def __str__(self):
+        return "\n \t Error in line  {} \n: cannot redeclare right value reference ".format( str(self.line))
 
 
 class ParamNotFound(Exception):

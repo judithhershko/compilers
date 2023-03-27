@@ -34,7 +34,7 @@ chmod 777 run.sh
 ### verplicht:
 
 - [x] Types
-- [ ] Reserved words
+- [x] Reserved words
 - [x] Variables
 - [ ] Pointer Operations
 - [x] Constant Propagation
