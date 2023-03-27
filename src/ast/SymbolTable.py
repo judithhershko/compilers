@@ -100,12 +100,15 @@ class SymbolTable:
         except PointerLevel:
             raise
 
-    def findSymbol(self, name: str, deref: int = 0):
+    def findSymbol(self, name: str): #, deref: int = 0):
         if name not in self.table.index:
             return None
-        elif deref == 0:
-            return self.table.at[name, "Value"], self.table.at[name, "Type"]
-        elif deref > 0 and self.table.at[name, "level"] > 0:
-            return self.findSymbol(self.table.at[name, "value"], deref=deref - 1)
-        else:
-            return None
+        # elif deref == 0:
+        #     return self.table.at[name, "Value"], self.table.at[name, "Type"]
+        # elif deref > 0 and self.table.at[name, "level"] > 0:
+        #     return self.findSymbol(self.table.at[name, "value"], deref=deref - 1)
+        # else:
+        #     return None
+        while self.table.at[name, "Level"] > 0:
+            name = self.table.at[name, "Value"]
+        return self.table.at[name, "Value"], self.table.at[name, "Type"]

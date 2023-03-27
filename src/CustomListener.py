@@ -366,9 +366,10 @@ class CustomListener(ExpressionListener):
         var = ctx.getText()
         if var[0] == "&":
             var = var[1:]
+        ref = self.c_block.getSymbolTable().findSymbol(var)
         # self.parent.rightChild=Value(var,self.c_block.getSymbolTable().findSymbol(var)[1],self.line,self.parent,variable=True)
         # TODO: get type from symboltable
-        self.parent.rightChild = Value(var, self.dec_op.leftChild.getType(), self.line, self.parent, variable=True)
+        self.parent.rightChild = Value(var, ref[1], self.line, self.parent, variable=True)
         self.current = self.parent.rightChild
         return
 
@@ -442,7 +443,8 @@ class CustomListener(ExpressionListener):
 
         self.asT.setNodeIds(self.asT.root)
         self.asT.generateDot("no_fold_expression_dot" + str(self.counter))
-        self.c_block.fillLiterals(self.asT)
+        if not isinstance(self.asT.root.leftChild, Pointer):
+            self.c_block.fillLiterals(self.asT)
         self.asT.foldTree()
         self.asT.setNodeIds(self.asT.root)
         self.asT.generateDot("folded_expression_dot" + str(self.counter))

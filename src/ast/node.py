@@ -336,7 +336,7 @@ class UnaryOperator(AST_node):
         try:
             if not (isinstance(self.rightChild, Value) or isinstance(self.rightChild, Pointer)):
                 return self
-            elif (self.rightChild.getType() is not LiteralType.BOOL and self.operator == "!") or \
+            elif (self.rightChild.getType() not in (LiteralType.BOOL, LiteralType.INT) and self.operator == "!") or \
                     (self.rightChild.getType() not in (LiteralType.FLOAT, LiteralType.DOUBLE, LiteralType.INT)):
                 raise ChildType("unary operator", self.rightChild.getType(), None, self.line)
             else:
@@ -541,6 +541,12 @@ class Declaration(AST_node):
         highestType = self.leftChild.getHigherType(self.rightChild)
         try:
             if self.leftChild.getType() == highestType:
+                if self.rightChild.getValue() in ("True", "False") and \
+                        self.leftChild.getType() in (LiteralType.INT, LiteralType.FLOAT):
+                    if self.rightChild.getValue() == "True":
+                        self.rightChild.setValue(1)
+                    else:
+                        self.rightChild.setValue(0)
                 return self
             else:
                 raise WrongDeclaration(self.leftChild.getType(), self.rightChild.getType(), self.line)
@@ -676,17 +682,17 @@ class EmptyNode(AST_node):
     def __init__(self, line: int, parent: AST_node = None,type_=None):
         self.value = None
         self.type = type_
-        if self.type==LiteralType.CHAR:
-            self.value=''
-        else:
-            self.value=0
+        # if self.type==LiteralType.CHAR:
+        #     self.value=''
+        # else:
+        #     self.value=0
         self.parent = parent
         self.variable = False
         self.const = False
         self.declaration = False
         self.line = line
     def getLabel(self):
-        return "\"Empty Node " + str(self.value) + "\""
+        return "\"Empty Node: " + str(self.value) + "\""
     def getType(self):
         return self.type
     def getValue(self):
@@ -701,8 +707,8 @@ class EmptyNode(AST_node):
     def setType(self, type):
         self.type = type
 
-    def getLabel(self):
-        return "\"Comment: " + self.value + "\""
-
     def getType(self):
         return self.type
+
+    def getVariables(self):
+        return []
