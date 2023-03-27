@@ -30,7 +30,7 @@ class SymbolTable:
                     ref = None
                     level = 0
                 elif isinstance(root.getLeftChild(), Pointer):
-                    level = root.getLeftChild().level
+                    level = root.getLeftChild().getPointerLevel()
                     if root.getRightChild() is not None:
                         ref = root.getRightChild().getValue()
                     else:

@@ -331,7 +331,7 @@ class CustomListener(ExpressionListener):
         self.nr_pointers += 1
         self.dec_op.leftChild.setValue(self.dec_op.leftChild.getValue()[1:])
         if isinstance(self.dec_op.leftChild, Pointer):
-            self.dec_op.leftChild.setLevel(self.nr_pointers)
+            self.dec_op.leftChild.setPointerLevel(self.nr_pointers)
         else:
             pointer = Pointer(self.dec_op.leftChild.getValue(), self.dec_op.leftChild.getType(), self.line,
                               self.nr_pointers, self.dec_op, self.dec_op.leftChild.const,

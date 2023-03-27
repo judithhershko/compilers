@@ -575,7 +575,7 @@ class Pointer(AST_node):
         """
         self.value = value
         self.line = line
-        self.level = level
+        self.pointerLevel = level
         self.type = valueType
         self.parent = parent
         self.variable = True
@@ -586,8 +586,8 @@ class Pointer(AST_node):
         if not isinstance(other, Pointer):
             return False
         return self.value == other.value and self.type == other.type and self.parent == other.parent and \
-               self.variable == other.variable and self.level == other.level and self.const == other.const and \
-               self.number == other.number and self.line == other.line
+               self.variable == other.variable and self.pointerLevel == other.pointerLevel and \
+               self.const == other.const and self.number == other.number and self.line == other.line
 
     def getValue(self):
         return self.value
@@ -606,6 +606,12 @@ class Pointer(AST_node):
 
     def setLevel(self, level):
         self.level = level
+
+    def getPointerLevel(self):
+        return self.pointerLevel
+
+    def setPointerLevel(self, pLevel):
+        self.pointerLevel = pLevel
 
     def getLabel(self):
         return "\"Pointer: " + str(self.value) + "\""
