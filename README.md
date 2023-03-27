@@ -19,7 +19,7 @@ chmod 777 run.sh
 - [x] Binary operations >, <, and ==.
 - [x] Unary operators + and -.
 - [x] Brackets to overwrite the order of operations.
-- [ ] Logical operators &&, ||, and !.
+- [x] Logical operators &&, ||, and !.
 - [x] Abstract Syntax Tree
 - [x] Visualization of Graphviz dot format
 - [x] Constant folding
@@ -36,11 +36,11 @@ chmod 777 run.sh
 - [x] Types
 - [x] Reserved words
 - [x] Variables
-- [ ] Pointer Operations
+- [x] Pointer Operations
 - [x] Constant Propagation
 - [ ] Error analysis
   - [x] Syntax Errors
-  - [ ] Semantic Errors
+  - [x] Semantic Errors
     - [x] Use of undefined or uninitialized variable
     - [x] Redeclaration or redefinition of an existing variable
     - [x] Operations or assignments of incompatible types
