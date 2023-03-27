@@ -180,8 +180,14 @@ class CustomListener(ExpressionListener):
         if operator is None:
             operator = BinaryOperator(ctx.getText(), self.line)
         if self.parent is not None and not isinstance(self.parent, Declaration) and self.parent.operator == "":
+            if isinstance(operator,UnaryOperator):
+                self.parent=operator
+                self.right=True
+                self.left=False
+                return
             self.current.parent = operator
-            operator.leftChild = self.current
+            if not isinstance(operator,UnaryOperator):
+                operator.leftChild = self.current
             self.parent = operator
         elif self.parent.operator == "":
             lc = self.parent.leftChild
@@ -377,13 +383,12 @@ class CustomListener(ExpressionListener):
 
         type = getType(var)
         if type is False:
-            # TODO: raise exception
-            raise Redefinition(self.line, variable=var)
-            """
-            self.current = Value(var, type, self.line, self.parent, variable=True, decl=False)
-            t = self.c_block.getSymbolTable().findSymbol(var)[0]
-            print("t is ")
-            """
+            print("val is :"+var)
+            if self.c_block.getSymbolTable().findSymbol(var) is not None:
+                raise Redefinition(self.line, variable=var)
+            else:
+                raise NotDeclaration(self.line)
+
         else:
             self.current = Value(var, type, self.line, self.parent, variable=True, decl=True)
         # self.parent.leftChild = self.current
@@ -395,6 +400,7 @@ class CustomListener(ExpressionListener):
     # Exit a parse tree produced by ExpressionParser#dec.
     def exitDec(self, ctx: ParserRuleContext):
         """
+        TODO:
         eerst fill literals
         fold
         add to symboltable
@@ -403,7 +409,7 @@ class CustomListener(ExpressionListener):
         """
         if self.bracket_stack.__len__() > 0:
             self.set_bracket()
-        if isinstance(self.parent.leftChild, Pointer):
+        if not isinstance(self.parent,UnaryOperator) and isinstance(self.parent.leftChild, Pointer):
             self.dec_op.rightChild = self.parent.rightChild
             if self.dec_op.rightChild is None:
                 self.dec_op.rightChild = EmptyNode(self.line, self.dec_op, self.dec_op.leftChild.getType())
@@ -425,6 +431,7 @@ class CustomListener(ExpressionListener):
 
         self.asT.setNodeIds(self.asT.root)
         self.asT.generateDot("no_fold_expression_dot" + str(self.counter))
+
         self.asT.foldTree()
         self.asT.setNodeIds(self.asT.root)
         self.asT.generateDot("folded_expression_dot" + str(self.counter))
@@ -632,6 +639,12 @@ class CustomListener(ExpressionListener):
 
     def enterComments(self, ctx: ParserRuleContext):
         type = commentType(ctx.getText())
+        self.line+=1
+        if type==CommentType.ML:
+            for i in ctx.getText():
+                if i=="\n":
+                    self.line+=1
+
         comment = Comment(ctx.getText(), type)
         self.asT = create_tree()
         self.asT.root = comment
@@ -679,7 +692,9 @@ class CustomListener(ExpressionListener):
 
     # Enter a parse tree produced by ExpressionParser#prefix_op.
     def enterPrefix_op(self, ctx: ParserRuleContext):
-        return self.set_token(UnaryOperator(ctx.getText()))
+        print("prefix token:"+ctx.getText())
+        op=UnaryOperator(ctx.getText())
+        return self.set_token(ctx,op)
 
     # Exit a parse tree produced by ExpressionParser#prefix_op.
     def exitPrefix_op(self, ctx: ParserRuleContext):
