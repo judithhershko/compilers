@@ -180,13 +180,13 @@ class CustomListener(ExpressionListener):
         if operator is None:
             operator = BinaryOperator(ctx.getText(), self.line)
         if self.parent is not None and not isinstance(self.parent, Declaration) and self.parent.operator == "":
-            if isinstance(operator,UnaryOperator):
-                self.parent=operator
-                self.right=True
-                self.left=False
+            if isinstance(operator, UnaryOperator):
+                self.parent = operator
+                self.right = True
+                self.left = False
                 return
             self.current.parent = operator
-            if not isinstance(operator,UnaryOperator):
+            if not isinstance(operator, UnaryOperator):
                 operator.leftChild = self.current
             self.parent = operator
         elif self.parent.operator == "":
@@ -369,7 +369,7 @@ class CustomListener(ExpressionListener):
     # Enter a parse tree produced by ExpressionParser#dec.
     def enterDec(self, ctx: ParserRuleContext):  # TODO: declaration needs to get right type
         print("new dec:" + ctx.getText())
-        self.start_rule = self.start_rule[len(ctx.getText())+1:]
+        self.start_rule = self.start_rule[len(ctx.getText()) + 1:]
         self.asT = create_tree()
         # self.parent = Declaration()
         var = getVariable(ctx.getText())
@@ -378,12 +378,12 @@ class CustomListener(ExpressionListener):
             if str(self.start_rule[-1]).isdigit():
                 raise RightValRef(self.line)
             else:
-                raise ReservedWord(self.line,variable=var)
+                raise ReservedWord(self.line, variable=var)
             pass
 
         type = getType(var)
         if type is False:
-            print("val is :"+var)
+            print("val is :" + var)
             if self.c_block.getSymbolTable().findSymbol(var) is not None:
                 raise Redefinition(self.line, variable=var)
             else:
@@ -409,7 +409,7 @@ class CustomListener(ExpressionListener):
         """
         if self.bracket_stack.__len__() > 0:
             self.set_bracket()
-        if not isinstance(self.parent,UnaryOperator) and isinstance(self.parent.leftChild, Pointer):
+        if not isinstance(self.parent, UnaryOperator) and isinstance(self.parent.leftChild, Pointer):
             self.dec_op.rightChild = self.parent.rightChild
             if self.dec_op.rightChild is None:
                 self.dec_op.rightChild = EmptyNode(self.line, self.dec_op, self.dec_op.leftChild.getType())
@@ -639,11 +639,11 @@ class CustomListener(ExpressionListener):
 
     def enterComments(self, ctx: ParserRuleContext):
         type = commentType(ctx.getText())
-        self.line+=1
-        if type==CommentType.ML:
+        self.line += 1
+        if type == CommentType.ML:
             for i in ctx.getText():
-                if i=="\n":
-                    self.line+=1
+                if i == "\n":
+                    self.line += 1
 
         comment = Comment(ctx.getText(), type)
         self.asT = create_tree()
@@ -692,9 +692,9 @@ class CustomListener(ExpressionListener):
 
     # Enter a parse tree produced by ExpressionParser#prefix_op.
     def enterPrefix_op(self, ctx: ParserRuleContext):
-        print("prefix token:"+ctx.getText())
-        op=UnaryOperator(ctx.getText())
-        return self.set_token(ctx,op)
+        print("prefix token:" + ctx.getText())
+        op = UnaryOperator(ctx.getText())
+        return self.set_token(ctx, op)
 
     # Exit a parse tree produced by ExpressionParser#prefix_op.
     def exitPrefix_op(self, ctx: ParserRuleContext):

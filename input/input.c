@@ -1,8 +1,8 @@
 int x=89;
+int xx=90;
 int *z=&x;
 //comment1
-/**
-multi
+/**multi
 line
 comment
 **/
