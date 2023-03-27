@@ -127,7 +127,16 @@ class CustomListener(ExpressionListener):
             return self.set_print(ctx, type_)
         if self.pointer:
             return self.set_pointer(ctx, type_)
-        self.current = Value(ctx.getText(), type_, self.line, self.parent)
+        if type_ == LiteralType.VAR: # TODO: double check this
+            var = True
+        else:
+            var = False
+        self.current = Value(ctx.getText(), type_, self.line, self.parent, variable=var)
+        # if type_ == LiteralType.NUM:
+        #     if isFloat(ctx.getText()):
+        #         self.current = Value(float(ctx.getText()), type_, self.parent)
+        #     else:
+        #         self.current = Value(int(ctx.getText()), type_, self.parent)
         if type_ == LiteralType.INT:
             self.current = Value(int(ctx.getText()), type_, self.line, self.parent)
         elif type_ == LiteralType.FLOAT:
@@ -291,6 +300,7 @@ class CustomListener(ExpressionListener):
         v = self.parent.leftChild.getValue()
         v = v[len(ctx.getText()):]
         self.parent.leftChild.setValue(v)
+        self.parent.leftChild.declaration = True
 
     # Exit a parse tree produced by ExpressionParser#typed_var.
     def exitTyped_var(self, ctx: ParserRuleContext):
@@ -368,6 +378,7 @@ class CustomListener(ExpressionListener):
 
     # Enter a parse tree produced by ExpressionParser#dec.
     def enterDec(self, ctx: ParserRuleContext):  # TODO: declaration needs to get right type
+
         print("new dec:" + ctx.getText())
         self.start_rule = self.start_rule[len(ctx.getText()) + 1:]
         self.asT = create_tree()
@@ -431,7 +442,7 @@ class CustomListener(ExpressionListener):
 
         self.asT.setNodeIds(self.asT.root)
         self.asT.generateDot("no_fold_expression_dot" + str(self.counter))
-
+        self.c_block.fillLiterals(self.asT)
         self.asT.foldTree()
         self.asT.setNodeIds(self.asT.root)
         self.asT.generateDot("folded_expression_dot" + str(self.counter))
@@ -444,7 +455,7 @@ class CustomListener(ExpressionListener):
         level = 0
         self.c_block.trees.append(self.asT)
         # if self.current.leftChild.declaration:
-        self.c_block.getSymbolTable().addSymbol(self.asT.root)
+        self.c_block.getSymbolTable().addSymbol(self.asT.root, True) # TODO: make bool depend on current scope
         # else:
         #    #TODO: replace value
         #    pass
@@ -511,7 +522,7 @@ class CustomListener(ExpressionListener):
         pass
 
     # Enter a parse tree produced by ExpressionParser#expr.
-    def enterExpr(self, ctx: ParserRuleContext):
+    def enterExpr(self, ctx: ParserRuleContext): #TODO: start contains line and column values of where the token is located in the original code
         print("enter expr:" + ctx.getText())
         return self.set_expression(ctx)
 
@@ -529,6 +540,7 @@ class CustomListener(ExpressionListener):
             self.trees.append(self.asT)
             self.asT.setNodeIds(self.asT.root)
             self.asT.generateDot("no_fold_expression_dot" + str(self.counter))
+            self.c_block.fillLiterals(self.asT)
             self.asT.foldTree()
             self.asT.setNodeIds(self.asT.root)
             self.c_block.trees.append(self.asT)
@@ -715,6 +727,12 @@ class CustomListener(ExpressionListener):
         self.nr_pointers += 1
         var = getVariable(ctx.getText())
         type_ = getType(var)
+        # TODO: check what is needed here
+        self.current = Pointer(var, type_, self.line, self.nr_pointers, self.parent, False, self.is_declaration(var))
+        self.parent.leftChild = self.current
+        self.current = self.parent.rightChild
+        self.dec_op = self.parent
+        self.declaration = True
         # TODO: is declaration a declaration ? (check via self.is_declaration()
         pointer = Pointer(self.dec_op.leftChild.getValue(), self.dec_op.leftChild.getType(), self.dec_op.leftChild.line,
                           1, self.dec_op, self.dec_op.leftChild.const, self.dec_op.leftChild.declaration)
