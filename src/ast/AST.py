@@ -28,7 +28,7 @@ class AST:
             number = self.setNodeIds(nextNode.leftChild, level + 1, number + 1)
             number = self.setNodeIds(nextNode.rightChild, level + 1, number + 1)
         elif isinstance(nextNode, node.UnaryOperator):
-            number = self.setNodeIds(nextNode.child, level + 1, number + 1)
+            number = self.setNodeIds(nextNode.rightChild, level + 1, number + 1)
 
         return number
 
@@ -58,7 +58,7 @@ class AST:
             edges = edges + res[1]
 
         output = "graph ast {\n" + nodes + "\n\n" + edges + "\n}"
-        file = open("src/ast/dotFiles/" + fileName + ".dot", "w")
+        file = open("./src/ast/dotFiles/" + fileName + ".dot", "w")
         file.write(output)
         file.close()
         return output
@@ -83,8 +83,8 @@ class AST:
             nodes = nodes + res[0]
             edges = edges + res[1]
         elif isinstance(root, node.UnaryOperator):
-            edges = "\n" + root.getId() + "--" + root.child.getId()
-            res = self.toDot(root.child)
+            edges = "\n" + root.getId() + "--" + root.rightChild.getId()
+            res = self.toDot(root.rightChild)
             nodes = nodes + res[0]
             edges = edges + res[1]
 

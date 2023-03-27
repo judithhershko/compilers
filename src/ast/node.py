@@ -160,7 +160,8 @@ class Value(AST_node):
 
     def replaceVariables(self, values):
         if self.variable:
-            self.value = values[self.value]
+            self.type = values[self.value][1]
+            self.value = values[self.value][0]
             self.variable = False
 
     def getHigherType(self, node2: AST_node):
@@ -247,7 +248,6 @@ class BinaryOperator(AST_node):
         if not (isinstance(self.rightChild, Value) or isinstance(self.rightChild, Pointer)):
             self.rightChild = self.rightChild.fold()
 
-        # TODO: does char + char need to be supported?
         try:
             if not (isinstance(self.leftChild, Value) or isinstance(self.leftChild, Pointer)) or \
                     not (isinstance(self.rightChild, Value) or isinstance(self.rightChild, Pointer)):
@@ -256,14 +256,8 @@ class BinaryOperator(AST_node):
                     not self.rightChild.getType() in (LiteralType.DOUBLE, LiteralType.FLOAT, LiteralType.INT):
                 raise BinaryOp(self.leftChild.getType(), self.rightChild.getType(), self.operator, self.line)
             else:
-                # if self.leftChild.getType() == LiteralType.FLOAT: TODO: how to proceed with integers that become floats because of calculations (division)
                 leftValue = float(self.leftChild.getValue())
-                # else:
-                # leftValue = float(self.leftChild.getValue())
-                # if self.rightChild.getType() == LiteralType.FLOAT:
                 rightValue = float(self.rightChild.getValue())
-                # else:
-                #     rightValue = int(self.rightChild.getValue())
                 if self.operator == "*":
                     res = leftValue * rightValue
                 elif self.operator == "/":
@@ -278,9 +272,9 @@ class BinaryOperator(AST_node):
                     raise NotSupported("binary operator", self.operator, self.line)
 
                 typeOfValue = self.leftChild.getHigherType(self.rightChild)
-                # TODO: check if this if is still necessary, is caught in the error of getHigherType
-                # if not typeOfValue:
-                #     return "impossible operation"
+
+                if typeOfValue == LiteralType.INT:
+                    res = int(res)
 
                 newNode = Value(str(res), typeOfValue, self.line, self.parent)
                 return newNode
@@ -304,7 +298,7 @@ class BinaryOperator(AST_node):
 class UnaryOperator(AST_node):
     rightChild = None
 
-    def __init__(self, oper, parent=None, line=None):
+    def __init__(self, oper: str, parent: AST_node = None, line: int = None):
         """
         :param oper:string containing the operator of the binary operation
         :param parent: AST_node type containing the parent of the current node in the AST
@@ -342,16 +336,16 @@ class UnaryOperator(AST_node):
         try:
             if not (isinstance(self.rightChild, Value) or isinstance(self.rightChild, Pointer)):
                 return self
-            elif (self.rightChild.getType() is not LiteralType.BOOL and self.operator == "!") or \
+            elif (self.rightChild.getType() not in (LiteralType.BOOL, LiteralType.INT) and self.operator == "!") or \
                     (self.rightChild.getType() not in (LiteralType.FLOAT, LiteralType.DOUBLE, LiteralType.INT)):
                 raise ChildType("unary operator", self.rightChild.getType(), None, self.line)
             else:
-                if self.rightChild.getType() == LiteralType.FLOAT:  # TODO: how to proceed with integers that become floats because of calculations (division)
+                if self.rightChild.getType() == LiteralType.FLOAT:
                     child = float(self.rightChild.getValue())
                 elif self.rightChild.getType() == LiteralType.BOOL:
                     child = bool(self.rightChild.getValue())
                 else:
-                    child = float(self.rightChild.getValue())  # TODO: originally int, see question above
+                    child = int(self.rightChild.getValue())
                 if self.operator == "-":
                     res = - child
                 elif self.operator == "++":
@@ -384,7 +378,7 @@ class LogicalOperator(AST_node):
     leftChild = None
     rightChild = None
 
-    def __init__(self, oper, parent=None, line=None):
+    def __init__(self, oper: str, parent: AST_node = None, line: int = None):
         """
         :param oper:string containing the operator of the binary operation
         :param parent: AST_node type containing the parent of the current node in the AST
@@ -519,7 +513,7 @@ class Declaration(AST_node):
                self.number == other.number and self.line == other.line
 
     def getLabel(self):
-        return "\" Declaration: " + self.operator + "\""
+        return "\"Declaration: " + self.operator + "\""
 
     def setLeftChild(self, child):
         self.leftChild = child
@@ -547,9 +541,15 @@ class Declaration(AST_node):
         highestType = self.leftChild.getHigherType(self.rightChild)
         try:
             if self.leftChild.getType() == highestType:
+                if self.rightChild.getValue() in ("True", "False") and \
+                        self.leftChild.getType() in (LiteralType.INT, LiteralType.FLOAT):
+                    if self.rightChild.getValue() == "True":
+                        self.rightChild.setValue(1)
+                    else:
+                        self.rightChild.setValue(0)
                 return self
             else:
-                raise WrongDeclaration
+                raise WrongDeclaration(self.leftChild.getType(), self.rightChild.getType(), self.line)
 
         except WrongDeclaration:
             raise
@@ -558,7 +558,7 @@ class Declaration(AST_node):
         return self.rightChild.getVariables()
 
     def replaceVariables(self, values):
-        self.rightChild.replaceVaribles(values)
+        self.rightChild.replaceVariables(values)
 
 
 class Pointer(AST_node):
@@ -575,7 +575,7 @@ class Pointer(AST_node):
         """
         self.value = value
         self.line = line
-        self.level = level
+        self.pointerLevel = level
         self.type = valueType
         self.parent = parent
         self.variable = True
@@ -586,8 +586,8 @@ class Pointer(AST_node):
         if not isinstance(other, Pointer):
             return False
         return self.value == other.value and self.type == other.type and self.parent == other.parent and \
-               self.variable == other.variable and self.level == other.level and self.const == other.const and \
-               self.number == other.number and self.line == other.line
+               self.variable == other.variable and self.pointerLevel == other.pointerLevel and \
+               self.const == other.const and self.number == other.number and self.line == other.line
 
     def getValue(self):
         return self.value
@@ -606,6 +606,12 @@ class Pointer(AST_node):
 
     def setLevel(self, level):
         self.level = level
+
+    def getPointerLevel(self):
+        return self.pointerLevel
+
+    def setPointerLevel(self, pLevel):
+        self.pointerLevel = pLevel
 
     def getLabel(self):
         return "\"Pointer: " + str(self.value) + "\""
@@ -679,12 +685,36 @@ class Pointer(AST_node):
 
 
 class EmptyNode(AST_node):
-    def __init__(self, line: int, parent: AST_node = None):
+    def __init__(self, line: int, parent: AST_node = None,type_=None):
         self.value = None
-        self.type = None
+        self.type = type_
+        # if self.type==LiteralType.CHAR:
+        #     self.value=''
+        # else:
+        #     self.value=0
         self.parent = parent
         self.variable = False
         self.const = False
         self.declaration = False
         self.line = line
+    def getLabel(self):
+        return "\"Empty Node: " + str(self.value) + "\""
+    def getType(self):
+        return self.type
+    def getValue(self):
+        return None
 
+    def getValue(self):
+        return self.value
+
+    def setValue(self, val):
+        self.value = val
+
+    def setType(self, type):
+        self.type = type
+
+    def getType(self):
+        return self.type
+
+    def getVariables(self):
+        return []

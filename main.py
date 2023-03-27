@@ -3,13 +3,19 @@ from generated.input.ExpressionParser import ExpressionParser
 from antlr4 import *
 from src.CustomListener import *
 from src.LLVM.LLVM_Operators import ToLLVM
+from src.CustomErrorListener import *
 
 def main():
     argv = "input/input.c"
     input_stream = FileStream(argv)
     lexer = ExpressionLexer(input_stream)
+    MyError = CustomError()
+    lexer.removeErrorListeners()
+    lexer.addErrorListener(MyError)
     stream = CommonTokenStream(lexer)
     parser = ExpressionParser(stream)
+    parser.removeErrorListeners()
+    parser.addErrorListener(MyError)
     tree = parser.start_rule()
     # printer = Expression()
     printer = CustomListener()

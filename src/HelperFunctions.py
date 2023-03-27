@@ -22,6 +22,9 @@ def getVariable(ctx):
 
 
 def getType(var):
+
+    if var=='':
+        return False
     if var[0] == 'i':
         return LiteralType.INT
     elif var[0] == 'f':
@@ -34,8 +37,6 @@ def getType(var):
         return LiteralType.BOOL
     elif var[0] == 'c':
         return LiteralType.CHAR
-    elif var[0] == 'p':
-        return LiteralType.POINTER
     else:
         return False
 
@@ -58,8 +59,6 @@ def find_type(txt):  # TODO: check if this gives no problems
         return LiteralType.BOOL
     elif txt[0] == 'c':
         return LiteralType.CHAR
-    elif txt[0] == 'p':
-        return LiteralType.POINTER
     else:
         return False
 
@@ -81,7 +80,7 @@ def is_valid_variable(v: str):
 
 def find_value_type(v: str):
     if v[0] == '\'' and v[-1] == '\'':
-        return node.LiteralType.STR
+        return node.LiteralType.CHAR
     elif isFloat(v):
         return node.LiteralType.FLOAT
     elif v[0].isdigit():

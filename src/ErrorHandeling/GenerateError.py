@@ -90,13 +90,23 @@ class Redeclaration(Exception):
                str(self.variable)
 
 
+class ResetGlobal(Exception):
+    def __init__(self, var, line):
+        self.variable = var
+        self.line = line
+
+    def __str__(self):
+        return "\n\tError in line " + str(self.line) + ": there is a reassignment of the global variable " + \
+               str(self.variable)
+
+
 class ResetConst(Exception):
     def __init__(self, var, line):
         self.variable = var
         self.line = line
 
     def __str__(self):
-        return "\n\tError in line " + str(self.line) + ": there is an reassignment of the const variable " + \
+        return "\n\tError in line " + str(self.line) + ": there is a reassignment of the const variable " + \
                str(self.variable)
 
 
@@ -200,6 +210,53 @@ class LeftSideDeclaration(Exception):
         self.line = line
 
     def __str__(self):
-        return "\n\tError in line " + str(self.line) + \
+        return "\n \t Error in line " + str(self.line) + \
                ": the left hand side of the declaration should be a variable or a pointer"
+
+
+class Redefinition(Exception):
+
+    def __init__(self,line,variable):
+        self.line=line
+        self.variable=variable
+
+    def __str__(self):
+        return "\n \t Error in line  {} \n: Redefinition of {}".format( str(self.line),self.variable)
+
+
+class ReservedWord(Exception):
+
+    def __init__(self,line,variable):
+        self.line=line
+        self.variable=variable
+
+    def __str__(self):
+        return "\n \t Error in line  {} \n: variable name is a reserved word {}".format( str(self.line),self.variable)
+
+
+class RightValRef(Exception):
+
+    def __init__(self,line):
+        self.line=line
+        
+    def __str__(self):
+        return "\n \t Error in line  {} \n: cannot redeclare right value reference ".format( str(self.line))
+
+
+class ParamNotFound(Exception):
+    def __init__(self, name, line):
+        self.name = name
+        self.line = line
+
+    def __str__(self):
+        return "\n\t Error in line " + str(self.line) + ": " + str(self.name) + " has not been declared yet"
+
+
+class NotDeclared(Exception):
+    def __init__(self, name, line):
+        self.name = name
+        self.line = line
+
+    def __str__(self):
+        return "\n\tError in line " + str(self.line) + ": " + str(self.name) + " has not been declared yet"
 
