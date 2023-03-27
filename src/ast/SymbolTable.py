@@ -18,7 +18,10 @@ class SymbolTable:  # TODO: ask to add memory location?
                 raise NotDeclaration(line)
             else:
                 name = root.getLeftChild().getValue()
-                value = root.getRightChild().getValue()
+                if root.getRightChild() is not None:
+                    value = root.getRightChild().getValue()
+                else:
+                    value = None
                 symType = root.getLeftChild().getType()
                 const = root.getLeftChild().const
                 decl = root.getLeftChild().declaration
@@ -27,7 +30,10 @@ class SymbolTable:  # TODO: ask to add memory location?
                     level = 0
                 elif isinstance(root.getLeftChild(), Pointer):
                     level = root.getLeftChild().level
-                    ref = root.getRightChild().getValue()
+                    if root.getRightChild() is not None:
+                        ref = root.getRightChild().getValue()
+                    else:
+                        ref = None
                 else:
                     raise LeftSideDeclaration(line)
             if (ref is None and level != 0) or (level == 0 and ref is not None):

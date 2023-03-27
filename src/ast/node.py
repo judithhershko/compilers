@@ -186,6 +186,8 @@ class Value(AST_node):
                 return LiteralType.INT
             elif type1 == LiteralType.BOOL and type2 == LiteralType.BOOL:
                 return LiteralType.BOOL
+            elif type2 is None:
+                return type1
             else:
                 raise WrongType(type1, type2, self.line)
 
@@ -538,7 +540,8 @@ class Declaration(AST_node):
         """
         if not (isinstance(self.leftChild, Value) or isinstance(self.leftChild, Pointer)):
             self.leftChild = self.leftChild.fold()
-        if not (isinstance(self.rightChild, Value) or isinstance(self.rightChild, Pointer)):
+        if not (isinstance(self.rightChild, Value) or isinstance(self.rightChild, Pointer) or
+                isinstance(self.rightChild, EmptyNode)):
             self.rightChild = self.rightChild.fold()
 
         highestType = self.leftChild.getHigherType(self.rightChild)
@@ -560,8 +563,7 @@ class Declaration(AST_node):
 
 class Pointer(AST_node):
     def __init__(self, value: str, valueType: LiteralType, line: int, level: int, parent: AST_node = None,
-                 const: bool = False,
-                 decl: bool = False):
+                 const: bool = False, decl: bool = False):
         """
         :param value: string referring to the name of the pointer
         :param valueType: LiteralType containing the type of the variable stored in the variable
@@ -674,3 +676,15 @@ class Pointer(AST_node):
 
         except WrongType:
             raise
+
+
+class EmptyNode(AST_node):
+    def __init__(self, line: int, parent: AST_node = None):
+        self.value = None
+        self.type = None
+        self.parent = parent
+        self.variable = False
+        self.const = False
+        self.declaration = False
+        self.line = line
+
