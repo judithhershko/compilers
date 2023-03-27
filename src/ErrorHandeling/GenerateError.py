@@ -202,15 +202,6 @@ class LeftSideDeclaration(Exception):
     def __str__(self):
         return "\n \t Error in line " + str(self.line) + \
                ": the left hand side of the declaration should be a variable or a pointer"
-
-class ReservedWord(Exception):
-    def __init__(self,line,variable):
-        self.line=line
-        self.variable=variable
-
-    def __str__(self):
-        return "\n \t Error in line  {} \n: rename {}. It is a reserved word.".format( str(self.line),self.variable)
-
 class Redefinition(Exception):
 
     def __init__(self,line,variable):
@@ -219,3 +210,11 @@ class Redefinition(Exception):
 
     def __str__(self):
         return "\n \t Error in line  {} \n: Redefinition of {}".format( str(self.line),self.variable)
+class ReservedWord(Exception):
+
+    def __init__(self,line,variable):
+        self.line=line
+        self.variable=variable
+
+    def __str__(self):
+        return "\n \t Error in line  {} \n: variable name is a reserved word {}".format( str(self.line),self.variable)

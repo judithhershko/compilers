@@ -364,6 +364,8 @@ class CustomListener(ExpressionListener):
         self.asT = create_tree()
         # self.parent = Declaration()
         var = getVariable(ctx.getText())
+        if var=='':
+            raise ReservedWord(self.line,variable=var)
         type = getType(var)
         if type is False:
             #TODO: raise exception

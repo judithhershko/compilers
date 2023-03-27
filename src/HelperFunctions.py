@@ -22,6 +22,9 @@ def getVariable(ctx):
 
 
 def getType(var):
+
+    if var=='':
+        return False
     if var[0] == 'i':
         return LiteralType.INT
     elif var[0] == 'f':
