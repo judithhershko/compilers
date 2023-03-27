@@ -5,6 +5,7 @@ from .ast.block import *
 
 class CustomListener(ExpressionListener):
     def __init__(self):
+        self.start_rule = None
         self.asT = create_tree()
         self.current = None
         self.parent = None
@@ -264,7 +265,7 @@ class CustomListener(ExpressionListener):
     ########################################################################
     # Enter a parse tree produced by ExpressionParser#start_rule.
     def enterStart_rule(self, ctx: ParserRuleContext):
-        pass
+        self.start_rule = ctx.getText()
 
     # Exit a parse tree produced by ExpressionParser#start_rule.
     def exitStart_rule(self, ctx: ParserRuleContext):
@@ -361,15 +362,23 @@ class CustomListener(ExpressionListener):
 
     # Enter a parse tree produced by ExpressionParser#dec.
     def enterDec(self, ctx: ParserRuleContext):  # TODO: declaration needs to get right type
+        print("new dec:" + ctx.getText())
+        self.start_rule = self.start_rule[len(ctx.getText())+1:]
         self.asT = create_tree()
         # self.parent = Declaration()
         var = getVariable(ctx.getText())
-        if var=='':
-            raise ReservedWord(self.line,variable=var)
+
+        if var == '':
+            if str(self.start_rule[-1]).isdigit():
+                raise RightValRef(self.line)
+            else:
+                raise ReservedWord(self.line,variable=var)
+            pass
+
         type = getType(var)
         if type is False:
-            #TODO: raise exception
-            raise Redefinition(self.line,variable=var)
+            # TODO: raise exception
+            raise Redefinition(self.line, variable=var)
             """
             self.current = Value(var, type, self.line, self.parent, variable=True, decl=False)
             t = self.c_block.getSymbolTable().findSymbol(var)[0]

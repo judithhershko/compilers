@@ -218,3 +218,11 @@ class ReservedWord(Exception):
 
     def __str__(self):
         return "\n \t Error in line  {} \n: variable name is a reserved word {}".format( str(self.line),self.variable)
+
+class RightValRef(Exception):
+
+    def __init__(self,line):
+        self.line=line
+
+    def __str__(self):
+        return "\n \t Error in line  {} \n: cannot redeclare right value reference ".format( str(self.line))

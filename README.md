@@ -34,7 +34,7 @@ chmod 777 run.sh
 ### verplicht:
 
 - [x] Types
-- [ ] Reserved words
+- [x] Reserved words
 - [x] Variables
 - [ ] Pointer Operations
 - [x] Constant Propagation
@@ -42,7 +42,7 @@ chmod 777 run.sh
   - [ ] Syntax Errors
   - [ ] Semantic Errors
     - [ ] Use of undefined or uninitialized variable
-    - [ ] Redeclaration or redefinition of an existing variable
+    - [x] Redeclaration or redefinition of an existing variable
     - [ ] Operations or assignments of incompatible types
     - [ ] Assigment of a rvalue
     - [ ] Assignment to a const value
