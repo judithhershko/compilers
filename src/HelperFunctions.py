@@ -34,8 +34,6 @@ def getType(var):
         return LiteralType.BOOL
     elif var[0] == 'c':
         return LiteralType.CHAR
-    elif var[0] == 'p':
-        return LiteralType.POINTER
     else:
         return False
 

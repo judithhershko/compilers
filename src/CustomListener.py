@@ -28,6 +28,7 @@ class CustomListener(ExpressionListener):
         self.nr_pointers = 0
         self.ref_pointers = 0
         self.pointer = False
+        self.end_bracket=False
 
     def is_declaration(self,var:str):
         if var[:3]=="int" or var[:5]=="float" or var[:4]=="bool" or var[:5]=="const":
@@ -60,6 +61,20 @@ class CustomListener(ExpressionListener):
         while self.parent.parent is not None:
             self.parent = self.parent.parent
         self.parent.parent = non_brack
+
+        if non_brack.leftChild is None:
+            non_brack.leftChild = self.parent
+            self.parent = non_brack
+        elif non_brack.rightChild is None:
+            non_brack.rightChild = self.parent
+            self.parent = non_brack
+        else:
+            while non_brack.rightChild is not None:
+                non_brack=non_brack.rightChild
+                self.parent.parent=non_brack
+                non_brack.rightChild=self.parent
+                self.parent=non_brack
+        """"
         t=self.check_brackets(non_brack)
         while t is False:
             if non_brack.rightChild is not None:
@@ -69,6 +84,7 @@ class CustomListener(ExpressionListener):
                 non_brack.parent = self.parent
                 self.parent.leftChild = non_brack
                 t=True
+        """
 
 
 
@@ -172,6 +188,16 @@ class CustomListener(ExpressionListener):
             lc.parent = operator
             operator.leftChild = self.parent.leftChild
             self.parent = operator
+        elif self.end_bracket:
+            while self.parent.parent is not None:
+                self.parent=self.parent.parent
+            self.parent.parent=operator
+            operator.leftChild=self.parent
+            self.parent=operator
+            self.end_bracket=False
+            self.right = True
+            self.left = False
+            return
         else:
             while order_prec[operator.operator] >= order_prec[self.parent.operator] and self.parent.parent is not None:
                 self.parent = self.parent.parent
@@ -616,6 +642,7 @@ class CustomListener(ExpressionListener):
         print("exit brackets: " + ctx.getText())
         print("layer:" + str(self.bracket_count))
         if self.bracket_stack.__len__() == 0:
+            self.end_bracket=True
             return
         self.set_bracket()
         self.bracket_count -= 1
