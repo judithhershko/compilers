@@ -215,9 +215,9 @@ class nodeTestCase(unittest.TestCase):
         self.assertEqual(c, "placed")
         self.assertEqual(d, "replaced")
 
-        self.assertEqual(val.findSymbol("x", 1), ("5", LiteralType.INT))
-        self.assertEqual(val.findSymbol("y", 1), ("22", LiteralType.INT))
-        self.assertEqual(val.findSymbol("z", 1), ("-79", LiteralType.INT))
+        self.assertEqual(val.findSymbol("x"), ("5", LiteralType.INT))
+        self.assertEqual(val.findSymbol("y"), ("22", LiteralType.INT))
+        self.assertEqual(val.findSymbol("z"), ("-79", LiteralType.INT))
 
         self.assertEqual("\n\tError in line 1: there is a reassignment of the global variable x",
                          str(except1.exception))

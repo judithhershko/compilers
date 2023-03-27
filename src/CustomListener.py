@@ -325,7 +325,7 @@ class CustomListener(ExpressionListener):
         var = getVariable(ctx.getText())
         type = getType(var)
         if not type:
-            type = self.c_block.getSymbolTable().findSymbol(var, self.line)[1]
+            type = self.c_block.getSymbolTable().findSymbol(var)[1]
         self.current = Value(var, type, self.line, self.parent, variable=True)
         # self.parent.leftChild = self.current
         self.parent = Declaration(self.current, self.line,)

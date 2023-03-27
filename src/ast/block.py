@@ -35,7 +35,7 @@ class block:
         notFound = []
         values = dict()
         for elem in variables:
-            temp = self.symbols.findSymbol(elem[0], elem[1])
+            temp = self.symbols.findSymbol(elem[0])
             if temp:
                 values[elem[0]] = temp
             else:
@@ -47,7 +47,7 @@ class block:
             variables = notFound
             notFound = []
             for elem in variables:
-                temp = current.symbols.findSymbol(elem[0], elem[1])
+                temp = current.symbols.findSymbol(elem[0])
                 if temp:
                     values[elem[0]] = temp
                 else:
