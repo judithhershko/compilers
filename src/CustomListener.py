@@ -436,6 +436,11 @@ class CustomListener(ExpressionListener):
 
             self.dec_op.rightChild = self.current
         self.current = self.dec_op
+        """
+        get the correct type from table if redeclaration
+        """
+        if self.c_block.getSymbolTable().findSymbol(self.current.leftChild.getValue()) is not None:
+            self.current.leftChild.setType(self.c_block.getSymbolTable().findSymbol(self.current.leftChild.getValue())[1])
         self.asT.setRoot(self.current)
         if isinstance(self.asT.root.leftChild, Pointer):
             self.asT.root.leftChild.setLevel(self.nr_pointers)
