@@ -64,7 +64,7 @@ class CustomListener(ExpressionListener):
             self.parent = self.parent.parent
         self.parent.parent = non_brack
 
-        if non_brack.leftChild is None:
+        if not isinstance(non_brack,UnaryOperator) and non_brack.leftChild is None:
             non_brack.leftChild = self.parent
             self.parent = non_brack
         elif non_brack.rightChild is None:
@@ -457,7 +457,7 @@ class CustomListener(ExpressionListener):
         level = 0
         self.c_block.trees.append(self.asT)
         # if self.current.leftChild.declaration:
-        self.c_block.getSymbolTable().addSymbol(self.asT.root, True) # TODO: make bool depend on current scope
+        self.c_block.getSymbolTable().addSymbol(self.asT.root, False) # TODO: make bool depend on current scope
         # else:
         #    #TODO: replace value
         #    pass

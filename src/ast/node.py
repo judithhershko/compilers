@@ -171,6 +171,7 @@ class Value(AST_node):
         """
         type1 = self.type
         type2 = node2.getType()
+
         try:
             if (type1 == LiteralType.STR and type2 in (LiteralType.STR, LiteralType.CHAR)) or \
                     (type2 == LiteralType.STR and type1 == LiteralType.CHAR):
@@ -336,8 +337,7 @@ class UnaryOperator(AST_node):
         try:
             if not (isinstance(self.rightChild, Value) or isinstance(self.rightChild, Pointer)):
                 return self
-            elif (self.rightChild.getType() not in (LiteralType.BOOL, LiteralType.INT) and self.operator == "!") or \
-                    (self.rightChild.getType() not in (LiteralType.FLOAT, LiteralType.DOUBLE, LiteralType.INT)):
+            elif self.rightChild.getType() not in (LiteralType.BOOL, LiteralType.INT,LiteralType.FLOAT) and self.operator == "!":
                 raise ChildType("unary operator", self.rightChild.getType(), None, self.line)
             else:
                 if self.rightChild.getType() == LiteralType.FLOAT:
