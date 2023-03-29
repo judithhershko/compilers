@@ -128,7 +128,9 @@ class CustomListener(ExpressionListener):
         if self.pointer:
             return self.set_pointer(ctx, type_)
         if type_ == LiteralType.VAR: # TODO: double check this
-            var = True
+            #if self.c_block.getSymbolTable().findSymbol(ctx.getText()) is None and self.dec_op.leftChild.declaration is False:
+            #    raise Redeclaration(ctx.getText(),self.line)
+            pass
         else:
             var = False
         self.current = Value(ctx.getText(), type_, self.line, self.parent, variable=var)
@@ -397,9 +399,12 @@ class CustomListener(ExpressionListener):
         if type is False:
             print("val is :" + var)
             if self.c_block.getSymbolTable().findSymbol(var) is not None:
-                raise Redefinition(self.line, variable=var)
-            else:
+                self.current=Value(var,self.c_block.getSymbolTable().findSymbol(var)[1],self.line,self.parent,variable=True)
+            #    raise Redefinition(self.line, variable=var)
+            if self.c_block.getSymbolTable().findSymbol(var) is None:
                 raise NotDeclaration(self.line)
+                #self.current = Value(var, None, self.line, self.parent, variable=True, decl=True)
+
 
         else:
             self.current = Value(var, type, self.line, self.parent, variable=True, decl=True)
