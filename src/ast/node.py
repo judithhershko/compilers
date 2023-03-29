@@ -677,6 +677,8 @@ class Pointer(AST_node):
                 return LiteralType.INT
             elif type1 == LiteralType.BOOL and type2 == LiteralType.BOOL:
                 return LiteralType.BOOL
+            elif type1 is None:
+                return type2
             else:
                 raise WrongType(type1, type2, self.line)
 
