@@ -72,7 +72,7 @@ class ToLLVM():
                     self.g_count+=1
                     self.g_assignment+="@.str{} = private unnamed_addr constant [{}x i8] c\"{}\\0A\\00\", align 1\n".format(var,len(tree.root.value)+2,tree.root.value[0])
                     s=self.add_variable("printf"+str(self.g_count))
-                    self.allocate+="// printf ({})\n".format(tree.root.value[0])
+                    self.allocate+="; printf ({})\n".format(tree.root.value[0])
                     self.allocate+="%{} = call i32 (ptr, ...) @printf(ptr noundef @.str{})\n".format(s,var)
             self.g_assignment+="; Function Attrs: noinline nounwind optnone ssp uwtable(sync)\n"
             self.store+="\n"
@@ -121,16 +121,16 @@ class ToLLVM():
             self.var_dic[v.value]=self.couter
             variable=self.var_dic[v.value]
         if v.type == LiteralType.INT:
-            self.global_ += "// {} {} {} = {}\n".format(const, "int", v.value, input.value)
-            self.allocate += "// {} {} {} = {}\n".format(const, "int", v.value, input.value)
+            self.global_ += "; {} {} {} = {}\n".format(const, "int", v.value, input.value)
+            self.allocate += "; {} {} {} = {}\n".format(const, "int", v.value, input.value)
             self.global_ += "@{}= global i32 {}, align 4\n".format(variable, input.value)
 
             self.allocate += "%{} = alloca i32, align 4\n".format(variable)
             self.store += "store i32 {}, i32* %{}, align 4\n".format(input.value, variable)
 
         elif v.type == LiteralType.FLOAT:
-            self.global_ += "// {} {} {} = {}\n".format(const, "float", v.value, input.value)
-            self.allocate += "// {} {} {} = {}\n".format(const, "float", v.value, input.value)
+            self.global_ += "; {} {} {} = {}\n".format(const, "float", v.value, input.value)
+            self.allocate += "; {} {} {} = {}\n".format(const, "float", v.value, input.value)
             self.allocate += "%{} = alloca float, align 4\n".format(variable)
 
             self.global_ += "@{} = global float {}, align 4\n".format(variable, input.value)
@@ -138,8 +138,8 @@ class ToLLVM():
 
         elif v.type == LiteralType.STR:
             size = len(input.value)
-            self.global_ += "// {} {} {} = {}\n".format(const, "char", v.value, input.value)
-            self.allocate += "// {} {} {} = {}\n".format(const, "char", v.value, input.value)
+            self.global_ += "; {} {} {} = {}\n".format(const, "char", v.value, input.value)
+            self.allocate += "; {} {} {} = {}\n".format(const, "char", v.value, input.value)
             self.allocate += "%{} = alloca i8, align 1\n".format(v.value)
 
             self.global_ += "@{} = global [{}xi8] c{}, align 1\n".format(variable, size, input.value)
@@ -150,7 +150,7 @@ class ToLLVM():
             bval = 0
             if input.value == "True":
                 bval = 1
-            self.allocate += "// {}{}{}={}\n".format(const, "_Bool", v.value, input.value)
+            self.allocate += "; {}{}{}={}\n".format(const, "_Bool", v.value, input.value)
             self.allocate += "%{} = alloca i8, align 1\n".format(variable)
 
             self.global_ += "@{} = global i1 {}, align 4\n".format(variable, bval)
@@ -170,7 +170,7 @@ class ToLLVM():
             while i< ast.root.leftChild.getPointerLevel():
                 points+="*"
                 i+=1
-            self.allocate+="// {} {} {} {} = & {}\n".format(const,t_type,points,ast.root.leftChild.getValue(),ast.root.rightChild.getValue())
+            self.allocate+="; {} {} {} {} = & {}\n".format(const,t_type,points,ast.root.leftChild.getValue(),ast.root.rightChild.getValue())
             self.allocate+="%{} = alloca ptr, align 8\n".format(self.add_variable(ast.root.leftChild.getValue()))
             self.store+="store ptr %{}, ptr %{}, align 8\n".format(self.add_variable(ast.root.rightChild.getValue()),self.add_variable(ast.root.leftChild.getValue()))
         elif isinstance(ast.root, Declaration):
@@ -181,19 +181,21 @@ class ToLLVM():
 
         if isinstance(ast.root, Comment):
             if ast.root.type == CommentType.SL:
+                self.global_ += ";"
+                self.store += ";"
                 self.global_ += ast.root.value
                 self.store += ast.root.value
                 self.global_ += "\n"
                 self.store += "\n"
             elif ast.root.type == CommentType.ML:
-                self.global_ += "//"
-                self.store += "//"
+                self.global_ += ";"
+                self.store += ";"
                 for s in ast.root.value:
                     self.global_ += s
                     self.store += s
                     if s == "\n":
-                        self.global_ += "//"
-                        self.store += "//"
+                        self.global_ += ";"
+                        self.store += ";"
         self.global_ += "\n"
         self.store += "\n"
 
