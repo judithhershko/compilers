@@ -145,6 +145,9 @@ class CustomListener(ExpressionListener):
             self.current = Value(float(ctx.getText()), type_, self.line, self.parent)
         elif type_ == LiteralType.DOUBLE:
             self.current = Value(float(ctx.getText()), type_, self.line, self.parent)
+        elif type_==LiteralType.CHAR:
+            if len(ctx.getText())>3:
+                raise CharSize(ctx.getText(),self.line)
 
         if self.print:
             val = self.current.getValue()
@@ -717,7 +720,7 @@ class CustomListener(ExpressionListener):
     # Enter a parse tree produced by ExpressionParser#prefix_op.
     def enterPrefix_op(self, ctx: ParserRuleContext):
         print("prefix token:" + ctx.getText())
-        op = UnaryOperator(ctx.getText())
+        op = UnaryOperator(ctx.getText(),None,self.line)
         return self.set_token(ctx, op)
 
     # Exit a parse tree produced by ExpressionParser#prefix_op.
