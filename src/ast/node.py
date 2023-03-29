@@ -372,8 +372,10 @@ class UnaryOperator(AST_node):
                     res = not child
                 else:
                     raise NotSupported("unary operator", self.operator, self.line)
-
-            newNode = Value(str(res), self.rightChild.getType(), self.line, self.parent)
+            if self.operator != "!":
+                newNode = Value(str(res), self.rightChild.getType(), self.line, self.parent)
+            else:
+                newNode = Value(str(res), LiteralType.BOOL, self.line, self.parent)
             return newNode
 
         except ChildType:
