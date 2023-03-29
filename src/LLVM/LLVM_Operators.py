@@ -7,6 +7,7 @@ from src.ast.block import block
 
 # TODO:
 """
+comments vervangen met ; 
 v pointers
 - const 
 v getalle-n
