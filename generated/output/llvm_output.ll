@@ -1,5 +1,5 @@
-@.str = private unnamed_addr constant [3x i8] c"91\00", align 1
-@.str.1 = private unnamed_addr constant [3x i8] c"90\00", align 1
+@.str = private unnamed_addr constant [4x i8] c"91\0A\00", align 1
+@.str.1 = private unnamed_addr constant [4x i8] c"90\0A\00", align 1
 ; Function Attrs: noinline nounwind optnone ssp uwtable(sync)
 
 define i32 @main() #0 {

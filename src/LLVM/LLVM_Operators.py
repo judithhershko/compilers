@@ -7,7 +7,7 @@ from src.ast.block import block
 
 # TODO:
 """
-- pointers
+v pointers
 - const 
 v getalle-n
 v print f
@@ -69,7 +69,7 @@ class ToLLVM():
                     else:
                         self.f_declerations += "declare i32 @printf(ptr noundef, ...) #1\n"
                     self.g_count+=1
-                    self.g_assignment+="@.str{} = private unnamed_addr constant [{}x i8] c\"{}\\00\", align 1\n".format(var,len(tree.root.value)+1,tree.root.value[0])
+                    self.g_assignment+="@.str{} = private unnamed_addr constant [{}x i8] c\"{}\\0A\\00\", align 1\n".format(var,len(tree.root.value)+2,tree.root.value[0])
                     s=self.add_variable("printf"+str(self.g_count))
                     self.allocate+="// printf ({})\n".format(tree.root.value[0])
                     self.allocate+="%{} = call i32 (ptr, ...) @printf(ptr noundef @.str{})\n".format(s,var)
