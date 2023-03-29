@@ -196,6 +196,18 @@ class Value(AST_node):
         except WrongType:
             raise
 
+    def setValueToType(self):
+        if self.getType() == LiteralType.STR:
+            self.value = str(self.value)
+        elif self.getType() == LiteralType.INT:
+            self.value = int(self.value)
+        elif self.getType() == LiteralType.FLOAT:
+            self.value = float(self.value)
+        elif self.getType() == LiteralType.BOOL:
+            self.value = bool(self.value)
+        else:
+            raise
+
 
 class BinaryOperator(AST_node):
     leftChild = None
@@ -444,6 +456,8 @@ class LogicalOperator(AST_node):
                     self.rightChild.getType() != LiteralType.BOOL:
                 raise LogicalOp(self.leftChild.getType(), self.rightChild.getType(), self.operator, self.line)
             else:
+                self.leftChild.setValueToType()
+                self.rightChild.setValueToType()
                 if self.operator == "&&":
                     res = self.leftChild.getValue() and self.rightChild.getValue()
                 elif self.operator == "||":
