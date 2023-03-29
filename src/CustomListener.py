@@ -105,7 +105,7 @@ class CustomListener(ExpressionListener):
             self.current = Print(ctx.getText())
         else:
             var = self.c_block.getSymbolTable().findSymbol(ctx.getText())
-            self.current = Print(var)
+            self.current = Print(str(var))
         self.asT.root = self.current
         self.c_block.trees.append(self.asT)
         self.current = None

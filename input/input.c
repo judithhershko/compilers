@@ -1,6 +1,6 @@
-bool  x=99>90;
-int *z = &x;
-int **y = &z;
+bool  x=99>90*81;
+bool *z = &x;
+bool **y = &z;
 printf(x);
 printf(v);
 //comment1

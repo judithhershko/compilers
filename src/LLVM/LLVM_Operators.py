@@ -59,6 +59,7 @@ class ToLLVM():
             self.store+="store i32 0, ptr %{}, align 4\n".format(self.add_variable("main"))
             for tree in cblock.trees:
                 if isinstance(tree.root, Declaration):
+                
                     self.to_declaration(tree)
                 elif isinstance(tree.root, Comment):
                     self.to_comment(tree)
