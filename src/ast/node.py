@@ -190,8 +190,8 @@ class Value(AST_node):
                 return LiteralType.BOOL
             elif type1 is None:
                 return type2
-            elif type1 == LiteralType.INT and type2 == LiteralType.BOOL:
-                return LiteralType.INT
+            elif type1 in (LiteralType.INT, LiteralType.FLOAT) and type2 == LiteralType.BOOL:
+                return type1
             else:
                 raise WrongType(type1, type2, self.line)
 
