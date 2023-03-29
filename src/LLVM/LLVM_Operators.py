@@ -8,8 +8,9 @@ from src.ast.block import block
 # TODO:
 """
 - pointers
-v getallen
-- print f
+- const 
+v getalle-n
+v print f
 - testen of geen errors komen
 v niet global scope nemen
 v dictionary gebruiken !
@@ -39,6 +40,17 @@ class ToLLVM():
             self.var_dic[var]=self.couter
         return self.var_dic[var]
 
+    def get_type(self,v):
+        if v.type==LiteralType.INT:
+            return "int"
+        elif v.type==LiteralType.FLOAT:
+            return "float"
+        elif v.type==LiteralType.BOOL:
+            return "bool"
+        elif v.type==LiteralType.CHAR:
+            return "char"
+        return False
+
     def transverse_block(self, cblock: block, main=True):
         if main:
             self.allocate+="define i32 @main() #0 {\n"
@@ -59,6 +71,7 @@ class ToLLVM():
                     self.g_count+=1
                     self.g_assignment+="@.str{} = private unnamed_addr constant [{}x i8] c\"{}\\00\", align 1\n".format(var,len(tree.root.value)+1,tree.root.value[0])
                     s=self.add_variable("printf"+str(self.g_count))
+                    self.allocate+="// printf ({})\n".format(tree.root.value[0])
                     self.allocate+="%{} = call i32 (ptr, ...) @printf(ptr noundef @.str{})\n".format(s,var)
             self.g_assignment+="; Function Attrs: noinline nounwind optnone ssp uwtable(sync)\n"
             self.store+="\n"
@@ -106,7 +119,6 @@ class ToLLVM():
             self.couter+=1
             self.var_dic[v.value]=self.couter
             variable=self.var_dic[v.value]
-
         if v.type == LiteralType.INT:
             self.global_ += "// {} {} {} = {}\n".format(const, "int", v.value, input.value)
             self.allocate += "// {} {} {} = {}\n".format(const, "int", v.value, input.value)
@@ -148,7 +160,18 @@ class ToLLVM():
 
     def to_declaration(self, ast: AST):
         if isinstance(ast.root.leftChild, Pointer):
-            print("pointer instance")
+            t_type=self.get_type(ast.root.leftChild)
+            const=""
+            if ast.root.leftChild.const:
+                const="const"
+            points=""
+            i=0
+            while i< ast.root.leftChild.getPointerLevel():
+                points+="*"
+                i+=1
+            self.allocate+="// {} {} {} {} = & {}\n".format(const,t_type,points,ast.root.leftChild.getValue(),ast.root.rightChild.getValue())
+            self.allocate+="%{} = alloca ptr, align 8\n".format(self.add_variable(ast.root.leftChild.getValue()))
+            self.store+="store ptr %{}, ptr %{}, align 8\n".format(self.add_variable(ast.root.rightChild.getValue()),self.add_variable(ast.root.leftChild.getValue()))
         elif isinstance(ast.root, Declaration):
             return self.switch_Literals(ast.root.leftChild, ast.root.rightChild)
         return
