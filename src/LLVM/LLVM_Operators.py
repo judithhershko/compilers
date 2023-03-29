@@ -54,11 +54,12 @@ class ToLLVM():
                     if self.g_count>0:
                         var="."
                         var+=str(self.g_count)
+                    else:
+                        self.f_declerations += "declare i32 @printf(ptr noundef, ...) #1\n"
                     self.g_count+=1
                     self.g_assignment+="@.str{} = private unnamed_addr constant [{}x i8] c\"{}\\00\", align 1\n".format(var,len(tree.root.value)+1,tree.root.value[0])
                     s=self.add_variable("printf"+str(self.g_count))
                     self.allocate+="%{} = call i32 (ptr, ...) @printf(ptr noundef @.str{})\n".format(s,var)
-                    self.f_declerations+="declare i32 @printf(ptr noundef, ...) #1\n"
             self.g_assignment+="; Function Attrs: noinline nounwind optnone ssp uwtable(sync)\n"
             self.store+="\n"
             self.store+="ret i32 0\n"

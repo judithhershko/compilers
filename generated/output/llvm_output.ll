@@ -35,5 +35,4 @@ ret i32 0
 }
 
 declare i32 @printf(ptr noundef, ...) #1
-declare i32 @printf(ptr noundef, ...) #1
 
