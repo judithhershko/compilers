@@ -540,7 +540,7 @@ class Declaration(AST_node):
 
         highestType = self.leftChild.getHigherType(self.rightChild)
         try:
-            if self.leftChild.getType() == highestType:
+            if self.leftChild.getType() == highestType or self.leftChild.getType() is None:
                 if self.rightChild.getValue() in ("True", "False") and \
                         self.leftChild.getType() in (LiteralType.INT, LiteralType.FLOAT):
                     if self.rightChild.getValue() == "True":
