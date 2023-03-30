@@ -30,7 +30,7 @@ class CustomListener(ExpressionListener):
         self.ref_pointers = 0
         self.pointer = False
         self.end_bracket = False
-        self.nr_expressions=0
+        self.nr_expressions = 0
 
     def is_declaration(self, var: str):
         if var[:3] == "int" or var[:5] == "float" or var[:4] == "bool" or var[:5] == "const":
@@ -65,7 +65,7 @@ class CustomListener(ExpressionListener):
             self.parent = self.parent.parent
         self.parent.parent = non_brack
 
-        if not isinstance(non_brack,UnaryOperator) and non_brack.leftChild is None:
+        if not isinstance(non_brack, UnaryOperator) and non_brack.leftChild is None:
             non_brack.leftChild = self.parent
             self.parent = non_brack
         elif non_brack.rightChild is None:
@@ -114,7 +114,7 @@ class CustomListener(ExpressionListener):
         return
 
     def set_pointer(self, ctx: ParserRuleContext, type_):
-        self.line=ctx.start.line
+        self.line = ctx.start.line
         if self.dec_op.rightChild is None:
             self.dec_op.rightChild = Value(ctx.getText(), type_, self.dec_op, ctx.start.line, True)
         else:
@@ -123,15 +123,16 @@ class CustomListener(ExpressionListener):
             self.dec_op.rightChild.setValue(ctx.getText())
 
     def set_val(self, ctx: ParserRuleContext):
-        self.line=ctx.start.line
+        self.line = ctx.start.line
         type_ = find_value_type(ctx.getText())
 
         if self.print:
             return self.set_print(ctx, type_)
         if self.pointer:
             return self.set_pointer(ctx, type_)
-        if type_ == LiteralType.VAR: # TODO: double check this
-            #if self.c_block.getSymbolTable().findSymbol(ctx.getText()) is None and self.dec_op.leftChild.declaration is False:
+        if type_ == LiteralType.VAR:
+            var = True  # TODO: double check this
+            # if self.c_block.getSymbolTable().findSymbol(ctx.getText()) is None and self.dec_op.leftChild.declaration is False:
             #    raise Redeclaration(ctx.getText(),self.line)
             pass
         else:
@@ -148,9 +149,9 @@ class CustomListener(ExpressionListener):
             self.current = Value(float(ctx.getText()), type_, ctx.start.line, self.parent)
         elif type_ == LiteralType.DOUBLE:
             self.current = Value(float(ctx.getText()), type_, ctx.start.line, self.parent)
-        elif type_==LiteralType.CHAR:
-            if len(ctx.getText())>3:
-                raise CharSize(ctx.getText(),ctx.start.line)
+        elif type_ == LiteralType.CHAR:
+            if len(ctx.getText()) > 3:
+                raise CharSize(ctx.getText(), ctx.start.line)
 
         if self.print:
             val = self.current.getValue()
@@ -182,7 +183,7 @@ class CustomListener(ExpressionListener):
 
     def set_expression(self, ctx: ParserRuleContext):
         self.expr_layer += 1
-        self.line=ctx.start.line
+        self.line = ctx.start.line
         if self.declaration and isinstance(self.parent, Declaration):
             self.dec_op = self.parent
             self.parent = BinaryOperator("", ctx.start.line)
@@ -195,7 +196,7 @@ class CustomListener(ExpressionListener):
             self.right = False
 
     def set_token(self, ctx, operator=None):
-        self.line=ctx.start.line
+        self.line = ctx.start.line
         if operator is None:
             operator = BinaryOperator(ctx.getText(), self.line)
         if self.parent is not None and not isinstance(self.parent, Declaration) and self.parent.operator == "":
@@ -338,7 +339,7 @@ class CustomListener(ExpressionListener):
 
     # Enter a parse tree produced by ExpressionParser#pointer.
     def enterPointer(self, ctx: ParserRuleContext):
-        self.line=ctx.start.line
+        self.line = ctx.start.line
         self.nr_pointers += 1
         self.dec_op.leftChild.setValue(self.dec_op.leftChild.getValue()[1:])
         if isinstance(self.dec_op.leftChild, Pointer):
@@ -374,7 +375,7 @@ class CustomListener(ExpressionListener):
     # Enter a parse tree produced by ExpressionParser#ref_ref.
     def enterRef_ref(self, ctx: ParserRuleContext):
         self.ref_pointers += 1
-        self.line=ctx.start.line
+        self.line = ctx.start.line
         var = ctx.getText()
         if var[0] == "&":
             var = var[1:]
@@ -391,9 +392,9 @@ class CustomListener(ExpressionListener):
 
     # Enter a parse tree produced by ExpressionParser#dec.
     def enterDec(self, ctx: ParserRuleContext):  # TODO: declaration needs to get right type
-        self.line=ctx.start.line
+        self.line = ctx.start.line
         print("new dec:" + ctx.getText())
-        print("line is:"+str(self.line))
+        print("line is:" + str(self.line))
         self.start_rule = self.start_rule[len(ctx.getText()) + 1:]
         self.asT = create_tree()
         # self.parent = Declaration()
@@ -410,7 +411,8 @@ class CustomListener(ExpressionListener):
         if type is False:
             print("val is :" + var)
             if self.c_block.getSymbolTable().findSymbol(var) is not None:
-                self.current=Value(var,self.c_block.getSymbolTable().findSymbol(var)[1],self.line,self.parent,variable=True)
+                self.current = Value(var, self.c_block.getSymbolTable().findSymbol(var)[1], self.line, self.parent,
+                                     variable=True)
             #    raise Redefinition(self.line, variable=var)
             if self.c_block.getSymbolTable().findSymbol(var) is None:
                 self.current = Value(var, LiteralType.FLOAT, self.line, self.parent, variable=True, decl=False)
@@ -434,7 +436,7 @@ class CustomListener(ExpressionListener):
         :param ctx:
         :return:
         """
-        self.line=ctx.start.line
+        self.line = ctx.start.line
         if self.bracket_stack.__len__() > 0:
             self.set_bracket()
         if not isinstance(self.parent, UnaryOperator) and isinstance(self.parent.leftChild, Pointer):
@@ -456,7 +458,8 @@ class CustomListener(ExpressionListener):
         get the correct type from table if redeclaration
         """
         if self.c_block.getSymbolTable().findSymbol(self.current.leftChild.getValue()) is not None:
-            self.current.leftChild.setType(self.c_block.getSymbolTable().findSymbol(self.current.leftChild.getValue())[1])
+            self.current.leftChild.setType(
+                self.c_block.getSymbolTable().findSymbol(self.current.leftChild.getValue())[1])
         self.asT.setRoot(self.current)
         if isinstance(self.asT.root.leftChild, Pointer):
             self.asT.root.leftChild.setLevel(self.nr_pointers)
@@ -478,7 +481,7 @@ class CustomListener(ExpressionListener):
         level = 0
         self.c_block.trees.append(self.asT)
         # if self.current.leftChild.declaration:
-        self.c_block.getSymbolTable().addSymbol(self.asT.root, False) # TODO: make bool depend on current scope
+        self.c_block.getSymbolTable().addSymbol(self.asT.root, False)  # TODO: make bool depend on current scope
         # else:
         #    #TODO: replace value
         #    pass
@@ -545,8 +548,9 @@ class CustomListener(ExpressionListener):
         pass
 
     # Enter a parse tree produced by ExpressionParser#expr.
-    def enterExpr(self, ctx: ParserRuleContext): #TODO: start contains line and column values of where the token is located in the original code
-        self.line=ctx.start.line
+    def enterExpr(self,
+                  ctx: ParserRuleContext):  # TODO: start contains line and column values of where the token is located in the original code
+        self.line = ctx.start.line
         print("enter expr:" + ctx.getText())
         return self.set_expression(ctx)
 
@@ -560,7 +564,7 @@ class CustomListener(ExpressionListener):
             while self.current.parent is not None:
                 self.current = self.current.parent
             self.asT.setRoot(self.current)
-            self.c_block.trees.append(self.asT)
+            # self.c_block.trees.append(self.asT)
             self.trees.append(self.asT)
             self.asT.setNodeIds(self.asT.root)
             self.asT.generateDot("no_fold_expression_dot" + str(self.counter))
@@ -732,8 +736,8 @@ class CustomListener(ExpressionListener):
     # Enter a parse tree produced by ExpressionParser#prefix_op.
     def enterPrefix_op(self, ctx: ParserRuleContext):
         print("prefix token:" + ctx.getText())
-        self.line=ctx.start.line
-        op = UnaryOperator(ctx.getText(),None,self.line)
+        self.line = ctx.start.line
+        op = UnaryOperator(ctx.getText(), None, self.line)
         return self.set_token(ctx, op)
 
     # Exit a parse tree produced by ExpressionParser#prefix_op.
@@ -751,7 +755,7 @@ class CustomListener(ExpressionListener):
     # Enter a parse tree produced by ExpressionParser#pointers.
     def enterPointers(self, ctx: ParserRuleContext):
         print("pointer def is:" + ctx.getText())
-        self.line=ctx.start.line
+        self.line = ctx.start.line
         self.pointer = True
         self.nr_pointers += 1
         var = getVariable(ctx.getText())
