@@ -100,7 +100,6 @@ class ToLLVM():
 
     def write_to_file(self, filename: str):
         # open text file
-        filename = "generated/output/" + filename
         text_file = open(filename, "w")
         # write string to file
         if self.main:

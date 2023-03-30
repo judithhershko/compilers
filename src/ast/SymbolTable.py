@@ -74,7 +74,22 @@ class SymbolTable:
                 #     self.table.loc[name, ["Value"]] = value
                 #     return "replaced"
                 else:
-                    self.table.loc[name, ["Value"]] = value
+                    if isinstance(root.getLeftChild(), Value):
+                        self.table.loc[name, ["Value"]] = str(value)
+                    else:
+                        if ref in self.table.index:
+                            self.table.loc[name, ["Value"]] = str(value)
+                        elif root.getRightChild().getType() != LiteralType.VAR:
+                            for i in range(level):
+                                temp = self.table.loc[name]
+                                name = temp["Value"]
+                            temp = self.table.loc[name]
+                            if temp["Level"] != 0:
+                                raise WrongPointer(line)
+                            self.table.loc[name, ["Value"]] = str(value)
+                            return "replaced"
+                        else:
+                            raise NotReference(line, ref)
                     return "replaced"
 
         except NotDeclaration:
@@ -98,6 +113,8 @@ class SymbolTable:
         except TypeDeclaration:
             raise
         except PointerLevel:
+            raise
+        except NotReference:
             raise
 
     def findSymbol(self, name: str): #, deref: int = 0):

@@ -2,7 +2,7 @@
 
 define i32 @main() #0 {
 %1 = alloca i32, align 4
-;  int v = 15132
+;  int x = 29
 %2 = alloca i32, align 4
 ;  int * x = & v
 %3 = alloca ptr, align 8

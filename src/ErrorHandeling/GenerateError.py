@@ -80,6 +80,16 @@ class WrongPointer(Exception):
                ": only when a pointer references something can the level be different from zero"
 
 
+class NotReference(Exception):
+    def __init__(self, line, var):
+        self.line = line
+        self.var = var
+
+    def __str__(self):
+        return "\n\tError in line " + str(self.line) + \
+               ": " + str(self.var) + " is not a correct pointer reference"
+
+
 class Redeclaration(Exception):
     def __init__(self, var, line):
         self.variable = var
@@ -143,8 +153,8 @@ class RefPointerLevel(Exception):
 
     def __str__(self):
         return "\n\tError in line " + str(self.line) + ": " + str(self.variable) + \
-               " should reference a variable with a reference level of " + str(self.level) + " and not the given " + \
-               str(self.refLevel)
+               " should reference a variable with a reference level of " + str(self.refLevel-1) + " and not the given " + \
+               str(self.level)
 
 
 class ImpossibleRef(Exception):

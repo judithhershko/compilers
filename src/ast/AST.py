@@ -58,7 +58,7 @@ class AST:
             edges = edges + res[1]
 
         output = "graph ast {\n" + nodes + "\n\n" + edges + "\n}"
-        file = open("./src/ast/dotFiles/" + fileName + ".dot", "w")
+        file = open(fileName, "w")
         file.write(output)
         file.close()
         return output
