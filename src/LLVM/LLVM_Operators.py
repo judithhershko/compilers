@@ -132,7 +132,7 @@ class ToLLVM():
         elif v.type == LiteralType.FLOAT:
             self.allocate += "; {} {} {} = {}\n".format(const, "float", v.value, input.value)
             self.allocate += "%{} = alloca float, align 4\n".format(self.add_variable(v.value))
-            self.store += "store float {}, float* %{}, align 4\n".format(input.value,  self.get_variable(v.value))
+            self.store += "store float {}, float* %{}, align 4\n".format(float(input.value),  self.get_variable(v.value))
 
         elif v.type == LiteralType.CHAR:
             size = len(input.value)
@@ -160,7 +160,7 @@ class ToLLVM():
                 old_pointer=self.get_variable(str(ast.root.leftChild.getValue()))
                 new_pointer=self.add_variable(str(ast.root.leftChild.getValue()))
                 p_type=self.type_store(self.get_type(ast.root.leftChild))
-                self.store+="%{} = load ptr, ptr %{}, align 8\n".format(new_pointer,old_pointer)
+                self.allocate+="%{} = load ptr, ptr %{}, align 8\n".format(new_pointer,old_pointer)
                 """
                 val=""
                 if isinstance(self.c_block,block):

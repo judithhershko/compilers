@@ -127,7 +127,7 @@ class CustomListener(ExpressionListener):
     def set_val(self, ctx: ParserRuleContext):
         self.line = ctx.start.line
         type_ = find_value_type(ctx.getText())
-
+        v=ctx.getText()
         if self.print:
             return self.set_print(ctx, type_)
         if self.pointer:

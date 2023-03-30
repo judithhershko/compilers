@@ -83,7 +83,7 @@ def find_value_type(v: str):
         return node.LiteralType.CHAR
     elif isFloat(v):
         return node.LiteralType.FLOAT
-    elif v[0].isdigit():
+    elif v[0].isdigit() or (v[0]=='-' and len(v)>1 and v[1].isdigit()):
         return node.LiteralType.INT
     else:
         return node.LiteralType.VAR
