@@ -18,7 +18,7 @@ def main():
     parser.addErrorListener(MyError)
     tree = parser.start_rule()
     # printer = Expression()
-    printer = CustomListener()
+    printer = CustomListener("./src/ast/dotFiles/no_fold_expression_dot")
     # result = EvalVisitor().visit(tree)
     walker = ParseTreeWalker()
     walker.walk(printer, tree)

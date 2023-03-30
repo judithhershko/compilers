@@ -4,7 +4,7 @@ from .ast.block import *
 
 # TODO: commented the todot functions
 class CustomListener(ExpressionListener):
-    def __init__(self):
+    def __init__(self, pathName):
         self.start_rule = None
         self.asT = create_tree()
         self.current = None
@@ -31,6 +31,7 @@ class CustomListener(ExpressionListener):
         self.pointer = False
         self.end_bracket = False
         self.nr_expressions=0
+        self.pathName = pathName
 
     def is_declaration(self, var: str):
         if var[:3] == "int" or var[:5] == "float" or var[:4] == "bool" or var[:5] == "const":
@@ -463,17 +464,17 @@ class CustomListener(ExpressionListener):
             self.nr_pointers = 0
 
         self.asT.setNodeIds(self.asT.root)
-        self.asT.generateDot("no_fold_expression_dot" + str(self.counter))
+        self.asT.generateDot(self.pathName + str(self.counter) + ".dot")
         if not isinstance(self.asT.root.leftChild, Pointer):
             self.c_block.fillLiterals(self.asT)
         self.asT.foldTree()
         self.asT.setNodeIds(self.asT.root)
-        self.asT.generateDot("folded_expression_dot" + str(self.counter))
+        self.asT.generateDot(self.pathName + str(self.counter) + ".dot")
         self.trees.append(self.asT)
         self.asT.foldTree()
         self.asT.setNodeIds(self.asT.root)
 
-        self.asT.generateDot("yes_fold_expression_dot" + str(self.counter))
+        self.asT.generateDot(self.pathName + str(self.counter) + ".dot")
         pointer = ""
         level = 0
         self.c_block.trees.append(self.asT)
@@ -563,11 +564,11 @@ class CustomListener(ExpressionListener):
             self.c_block.trees.append(self.asT)
             self.trees.append(self.asT)
             self.asT.setNodeIds(self.asT.root)
-            self.asT.generateDot("no_fold_expression_dot" + str(self.counter))
+            self.asT.generateDot(self.pathName + str(self.counter) + ".dot")
             self.c_block.fillLiterals(self.asT)
             self.asT.foldTree()
             self.asT.setNodeIds(self.asT.root)
-            self.asT.generateDot("fold_expression_dot" + str(self.counter))
+            self.asT.generateDot(self.pathName + str(self.counter) + ".dot")
             self.c_block.trees.append(self.asT)
             self.counter += 1
             self.parent = None

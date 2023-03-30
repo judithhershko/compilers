@@ -20,7 +20,7 @@ class LLVM_TestCases(unittest.TestCase):
         parser.removeErrorListeners()
         parser.addErrorListener(MyError)
         tree = parser.start_rule()
-        printer = CustomListener()
+        printer = CustomListener("DotFiles/fullExample")
         walker = ParseTreeWalker()
         walker.walk(printer, tree)
         to_llvm = ToLLVM()
@@ -29,3 +29,5 @@ class LLVM_TestCases(unittest.TestCase):
 
         print(filecmp.cmp("Results/llvm_fullExample.ll", "ExpectedResults/llvm_fullExample.ll"))
         self.assertTrue(filecmp.cmp("Results/llvm_fullExample.ll", "ExpectedResults/llvm_fullExample.ll"))
+
+    def test

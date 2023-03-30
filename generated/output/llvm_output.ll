@@ -10,15 +10,18 @@ define i32 @main() #0 {
 %4 = alloca ptr, align 8
 ;  int ** y = & x
 %5 = alloca ptr, align 8
-;  int * x = & w
-%6 = alloca ptr, align 8
 
 store i32 0, ptr %1, align 4
 store i32 15132, i32* %2, align 4
 store i32 20, i32* %3, align 4
 store ptr %2, ptr %4, align 8
 store ptr %4, ptr %5, align 8
-store ptr %3, ptr %6, align 8
+;//int z = * x;
+
+;//x = &w; infinite loop because right hand side contains the same declaration again
+
+;//*x = 20;
+
 
 ret i32 0
 }
