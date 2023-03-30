@@ -31,6 +31,7 @@ class CustomListener(ExpressionListener):
         self.pointer = False
         self.end_bracket = False
         self.nr_expressions = 0
+        self.rhs_pointer=False;
 
     def is_declaration(self, var: str):
         if var[:3] == "int" or var[:5] == "float" or var[:4] == "bool" or var[:5] == "const":
@@ -336,10 +337,32 @@ class CustomListener(ExpressionListener):
     # Exit a parse tree produced by ExpressionParser#pointer_variable.
     def exitPointer_variable(self, ctx: ParserRuleContext):
         pass
+    # Enter a parse tree produced by ExpressionParser#pointer_val.
+    def enterPointer_val(self, ctx: ParserRuleContext):
+        self.rhs_pointer=True
+        pval = ctx.getText()
+        while len(pval) > 0 and pval[0] == '*':
+            pval = pval[1:]
+        val = self.c_block.getSymbolTable().findSymbol(pval)
+        cval=''
+        if val[1]==LiteralType.INT:
+            cval=int(val[0])
+        elif val[1]==LiteralType.FLOAT:
+            cval=float(val[0])
+        self.current= Value(cval, val[1], self.line, self.parent)
+        self.parent.rightChild=self.current
+
+    # Exit a parse tree produced by ExpressionParser#pointer_val.
+    def exitPointer_val(self, ctx: ParserRuleContext):
+        print("exit pointer val")
+        self.rhs_pointer=False
 
     # Enter a parse tree produced by ExpressionParser#pointer.
     def enterPointer(self, ctx: ParserRuleContext):
         self.line = ctx.start.line
+        if self.rhs_pointer:
+            return
+
         self.nr_pointers += 1
         self.dec_op.leftChild.setValue(self.dec_op.leftChild.getValue()[1:])
         if isinstance(self.dec_op.leftChild, Pointer):
