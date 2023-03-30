@@ -11,7 +11,6 @@ class block:
         self.ast = AST()
         self.parent = parent
         self.blocks = []
-        # moet weg?
         self.trees = []
 
     def getSymbolTable(self):

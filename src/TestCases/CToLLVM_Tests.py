@@ -41,12 +41,77 @@ class LLVM_TestCases(unittest.TestCase):
         parser = ExpressionParser(stream)
         parser.removeErrorListeners()
         parser.addErrorListener(MyError)
-        tree = parser.start_rule()
-        printer = CustomListener("DotFiles/fullExample")
-        walker = ParseTreeWalker()
-        walker.walk(printer, tree)
+        try:
+            parser.start_rule()
+            self.assertTrue(False)
+        except SystemExit:
+            self.assertTrue(True)
 
-        # with self.assertRaises(Exception) as excep:
-        #     prog.getAst().foldTree()
-        # self.assertEqual("\n\tError in line 1: the binary operator * can not be executed on a STR and a INT",
-        #                  str(excep.exception))
+    def test_MissingOpeningBracket(self):
+        file = "InputFiles/MissingOpeningBracket.c"
+        input_stream = FileStream(file)
+        lexer = ExpressionLexer(input_stream)
+        MyError = CustomError()
+        lexer.removeErrorListeners()
+        lexer.addErrorListener(MyError)
+        stream = CommonTokenStream(lexer)
+        parser = ExpressionParser(stream)
+        parser.removeErrorListeners()
+        parser.addErrorListener(MyError)
+        try:
+            parser.start_rule()
+            self.assertTrue(False)
+        except SystemExit:
+            self.assertTrue(True)
+
+    def test_NotDeclared(self):
+        file = "InputFiles/NotDeclared1.c"
+        input_stream = FileStream(file)
+        lexer = ExpressionLexer(input_stream)
+        MyError = CustomError()
+        lexer.removeErrorListeners()
+        lexer.addErrorListener(MyError)
+        stream = CommonTokenStream(lexer)
+        parser = ExpressionParser(stream)
+        parser.removeErrorListeners()
+        parser.addErrorListener(MyError)
+        tree = parser.start_rule()
+        printer = CustomListener("DotFiles/NotDeclared")
+        walker = ParseTreeWalker()
+        with self.assertRaises(Exception) as excep:
+            walker.walk(printer, tree)
+        self.assertEqual("\n\tError in line 1: x has not been declared yet", str(excep.exception))
+
+        file = "InputFiles/NotDeclared2.c"
+        input_stream = FileStream(file)
+        lexer = ExpressionLexer(input_stream)
+        MyError = CustomError()
+        lexer.removeErrorListeners()
+        lexer.addErrorListener(MyError)
+        stream = CommonTokenStream(lexer)
+        parser = ExpressionParser(stream)
+        parser.removeErrorListeners()
+        parser.addErrorListener(MyError)
+        tree = parser.start_rule()
+        printer = CustomListener("DotFiles/NotDeclared")
+        walker = ParseTreeWalker()
+        with self.assertRaises(Exception) as excep:
+            walker.walk(printer, tree)
+        self.assertEqual("\n\tError in line 1: z has not been declared yet", str(excep.exception))
+
+        file = "InputFiles/NotDeclared3.c"
+        input_stream = FileStream(file)
+        lexer = ExpressionLexer(input_stream)
+        MyError = CustomError()
+        lexer.removeErrorListeners()
+        lexer.addErrorListener(MyError)
+        stream = CommonTokenStream(lexer)
+        parser = ExpressionParser(stream)
+        parser.removeErrorListeners()
+        parser.addErrorListener(MyError)
+        tree = parser.start_rule()
+        printer = CustomListener("DotFiles/NotDeclared")
+        walker = ParseTreeWalker()
+        with self.assertRaises(Exception) as excep:
+            walker.walk(printer, tree)
+        self.assertEqual("\n\tError in line 1: z has not been declared yet", str(excep.exception))

@@ -7,7 +7,8 @@ class CustomError(ErrorListener):
 
     def syntaxError(self, recognizer, offendingSymbol, line, column, msg, e):
         print("Line " + str(line) + " has a syntax error. Please check the code.", file=sys.stderr)
-        sys.exit()
+        # sys.exit()
+        raise SystemExit
 
 
 CustomError.INSTANCE = CustomError()

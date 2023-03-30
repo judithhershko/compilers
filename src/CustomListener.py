@@ -134,7 +134,7 @@ class CustomListener(ExpressionListener):
         if type_ == LiteralType.VAR: # TODO: double check this
             #if self.c_block.getSymbolTable().findSymbol(ctx.getText()) is None and self.dec_op.leftChild.declaration is False:
             #    raise Redeclaration(ctx.getText(),self.line)
-            pass
+            var = True
         else:
             var = False
         self.current = Value(ctx.getText(), type_, ctx.start.line, self.parent, variable=var)
@@ -380,11 +380,17 @@ class CustomListener(ExpressionListener):
         if var[0] == "&":
             var = var[1:]
         ref = self.c_block.getSymbolTable().findSymbol(var)
-        # self.parent.rightChild=Value(var,self.c_block.getSymbolTable().findSymbol(var)[1],self.line,self.parent,variable=True)
-        # TODO: get type from symboltable
-        self.parent.rightChild = Value(var, ref[1], self.line, self.parent, variable=True)
-        self.current = self.parent.rightChild
-        return
+        try:
+            if not ref:
+                raise NotDeclared(var, self.line)
+            else:
+                # self.parent.rightChild=Value(var,self.c_block.getSymbolTable().findSymbol(var)[1],self.line,self.parent,variable=True)
+                self.parent.rightChild = Value(var, ref[1], self.line, self.parent, variable=True)
+                self.current = self.parent.rightChild
+                return
+
+        except NotDeclared:
+            raise
 
     # Exit a parse tree produced by ExpressionParser#ref_ref.
     def exitRef_ref(self, ctx: ParserRuleContext):
