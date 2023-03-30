@@ -1,6 +1,6 @@
 grammar Expression;
 
-start_rule: (print|expr|dec|comments|line)*;
+start_rule: (print ';'|expr ';'|dec ';'|comments|line)*;
 
 line:NLINE;
 print   : PRINT LBRAK (char_pri | pri) RBRAK ;
@@ -76,8 +76,6 @@ END_COMMENT:'**/' ;
 ML_COMMENT:  '/*' .* '*/';
 SL_COMMENT:  '//' ~('\r' | '\n')*;
 
-
-EOL: ';' -> skip;
-LINE: '\n';
-NLINE:';' .*? '\n' ;
+NLINE: '\n';
+//NLINE:';' .*? '\n' ;
 //NLINE:';' .*? '\n' -> skip;
