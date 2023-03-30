@@ -1,8 +1,8 @@
 grammar Expression;
 
-start_rule: (print|expr|dec|comments|line)*;
+start_rule: (print ';'|expr ';'|dec ';'|comments|line )*;
 
-line:NLINE;
+line    : LINE;
 print   : PRINT LBRAK (char_pri | pri) RBRAK ;
 comments: ML_COMMENT | SL_COMMENT;
 typed_var: INT| DOUBLE | FLOAT |CHAR | BOOL;
@@ -14,10 +14,9 @@ pointers: (pointer)+ ID (EQ ref_ref)? |  REF (EQ ref_ref)?;
 suf_dec: pointers | ID EQ (char_expr|expr);
 
 //dec:(const)? typed_var  suf_dec;
-/variable_dec:typed_var ID;
 
-dec:(const)? typed_var (pointer)* ID EQ (ref_ref|char_expr|expr) |(pointer)* ID EQ (ref_ref|char_expr|expr)
-| (const)? typed_var (pointer)* ID;
+dec:(const)? typed_var (pointer)* ID EQ (ref_ref|char_expr|expr)|(pointer)* ID EQ (ref_ref|char_expr|expr)
+| (const)? typed_var (pointer)* ID EOL;
 
 binop:MIN | PLUS ;
 binop_md: MULT| DIV | MOD;
@@ -49,6 +48,8 @@ REF     : '&'       ;
 PRINT   : 'printf'  ;
 
 //SEARCH_TYPE: '"' ~'"'* '"';
+
+EOL  : ';';
 PT   : '.' ;
 MULT : '*' ;
 NUM  : [0-9]+ ;
@@ -76,14 +77,13 @@ CHAR_ID:'\'';
 ONE_LINE_COMMENT:'//';
 STRT_COMMENT:'/**';
 END_COMMENT:'**/' ;
-ML_COMMENT:  '/*' .* '*/';
+ML_COMMENT:  '/*' .* '*/' ';' ;
 SL_COMMENT:  '//' ~('\r' | '\n')*;
 
 
-EOL: ';' -> skip;
+
 LINE: '\n';
 //NLINE:';' .*? -> skip;
-NLINE:';' .*? '\n' ;
 //NLINE:';' .*? '\n' -> skip;
 
 

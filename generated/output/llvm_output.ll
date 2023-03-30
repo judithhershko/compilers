@@ -6,28 +6,27 @@ define i32 @main() #0 {
 %1 = alloca i32, align 4
 ; _Boolx=True
 %2 = alloca i8, align 1
+; _Boolxx=False
+%3 = alloca i8, align 1
 ;  bool * z = & x
-%3 = alloca ptr, align 8
-;  bool ** y = & z
 %4 = alloca ptr, align 8
+;  bool * z = & xx
+%4 = alloca ptr, align 8
+;  bool ** y = & z
+%5 = alloca ptr, align 8
 ; printf (()
-%5 = call i32 (ptr, ...) @printf(ptr noundef @.str)
+%6 = call i32 (ptr, ...) @printf(ptr noundef @.str)
 ; printf (N)
-%6 = call i32 (ptr, ...) @printf(ptr noundef @.str.1)
-;  int zz = 0
-%8 = alloca i32, align 4
+%7 = call i32 (ptr, ...) @printf(ptr noundef @.str.1)
 
 store i32 0, ptr %1, align 4
 store i8 1, i8* %2, align 1
-store ptr %2, ptr %3, align 8
+store i8 0, i8* %3, align 1
+store ptr %2, ptr %4, align 8
 store ptr %3, ptr %4, align 8
+store ptr %4, ptr %5, align 8
 ;//comment1
 
-;/**multi
-;line
-;comment
-;**/
-store i32 0, i32* %8, align 4
 
 ret i32 0
 }

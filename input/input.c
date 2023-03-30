@@ -1,5 +1,8 @@
-bool  x=!(99>90*81);
+78+90*90;
+bool  x = !(99>90*81);
+bool xx=!89;
 bool *z = &x;
+*z=&xx;
 bool **y = &z;
 printf(x);
 printf(v);
@@ -10,4 +13,5 @@ r='b';
 line
 comment
 **/
-int zz;
+
+int z;

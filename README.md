@@ -44,7 +44,7 @@ chmod 777 run.sh
     - [x] Use of undefined or uninitialized variable
     - [x] Redeclaration or redefinition of an existing variable
     - [x] Operations or assignments of incompatible types
-    - [ ] Assigment of a rvalue
+    - [x] Assigment of a rvalue
     - [x] Assignment to a const value
 
 ### optioneel:
@@ -58,7 +58,7 @@ chmod 777 run.sh
 
 - [x]  comments
 - [x]  Support for single line comments and multi line comments.
-- [ ]  Outputting to the standard output using printf
+- [x]  Outputting to the standard output using printf
 - [ ]  To LLVM
 
 ### optioneel:
