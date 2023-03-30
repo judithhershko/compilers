@@ -24,8 +24,8 @@ class WrongType(Exception):
         self.line = line
 
     def __str__(self):
-        return "\n\tError in line " + str(self.line) + ": " + str(self.type1) + " and " + str(self.type2) + \
-               " do not match"
+        return "\n\tError in line " + str(self.line) + ": " + str(self.type2) + \
+               " can not be placed in a variable of type " + str(self.type1)
 
 
 class BinaryOp(Exception):
@@ -97,6 +97,16 @@ class Redeclaration(Exception):
 
     def __str__(self):
         return "\n\tError in line " + str(self.line) + ": there is a redeclaration of the variable " + \
+               str(self.variable)
+
+
+class PointerRedeclaration(Exception):
+    def __init__(self, var, line):
+        self.variable = var
+        self.line = line
+
+    def __str__(self):
+        return "\n\tError in line " + str(self.line) + ": there is a redeclaration of the pointer " + \
                str(self.variable)
 
 

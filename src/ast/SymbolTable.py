@@ -58,7 +58,10 @@ class SymbolTable:
             else:
                 row = self.table.loc[name]
                 if decl:
-                    raise Redeclaration(name, line)
+                    if isinstance(root.getLeftChild(), Value):
+                        raise Redeclaration(name, line)
+                    else:
+                        raise PointerRedeclaration(name, line)
                 elif row["Global"]:
                     raise ResetGlobal(name, line)
                 elif row["Const"] and isinstance(root.getLeftChild(), Value):
@@ -109,6 +112,8 @@ class SymbolTable:
         except PointerType:
             raise
         except Redeclaration:
+            raise
+        except PointerRedeclaration:
             raise
         except ResetGlobal:
             raise
