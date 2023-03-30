@@ -111,4 +111,4 @@ class SymbolTable:
         #     return None
         while self.table.at[name, "Level"] > 0:
             name = self.table.at[name, "Value"]
-        return self.table.at[name, "Value"], self.table.at[name, "Type"]
+        return self.table.at[name, "Value"], self.table.at[name, "Type"], self.table.at[name, "Level"]
