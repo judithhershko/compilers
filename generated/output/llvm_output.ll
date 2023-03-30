@@ -1,51 +1,27 @@
-@.str = private unnamed_addr constant [33x i8] c"('True', <LiteralType.BOOL: 7>)\0A\00", align 1
-@.str.1 = private unnamed_addr constant [37x i8] c"('-14460828', <LiteralType.INT: 5>)\0A\00", align 1
 ; Function Attrs: noinline nounwind optnone ssp uwtable(sync)
 
 define i32 @main() #0 {
 %1 = alloca i32, align 4
-;  int v = -14460828
+;  int v = 15132
 %2 = alloca i32, align 4
-; _Boolx=True
-%3 = alloca i8, align 1
-; _Boolxx=False
-%4 = alloca i8, align 1
-;  bool * z = & x
+;  int w = 20
+%3 = alloca i32, align 4
+;  int * x = & v
+%4 = alloca ptr, align 8
+;  int * x = & w
 %5 = alloca ptr, align 8
-;  bool * z = & xx
-%6 = alloca ptr, align 8
-;  bool ** y = & z
-%7 = alloca ptr, align 8
-; printf (()
-%8 = call i32 (ptr, ...) @printf(ptr noundef @.str)
-; printf (()
-%9 = call i32 (ptr, ...) @printf(ptr noundef @.str.1)
-;  char r = 'b'
-%10 = alloca i8, align 1
-;  char r = 'b'
-%11 = alloca i8, align 1
-;  int vv = 99
-%12 = alloca i32, align 4
 
 store i32 0, ptr %1, align 4
-store i32 -14460828, i32* %2, align 4
-store i8 1, i8* %3, align 1
-store i8 0, i8* %4, align 1
+store i32 15132, i32* %2, align 4
+store i32 20, i32* %3, align 4
+store ptr %2, ptr %4, align 8
 store ptr %3, ptr %5, align 8
-store ptr %4, ptr %6, align 8
-store ptr %6, ptr %7, align 8
-store i8 98, i8* %10, align 1
-store i8 98, i8* %11, align 1
-;//comment1
+;//infinite loop because right hand side contains the same declaration again
 
-;/**multi
-;line
-;comment
-;**/
-store i32 99, i32* %12, align 4
+;//*x = 20;
+
 
 ret i32 0
 }
 
-declare i32 @printf(ptr noundef, ...) #1
 

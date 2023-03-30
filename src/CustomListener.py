@@ -382,7 +382,7 @@ class CustomListener(ExpressionListener):
         ref = self.c_block.getSymbolTable().findSymbol(var)
         # self.parent.rightChild=Value(var,self.c_block.getSymbolTable().findSymbol(var)[1],self.line,self.parent,variable=True)
         # TODO: get type from symboltable
-        self.parent.rightChild = Value(var, ref[1], self.line, self.parent, variable=True)
+        self.parent.rightChild = Value(var, ref[1], self.line, self.dec_op, variable=True)
         self.current = self.parent.rightChild
         return
 
@@ -455,8 +455,10 @@ class CustomListener(ExpressionListener):
                 self.current = self.current.parent
             if isinstance(self.current, BinaryOperator) and self.current.operator == "":
                 self.current = self.current.leftChild
-
-            self.dec_op.rightChild = self.current
+            if isinstance(self.current,Declaration):
+                self.dec_op.rightChild=self.current.rightChild
+            else:
+                self.dec_op.rightChild = self.current
         self.current = self.dec_op
         """
         get the correct type from table if redeclaration
