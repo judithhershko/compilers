@@ -277,3 +277,11 @@ class CharSize(Exception):
 
     def __str__(self):
         return "\n\tError in line " + str(self.line) + ": " + str(self.name) + " char size should be one.\n"
+class PointerError(Exception):
+    def __init__(self, name, line):
+        self.name = name
+        self.line = line
+
+    def __str__(self):
+        return "\n\tError in line " + str(self.line) + ": " + str(self.name) + " cannot assign reference to value\n"
+

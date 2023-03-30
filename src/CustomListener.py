@@ -404,7 +404,8 @@ class CustomListener(ExpressionListener):
         if var[0] == "&":
             var = var[1:]
         ref = self.c_block.getSymbolTable().findSymbol(var)
-
+        if not isinstance(self.dec_op.leftChild,Pointer):
+            raise PointerError(var,self.line)
         try:
             if not ref:
                 raise NotDeclared(var, self.line)
