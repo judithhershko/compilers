@@ -675,9 +675,11 @@ class CustomListener(ExpressionListener):
         pass
 
     def enterComments(self, ctx: ParserRuleContext):
+        print("comment detected")
         type = commentType(ctx.getText())
         self.line += 1
         if type == CommentType.ML:
+            print("muti line comment detected")
             for i in ctx.getText():
                 if i == "\n":
                     self.line += 1

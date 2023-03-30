@@ -1,4 +1,4 @@
-78+90*90;
+int v=78+90*90;
 bool  x = !(99>90*81);
 bool xx=!89;
 bool *z = &x;
@@ -9,9 +9,10 @@ printf(v);
 char r='b';
 r='b';
 //comment1
+
 /**multi
 line
 comment
 **/
 
-int z;
+int vv=90;
