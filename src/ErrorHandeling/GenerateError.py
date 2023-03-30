@@ -120,6 +120,16 @@ class ResetConst(Exception):
                str(self.variable)
 
 
+class ResetConstPointer(Exception):
+    def __init__(self, var, line):
+        self.variable = var
+        self.line = line
+
+    def __str__(self):
+        return "\n\tError in line " + str(self.line) + ": there is a reassignment of the const pointer " + \
+               str(self.variable)
+
+
 class TypeDeclaration(Exception):
     def __init__(self, var, varType, valueType, line):
         self.variable = var
