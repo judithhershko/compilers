@@ -75,8 +75,8 @@ class CustomListener(ExpressionListener):
             while non_brack.rightChild is not None:
                 non_brack = non_brack.rightChild
                 self.parent.parent = non_brack
-                non_brack.rightChild = self.parent
-                self.parent = non_brack
+            non_brack.rightChild = self.parent
+            self.parent = non_brack
         """"
         t=self.check_brackets(non_brack)
         while t is False:

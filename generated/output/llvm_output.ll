@@ -1,10 +1,10 @@
 @.str = private unnamed_addr constant [33x i8] c"('True', <LiteralType.BOOL: 7>)\0A\00", align 1
-@.str.1 = private unnamed_addr constant [32x i8] c"('8178', <LiteralType.INT: 5>)\0A\00", align 1
+@.str.1 = private unnamed_addr constant [33x i8] c"('15132', <LiteralType.INT: 5>)\0A\00", align 1
 ; Function Attrs: noinline nounwind optnone ssp uwtable(sync)
 
 define i32 @main() #0 {
 %1 = alloca i32, align 4
-;  int v = 8178
+;  int v = 15132
 %2 = alloca i32, align 4
 ; _Boolx=True
 %3 = alloca i8, align 1
@@ -28,7 +28,7 @@ define i32 @main() #0 {
 %12 = alloca i32, align 4
 
 store i32 0, ptr %1, align 4
-store i32 8178, i32* %2, align 4
+store i32 15132, i32* %2, align 4
 store i8 1, i8* %3, align 1
 store i8 0, i8* %4, align 1
 store ptr %3, ptr %5, align 8
