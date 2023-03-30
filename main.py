@@ -25,7 +25,7 @@ def main():
     print("end of walk")
     to_llvm=ToLLVM()
     to_llvm.transverse_block(printer.c_block)
-    to_llvm.write_to_file("llvm_output.ll")
+    to_llvm.write_to_file("generated/output/llvm_output.ll")
     """
     if printer.current is not None:
         printer.asT.setRoot(printer.current)
