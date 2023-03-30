@@ -126,6 +126,7 @@ class SymbolTable:
         #     return self.findSymbol(self.table.at[name, "value"], deref=deref - 1)
         # else:
         #     return None
+        level = self.table.at[name, "Level"]
         while self.table.at[name, "Level"] > 0:
             name = self.table.at[name, "Value"]
-        return self.table.at[name, "Value"], self.table.at[name, "Type"]
+        return self.table.at[name, "Value"], self.table.at[name, "Type"], level
