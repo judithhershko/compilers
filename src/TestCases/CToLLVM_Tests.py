@@ -30,4 +30,23 @@ class LLVM_TestCases(unittest.TestCase):
         print(filecmp.cmp("Results/llvm_fullExample.ll", "ExpectedResults/llvm_fullExample.ll"))
         self.assertTrue(filecmp.cmp("Results/llvm_fullExample.ll", "ExpectedResults/llvm_fullExample.ll"))
 
-    def test
+    def test_MissingClosingBracket(self):
+        file = "InputFiles/MissingClosingBracket.c"
+        input_stream = FileStream(file)
+        lexer = ExpressionLexer(input_stream)
+        MyError = CustomError()
+        lexer.removeErrorListeners()
+        lexer.addErrorListener(MyError)
+        stream = CommonTokenStream(lexer)
+        parser = ExpressionParser(stream)
+        parser.removeErrorListeners()
+        parser.addErrorListener(MyError)
+        tree = parser.start_rule()
+        printer = CustomListener("DotFiles/fullExample")
+        walker = ParseTreeWalker()
+        walker.walk(printer, tree)
+
+        # with self.assertRaises(Exception) as excep:
+        #     prog.getAst().foldTree()
+        # self.assertEqual("\n\tError in line 1: the binary operator * can not be executed on a STR and a INT",
+        #                  str(excep.exception))
