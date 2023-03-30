@@ -171,6 +171,7 @@ class Value(AST_node):
         """
         type1 = self.type
         type2 = node2.getType()
+
         try:
             if (type1 == LiteralType.STR and type2 in (LiteralType.STR, LiteralType.CHAR)) or \
                     (type2 == LiteralType.STR and type1 == LiteralType.CHAR):
@@ -187,12 +188,26 @@ class Value(AST_node):
                 return LiteralType.INT
             elif type1 == LiteralType.BOOL and type2 == LiteralType.BOOL:
                 return LiteralType.BOOL
-            elif type2 is None:
+            elif type1 is None:
+                return type2
+            elif type1 in (LiteralType.INT, LiteralType.FLOAT) and type2 == LiteralType.BOOL:
                 return type1
             else:
                 raise WrongType(type1, type2, self.line)
 
         except WrongType:
+            raise
+
+    def setValueToType(self):
+        if self.getType() == LiteralType.STR:
+            self.value = str(self.value)
+        elif self.getType() == LiteralType.INT:
+            self.value = int(self.value)
+        elif self.getType() == LiteralType.FLOAT:
+            self.value = float(self.value)
+        elif self.getType() == LiteralType.BOOL:
+            self.value = bool(self.value)
+        else:
             raise
 
 
@@ -336,8 +351,7 @@ class UnaryOperator(AST_node):
         try:
             if not (isinstance(self.rightChild, Value) or isinstance(self.rightChild, Pointer)):
                 return self
-            elif (self.rightChild.getType() not in (LiteralType.BOOL, LiteralType.INT) and self.operator == "!") or \
-                    (self.rightChild.getType() not in (LiteralType.FLOAT, LiteralType.DOUBLE, LiteralType.INT)):
+            elif self.rightChild.getType() not in (LiteralType.BOOL, LiteralType.INT,LiteralType.FLOAT) and self.operator == "!":
                 raise ChildType("unary operator", self.rightChild.getType(), None, self.line)
             else:
                 if self.rightChild.getType() == LiteralType.FLOAT:
@@ -358,8 +372,10 @@ class UnaryOperator(AST_node):
                     res = not child
                 else:
                     raise NotSupported("unary operator", self.operator, self.line)
-
-            newNode = Value(str(res), self.rightChild.getType(), self.line, self.parent)
+            if self.operator != "!":
+                newNode = Value(str(res), self.rightChild.getType(), self.line, self.parent)
+            else:
+                newNode = Value(str(res), LiteralType.BOOL, self.line, self.parent)
             return newNode
 
         except ChildType:
@@ -444,6 +460,8 @@ class LogicalOperator(AST_node):
                     self.rightChild.getType() != LiteralType.BOOL:
                 raise LogicalOp(self.leftChild.getType(), self.rightChild.getType(), self.operator, self.line)
             else:
+                self.leftChild.setValueToType()
+                self.rightChild.setValueToType()
                 if self.operator == "&&":
                     res = self.leftChild.getValue() and self.rightChild.getValue()
                 elif self.operator == "||":
@@ -540,7 +558,7 @@ class Declaration(AST_node):
 
         highestType = self.leftChild.getHigherType(self.rightChild)
         try:
-            if self.leftChild.getType() == highestType:
+            if self.leftChild.getType() == highestType or self.leftChild.getType() is None:
                 if self.rightChild.getValue() in ("True", "False") and \
                         self.leftChild.getType() in (LiteralType.INT, LiteralType.FLOAT):
                     if self.rightChild.getValue() == "True":
@@ -677,6 +695,8 @@ class Pointer(AST_node):
                 return LiteralType.INT
             elif type1 == LiteralType.BOOL and type2 == LiteralType.BOOL:
                 return LiteralType.BOOL
+            elif type1 is None:
+                return type2
             else:
                 raise WrongType(type1, type2, self.line)
 
