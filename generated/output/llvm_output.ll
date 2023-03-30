@@ -16,10 +16,8 @@ store i32 15132, i32* %2, align 4
 store i32 20, i32* %3, align 4
 store ptr %2, ptr %4, align 8
 store ptr %3, ptr %5, align 8
-;//infinite loop because right hand side contains the same declaration again
-
-;//*x = 20;
-
+%6 = load ptr, ptr %5, align 8
+store i32 20, ptr %6, align 4
 
 ret i32 0
 }
