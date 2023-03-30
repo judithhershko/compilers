@@ -411,10 +411,14 @@ class CustomListener(ExpressionListener):
         if type is False:
             print("val is :" + var)
             if self.c_block.getSymbolTable().findSymbol(var) is not None:
-                self.current = Value(var, self.c_block.getSymbolTable().findSymbol(var)[1], self.line, self.parent,
+                a=self.c_block.getSymbolTable().findSymbol(var)
+                if self.c_block.getSymbolTable().findSymbol(var)[2]>=1:
+                    self.current=Pointer(var,self.c_block.getSymbolTable().findSymbol(var)[1],self.line,self.c_block.getSymbolTable().findSymbol(var)[2],self.parent)
+                else:
+                    self.current = Value(var, self.c_block.getSymbolTable().findSymbol(var)[1], self.line, self.parent,
                                      variable=True)
             #    raise Redefinition(self.line, variable=var)
-            if self.c_block.getSymbolTable().findSymbol(var) is None:
+            else:
                 self.current = Value(var, LiteralType.FLOAT, self.line, self.parent, variable=True, decl=False)
 
 
