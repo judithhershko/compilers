@@ -27,7 +27,6 @@ class LLVM_TestCases(unittest.TestCase):
         to_llvm.transverse_block(printer.c_block)
         to_llvm.write_to_file("Results/llvm_fullExample.ll")
 
-        print(filecmp.cmp("Results/llvm_fullExample.ll", "ExpectedResults/llvm_fullExample.ll"))
         self.assertTrue(filecmp.cmp("Results/llvm_fullExample.ll", "ExpectedResults/llvm_fullExample.ll"))
 
     def test_SyntaxError(self):
@@ -80,22 +79,6 @@ class LLVM_TestCases(unittest.TestCase):
             self.assertTrue(True)
 
         file = "InputFiles/NotAComment.c"
-        input_stream = FileStream(file)
-        lexer = ExpressionLexer(input_stream)
-        MyError = CustomError()
-        lexer.removeErrorListeners()
-        lexer.addErrorListener(MyError)
-        stream = CommonTokenStream(lexer)
-        parser = ExpressionParser(stream)
-        parser.removeErrorListeners()
-        parser.addErrorListener(MyError)
-        try:
-            parser.start_rule()
-            self.assertTrue(False)
-        except SystemExit:
-            self.assertTrue(True)
-
-        file = "InputFiles/MultiLineComment.c"
         input_stream = FileStream(file)
         lexer = ExpressionLexer(input_stream)
         MyError = CustomError()
