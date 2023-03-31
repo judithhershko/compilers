@@ -173,7 +173,8 @@ class RefPointerLevel(Exception):
 
     def __str__(self):
         return "\n\tError in line " + str(self.line) + ": " + str(self.variable) + \
-               " should reference a variable with a reference level of " + str(self.refLevel-1) + " and not the given " + \
+               " should reference a variable with a reference level of " + str(
+            self.refLevel - 1) + " and not the given " + \
                str(self.level)
 
 
@@ -246,31 +247,31 @@ class LeftSideDeclaration(Exception):
 
 class Redefinition(Exception):
 
-    def __init__(self,line,variable):
-        self.line=line
-        self.variable=variable
+    def __init__(self, line, variable):
+        self.line = line
+        self.variable = variable
 
     def __str__(self):
-        return "\n \t Error in line  {} \n: Redefinition of {}".format( str(self.line),self.variable)
+        return "\n \t Error in line  {} \n: Redefinition of {}".format(str(self.line), self.variable)
 
 
 class ReservedWord(Exception):
 
-    def __init__(self,line,variable):
-        self.line=line
-        self.variable=variable
+    def __init__(self, line, variable):
+        self.line = line
+        self.variable = variable
 
     def __str__(self):
-        return "\n \t Error in line  {} \n: variable name is a reserved word {}".format( str(self.line),self.variable)
+        return "\n \t Error in line  {} \n: variable name is a reserved word {}".format(str(self.line), self.variable)
 
 
 class RightValRef(Exception):
 
-    def __init__(self,line):
-        self.line=line
-        
+    def __init__(self, line):
+        self.line = line
+
     def __str__(self):
-        return "\n \t Error in line  {} \n: cannot redeclare right value reference ".format( str(self.line))
+        return "\n \t Error in line  {} \n: cannot redeclare right value reference ".format(str(self.line))
 
 
 class ParamNotFound(Exception):
@@ -290,6 +291,7 @@ class NotDeclared(Exception):
     def __str__(self):
         return "\n\tError in line " + str(self.line) + ": " + str(self.name) + " has not been declared yet"
 
+
 class CharSize(Exception):
     def __init__(self, name, line):
         self.name = name
@@ -297,6 +299,8 @@ class CharSize(Exception):
 
     def __str__(self):
         return "\n\tError in line " + str(self.line) + ": " + str(self.name) + " char size should be one."
+
+
 class PointerError(Exception):
     def __init__(self, name, line):
         self.name = name
@@ -304,4 +308,3 @@ class PointerError(Exception):
 
     def __str__(self):
         return "\n\tError in line " + str(self.line) + ": " + str(self.name) + " cannot assign reference to value"
-

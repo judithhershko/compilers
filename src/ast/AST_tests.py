@@ -7,11 +7,6 @@ from .node import *
 
 # TODO: force input of functions to be of a certain type
 # TODO: write documentation for function
-# TODO: add more test for new functionality
-# TODO: check based on input files if all exceptions are generated (correctly)
-# TODO: check functionality for pointers
-# TODO: catch generated errors in tests
-# TODO: rewrite all tests
 
 class nodeTestCase(unittest.TestCase):
     def test_getId(self):
@@ -286,7 +281,7 @@ class nodeTestCase(unittest.TestCase):
             prog.getAst().foldTree()
         self.assertEqual("\n\tError in line 1: the binary operator * can not be executed on a STR and a INT",
                          str(excep.exception))
-        #prog.getAst().setNodeIds(prog.getAst().root)
+        # prog.getAst().setNodeIds(prog.getAst().root)
 
         leaf5 = node.Value("y", node.LiteralType.INT, 1, variable=True)
         mult.setLeftChild(leaf5)
@@ -399,5 +394,5 @@ class nodeTestCase(unittest.TestCase):
         self.assertEqual(dot, exp)
 
 
-if __name__ == '__main__': # TODO: this can't be run?! -> run: class nodeTestCase(unittest.TestCase):
+if __name__ == '__main__':
     unittest.main()

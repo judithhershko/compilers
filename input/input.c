@@ -5,7 +5,7 @@
 1);
 
 int x = 5;
-float y = 7;
+float y = 7.0;
 char z = 'a';
 int u = 6;
 
@@ -19,5 +19,7 @@ xx = &u;
 
 x = 6*2/(4+5);
 y = 6*2/(4+5.0);
+printf(z);
+printf(y);
 
 const int v = 5;

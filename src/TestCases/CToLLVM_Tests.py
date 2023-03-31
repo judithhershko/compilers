@@ -231,8 +231,9 @@ class LLVM_TestCases(unittest.TestCase):
         walker = ParseTreeWalker()
         with self.assertRaises(Exception) as excep:
             walker.walk(printer, tree)
-        self.assertEqual("\n\tError in line 2: the pointer has type FLOAT, while the referenced variable y has type INT",
-                         str(excep.exception))
+        self.assertEqual(
+            "\n\tError in line 2: the pointer has type FLOAT, while the referenced variable y has type INT",
+            str(excep.exception))
 
         file = "InputFiles/WrongType4.c"
         input_stream = FileStream(file)
@@ -283,7 +284,6 @@ class LLVM_TestCases(unittest.TestCase):
         with self.assertRaises(Exception) as excep:
             walker.walk(printer, tree)
         self.assertEqual("\n\tError in line 1: FLOAT can not be placed in a variable of type INT", str(excep.exception))
-
 
     def test_Const(self):
         file = "InputFiles/Const1.c"
