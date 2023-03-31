@@ -32,6 +32,7 @@ class ToLLVM():
         self.g_assignment = ""
         self.f_declerations = ""
         self.c_block = None
+        self.redec=[]
 
     def STable_to_LLVM(self, table: SymbolTable):
         for entry in table:
@@ -83,16 +84,26 @@ class ToLLVM():
         elif v.type == LiteralType.CHAR:
             return "char"
         return False
+    def start_main(self):
+        self.allocate += "define i32 @main() #0 {\n"
+        self.allocate += "%{} = alloca i32, align 4\n".format(self.add_variable("main"))
+        self.store += "store i32 0, ptr %{}, align 4\n".format(self.get_variable("main"))
+    def end_main(self):
+        self.g_assignment += "; Function Attrs: noinline nounwind optnone ssp uwtable(sync)\n"
+        self.store += "\n"
+        self.store += "ret i32 0\n"
+        self.store += "}\n"
 
-    def transverse_block(self, cblock: block, main=True):
+    def transverse_block(self, cblock: block, main=True,redec=False):
         self.c_block = cblock
         if main:
-            self.allocate += "define i32 @main() #0 {\n"
-            self.allocate += "%{} = alloca i32, align 4\n".format(self.add_variable("main"))
-            self.store += "store i32 0, ptr %{}, align 4\n".format(self.get_variable("main"))
+            self.start_main()
             for tree in cblock.trees:
                 if isinstance(tree.root, Declaration):
-                    self.to_declaration(tree)
+                    if tree.root.leftChild.declaration:
+                        self.to_declaration(tree)
+                    else:
+                        self.redec.append(tree)
                 elif isinstance(tree.root, Value):
                     # print("expression no declaration is: "+str(tree.root.value))
                     pass
@@ -116,10 +127,13 @@ class ToLLVM():
                     s = self.add_variable("printf" + str(self.g_count))
                     self.allocate += "; printf ({})\n".format(str(to_print))
                     self.allocate += "%{} = call i32 (ptr, ...) @printf(ptr noundef @.str{})\n".format(s, var)
-            self.g_assignment += "; Function Attrs: noinline nounwind optnone ssp uwtable(sync)\n"
-            self.store += "\n"
-            self.store += "ret i32 0\n"
-            self.store += "}\n"
+            cblock.trees=self.redec
+            for tree in cblock.trees:
+                if isinstance(tree.root, Declaration):
+                    self.to_declaration(tree)
+            self.end_main()
+
+
 
     def write_to_file(self, filename: str):
         # open text file
@@ -213,12 +227,16 @@ class ToLLVM():
                 print("right val" + str(ast.root.rightChild.getValue()))
                 pointer = ast.root.leftChild.getValue()
                 level = self.c_block.getSymbolTable().findSymbol(pointer, True)[2]
+                o_pointer=self.get_variable(str(pointer))
+                for i in range(level):
 
-                for i in range(level + 1):
                     old_pointer = self.get_variable(str(pointer))
                     new_pointer = self.add_variable(str(pointer))
-                    self.store += "%{} = load ptr, ptr %{}, align 8\n".format(new_pointer, old_pointer)
+                    print("old pointer:" + str(old_pointer))
+                    print("new pointer:" + str(new_pointer))
+                    self.store += "%{} = load ptr, ptr %{}, align 8\n".format(new_pointer, o_pointer)
                     pointer = self.c_block.getSymbolTable().findSymbol(pointer, True)[0]
+                    o_pointer = new_pointer
 
                 p_type = self.type_store(self.get_type(ast.root.leftChild))
                 val = ""
