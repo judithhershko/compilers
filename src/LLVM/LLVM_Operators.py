@@ -59,11 +59,14 @@ class ToLLVM():
         bytes_of_x = struct.pack('<d', x)
         x_as_int = struct.unpack('<Q', bytes_of_x)[0]
         hex_rep=str(hex(x_as_int)).upper()
+        print("hex vak is" + hex_rep)
+        """
         hex_rep=hex_rep[:-7]
         #hex_rep='O'+hex_rep[1:]
         for i in range(0,6):
             hex_rep+='0'
-        print("hex vak is"+hex_rep)
+        
+        """
         return hex_rep
 
     def get_type(self,v):
@@ -145,7 +148,8 @@ class ToLLVM():
 
         elif v.type == LiteralType.FLOAT:
             val=input.value
-            val=self.float_to_64bit_hex(val)
+            #val=self.float_to_64bit_hex(val)
+            val=float(val)
             self.allocate += "; {} {} {} = {}\n".format(const, "float", v.value, input.value)
             self.allocate += "%{} = alloca float, align 4\n".format(self.add_variable(v.value))
             self.store += "store float {}, float* %{}, align 4\n".format(val,  self.get_variable(v.value))
