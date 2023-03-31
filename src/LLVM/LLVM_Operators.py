@@ -61,18 +61,12 @@ class ToLLVM():
         return hex(struct.unpack('<I', struct.pack('<f', f))[0])
 
     def float_to_64bit_hex(self, x):
-        bytes_of_x = struct.pack('<d', x)
-        x_as_int = struct.unpack('<Q', bytes_of_x)[0]
-        hex_rep = str(hex(x_as_int)).upper()
+        bytes_of_x = struct.pack('>f', x)
+        x_as_int = struct.unpack('>f', bytes_of_x)[0]
+        x_as_double=struct.pack('>d', x_as_int).hex()
+        hex_rep = str(x_as_double).upper()
         # print("hex vak is" + hex_rep)
-        """
-        hex_rep=hex_rep[:-7]
-        #hex_rep='O'+hex_rep[1:]
-        for i in range(0,6):
-            hex_rep+='0'
-
-        """
-        return hex_rep
+        return x_as_double
 
     def get_type(self, v):
         if v.type == LiteralType.INT:
@@ -173,8 +167,11 @@ class ToLLVM():
 
             elif v.type == LiteralType.FLOAT:
                 val = input.value
-                # val=self.float_to_64bit_hex(val)
-                val = float(val)
+                print("incoming val:"+str(val))
+                val=self.float_to_64bit_hex(val)
+                val='0x'+val
+                print("outgoing val:"+str(val))
+                #val = float(val)
                 self.allocate += "; {} {} {} = {}\n".format(const, "float", v.value, input.value)
                 self.allocate += "%{} = alloca float, align 4\n".format(self.add_variable(v.value))
                 self.store += "store float {}, float* %{}, align 4\n".format(val, self.get_variable(v.value))
@@ -197,8 +194,15 @@ class ToLLVM():
         else:
             typpe_=self.type_store(self.get_type(v))
             var=self.get_variable(v.value)
+            val=input.value
+            if typpe_=='float':
+                val = float(input.value)
+                print("incoming val:" + str(val))
+                val = self.float_to_64bit_hex(val)
+                val = '0x' + val
+                print("outgoing val:" + str(val))
             allign=self.allignment(typpe_)
-            self.store+= "store {} {}, {}* %{}, align 1\n".format(typpe_,input.value,typpe_, self.get_variable(v.value))
+            self.store+= "store {} {}, {}* %{}, align 1\n".format(typpe_,val,typpe_, self.get_variable(v.value))
 
     def to_bin_operator(self, ast: AST):
         pass
