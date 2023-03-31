@@ -401,10 +401,12 @@ class CustomListener(ExpressionListener):
         self.ref_pointers += 1
         self.line = ctx.start.line
         var = ctx.getText()
+        is_ref=False
         if var[0] == "&":
             var = var[1:]
+            is_ref=True
         ref = self.c_block.getSymbolTable().findSymbol(var)
-        if not isinstance(self.dec_op.leftChild,Pointer):
+        if not isinstance(self.dec_op.leftChild,Pointer) and is_ref:
             raise PointerError(var,self.line)
         if isinstance(self.dec_op.leftChild,Pointer) and self.c_block.getSymbolTable().findSymbol(self.dec_op.leftChild.getValue())is not None:
             raise PointerError(var, self.line)
