@@ -6,19 +6,6 @@ from src.ast.SymbolTable import SymbolTable
 from src.ast.node import Declaration, Value, LiteralType, Comment, CommentType, Print, Pointer
 from src.ast.block import block
 
-# TODO:
-"""
-comments vervangen met ; 
-v pointers
-v const 
-v getalle-n
-v print f
-v testen of geen errors komen
-v niet global scope nemen
-v dictionary gebruiken !
-v expressions geen declaration
-"""
-
 
 class ToLLVM():
     def __init__(self):
@@ -32,7 +19,7 @@ class ToLLVM():
         self.g_assignment = ""
         self.f_declerations = ""
         self.c_block = None
-        self.redec=[]
+        self.redec = []
 
     def STable_to_LLVM(self, table: SymbolTable):
         for entry in table:
@@ -63,7 +50,7 @@ class ToLLVM():
     def float_to_64bit_hex(self, x):
         bytes_of_x = struct.pack('>f', x)
         x_as_int = struct.unpack('>f', bytes_of_x)[0]
-        x_as_double=struct.pack('>d', x_as_int).hex()
+        x_as_double = struct.pack('>d', x_as_int).hex()
         hex_rep = str(x_as_double).upper()
         # print("hex vak is" + hex_rep)
         return x_as_double
@@ -78,17 +65,19 @@ class ToLLVM():
         elif v.type == LiteralType.CHAR:
             return "char"
         return False
+
     def start_main(self):
         self.allocate += "define i32 @main() #0 {\n"
         self.allocate += "%{} = alloca i32, align 4\n".format(self.add_variable("main"))
         self.store += "store i32 0, ptr %{}, align 4\n".format(self.get_variable("main"))
+
     def end_main(self):
         self.g_assignment += "; Function Attrs: noinline nounwind optnone ssp uwtable(sync)\n"
         self.store += "\n"
         self.store += "ret i32 0\n"
         self.store += "}\n"
 
-    def transverse_block(self, cblock: block, main=True,redec=False):
+    def transverse_block(self, cblock: block, main=True, redec=False):
         self.c_block = cblock
         if main:
             self.start_main()
@@ -121,13 +110,11 @@ class ToLLVM():
                     s = self.add_variable("printf" + str(self.g_count))
                     self.allocate += "; printf ({})\n".format(str(to_print))
                     self.allocate += "%{} = call i32 (ptr, ...) @printf(ptr noundef @.str{})\n".format(s, var)
-            cblock.trees=self.redec
+            cblock.trees = self.redec
             for tree in cblock.trees:
                 if isinstance(tree.root, Declaration):
                     self.to_declaration(tree)
             self.end_main()
-
-
 
     def write_to_file(self, filename: str):
         # open text file
@@ -147,11 +134,13 @@ class ToLLVM():
 
         # close file
         text_file.close()
-    def allignment(self,type:str):
-        if type=='i32' or 'float':
+
+    def allignment(self, type: str):
+        if type == 'i32' or 'float':
             return '4'
-        elif type=='i8':
+        elif type == 'i8':
             return '1'
+
     def switch_Literals(self, v: Value, input: Value):
         # comment above with original code:
         if v.declaration:
@@ -167,11 +156,11 @@ class ToLLVM():
 
             elif v.type == LiteralType.FLOAT:
                 val = input.value
-                print("incoming val:"+str(val))
-                val=self.float_to_64bit_hex(val)
-                val='0x'+val
-                print("outgoing val:"+str(val))
-                #val = float(val)
+                print("incoming val:" + str(val))
+                val = self.float_to_64bit_hex(val)
+                val = '0x' + val
+                print("outgoing val:" + str(val))
+                # val = float(val)
                 self.allocate += "; {} {} {} = {}\n".format(const, "float", v.value, input.value)
                 self.allocate += "%{} = alloca float, align 4\n".format(self.add_variable(v.value))
                 self.store += "store float {}, float* %{}, align 4\n".format(val, self.get_variable(v.value))
@@ -192,17 +181,17 @@ class ToLLVM():
                 self.allocate += "%{} = alloca i8, align 1\n".format(self.add_variable(v.value))
                 self.store += "store i8 {}, i8* %{}, align 1\n".format(bval, self.get_variable(v.value))
         else:
-            typpe_=self.type_store(self.get_type(v))
-            var=self.get_variable(v.value)
-            val=input.value
-            if typpe_=='float':
+            typpe_ = self.type_store(self.get_type(v))
+            var = self.get_variable(v.value)
+            val = input.value
+            if typpe_ == 'float':
                 val = float(input.value)
                 print("incoming val:" + str(val))
                 val = self.float_to_64bit_hex(val)
                 val = '0x' + val
                 print("outgoing val:" + str(val))
-            allign=self.allignment(typpe_)
-            self.store+= "store {} {}, {}* %{}, align 1\n".format(typpe_,val,typpe_, self.get_variable(v.value))
+            allign = self.allignment(typpe_)
+            self.store += "store {} {}, {}* %{}, align 1\n".format(typpe_, val, typpe_, self.get_variable(v.value))
 
     def to_bin_operator(self, ast: AST):
         pass
@@ -231,9 +220,8 @@ class ToLLVM():
                 print("right val" + str(ast.root.rightChild.getValue()))
                 pointer = ast.root.leftChild.getValue()
                 level = self.c_block.getSymbolTable().findSymbol(pointer, True)[2]
-                o_pointer=self.get_variable(str(pointer))
+                o_pointer = self.get_variable(str(pointer))
                 for i in range(level):
-
                     old_pointer = self.get_variable(str(pointer))
                     new_pointer = self.add_variable(str(pointer))
                     print("old pointer:" + str(old_pointer))
@@ -253,9 +241,9 @@ class ToLLVM():
                     val = self.c_block.getSymbolTable().findSymbol(ast.root.rightChild.getValue())[0]
                 # elf.store += "store {} {}, ptr %{}, align 4\n".format(p_type,val,new_pointer)
             elif not ast.root.leftChild.declaration:
-                reference=self.get_variable(ast.root.rightChild.getValue())
-                pointer=self.get_variable(ast.root.leftChild.getValue())
-                self.store+="store ptr %{}, ptr %{}, align 8\n".format(reference,pointer)
+                reference = self.get_variable(ast.root.rightChild.getValue())
+                pointer = self.get_variable(ast.root.leftChild.getValue())
+                self.store += "store ptr %{}, ptr %{}, align 8\n".format(reference, pointer)
         elif isinstance(ast.root, Declaration):
             return self.switch_Literals(ast.root.leftChild, ast.root.rightChild)
         return

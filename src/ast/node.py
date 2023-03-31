@@ -351,7 +351,8 @@ class UnaryOperator(AST_node):
         try:
             if not (isinstance(self.rightChild, Value) or isinstance(self.rightChild, Pointer)):
                 return self
-            elif self.rightChild.getType() not in (LiteralType.BOOL, LiteralType.INT,LiteralType.FLOAT) and self.operator == "!":
+            elif self.rightChild.getType() not in (
+            LiteralType.BOOL, LiteralType.INT, LiteralType.FLOAT) and self.operator == "!":
                 raise ChildType("unary operator", self.rightChild.getType(), None, self.line)
             else:
                 if self.rightChild.getType() == LiteralType.FLOAT:
@@ -705,7 +706,7 @@ class Pointer(AST_node):
 
 
 class EmptyNode(AST_node):
-    def __init__(self, line: int, parent: AST_node = None,type_=None):
+    def __init__(self, line: int, parent: AST_node = None, type_=None):
         self.value = None
         self.type = type_
         # if self.type==LiteralType.CHAR:
@@ -717,10 +718,13 @@ class EmptyNode(AST_node):
         self.const = False
         self.declaration = False
         self.line = line
+
     def getLabel(self):
         return "\"Empty Node: " + str(self.value) + "\""
+
     def getType(self):
         return self.type
+
     def getValue(self):
         return None
 

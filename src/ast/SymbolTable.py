@@ -37,7 +37,7 @@ class SymbolTable:
                         ref = None
                 else:
                     raise LeftSideDeclaration(line)
-            #if (ref is None and level != 0) or
+            # if (ref is None and level != 0) or
             if (level == 0 and ref is not None):
                 raise WrongPointer(line)
             elif name not in self.table.index:
@@ -128,7 +128,7 @@ class SymbolTable:
         except NotReference:
             raise
 
-    def findSymbol(self, name: str, onlyNext:bool = False): #, deref: int = 0):
+    def findSymbol(self, name: str, onlyNext: bool = False):  # , deref: int = 0):
         if name not in self.table.index:
             return None
         # elif deref == 0:
