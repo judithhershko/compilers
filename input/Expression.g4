@@ -1,6 +1,6 @@
 grammar Expression;
 
-start_rule: (print|expr|dec|comments|line)*;
+start_rule: (print ';'|expr ';'|dec ';'|comments|line)*;
 
 line:NLINE;
 print   : PRINT LBRAK (char_pri | pri) RBRAK ;
@@ -8,19 +8,14 @@ comments: ML_COMMENT | SL_COMMENT;
 typed_var: INT| DOUBLE | FLOAT |CHAR | BOOL;
 
 const : CONST;
-pointer_variable: (pointer)* var=ID;
 pointer:MULT;
-ref: REF;
-ref_ref: REF;
-pointer_ref: MULT;
-pointers:(const)? (typed_var)? (ref |(pointer)+) ID (EQ (ref_ref |(pointer_ref)*) pri)? ;
+ref_ref: (REF)? ID;
+pointers: (pointer)+ ID (EQ ref_ref)? |  REF (EQ ref_ref)?;
+suf_dec: pointers | ID EQ (char_expr|expr);
+pointer_val: (pointer)+ ID;
 
-dec:
-(const)? typed_var ID EQ  (char_expr|expr)
-|pointers
-| ID EQ (char_expr|expr)
-| (const)? typed_var ID;
-
+dec:(const)? typed_var (pointer)* ID EQ (pointer_val|ref_ref|char_expr|expr) |(pointer)* ID EQ (pointer_val|ref_ref|char_expr|expr)
+| (const)? typed_var (pointer)* ID;
 
 binop:MIN | PLUS ;
 binop_md: MULT| DIV | MOD;
@@ -33,7 +28,7 @@ suffix_op: PP | MM ;
 expr: expr suffix_op | prefix_op expr | expr binop_md expr | expr binop expr | expr comparator expr |  expr equality expr | expr or_and expr  | fac;
 fac : brackets|pri;
 brackets: LBRAK expr RBRAK;
-pri:  ID | num+ '.' num* | '.' num+ | num;
+pri:  ID | ('-')?num+ '.' num* | '.' num+ | ('-')?num;
 fnum: num | num+ '.' num* | '.' num+ ;
 num: NUM;
 
@@ -51,7 +46,6 @@ CONST   : 'const'   ;
 REF     : '&'       ;
 PRINT   : 'printf'  ;
 
-//SEARCH_TYPE: '"' ~'"'* '"';
 PT   : '.' ;
 MULT : '*' ;
 NUM  : [0-9]+ ;
@@ -82,14 +76,6 @@ END_COMMENT:'**/' ;
 ML_COMMENT:  '/*' .* '*/';
 SL_COMMENT:  '//' ~('\r' | '\n')*;
 
-
-EOL: ';' -> skip;
-LINE: '\n';
-//NLINE:';' .*? -> skip;
-NLINE:';' .*? '\n' ;
+NLINE: '\n';
+//NLINE:';' .*? '\n' ;
 //NLINE:';' .*? '\n' -> skip;
-
-
-
-
-

@@ -19,7 +19,7 @@ chmod 777 run.sh
 - [x] Binary operations >, <, and ==.
 - [x] Unary operators + and -.
 - [x] Brackets to overwrite the order of operations.
-- [ ] Logical operators &&, ||, and !.
+- [x] Logical operators &&, ||, and !.
 - [x] Abstract Syntax Tree
 - [x] Visualization of Graphviz dot format
 - [x] Constant folding
@@ -34,22 +34,22 @@ chmod 777 run.sh
 ### verplicht:
 
 - [x] Types
-- [ ] Reserved words
+- [x] Reserved words
 - [x] Variables
-- [ ] Pointer Operations
+- [x] Pointer Operations
 - [x] Constant Propagation
-- [ ] Error analysis
-  - [ ] Syntax Errors
-  - [ ] Semantic Errors
-    - [ ] Use of undefined or uninitialized variable
-    - [ ] Redeclaration or redefinition of an existing variable
-    - [ ] Operations or assignments of incompatible types
-    - [ ] Assigment of a rvalue
-    - [ ] Assignment to a const value
+- [x] Error analysis
+  - [x] Syntax Errors
+  - [x] Semantic Errors
+    - [x] Use of undefined or uninitialized variable
+    - [x] Redeclaration or redefinition of an existing variable
+    - [x] Operations or assignments of incompatible types
+    - [x] Assigment of a rvalue
+    - [x] Assignment to a const value
 
 ### optioneel:
 
-- [ ] Increment/Decrement Operations
+- [x] Increment/Decrement Operations (als een prefix)
 - [ ] Conversions
 
 ## project 3:
@@ -58,11 +58,11 @@ chmod 777 run.sh
 
 - [x]  comments
 - [x]  Support for single line comments and multi line comments.
-- [ ]  Outputting to the standard output using printf
-- [ ]  To LLVM
+- [x]  Outputting to the standard output using printf
+- [x]  To LLVM
 
 ### optioneel:
 
 - [x]  retaining the comments from the input code during compilation
-- [ ]  retaining comment that contains the original statement from the input code
+- [x]  retaining comment that contains the original statement from the input code
 

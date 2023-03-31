@@ -10,6 +10,9 @@ fi
 #generate visitor and listener file
 java -jar antlr-4.12.0-complete.jar -o generated -visitor -listener -Dlanguage=Python3 input/Expression.g4;
 
+#main file
 python3 main.py
+#tests
+python3 src/TestCases/CToLLVM_Tests.py
 
 dot -Tpng src/ast/dotFiles/no_fold_expression_dot0.dot -o src/ast/dotFiles/result.png

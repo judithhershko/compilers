@@ -21,21 +21,19 @@ def getVariable(ctx):
     return var
 
 
-def getType(var):
-    if var[0] == 'i':
+def getType(txt):
+    if len(txt)>=3 and txt[0:4] == 'int':
         return LiteralType.INT
-    elif var[0] == 'f':
+    elif len(txt)>=4 and txt[0:5] == 'float':
         return LiteralType.FLOAT
-    elif var[0] == 'd':
+    elif len(txt)>=6 and txt[0:7] == 'double':
         return LiteralType.DOUBLE
-    elif var[0] == 's':
+    elif len(txt)>=6 and txt[0:7] == 'string':
         return LiteralType.STR
-    elif var[0] == 'b':
+    elif len(txt)>=4 and txt[0:5] == 'bool':
         return LiteralType.BOOL
-    elif var[0] == 'c':
+    elif len(txt)>=4 and txt[0:5]== 'char':
         return LiteralType.CHAR
-    elif var[0] == 'p':
-        return LiteralType.POINTER
     else:
         return False
 
@@ -46,20 +44,18 @@ def separate_type_variable(old, type_):
 
 def find_type(txt):  # TODO: check if this gives no problems
     # type = types.get(txt)
-    if txt[0] == 'i':
+    if len(txt)>=3 and txt[0:4] == 'int':
         return LiteralType.INT
-    elif txt[0] == 'f':
+    elif len(txt)>=4 and txt[0:5] == 'float':
         return LiteralType.FLOAT
-    elif txt[0] == 'd':
+    elif len(txt)>=6 and txt[0:7] == 'double':
         return LiteralType.DOUBLE
-    elif txt[0] == 's':
+    elif len(txt)>=6 and txt[0:7] == 'string':
         return LiteralType.STR
-    elif txt[0] == 'b':
+    elif len(txt)>=4 and txt[0:5] == 'bool':
         return LiteralType.BOOL
-    elif txt[0] == 'c':
+    elif len(txt)>=4 and txt[0:5]== 'char':
         return LiteralType.CHAR
-    elif txt[0] == 'p':
-        return LiteralType.POINTER
     else:
         return False
 
@@ -81,10 +77,10 @@ def is_valid_variable(v: str):
 
 def find_value_type(v: str):
     if v[0] == '\'' and v[-1] == '\'':
-        return node.LiteralType.STR
+        return node.LiteralType.CHAR
     elif isFloat(v):
         return node.LiteralType.FLOAT
-    elif v[0].isdigit():
+    elif v[0].isdigit() or (v[0]=='-' and len(v)>1 and v[1].isdigit()):
         return node.LiteralType.INT
     else:
         return node.LiteralType.VAR
@@ -105,7 +101,7 @@ def commentType(v: str):
         return CommentType.ML
 
 
-order_prec = {"++": 0, "--": 1, "!": 2, "*": 3, "/": 3, "+": 4, "-": 4,"":4, "<": 5, ">": 5, "<=": 5, ">=": 5, "==": 6,
+order_prec = {"++": 0, "--": 1, "!": 2, "*": 3, "/": 3,"%":3, "+": 4, "-": 4,"":4, "<": 5, ">": 5, "<=": 5, ">=": 5, "==": 6,
               "!=": 6, "&&": 7, "||": 8}
 
 

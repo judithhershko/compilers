@@ -11,7 +11,6 @@ class block:
         self.ast = AST()
         self.parent = parent
         self.blocks = []
-        # moet weg?
         self.trees = []
 
     def getSymbolTable(self):
@@ -26,12 +25,12 @@ class block:
     def getAst(self):
         return self.ast
 
-    def fillLiterals(self):
+    def fillLiterals(self, tree: AST):
         """
         This function will try to replace the variables in the AST with the actual values. If it can not find the
         variables in its own symbol table, it will look at the symbol tables of its parents
         """
-        variables = self.ast.getVariables()
+        variables = tree.getVariables()
         notFound = []
         values = dict()
         for elem in variables:
@@ -55,8 +54,8 @@ class block:
         try:
             if notFound:
                 raise Undeclared(notFound)
-            else:
-                self.ast.replaceVariables(values)
+            elif values:
+                tree.replaceVariables(values)
 
         except Undeclared:
             raise
