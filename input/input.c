@@ -1,3 +1,4 @@
 int x=90;
 int *z=&x;
-*z=x;
+int a=30;
+z=a;

@@ -5,6 +5,7 @@ from .ast.block import *
 # TODO: commented the todot functions
 class CustomListener(ExpressionListener):
     def __init__(self, pathName):
+        self.is_ref = False
         self.start_rule = None
         self.asT = create_tree()
         self.current = None
@@ -363,7 +364,6 @@ class CustomListener(ExpressionListener):
         self.line = ctx.start.line
         if self.rhs_pointer:
             return
-
         self.nr_pointers += 1
         self.dec_op.leftChild.setValue(self.dec_op.leftChild.getValue()[1:])
         if isinstance(self.dec_op.leftChild, Pointer):
@@ -404,12 +404,17 @@ class CustomListener(ExpressionListener):
         is_ref=False
         if var[0] == "&":
             var = var[1:]
-            is_ref=True
+            self.is_ref=True
         ref = self.c_block.getSymbolTable().findSymbol(var)
-        if not isinstance(self.dec_op.leftChild,Pointer) and is_ref:
-            raise PointerError(var,self.line)
-        if isinstance(self.dec_op.leftChild,Pointer) and self.c_block.getSymbolTable().findSymbol(self.dec_op.leftChild.getValue())is not None and is_ref:
-            raise PointerError(var, self.line)
+        print(self.nr_pointers)
+        if isinstance(self.dec_op.leftChild,Pointer) and self.is_ref and self.nr_pointers>0 and not self.dec_op.leftChild.declaration:
+            raise PointerError(self.dec_op.leftChild.getValue(),self.line)
+        if isinstance(self.dec_op.leftChild,Pointer) and not self.is_ref and self.nr_pointers==0 and not self.dec_op.leftChild.declaration:
+            raise PointerError(self.dec_op.leftChild.getValue(), self.line)
+#        if isinstance(self.dec_op.leftChild,Pointer) and is_ref:
+ #           raise PointerError(var,self.line)
+       # if isinstance(self.dec_op.leftChild,Pointer) and self.c_block.getSymbolTable().findSymbol(self.dec_op.leftChild.getValue())is not None and is_ref:
+    #    raise PointerError(var, self.line)
         try:
             if not ref:
                 raise NotDeclared(var, self.line)
@@ -424,7 +429,7 @@ class CustomListener(ExpressionListener):
 
     # Exit a parse tree produced by ExpressionParser#ref_ref.
     def exitRef_ref(self, ctx: ParserRuleContext):
-        pass
+        self.is_ref=False
 
     # Enter a parse tree produced by ExpressionParser#dec.
     def enterDec(self, ctx: ParserRuleContext):  # TODO: declaration needs to get right type
