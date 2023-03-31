@@ -103,9 +103,9 @@ class ToLLVM():
                     else:
                         self.f_declerations += "declare i32 @printf(ptr noundef, ...) #1\n"
                     self.g_count+=1
-                    self.g_assignment+="@.str{} = private unnamed_addr constant [{}x i8] c\"{}\\0A\\00\", align 1\n".format(var,len(to_print)+2,to_print)
+                    self.g_assignment+="@.str{} = private unnamed_addr constant [{}x i8] c\"{}\\0A\\00\", align 1\n".format(var,len(str(to_print))+2,to_print)
                     s=self.add_variable("printf"+str(self.g_count))
-                    self.allocate+="; printf ({})\n".format(tree.root.value[0])
+                    self.allocate+="; printf ({})\n".format(var)
                     self.allocate+="%{} = call i32 (ptr, ...) @printf(ptr noundef @.str{})\n".format(s,var)
             self.g_assignment+="; Function Attrs: noinline nounwind optnone ssp uwtable(sync)\n"
             self.store+="\n"
