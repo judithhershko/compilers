@@ -1,0 +1,8 @@
+graph ast {
+0.0 [label="Declaration: ="]
+1.1 [label="Pointer: xxx"]
+1.2 [label="Literal: xx"]
+
+0.0--1.1
+0.0--1.2
+}
