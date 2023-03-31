@@ -10,13 +10,13 @@ from src.ast.block import block
 """
 comments vervangen met ; 
 v pointers
-- const 
+v const 
 v getalle-n
 v print f
-- testen of geen errors komen
+v testen of geen errors komen
 v niet global scope nemen
 v dictionary gebruiken !
-- expressions geen declaration
+v expressions geen declaration
 """
 
 
@@ -59,7 +59,7 @@ class ToLLVM():
         bytes_of_x = struct.pack('<d', x)
         x_as_int = struct.unpack('<Q', bytes_of_x)[0]
         hex_rep=str(hex(x_as_int)).upper()
-        print("hex vak is" + hex_rep)
+        #print("hex vak is" + hex_rep)
         """
         hex_rep=hex_rep[:-7]
         #hex_rep='O'+hex_rep[1:]
@@ -90,7 +90,8 @@ class ToLLVM():
                 if isinstance(tree.root, Declaration):
                     self.to_declaration(tree)
                 elif isinstance(tree.root,Value):
-                    print("expression no declaration is: "+str(tree.root.value))
+                    #print("expression no declaration is: "+str(tree.root.value))
+                    pass
                 elif isinstance(tree.root, Comment):
                     self.to_comment(tree)
                 elif isinstance(tree.root, Print):
@@ -176,7 +177,7 @@ class ToLLVM():
     def to_declaration(self, ast: AST):
         if isinstance(ast.root.leftChild, Pointer):
             if ast.root.leftChild.getValue() in self.var_dic and not str(ast.root.rightChild.getValue())[0].isalpha():
-                print("value is :"+str(ast.root.rightChild.getValue()))
+                #print("value is :"+str(ast.root.rightChild.getValue()))
                 old_pointer=self.get_variable(str(ast.root.leftChild.getValue()))
                 new_pointer=self.add_variable(str(ast.root.leftChild.getValue()))
                 p_type=self.type_store(self.get_type(ast.root.leftChild))
@@ -217,7 +218,7 @@ class ToLLVM():
                 self.store += ast.root.value
                 self.store += "\n"
             elif ast.root.type == CommentType.ML:
-                print("ml comment")
+                #print("ml comment")
                 self.store += ";"
                 for s in ast.root.value:
                     self.store += s

@@ -1,0 +1,12 @@
+graph ast {
+0.0 [label="Declaration: ="]
+1.1 [label="Literal: x"]
+1.2 [label="Binary operator: +"]
+2.3 [label="Literal: 5"]
+2.4 [label="Literal: 2.0"]
+
+0.0--1.1
+0.0--1.2
+1.2--2.3
+1.2--2.4
+}
