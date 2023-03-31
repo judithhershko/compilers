@@ -38,7 +38,7 @@ chmod 777 run.sh
 - [x] Variables
 - [x] Pointer Operations
 - [x] Constant Propagation
-- [ ] Error analysis
+- [x] Error analysis
   - [x] Syntax Errors
   - [x] Semantic Errors
     - [x] Use of undefined or uninitialized variable
@@ -49,7 +49,7 @@ chmod 777 run.sh
 
 ### optioneel:
 
-- [ ] Increment/Decrement Operations
+- [x] Increment/Decrement Operations (als een prefix)
 - [ ] Conversions
 
 ## project 3:
@@ -59,7 +59,7 @@ chmod 777 run.sh
 - [x]  comments
 - [x]  Support for single line comments and multi line comments.
 - [x]  Outputting to the standard output using printf
-- [ ]  To LLVM
+- [x]  To LLVM
 
 ### optioneel:
 

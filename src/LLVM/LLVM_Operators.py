@@ -1,4 +1,5 @@
 import ast
+import struct
 
 from src.ast import AST
 from src.ast.SymbolTable import SymbolTable
@@ -52,6 +53,22 @@ class ToLLVM():
         elif type_=="bool":
             return "i8"
 
+    def float_to_hex(self,f):
+        return hex(struct.unpack('<I', struct.pack('<f', f))[0])
+    def float_to_64bit_hex(self,x):
+        bytes_of_x = struct.pack('<d', x)
+        x_as_int = struct.unpack('<Q', bytes_of_x)[0]
+        hex_rep=str(hex(x_as_int)).upper()
+        print("hex vak is" + hex_rep)
+        """
+        hex_rep=hex_rep[:-7]
+        #hex_rep='O'+hex_rep[1:]
+        for i in range(0,6):
+            hex_rep+='0'
+        
+        """
+        return hex_rep
+
     def get_type(self,v):
         if v.type==LiteralType.INT:
             return "int"
@@ -89,9 +106,9 @@ class ToLLVM():
                     else:
                         self.f_declerations += "declare i32 @printf(ptr noundef, ...) #1\n"
                     self.g_count+=1
-                    self.g_assignment+="@.str{} = private unnamed_addr constant [{}x i8] c\"{}\\0A\\00\", align 1\n".format(var,len(to_print)+2,to_print)
+                    self.g_assignment+="@.str{} = private unnamed_addr constant [{}x i8] c\"{}\\0A\\00\", align 1\n".format(var,len(str(to_print))+2,to_print)
                     s=self.add_variable("printf"+str(self.g_count))
-                    self.allocate+="; printf ({})\n".format(tree.root.value[0])
+                    self.allocate+="; printf ({})\n".format(str(to_print))
                     self.allocate+="%{} = call i32 (ptr, ...) @printf(ptr noundef @.str{})\n".format(s,var)
             self.g_assignment+="; Function Attrs: noinline nounwind optnone ssp uwtable(sync)\n"
             self.store+="\n"
@@ -100,7 +117,6 @@ class ToLLVM():
 
     def write_to_file(self, filename: str):
         # open text file
-        filename = "generated/output/" + filename
         text_file = open(filename, "w")
         # write string to file
         if self.main:
@@ -131,9 +147,12 @@ class ToLLVM():
             self.store += "store i32 {}, i32* %{}, align 4\n".format(input.value, self.get_variable(v.value))
 
         elif v.type == LiteralType.FLOAT:
+            val=input.value
+            #val=self.float_to_64bit_hex(val)
+            val=float(val)
             self.allocate += "; {} {} {} = {}\n".format(const, "float", v.value, input.value)
             self.allocate += "%{} = alloca float, align 4\n".format(self.add_variable(v.value))
-            self.store += "store float {}, float* %{}, align 4\n".format(input.value,  self.get_variable(v.value))
+            self.store += "store float {}, float* %{}, align 4\n".format(val,  self.get_variable(v.value))
 
         elif v.type == LiteralType.CHAR:
             size = len(input.value)
@@ -161,7 +180,7 @@ class ToLLVM():
                 old_pointer=self.get_variable(str(ast.root.leftChild.getValue()))
                 new_pointer=self.add_variable(str(ast.root.leftChild.getValue()))
                 p_type=self.type_store(self.get_type(ast.root.leftChild))
-                self.store+="%{} = load ptr, ptr %{}, align 8\n".format(new_pointer,old_pointer)
+                self.allocate+="%{} = load ptr, ptr %{}, align 8\n".format(new_pointer,old_pointer)
                 """
                 val=""
                 if isinstance(self.c_block,block):

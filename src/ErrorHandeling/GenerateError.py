@@ -24,8 +24,8 @@ class WrongType(Exception):
         self.line = line
 
     def __str__(self):
-        return "\n\tError in line " + str(self.line) + ": " + str(self.type1) + " and " + str(self.type2) + \
-               " do not match"
+        return "\n\tError in line " + str(self.line) + ": " + str(self.type2) + \
+               " can not be placed in a variable of type " + str(self.type1)
 
 
 class BinaryOp(Exception):
@@ -80,6 +80,16 @@ class WrongPointer(Exception):
                ": only when a pointer references something can the level be different from zero"
 
 
+class NotReference(Exception):
+    def __init__(self, line, var):
+        self.line = line
+        self.var = var
+
+    def __str__(self):
+        return "\n\tError in line " + str(self.line) + \
+               ": " + str(self.var) + " is not a correct pointer reference"
+
+
 class Redeclaration(Exception):
     def __init__(self, var, line):
         self.variable = var
@@ -87,6 +97,16 @@ class Redeclaration(Exception):
 
     def __str__(self):
         return "\n\tError in line " + str(self.line) + ": there is a redeclaration of the variable " + \
+               str(self.variable)
+
+
+class PointerRedeclaration(Exception):
+    def __init__(self, var, line):
+        self.variable = var
+        self.line = line
+
+    def __str__(self):
+        return "\n\tError in line " + str(self.line) + ": there is a redeclaration of the pointer " + \
                str(self.variable)
 
 
@@ -107,6 +127,16 @@ class ResetConst(Exception):
 
     def __str__(self):
         return "\n\tError in line " + str(self.line) + ": there is a reassignment of the const variable " + \
+               str(self.variable)
+
+
+class ResetConstPointer(Exception):
+    def __init__(self, var, line):
+        self.variable = var
+        self.line = line
+
+    def __str__(self):
+        return "\n\tError in line " + str(self.line) + ": there is a reassignment of the const pointer " + \
                str(self.variable)
 
 
@@ -143,8 +173,8 @@ class RefPointerLevel(Exception):
 
     def __str__(self):
         return "\n\tError in line " + str(self.line) + ": " + str(self.variable) + \
-               " should reference a variable with a reference level of " + str(self.level) + " and not the given " + \
-               str(self.refLevel)
+               " should reference a variable with a reference level of " + str(self.refLevel-1) + " and not the given " + \
+               str(self.level)
 
 
 class ImpossibleRef(Exception):
@@ -266,4 +296,12 @@ class CharSize(Exception):
         self.line = line
 
     def __str__(self):
-        return "\n\tError in line " + str(self.line) + ": " + str(self.name) + " char size should be one.\n"
+        return "\n\tError in line " + str(self.line) + ": " + str(self.name) + " char size should be one."
+class PointerError(Exception):
+    def __init__(self, name, line):
+        self.name = name
+        self.line = line
+
+    def __str__(self):
+        return "\n\tError in line " + str(self.line) + ": " + str(self.name) + " cannot assign reference to value"
+

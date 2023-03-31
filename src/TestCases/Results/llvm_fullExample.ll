@@ -4,7 +4,7 @@ define i32 @main() #0 {
 %1 = alloca i32, align 4
 ;  int x = 5
 %2 = alloca i32, align 4
-;  float y = 7
+;  float y = 7.0
 %3 = alloca float, align 4
 ;  char z = 'a'
 %4 = alloca i8, align 1

@@ -58,11 +58,16 @@ class SymbolTable:
             else:
                 row = self.table.loc[name]
                 if decl:
-                    raise Redeclaration(name, line)
+                    if isinstance(root.getLeftChild(), Value):
+                        raise Redeclaration(name, line)
+                    else:
+                        raise PointerRedeclaration(name, line)
                 elif row["Global"]:
                     raise ResetGlobal(name, line)
-                elif row["Const"]:
+                elif row["Const"] and isinstance(root.getLeftChild(), Value):
                     raise ResetConst(name, line)
+                elif row["Const"] and isinstance(root.getLeftChild(), Pointer) and not root.getRightChild().variable:
+                    raise ResetConstPointer(name, line)
                 elif row["Type"] != symType:
                     raise TypeDeclaration(name, row["Type"], symType, line)
                 elif row["Level"] != level:
@@ -74,7 +79,24 @@ class SymbolTable:
                 #     self.table.loc[name, ["Value"]] = value
                 #     return "replaced"
                 else:
-                    self.table.loc[name, ["Value"]] = value
+                    if isinstance(root.getLeftChild(), Value):
+                        self.table.loc[name, ["Value"]] = str(value)
+                    else:
+                        if ref in self.table.index:
+                            self.table.loc[name, ["Value"]] = str(value)
+                        elif root.getRightChild().getType() != LiteralType.VAR:
+                            for i in range(level):
+                                temp = self.table.loc[name]
+                                name = temp["Value"]
+                            temp = self.table.loc[name]
+                            if temp["Level"] != 0:
+                                raise WrongPointer(line)
+                            elif temp["Const"]:
+                                raise ResetConst(name, line)
+                            self.table.loc[name, ["Value"]] = str(value)
+                            return "replaced"
+                        else:
+                            raise NotReference(line, ref)
                     return "replaced"
 
         except NotDeclaration:
@@ -91,13 +113,19 @@ class SymbolTable:
             raise
         except Redeclaration:
             raise
+        except PointerRedeclaration:
+            raise
         except ResetGlobal:
             raise
         except ResetConst:
             raise
+        except ResetConstPointer:
+            raise
         except TypeDeclaration:
             raise
         except PointerLevel:
+            raise
+        except NotReference:
             raise
 
     def findSymbol(self, name: str): #, deref: int = 0):
