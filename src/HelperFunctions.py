@@ -21,21 +21,18 @@ def getVariable(ctx):
     return var
 
 
-def getType(var):
-
-    if var=='':
-        return False
-    if var[0] == 'i':
+def getType(txt):
+    if len(txt)>=3 and txt[0:4] == 'int':
         return LiteralType.INT
-    elif var[0] == 'f':
+    elif len(txt)>=4 and txt[0:5] == 'float':
         return LiteralType.FLOAT
-    elif var[0] == 'd':
+    elif len(txt)>=6 and txt[0:7] == 'double':
         return LiteralType.DOUBLE
-    elif var[0] == 's':
+    elif len(txt)>=6 and txt[0:7] == 'string':
         return LiteralType.STR
-    elif var[0] == 'b':
+    elif len(txt)>=4 and txt[0:5] == 'bool':
         return LiteralType.BOOL
-    elif var[0] == 'c':
+    elif len(txt)>=4 and txt[0:5]== 'char':
         return LiteralType.CHAR
     else:
         return False
@@ -47,17 +44,17 @@ def separate_type_variable(old, type_):
 
 def find_type(txt):  # TODO: check if this gives no problems
     # type = types.get(txt)
-    if txt[0] == 'i':
+    if len(txt)>=3 and txt[0:4] == 'int':
         return LiteralType.INT
-    elif txt[0] == 'f':
+    elif len(txt)>=4 and txt[0:5] == 'float':
         return LiteralType.FLOAT
-    elif txt[0] == 'd':
+    elif len(txt)>=6 and txt[0:7] == 'double':
         return LiteralType.DOUBLE
-    elif txt[0] == 's':
+    elif len(txt)>=6 and txt[0:7] == 'string':
         return LiteralType.STR
-    elif txt[0] == 'b':
+    elif len(txt)>=4 and txt[0:5] == 'bool':
         return LiteralType.BOOL
-    elif txt[0] == 'c':
+    elif len(txt)>=4 and txt[0:5]== 'char':
         return LiteralType.CHAR
     else:
         return False
