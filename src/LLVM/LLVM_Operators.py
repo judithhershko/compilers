@@ -137,6 +137,7 @@ class ToLLVM():
             text_file.write("\n")
             text_file.write(self.f_declerations)
             text_file.write("\n")
+
         else:
             text_file.write(self.global_)
 
