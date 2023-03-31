@@ -27,7 +27,7 @@ define i32 @main() #0 {
 
 store i32 0, ptr %1, align 4
 store i32 5, i32* %2, align 4
-store float 7.0, float* %3, align 4
+store float 7.000000000000000000000000000000000, float* %3, align 4
 store i8 97, i8* %4, align 1
 store i32 6, i32* %5, align 4
 store ptr %2, ptr %6, align 8
@@ -36,7 +36,7 @@ store i32 20, ptr %8, align 4
 store ptr %5, ptr %9, align 8
 store i32 25, ptr %10, align 4
 store i32 1, i32* %11, align 4
-store float 1.3333333333333333, float* %12, align 4
+store float 1.333333333333333300000000000000000000000000000000, float* %12, align 4
 store i32 5, i32* %13, align 4
 
 ret i32 0

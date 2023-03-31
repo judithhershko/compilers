@@ -27,94 +27,99 @@ class ToLLVM():
         self.store = ""
         self.couter = 0
         self.var_dic = dict()
-        self.main=True
-        self.g_count=0
-        self.g_assignment=""
-        self.f_declerations=""
-        self.c_block=None
+        self.main = True
+        self.g_count = 0
+        self.g_assignment = ""
+        self.f_declerations = ""
+        self.c_block = None
 
     def STable_to_LLVM(self, table: SymbolTable):
         for entry in table:
             line = ""
-    def get_variable(self,var:str):
+
+    def get_variable(self, var: str):
         if var in self.var_dic:
             return self.var_dic[var]
         else:
             return self.add_variable(var)
-    def add_variable(self,var:str):
+
+    def add_variable(self, var: str):
         self.couter += 1
-        self.var_dic[var]=self.couter
+        self.var_dic[var] = self.couter
         return self.var_dic[var]
-    def type_store(self,type_):
-        if type_=="int":
+
+    def type_store(self, type_):
+        if type_ == "int":
             return "i32"
-        elif type_=="float":
+        elif type_ == "float":
             return "float"
-        elif type_=="bool":
+        elif type_ == "bool":
             return "i8"
 
-    def float_to_hex(self,f):
+    def float_to_hex(self, f):
         return hex(struct.unpack('<I', struct.pack('<f', f))[0])
-    def float_to_64bit_hex(self,x):
+
+    def float_to_64bit_hex(self, x):
         bytes_of_x = struct.pack('<d', x)
         x_as_int = struct.unpack('<Q', bytes_of_x)[0]
-        hex_rep=str(hex(x_as_int)).upper()
-        #print("hex vak is" + hex_rep)
+        hex_rep = str(hex(x_as_int)).upper()
+        # print("hex vak is" + hex_rep)
         """
         hex_rep=hex_rep[:-7]
         #hex_rep='O'+hex_rep[1:]
         for i in range(0,6):
             hex_rep+='0'
-        
+
         """
         return hex_rep
 
-    def get_type(self,v):
-        if v.type==LiteralType.INT:
+    def get_type(self, v):
+        if v.type == LiteralType.INT:
             return "int"
-        elif v.type==LiteralType.FLOAT:
+        elif v.type == LiteralType.FLOAT:
             return "float"
-        elif v.type==LiteralType.BOOL:
+        elif v.type == LiteralType.BOOL:
             return "bool"
-        elif v.type==LiteralType.CHAR:
+        elif v.type == LiteralType.CHAR:
             return "char"
         return False
 
     def transverse_block(self, cblock: block, main=True):
-        self.c_block=cblock
+        self.c_block = cblock
         if main:
-            self.allocate+="define i32 @main() #0 {\n"
-            self.allocate+="%{} = alloca i32, align 4\n".format(self.add_variable("main"))
-            self.store+="store i32 0, ptr %{}, align 4\n".format(self.get_variable("main"))
+            self.allocate += "define i32 @main() #0 {\n"
+            self.allocate += "%{} = alloca i32, align 4\n".format(self.add_variable("main"))
+            self.store += "store i32 0, ptr %{}, align 4\n".format(self.get_variable("main"))
             for tree in cblock.trees:
                 if isinstance(tree.root, Declaration):
                     self.to_declaration(tree)
-                elif isinstance(tree.root,Value):
-                    #print("expression no declaration is: "+str(tree.root.value))
+                elif isinstance(tree.root, Value):
+                    # print("expression no declaration is: "+str(tree.root.value))
                     pass
                 elif isinstance(tree.root, Comment):
                     self.to_comment(tree)
                 elif isinstance(tree.root, Print):
-                    var=""
-                    to_print=""
+                    var = ""
+                    to_print = ""
                     if type(tree.root.value) is tuple:
-                        to_print=tree.root.value[0]
+                        to_print = tree.root.value[0]
                     else:
-                        to_print=tree.root.value
-                    if self.g_count>0:
-                        var="."
-                        var+=str(self.g_count)
+                        to_print = tree.root.value
+                    if self.g_count > 0:
+                        var = "."
+                        var += str(self.g_count)
                     else:
                         self.f_declerations += "declare i32 @printf(ptr noundef, ...) #1\n"
-                    self.g_count+=1
-                    self.g_assignment+="@.str{} = private unnamed_addr constant [{}x i8] c\"{}\\0A\\00\", align 1\n".format(var,len(str(to_print))+2,to_print)
-                    s=self.add_variable("printf"+str(self.g_count))
-                    self.allocate+="; printf ({})\n".format(str(to_print))
-                    self.allocate+="%{} = call i32 (ptr, ...) @printf(ptr noundef @.str{})\n".format(s,var)
-            self.g_assignment+="; Function Attrs: noinline nounwind optnone ssp uwtable(sync)\n"
-            self.store+="\n"
-            self.store+="ret i32 0\n"
-            self.store+="}\n"
+                    self.g_count += 1
+                    self.g_assignment += "@.str{} = private unnamed_addr constant [{}x i8] c\"{}\\0A\\00\", align 1\n".format(
+                        var, len(str(to_print)) + 2, to_print)
+                    s = self.add_variable("printf" + str(self.g_count))
+                    self.allocate += "; printf ({})\n".format(str(to_print))
+                    self.allocate += "%{} = call i32 (ptr, ...) @printf(ptr noundef @.str{})\n".format(s, var)
+            self.g_assignment += "; Function Attrs: noinline nounwind optnone ssp uwtable(sync)\n"
+            self.store += "\n"
+            self.store += "ret i32 0\n"
+            self.store += "}\n"
 
     def write_to_file(self, filename: str):
         # open text file
@@ -134,78 +139,101 @@ class ToLLVM():
 
         # close file
         text_file.close()
-
+    def allignment(self,type:str):
+        if type=='i32' or 'float':
+            return '4'
+        elif type=='i8':
+            return '1'
     def switch_Literals(self, v: Value, input: Value):
         # comment above with original code:
-        const = ""
-        type = ""
-        if v.const:
-            const = "const"
+        if v.declaration:
+            const = ""
+            type = ""
+            if v.const:
+                const = "const"
 
-        if v.type == LiteralType.INT:
-            self.allocate += "; {} {} {} = {}\n".format(const, "int", v.value, input.value)
-            self.allocate += "%{} = alloca i32, align 4\n".format(self.add_variable(str(v.value)))
-            self.store += "store i32 {}, i32* %{}, align 4\n".format(input.value, self.get_variable(v.value))
+            if v.type == LiteralType.INT:
+                self.allocate += "; {} {} {} = {}\n".format(const, "int", v.value, input.value)
+                self.allocate += "%{} = alloca i32, align 4\n".format(self.add_variable(str(v.value)))
+                self.store += "store i32 {}, i32* %{}, align 4\n".format(input.value, self.get_variable(v.value))
 
-        elif v.type == LiteralType.FLOAT:
-            val=input.value
-            #val=self.float_to_64bit_hex(val)
-            val=float(val)
-            self.allocate += "; {} {} {} = {}\n".format(const, "float", v.value, input.value)
-            self.allocate += "%{} = alloca float, align 4\n".format(self.add_variable(v.value))
-            self.store += "store float {}, float* %{}, align 4\n".format(val,  self.get_variable(v.value))
+            elif v.type == LiteralType.FLOAT:
+                val = input.value
+                # val=self.float_to_64bit_hex(val)
+                val = float(val)
+                self.allocate += "; {} {} {} = {}\n".format(const, "float", v.value, input.value)
+                self.allocate += "%{} = alloca float, align 4\n".format(self.add_variable(v.value))
+                self.store += "store float {}, float* %{}, align 4\n".format(val, self.get_variable(v.value))
 
-        elif v.type == LiteralType.CHAR:
-            size = len(input.value)
-            self.allocate += "; {} {} {} = {}\n".format(const, "char", v.value, input.value)
-            self.allocate += "%{} = alloca i8, align 1\n".format(self.add_variable(v.value))
+            elif v.type == LiteralType.CHAR:
+                size = len(input.value)
+                self.allocate += "; {} {} {} = {}\n".format(const, "char", v.value, input.value)
+                self.allocate += "%{} = alloca i8, align 1\n".format(self.add_variable(v.value))
 
-            num = ord(input.value[1])
-            self.store += "store i8 {}, i8* %{}, align 1\n".format(num,self.get_variable(v.value))
+                num = ord(input.value[1])
+                self.store += "store i8 {}, i8* %{}, align 1\n".format(num, self.get_variable(v.value))
 
-        elif v.type == LiteralType.BOOL:
-            bval = 0
-            if input.value == "True":
-                bval = 1
-            self.allocate += "; {}{}{}={}\n".format(const, "_Bool", v.value, input.value)
-            self.allocate += "%{} = alloca i8, align 1\n".format(self.add_variable(v.value))
-            self.store += "store i8 {}, i8* %{}, align 1\n".format(bval, self.get_variable(v.value))
+            elif v.type == LiteralType.BOOL:
+                bval = 0
+                if input.value == "True":
+                    bval = 1
+                self.allocate += "; {}{}{}={}\n".format(const, "_Bool", v.value, input.value)
+                self.allocate += "%{} = alloca i8, align 1\n".format(self.add_variable(v.value))
+                self.store += "store i8 {}, i8* %{}, align 1\n".format(bval, self.get_variable(v.value))
+        else:
+            typpe_=self.type_store(self.get_type(v))
+            var=self.get_variable(v.value)
+            allign=self.allignment(typpe_)
+            self.store+= "store {} {}, {}* %{}, align 1\n".format(typpe_,input.value,typpe_, self.get_variable(v.value))
 
     def to_bin_operator(self, ast: AST):
         pass
 
     def to_declaration(self, ast: AST):
         if isinstance(ast.root.leftChild, Pointer):
-            if ast.root.leftChild.getValue() in self.var_dic and not str(ast.root.rightChild.getValue())[0].isalpha():
-                #print("value is :"+str(ast.root.rightChild.getValue()))
-                old_pointer=self.get_variable(str(ast.root.leftChild.getValue()))
-                new_pointer=self.add_variable(str(ast.root.leftChild.getValue()))
-                p_type=self.type_store(self.get_type(ast.root.leftChild))
-                self.allocate+="%{} = load ptr, ptr %{}, align 8\n".format(new_pointer,old_pointer)
-                """
-                val=""
-                if isinstance(self.c_block,block):
-                    val=self.c_block.getSymbolTable().findSymbol(ast.root.rightChild.value)[0]
-                """
-                self.store+="store {} {}, ptr %{}, align 4\n".format(p_type,ast.root.rightChild.value,new_pointer)
-                #TODO
-                """
-                %5 = load ptr, ptr %4, align 8
-                store i32 20, ptr %5, align 4
-                """
-            else:
-                t_type=self.get_type(ast.root.leftChild)
-                const=""
+
+            if ast.root.leftChild.declaration:
+                print("declaration:" + str(ast.root.leftChild.getValue()))
+                t_type = self.get_type(ast.root.leftChild)
+                const = ""
                 if ast.root.leftChild.const:
-                    const="const"
-                points=""
-                i=0
-                while i< ast.root.leftChild.getPointerLevel():
-                    points+="*"
-                    i+=1
-                self.allocate+="; {} {} {} {} = & {}\n".format(const,t_type,points,ast.root.leftChild.getValue(),ast.root.rightChild.getValue())
-                self.allocate+="%{} = alloca ptr, align 8\n".format(self.add_variable(ast.root.leftChild.getValue()))
-                self.store+="store ptr %{}, ptr %{}, align 8\n".format(self.get_variable(ast.root.rightChild.getValue()),self.get_variable(ast.root.leftChild.getValue()))
+                    const = "const"
+                points = ""
+                i = 0
+                while i < ast.root.leftChild.getPointerLevel():
+                    points += "*"
+                    i += 1
+                self.allocate += "; {} {} {} {} = & {}\n".format(const, t_type, points, ast.root.leftChild.getValue(),
+                                                                 ast.root.rightChild.getValue())
+                self.allocate += "%{} = alloca ptr, align 8\n".format(self.add_variable(ast.root.leftChild.getValue()))
+                self.store += "store ptr %{}, ptr %{}, align 8\n".format(
+                    self.get_variable(ast.root.rightChild.getValue()), self.get_variable(ast.root.leftChild.getValue()))
+            elif ast.root.leftChild.getValue() in self.var_dic and str(ast.root.rightChild.getValue())[0].isdigit():
+                print("pointer" + ast.root.leftChild.getValue())
+                print("right val" + str(ast.root.rightChild.getValue()))
+                pointer = ast.root.leftChild.getValue()
+                level = self.c_block.getSymbolTable().findSymbol(pointer, True)[2]
+
+                for i in range(level + 1):
+                    old_pointer = self.get_variable(str(pointer))
+                    new_pointer = self.add_variable(str(pointer))
+                    self.store += "%{} = load ptr, ptr %{}, align 8\n".format(new_pointer, old_pointer)
+                    pointer = self.c_block.getSymbolTable().findSymbol(pointer, True)[0]
+
+                p_type = self.type_store(self.get_type(ast.root.leftChild))
+                val = ""
+                if str(ast.root.rightChild.getValue())[0].isdigit():
+                    print("if")
+                    val = ast.root.rightChild.getValue()
+                    self.store += "store {} {}, ptr %{}, align 4\n".format(p_type, val, new_pointer)
+                else:
+                    print("else")
+                    val = self.c_block.getSymbolTable().findSymbol(ast.root.rightChild.getValue())[0]
+                # elf.store += "store {} {}, ptr %{}, align 4\n".format(p_type,val,new_pointer)
+            elif not ast.root.leftChild.declaration:
+                reference=self.get_variable(ast.root.rightChild.getValue())
+                pointer=self.get_variable(ast.root.leftChild.getValue())
+                self.store+="store ptr %{}, ptr %{}, align 8\n".format(reference,pointer)
         elif isinstance(ast.root, Declaration):
             return self.switch_Literals(ast.root.leftChild, ast.root.rightChild)
         return
@@ -218,7 +246,7 @@ class ToLLVM():
                 self.store += ast.root.value
                 self.store += "\n"
             elif ast.root.type == CommentType.ML:
-                #print("ml comment")
+                # print("ml comment")
                 self.store += ";"
                 for s in ast.root.value:
                     self.store += s
