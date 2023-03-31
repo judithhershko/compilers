@@ -165,10 +165,8 @@ class ToLLVM():
 
             elif v.type == LiteralType.FLOAT:
                 val = input.value
-                print("incoming val:" + str(val))
                 val = self.float_to_64bit_hex(val)
                 val = '0x' + val
-                print("outgoing val:" + str(val))
                 # val = float(val)
                 self.allocate += "; {} {} {} = {}\n".format(const, "float", v.value, input.value)
                 self.allocate += "%{} = alloca float, align 4\n".format(self.add_variable(v.value))
@@ -195,10 +193,8 @@ class ToLLVM():
             val = input.value
             if typpe_ == 'float':
                 val = float(input.value)
-                print("incoming val:" + str(val))
                 val = self.float_to_64bit_hex(val)
                 val = '0x' + val
-                print("outgoing val:" + str(val))
             allign = self.allignment(typpe_)
             self.store += "store {} {}, {}* %{}, align 1\n".format(typpe_, val, typpe_, self.get_variable(v.value))
 
@@ -209,7 +205,6 @@ class ToLLVM():
         if isinstance(ast.root.leftChild, Pointer):
 
             if ast.root.leftChild.declaration:
-                print("declaration:" + str(ast.root.leftChild.getValue()))
                 t_type = self.get_type(ast.root.leftChild)
                 const = ""
                 if ast.root.leftChild.const:
@@ -225,16 +220,13 @@ class ToLLVM():
                 self.store += "store ptr %{}, ptr %{}, align 8\n".format(
                     self.get_variable(ast.root.rightChild.getValue()), self.get_variable(ast.root.leftChild.getValue()))
             elif ast.root.leftChild.getValue() in self.var_dic and str(ast.root.rightChild.getValue())[0].isdigit():
-                print("pointer" + ast.root.leftChild.getValue())
-                print("right val" + str(ast.root.rightChild.getValue()))
+
                 pointer = ast.root.leftChild.getValue()
                 level = self.c_block.getSymbolTable().findSymbol(pointer, True)[2]
                 o_pointer = self.get_variable(str(pointer))
                 for i in range(level):
                     old_pointer = self.get_variable(str(pointer))
                     new_pointer = self.add_variable(str(pointer))
-                    print("old pointer:" + str(old_pointer))
-                    print("new pointer:" + str(new_pointer))
                     self.store += "%{} = load ptr, ptr %{}, align 8\n".format(new_pointer, o_pointer)
                     pointer = self.c_block.getSymbolTable().findSymbol(pointer, True)[0]
                     o_pointer = new_pointer
@@ -242,11 +234,11 @@ class ToLLVM():
                 p_type = self.type_store(self.get_type(ast.root.leftChild))
                 val = ""
                 if str(ast.root.rightChild.getValue())[0].isdigit():
-                    print("if")
+
                     val = ast.root.rightChild.getValue()
                     self.store += "store {} {}, ptr %{}, align 4\n".format(p_type, val, new_pointer)
                 else:
-                    print("else")
+
                     val = self.c_block.getSymbolTable().findSymbol(ast.root.rightChild.getValue())[0]
                 # elf.store += "store {} {}, ptr %{}, align 4\n".format(p_type,val,new_pointer)
             elif not ast.root.leftChild.declaration:
