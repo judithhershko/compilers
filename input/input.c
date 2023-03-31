@@ -5,7 +5,7 @@
 1);
 
 int x = 5;
-float y = 7;
+float y = 7.0;
 char z = 'a';
 int u = 6;
 

@@ -99,6 +99,14 @@ class ToLLVM():
                         to_print = tree.root.value[0]
                     else:
                         to_print = tree.root.value
+                    if len(to_print)>=7 and to_print[1]=="\"":
+                        v=""
+                        for i in to_print:
+                            if i=="\"":
+                                pass
+                            else:
+                                v+=i
+                        to_print=v
                     if self.g_count > 0:
                         var = "."
                         var += str(self.g_count)
