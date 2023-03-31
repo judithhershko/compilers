@@ -38,7 +38,7 @@ chmod 777 run.sh
 - [x] Variables
 - [x] Pointer Operations
 - [x] Constant Propagation
-- [ ] Error analysis
+- [x] Error analysis
   - [x] Syntax Errors
   - [x] Semantic Errors
     - [x] Use of undefined or uninitialized variable
