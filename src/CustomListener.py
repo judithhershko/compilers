@@ -408,7 +408,7 @@ class CustomListener(ExpressionListener):
         ref = self.c_block.getSymbolTable().findSymbol(var)
         if not isinstance(self.dec_op.leftChild,Pointer) and is_ref:
             raise PointerError(var,self.line)
-        if isinstance(self.dec_op.leftChild,Pointer) and self.c_block.getSymbolTable().findSymbol(self.dec_op.leftChild.getValue())is not None:
+        if isinstance(self.dec_op.leftChild,Pointer) and self.c_block.getSymbolTable().findSymbol(self.dec_op.leftChild.getValue())is not None and is_ref:
             raise PointerError(var, self.line)
         try:
             if not ref:
