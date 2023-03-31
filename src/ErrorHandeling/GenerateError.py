@@ -24,8 +24,8 @@ class WrongType(Exception):
         self.line = line
 
     def __str__(self):
-        return "\n\tError in line " + str(self.line) + ": " + str(self.type1) + " and " + str(self.type2) + \
-               " do not match"
+        return "\n\tError in line " + str(self.line) + ": " + str(self.type2) + \
+               " can not be placed in a variable of type " + str(self.type1)
 
 
 class BinaryOp(Exception):
@@ -100,6 +100,16 @@ class Redeclaration(Exception):
                str(self.variable)
 
 
+class PointerRedeclaration(Exception):
+    def __init__(self, var, line):
+        self.variable = var
+        self.line = line
+
+    def __str__(self):
+        return "\n\tError in line " + str(self.line) + ": there is a redeclaration of the pointer " + \
+               str(self.variable)
+
+
 class ResetGlobal(Exception):
     def __init__(self, var, line):
         self.variable = var
@@ -117,6 +127,16 @@ class ResetConst(Exception):
 
     def __str__(self):
         return "\n\tError in line " + str(self.line) + ": there is a reassignment of the const variable " + \
+               str(self.variable)
+
+
+class ResetConstPointer(Exception):
+    def __init__(self, var, line):
+        self.variable = var
+        self.line = line
+
+    def __str__(self):
+        return "\n\tError in line " + str(self.line) + ": there is a reassignment of the const pointer " + \
                str(self.variable)
 
 

@@ -58,11 +58,16 @@ class SymbolTable:
             else:
                 row = self.table.loc[name]
                 if decl:
-                    raise Redeclaration(name, line)
+                    if isinstance(root.getLeftChild(), Value):
+                        raise Redeclaration(name, line)
+                    else:
+                        raise PointerRedeclaration(name, line)
                 elif row["Global"]:
                     raise ResetGlobal(name, line)
-                elif row["Const"]:
+                elif row["Const"] and isinstance(root.getLeftChild(), Value):
                     raise ResetConst(name, line)
+                elif row["Const"] and isinstance(root.getLeftChild(), Pointer) and not root.getRightChild().variable:
+                    raise ResetConstPointer(name, line)
                 elif row["Type"] != symType:
                     raise TypeDeclaration(name, row["Type"], symType, line)
                 elif row["Level"] != level:
@@ -86,6 +91,8 @@ class SymbolTable:
                             temp = self.table.loc[name]
                             if temp["Level"] != 0:
                                 raise WrongPointer(line)
+                            elif temp["Const"]:
+                                raise ResetConst(name, line)
                             self.table.loc[name, ["Value"]] = str(value)
                             return "replaced"
                         else:
@@ -106,9 +113,13 @@ class SymbolTable:
             raise
         except Redeclaration:
             raise
+        except PointerRedeclaration:
+            raise
         except ResetGlobal:
             raise
         except ResetConst:
+            raise
+        except ResetConstPointer:
             raise
         except TypeDeclaration:
             raise

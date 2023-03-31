@@ -445,7 +445,6 @@ class CustomListener(ExpressionListener):
         if type is False:
             print("val is :" + var)
             if self.c_block.getSymbolTable().findSymbol(var) is not None:
-                a=self.c_block.getSymbolTable().findSymbol(var)
                 if self.c_block.getSymbolTable().findSymbol(var)[2]>=1:
                     self.current=Pointer(var,self.c_block.getSymbolTable().findSymbol(var)[1],self.line,self.c_block.getSymbolTable().findSymbol(var)[2],self.parent)
                 else:
