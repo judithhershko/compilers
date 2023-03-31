@@ -1,33 +1,27 @@
+@.str = private unnamed_addr constant [34x i8] c"(909, <LiteralType.FLOAT: 8>, 0)\0A\00", align 1
 ; Function Attrs: noinline nounwind optnone ssp uwtable(sync)
 
 define i32 @main() #0 {
 %1 = alloca i32, align 4
-;  float x = -5.78
+;  float f = 909
 %2 = alloca float, align 4
-;  int zz = 810
-%3 = alloca i32, align 4
-;  int a = 0
+; printf (()
+%3 = call i32 (ptr, ...) @printf(ptr noundef @.str)
+;  int u = 90
 %4 = alloca i32, align 4
-;  int * y = & zz
+;  int * pu = & u
 %5 = alloca ptr, align 8
-;  int * y = & a
+;  int * pu = & u
 %6 = alloca ptr, align 8
-; const float * x_ptr = & x
-%7 = alloca ptr, align 8
 
 store i32 0, ptr %1, align 4
-store float -5.78, float* %2, align 4
-store i32 810, i32* %3, align 4
-store i32 0, i32* %4, align 4
-store ptr %3, ptr %5, align 8
+store float 0X408C68000000000, float* %2, align 4
+store i32 90, i32* %4, align 4
+store ptr %4, ptr %5, align 8
 store ptr %4, ptr %6, align 8
-store ptr %2, ptr %7, align 8
-;//x_ptr = &y;
-
-;//*x_ptr = 62;
-
 
 ret i32 0
 }
 
+declare i32 @printf(ptr noundef, ...) #1
 

@@ -1,4 +1,5 @@
 import ast
+import struct
 
 from src.ast import AST
 from src.ast.SymbolTable import SymbolTable
@@ -51,6 +52,19 @@ class ToLLVM():
             return "float"
         elif type_=="bool":
             return "i8"
+
+    def float_to_hex(self,f):
+        return hex(struct.unpack('<I', struct.pack('<f', f))[0])
+    def float_to_64bit_hex(self,x):
+        bytes_of_x = struct.pack('<d', x)
+        x_as_int = struct.unpack('<Q', bytes_of_x)[0]
+        hex_rep=str(hex(x_as_int)).upper()
+        hex_rep=hex_rep[:-7]
+        #hex_rep='O'+hex_rep[1:]
+        for i in range(0,6):
+            hex_rep+='0'
+        print("hex vak is"+hex_rep)
+        return hex_rep
 
     def get_type(self,v):
         if v.type==LiteralType.INT:
@@ -130,9 +144,11 @@ class ToLLVM():
             self.store += "store i32 {}, i32* %{}, align 4\n".format(input.value, self.get_variable(v.value))
 
         elif v.type == LiteralType.FLOAT:
+            val=input.value
+            val=self.float_to_64bit_hex(val)
             self.allocate += "; {} {} {} = {}\n".format(const, "float", v.value, input.value)
             self.allocate += "%{} = alloca float, align 4\n".format(self.add_variable(v.value))
-            self.store += "store float {}, float* %{}, align 4\n".format(float(input.value),  self.get_variable(v.value))
+            self.store += "store float {}, float* %{}, align 4\n".format(val,  self.get_variable(v.value))
 
         elif v.type == LiteralType.CHAR:
             size = len(input.value)
