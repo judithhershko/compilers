@@ -37,7 +37,6 @@ class SymbolTable:
                         ref = None
                 else:
                     raise LeftSideDeclaration(line)
-            # if (ref is None and level != 0) or
             if (level == 0 and ref is not None):
                 raise WrongPointer(line)
             elif name not in self.table.index:
@@ -72,12 +71,6 @@ class SymbolTable:
                     raise TypeDeclaration(name, row["Type"], symType, line)
                 elif row["Level"] != level:
                     raise PointerLevel(name, row["Level"], level, line)
-                # elif row["Level"] > 0:
-                #     refRow = self.table.loc[ref]
-                #     if refRow["level"] != level - 1:
-                #         return "pointerLevel"
-                #     self.table.loc[name, ["Value"]] = value
-                #     return "replaced"
                 else:
                     if isinstance(root.getLeftChild(), Value):
                         self.table.loc[name, ["Value"]] = str(value)
@@ -131,12 +124,6 @@ class SymbolTable:
     def findSymbol(self, name: str, onlyNext: bool = False):  # , deref: int = 0):
         if name not in self.table.index:
             return None
-        # elif deref == 0:
-        #     return self.table.at[name, "Value"], self.table.at[name, "Type"]
-        # elif deref > 0 and self.table.at[name, "level"] > 0:
-        #     return self.findSymbol(self.table.at[name, "value"], deref=deref - 1)
-        # else:
-        #     return None
         if not onlyNext:
             level = self.table.at[name, "Level"]
             while self.table.at[name, "Level"] > 0:

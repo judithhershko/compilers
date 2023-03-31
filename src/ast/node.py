@@ -352,7 +352,7 @@ class UnaryOperator(AST_node):
             if not (isinstance(self.rightChild, Value) or isinstance(self.rightChild, Pointer)):
                 return self
             elif self.rightChild.getType() not in (
-            LiteralType.BOOL, LiteralType.INT, LiteralType.FLOAT) and self.operator == "!":
+                    LiteralType.BOOL, LiteralType.INT, LiteralType.FLOAT) and self.operator == "!":
                 raise ChildType("unary operator", self.rightChild.getType(), None, self.line)
             else:
                 if self.rightChild.getType() == LiteralType.FLOAT:
@@ -429,8 +429,6 @@ class LogicalOperator(AST_node):
         self.type = type
 
     def setRightChild(self, child):
-        # if self.operator == "!":
-        #     print("! operator can only have a left child", file=sys.stderr)
         self.rightChild = child
 
     def fold(self):
@@ -446,9 +444,6 @@ class LogicalOperator(AST_node):
             self.rightChild = self.rightChild.fold()
 
         leftType = self.leftChild.getType()
-        # if self.operator == "!":
-        #     rightType = leftType
-        # else:
         rightType = self.rightChild.getType()
 
         try:
@@ -481,19 +476,12 @@ class LogicalOperator(AST_node):
                     res = self.leftChild.getValue() != self.rightChild.getValue()
                 else:
                     raise NotSupported("logical operator", self.operator, self.line)
-                # else:
-                #     if self.leftChild.getType() == LiteralType.BOOL:
-                #         res = not self.leftChild.getValue()
-                #     else:
-                #         raise NotOp
 
                 newNode = Value(res, LiteralType.BOOL, self.line, self.parent)
                 return newNode
 
         except LogicalOp:
             raise
-        # except NotOp:
-        #     raise
         except NotSupported:
             raise
 
@@ -709,10 +697,6 @@ class EmptyNode(AST_node):
     def __init__(self, line: int, parent: AST_node = None, type_=None):
         self.value = None
         self.type = type_
-        # if self.type==LiteralType.CHAR:
-        #     self.value=''
-        # else:
-        #     self.value=0
         self.parent = parent
         self.variable = False
         self.const = False
