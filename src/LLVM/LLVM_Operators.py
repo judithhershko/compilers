@@ -48,6 +48,7 @@ class ToLLVM():
         return hex(struct.unpack('<I', struct.pack('<f', f))[0])
 
     def float_to_64bit_hex(self, x):
+        x=float(x)
         bytes_of_x = struct.pack('>f', x)
         x_as_int = struct.unpack('>f', bytes_of_x)[0]
         x_as_double = struct.pack('>d', x_as_int).hex()
