@@ -27,6 +27,8 @@ class CustomListener(ExpressionListener):
         self.bracket_layer = stack()
         self.bracket_count = 0
         self.bracket_start = None
+        self.scope_stack = stack()
+        self.scope_count = 0
         self.nr_pointers = 0
         self.ref_pointers = 0
         self.pointer = False
@@ -80,17 +82,6 @@ class CustomListener(ExpressionListener):
                 self.parent.parent = non_brack
             non_brack.rightChild = self.parent
             self.parent = non_brack
-        """"
-        t=self.check_brackets(non_brack)
-        while t is False:
-            if non_brack.rightChild is not None:
-                non_brack=non_brack.rightChild
-                t=self.check_brackets(non_brack)
-            else:
-                non_brack.parent = self.parent
-                self.parent.leftChild = non_brack
-                t=True
-        """
 
     def descend(self, operator: BinaryOperator):
         operator.parent = self.parent
@@ -141,11 +132,6 @@ class CustomListener(ExpressionListener):
         else:
             var = False
         self.current = Value(ctx.getText(), type_, ctx.start.line, self.parent, variable=var)
-        # if type_ == LiteralType.NUM:
-        #     if isFloat(ctx.getText()):
-        #         self.current = Value(float(ctx.getText()), type_, self.parent)
-        #     else:
-        #         self.current = Value(int(ctx.getText()), type_, self.parent)
         if type_ == LiteralType.INT:
             self.current = Value(int(ctx.getText()), type_, ctx.start.line, self.parent)
         elif type_ == LiteralType.FLOAT:
@@ -282,12 +268,6 @@ class CustomListener(ExpressionListener):
                     operator.leftChild = rc
                     self.parent.parent.rightChild = operator
                     self.parent = operator
-
-            # terug resetten
-            # while self.parent.rightChild is not None and not isinstance(self.parent.rightChild,Value):
-            #    self.parent = self.parent.rightChild
-            # while self.parent.parent is not None:
-            #    self.parent=self.parent.parent
             self.right = True
             self.left = False
 
@@ -298,7 +278,9 @@ class CustomListener(ExpressionListener):
 
     # Exit a parse tree produced by ExpressionParser#start_rule.
     def exitStart_rule(self, ctx: ParserRuleContext):
-        pass
+        if self.c_block.trees is not None:
+            self.program.blocks.append(self.c_block)
+            self.c_block=block(None)
 
     # Enter a parse tree produced by ExpressionParser#print.
     def enterPrint(self, ctx: ParserRuleContext):
@@ -414,10 +396,6 @@ class CustomListener(ExpressionListener):
         if isinstance(self.dec_op.leftChild,
                       Pointer) and not self.is_ref and self.nr_pointers == 0 and not self.dec_op.leftChild.declaration:
             raise PointerError(self.dec_op.leftChild.getValue(), self.line)
-        #        if isinstance(self.dec_op.leftChild,Pointer) and is_ref:
-        #           raise PointerError(var,self.line)
-        # if isinstance(self.dec_op.leftChild,Pointer) and self.c_block.getSymbolTable().findSymbol(self.dec_op.leftChild.getValue())is not None and is_ref:
-        #    raise PointerError(var, self.line)
         try:
             if not ref:
                 raise NotDeclared(var, self.line)
@@ -628,73 +606,6 @@ class CustomListener(ExpressionListener):
             self.current = None
             self.asT = create_tree()
 
-    # Enter a parse tree produced by ExpressionParser#term_1.
-    def enterTerm_1(self, ctx: ParserRuleContext):
-        pass
-
-    # Exit a parse tree produced by ExpressionParser#term_1.
-    def exitTerm_1(self, ctx: ParserRuleContext):
-        pass
-
-    # Enter a parse tree produced by ExpressionParser#term_2.
-    def enterTerm_2(self, ctx: ParserRuleContext):
-        pass
-
-    # Exit a parse tree produced by ExpressionParser#term_2.
-    def exitTerm_2(self, ctx: ParserRuleContext):
-        pass
-
-    # Enter a parse tree produced by ExpressionParser#term_3.
-    def enterTerm_3(self, ctx: ParserRuleContext):
-        pass
-
-    # Exit a parse tree produced by ExpressionParser#term_3.
-    def exitTerm_3(self, ctx: ParserRuleContext):
-        pass
-
-    # Enter a parse tree produced by ExpressionParser#term_4.
-    def enterTerm_4(self, ctx: ParserRuleContext):
-        pass
-
-    # Exit a parse tree produced by ExpressionParser#term_4.
-    def exitTerm_4(self, ctx: ParserRuleContext):
-        pass
-
-    # Enter a parse tree produced by ExpressionParser#term_5.
-    def enterTerm_5(self, ctx: ParserRuleContext):
-        pass
-
-    # Exit a parse tree produced by ExpressionParser#term_5.
-    def exitTerm_5(self, ctx: ParserRuleContext):
-        pass
-
-    # Enter a parse tree produced by ExpressionParser#term_6.
-    def enterTerm_6(self, ctx: ParserRuleContext):
-        pass
-
-    # Exit a parse tree produced by ExpressionParser#term_6.
-    def exitTerm_6(self, ctx: ParserRuleContext):
-        pass
-
-    # Enter a parse tree produced by ExpressionParser#term_7.
-    def enterTerm_7(self, ctx: ParserRuleContext):
-        pass
-
-    # Exit a parse tree produced by ExpressionParser#term_7.
-    def exitTerm_7(self, ctx: ParserRuleContext):
-        pass
-
-    # Enter a parse tree produced by ExpressionParser#fac.
-    def enterFac(self, ctx: ParserRuleContext):
-        # self.set_operation(ctx.getText())
-        # print("fac:" + ctx.getText())
-        # self.set_token(ctx)
-        pass
-
-    # Exit a parse tree produced by ExpressionParser#fac.
-    def exitFac(self, ctx: ParserRuleContext):
-        pass
-
     # Enter a parse tree produced by ExpressionParser#pri.
     def enterPri(self, ctx: ParserRuleContext):
         self.set_val(ctx)
@@ -825,3 +736,86 @@ class CustomListener(ExpressionListener):
     def exitPointers(self, ctx: ParserRuleContext):
         self.pointer = False
         # print("pointers exited")
+
+    # Enter a parse tree produced by ExpressionParser#scope.
+    def enterScope(self, ctx: ParserRuleContext):
+        if self.c_block.trees is None:
+            return
+        self.scope_stack.push(self.c_block)
+        self.c_block=block(None)
+
+    # Exit a parse tree produced by ExpressionParser#scope.
+    def exitScope(self, ctx: ParserRuleContext):
+        if self.c_block.trees is None:
+            return
+        if self.scope_stack.__len__()==0:
+            self.program.blocks.append(self.c_block)
+            self.c_block = block(None)
+        else:
+            sblock=self.scope_stack.pop()
+            sblock.blocks.append(self.c_block)
+            self.c_block=sblock
+
+    # Enter a parse tree produced by ExpressionParser#lrules.
+    def enterLrules(self, ctx: ParserRuleContext):
+        pass
+
+    # Exit a parse tree produced by ExpressionParser#lrules.
+    def exitLrules(self, ctx: ParserRuleContext):
+        pass
+
+    # Enter a parse tree produced by ExpressionParser#lscope.
+    def enterLscope(self, ctx: ParserRuleContext):
+        pass
+
+    # Exit a parse tree produced by ExpressionParser#lscope.
+    def exitLscope(self, ctx: ParserRuleContext):
+        pass
+
+    # Enter a parse tree produced by ExpressionParser#loop.
+    def enterLoop(self, ctx: ParserRuleContext):
+        pass
+
+    # Exit a parse tree produced by ExpressionParser#loop.
+    def exitLoop(self, ctx: ParserRuleContext):
+        pass
+
+    # Enter a parse tree produced by ExpressionParser#while.
+    def enterWhile(self, ctx: ParserRuleContext):
+        pass
+
+    # Exit a parse tree produced by ExpressionParser#while.
+    def exitWhile(self, ctx: ParserRuleContext):
+        pass
+
+    # Enter a parse tree produced by ExpressionParser#for.
+    def enterFor(self, ctx: ParserRuleContext):
+        pass
+
+    # Exit a parse tree produced by ExpressionParser#for.
+    def exitFor(self, ctx: ParserRuleContext):
+        pass
+
+    # Enter a parse tree produced by ExpressionParser#if.
+    def enterIf(self, ctx: ParserRuleContext):
+        pass
+
+    # Exit a parse tree produced by ExpressionParser#if.
+    def exitIf(self, ctx: ParserRuleContext):
+        pass
+
+    # Enter a parse tree produced by ExpressionParser#break.
+    def enterBreak(self, ctx: ParserRuleContext):
+        pass
+
+    # Exit a parse tree produced by ExpressionParser#break.
+    def exitBreak(self, ctx: ParserRuleContext):
+        pass
+
+    # Enter a parse tree produced by ExpressionParser#continue.
+    def enterContinue(self, ctx: ParserRuleContext):
+        pass
+
+    # Exit a parse tree produced by ExpressionParser#continue.
+    def exitContinue(self, ctx: ParserRuleContext):
+        pass
