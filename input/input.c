@@ -16,6 +16,12 @@ float y = 7.0;
 char z = 'a';
 int u = 6;
 
+while(u<8)
+{
+u=u+1;
+printf(z);
+}
+
 int *xx = &x;
 int **xxx = &xx;
 

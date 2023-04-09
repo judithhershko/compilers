@@ -8,7 +8,7 @@ comments: ML_COMMENT | SL_COMMENT;
 typed_var: INT| DOUBLE | FLOAT |CHAR | BOOL;
 
 scope : '{' start_rule '}' ;
-lrules: '{' print ';' |expr ';' |dec ';' |comments |line |loop |break |continue | lscope'}' ;
+lrules: (print ';' |expr ';' |dec ';' |comments |line |loop |break |continue | lscope)*;
 lscope: '{' lrules '}' ;
 loop  : while | for | if;
 while : WHILE '(' expr ')' lscope;

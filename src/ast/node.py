@@ -322,6 +322,7 @@ class UnaryOperator(AST_node):
         self.operator = oper
         self.parent = parent
         self.line = line
+        self.value=self.operator
 
     def __eq__(self, other):
         if not isinstance(other, UnaryOperator):
@@ -728,12 +729,42 @@ class EmptyNode(AST_node):
         return []
 
 
+class For(AST_node):
+    f_dec = None
+    Condition = None
+    f_incr = None
+    c_block = None
+
+    def __init__(self, line):
+        self.line = line
+
+
+class If(AST_node):
+    Condition = None
+    c_block = None
+    """
+    if(){}
+    if (){} else{}
+    if (){} else if(){}
+    if (){} ele if(){} else if(){}...
+    if (){} ele if(){} else if(){}... else {}
+    """
+
+    def __init__(self, line):
+        self.line = line
+
+
 class While(AST_node):
+    Condition = None
+    c_block = None
     """
     child condition
     child block: scope --> special node (multiple children)--> callable seperate from condition
     """
-    def __init__(self):
+
+    def __init__(self, line, parent):
+        self.line = line
+        self.parent = parent
         """
         condition--> tree--> fold--> bool
         block (scope) ; store value in block of condition
