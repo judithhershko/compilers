@@ -66,3 +66,48 @@ chmod 777 run.sh
 - [x]  retaining the comments from the input code during compilation
 - [x]  retaining comment that contains the original statement from the input code
 
+## project 4:
+
+### verplicht:
+
+- [ ] Conditional statements
+  - [ ] if else 
+- [ ]  Loops.
+  - [ ] while
+    - [ ] for
+    - [ ] break 
+    - [ ] continue
+- [ ] scopes 
+
+### optioneel:
+
+- [ ] switch statements
+
+## project 5:
+
+### verplicht:
+
+- [ ]  Function scopes
+- [ ] Local and global variables
+- [ ] Functions
+  - [ ] Defining functions (including forward declarations)
+  - [ ] Calling functions.
+  - [ ] Passing parameters of basic types and pointer types
+  - [ ] Returning values using the return keyword
+  - [ ] Functions that return nothing
+
+## project 6:
+
+### verplicht:
+
+- [ ]  Arrays
+  - [ ] operations array elements
+- [ ]  Including stdio.h
+
+### optioneel:
+- [ ] multi-dimensional arrays
+- [ ] assignments of complete arrays or array rows in case of multi-dimensional arrays.
+- [ ] dynamic arrays
+
+
+

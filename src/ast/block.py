@@ -12,6 +12,7 @@ class block:
         self.parent = parent
         self.blocks = []
         self.trees = []
+        # self.id=''
 
     def getSymbolTable(self):
         return self.symbols

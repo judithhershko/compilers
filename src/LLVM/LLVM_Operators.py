@@ -48,11 +48,12 @@ class ToLLVM():
         return hex(struct.unpack('<I', struct.pack('<f', f))[0])
 
     def float_to_64bit_hex(self, x):
+        if isinstance(x,str):
+            x=float(x)
         bytes_of_x = struct.pack('>f', x)
         x_as_int = struct.unpack('>f', bytes_of_x)[0]
         x_as_double = struct.pack('>d', x_as_int).hex()
-        hex_rep = str(x_as_double).upper()
-        # print("hex vak is" + hex_rep)
+        x_as_double = '0x' + x_as_double
         return x_as_double
 
     def get_type(self, v):
@@ -164,10 +165,7 @@ class ToLLVM():
                 self.store += "store i32 {}, i32* %{}, align 4\n".format(input.value, self.get_variable(v.value))
 
             elif v.type == LiteralType.FLOAT:
-                val = input.value
-                val = self.float_to_64bit_hex(val)
-                val = '0x' + val
-                # val = float(val)
+                val = self.float_to_64bit_hex(input.value)
                 self.allocate += "; {} {} {} = {}\n".format(const, "float", v.value, input.value)
                 self.allocate += "%{} = alloca float, align 4\n".format(self.add_variable(v.value))
                 self.store += "store float {}, float* %{}, align 4\n".format(val, self.get_variable(v.value))
@@ -189,12 +187,9 @@ class ToLLVM():
                 self.store += "store i8 {}, i8* %{}, align 1\n".format(bval, self.get_variable(v.value))
         else:
             typpe_ = self.type_store(self.get_type(v))
-            var = self.get_variable(v.value)
             val = input.value
             if typpe_ == 'float':
-                val = float(input.value)
-                val = self.float_to_64bit_hex(val)
-                val = '0x' + val
+                val = self.float_to_64bit_hex(input.value)
             allign = self.allignment(typpe_)
             self.store += "store {} {}, {}* %{}, align 1\n".format(typpe_, val, typpe_, self.get_variable(v.value))
 

@@ -5,6 +5,9 @@ from src.ast.node import *
 
 class SymbolTable:
     def __init__(self):
+        """
+        position meegeven,
+        """
         self.table = pd.DataFrame({"Value": pd.Series(dtype=str),
                                    "Type": pd.Series(dtype=str),
                                    "Const": pd.Series(dtype=bool),

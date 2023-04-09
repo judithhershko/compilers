@@ -1,11 +1,21 @@
 grammar Expression;
 
-start_rule: (print ';'|expr ';'|dec ';'|comments|line)*;
+start_rule: (print ';'|expr ';'|dec ';'|comments|line|loop|scope)*;
 
 line:NLINE;
 print   : PRINT LBRAK (char_pri | pri) RBRAK ;
 comments: ML_COMMENT | SL_COMMENT;
 typed_var: INT| DOUBLE | FLOAT |CHAR | BOOL;
+
+scope : '{' start_rule '}' ;
+lrules: '{' print ';' |expr ';' |dec ';' |comments |line |loop |break |continue | lscope'}' ;
+lscope: '{' lrules '}' ;
+loop  : while | for | if;
+while : WHILE '(' expr ')' lscope;
+for   : FOR LBRAK dec ';' expr ';' expr ';' RBRAK lscope ;
+if    : IF LBRAK expr RBRAK lscope |  ELSE  lscope | ELSE IF  LBRAK expr RBRAK lscope;
+break : BREAK ';';
+continue: CONTINUE ';';
 
 const : CONST;
 pointer:MULT;
@@ -47,6 +57,12 @@ REF     : '&'       ;
 PRINT   : 'printf'  ;
 
 PT   : '.' ;
+WHILE:'while';
+FOR  :'for' ;
+IF   : 'if' ;
+ELSE : 'else';
+BREAK: 'break';
+CONTINUE: 'continue';
 MULT : '*' ;
 NUM  : [0-9]+ ;
 ID   : [a-zA-Z_][a-zA-Z_0-9]*;
