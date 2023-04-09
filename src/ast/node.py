@@ -322,7 +322,7 @@ class UnaryOperator(AST_node):
         self.operator = oper
         self.parent = parent
         self.line = line
-        self.value=self.operator
+        self.value = self.operator
 
     def __eq__(self, other):
         if not isinstance(other, UnaryOperator):
@@ -750,8 +750,9 @@ class If(AST_node):
     if (){} ele if(){} else if(){}... else {}
     """
 
-    def __init__(self, line):
+    def __init__(self, line, operator='if'):
         self.line = line
+        self.operator = operator
 
 
 class While(AST_node):
