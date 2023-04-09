@@ -494,7 +494,7 @@ class LogicalOperator(AST_node):
 
     def replaceVariables(self, values):
         self.leftChild.replaceVariables(values)
-        self.rightChild.replaceVaribles(values)
+        self.rightChild.replaceVariables(values)
 
 
 class Declaration(AST_node):
