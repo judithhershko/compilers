@@ -603,27 +603,32 @@ class CustomListener(ExpressionListener):
     def exitExpr(self, ctx: ParserRuleContext):
         self.expr_layer -= 1
         print("exit expression:" + ctx.getText() + "with layer " + str(self.expr_layer))
-        if (isinstance(self.loop, While) or isinstance(self.loop,For)) and self.loop.Condition is None and self.expr_layer == 2:
+        """
+        if (isinstance(self.loop, While) or isinstance(self.loop,For)) and self.loop.Condition is None and self.expr_layer == 0:
             while self.current.parent is not None:
                 self.current = self.current.parent
             self.loop.Condition = self.current
             self.current = None
             self.parent = None
+        """
         # (isinstance(self.loop, While) and self.loop.c_block is None and self.expr_layer==2)
-        elif not self.declaration and self.expr_layer == 0:
+        if not self.declaration and self.expr_layer == 0:
             self.set_bracket()
             while self.current.parent is not None:
                 self.current = self.current.parent
             self.asT.setRoot(self.current)
-            # self.c_block.trees.append(self.asT)
-            self.trees.append(self.asT)
-            self.asT.setNodeIds(self.asT.root)
-            self.asT.generateDot(self.pathName + str(self.counter) + ".dot")
-            self.c_block.fillLiterals(self.asT)
-            self.asT.foldTree()
-            self.asT.setNodeIds(self.asT.root)
-            self.asT.generateDot(self.pathName + str(self.counter) + ".dot")
-            self.c_block.trees.append(self.asT)
+            if self.is_loop and self.loop.Condition is None:
+                self.loop.Condition=self.asT
+            else:
+                # self.c_block.trees.append(self.asT)
+                self.trees.append(self.asT)
+                self.asT.setNodeIds(self.asT.root)
+                self.asT.generateDot(self.pathName + str(self.counter) + ".dot")
+                self.c_block.fillLiterals(self.asT)
+                self.asT.foldTree()
+                self.asT.setNodeIds(self.asT.root)
+                self.asT.generateDot(self.pathName + str(self.counter) + ".dot")
+                self.c_block.trees.append(self.asT)
             self.counter += 1
             self.parent = None
             self.current = None
