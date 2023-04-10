@@ -1,8 +1,7 @@
-from .SymbolTable import *
-from .AST import *
+from .SymbolTable import SymbolTable
 from src.ErrorHandeling.GenerateError import *
-from .block import *
-import sys
+from .block import block
+from .AST import AST
 
 
 class program:

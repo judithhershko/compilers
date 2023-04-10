@@ -1,17 +1,16 @@
-import enum
-import sys
+from enum import Enum
 from src.ErrorHandeling.GenerateError import *
 
 types = \
     {"double": 4, "int": 5, "char": 6, "bool": 7, "string": 2, "float": 8, "pointer": 9, "nr": 1, "var": 3};
 
 
-class CommentType(enum.Enum):
+class CommentType(Enum):
     ML = 0
     SL = 1
 
 
-class LiteralType(enum.Enum):
+class LiteralType(Enum):
     NUM = 1
     STR = 2
     VAR = 3

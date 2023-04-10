@@ -1,9 +1,10 @@
-import sys
-from src.ast import Program
-from src.ast.AST import AST
-from src.ast.SymbolTable import *
+from src.ast.SymbolTable import SymbolTable
 from src.ErrorHandeling.GenerateError import *
+from .AST import AST
 
+
+class program:
+    pass
 
 class block:
     def __init__(self, parent,name=""):
@@ -43,7 +44,7 @@ class block:
                 notFound.append(elem)
 
         current = self
-        while not isinstance(current, Program.program) and notFound:
+        while not isinstance(current, program) and notFound:
             current = self.getParent()
             variables = notFound
             notFound = []

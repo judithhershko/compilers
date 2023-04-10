@@ -1,5 +1,9 @@
-from . import node
+#from .node import AST_node, Value, BinaryOperator, UnaryOperator, LogicalOperator, Declaration, Scope
+from .node import *
 
+
+class Scope:
+    pass
 
 class AST:
     root = None
@@ -9,10 +13,10 @@ class AST:
             return False
         return self.root == other.root
 
-    def setRoot(self, root: node.AST_node):
+    def setRoot(self, root: AST_node):
         self.root = root
 
-    def setNodeIds(self, nextNode: node.AST_node, level: int = 0, number: int = 0):
+    def setNodeIds(self, nextNode: AST_node, level: int = 0, number: int = 0):
         """
         This function will give all nodes, in the tree given by its root, its own id and the level in the tree it is at
         :param nextNode: AST_node type containing the root of the AST
@@ -23,12 +27,15 @@ class AST:
         """
         nextNode.setNumber(number)
         nextNode.setLevel(level)
-        if isinstance(nextNode, node.BinaryOperator) or isinstance(nextNode, node.LogicalOperator) or \
-                isinstance(nextNode, node.Declaration):
+        if isinstance(nextNode, BinaryOperator) or isinstance(nextNode, LogicalOperator) or \
+                isinstance(nextNode, Declaration):
             number = self.setNodeIds(nextNode.leftChild, level + 1, number + 1)
             number = self.setNodeIds(nextNode.rightChild, level + 1, number + 1)
-        elif isinstance(nextNode, node.UnaryOperator):
+        elif isinstance(nextNode, UnaryOperator):
             number = self.setNodeIds(nextNode.rightChild, level + 1, number + 1)
+        elif isinstance(nextNode, Scope):
+            for tree in nextNode.trees:
+                number = tree.setNodeIds(tree.root, level+1, number+1)
 
         return number
 
@@ -41,8 +48,8 @@ class AST:
         nodes = self.root.getId() + " [label=" + self.root.getLabel() + "]"
         edges = ""
 
-        if isinstance(self.root, node.BinaryOperator) or isinstance(self.root, node.LogicalOperator) or \
-                isinstance(self.root, node.Declaration):
+        if isinstance(self.root, BinaryOperator) or isinstance(self.root, LogicalOperator) or \
+                isinstance(self.root, Declaration):
             edges = self.root.getId() + "--" + self.root.leftChild.getId() + "\n" + self.root.getId() + "--" + \
                     self.root.rightChild.getId()
             res = self.toDot(self.root.leftChild)
@@ -51,11 +58,18 @@ class AST:
             res = self.toDot(self.root.rightChild)
             nodes = nodes + res[0]
             edges = edges + res[1]
-        elif isinstance(self.root, node.UnaryOperator):
+        elif isinstance(self.root, UnaryOperator):
             edges = self.root.getId() + "--" + self.root.value.getId()
             res = self.toDot(self.root.value)
             nodes = nodes + res[0]
             edges = edges + res[1]
+        elif isinstance(self.root, Scope):
+            for tree in self.root.trees:
+                edges = edges + "--" + tree.root.getId()
+                res = self.toDot(tree.root.value)
+                nodes = nodes + res[0]
+                edges = edges + res[1]
+            #edges = edges[:-2]
 
         output = "graph ast {\n" + nodes + "\n\n" + edges + "\n}"
         file = open(fileName, "w")
@@ -63,7 +77,7 @@ class AST:
         file.close()
         return output
 
-    def toDot(self, root: node.AST_node):
+    def toDot(self, root: AST_node):
         """
         This function transforms the AST, given by its root, to the dot language
         :param root: the root of the AST that needs to be changed to a dot representation
@@ -72,8 +86,8 @@ class AST:
         nodes = "\n" + root.getId() + " [label=" + root.getLabel() + "]"
         edges = ""
 
-        if isinstance(root, node.BinaryOperator) or isinstance(root, node.LogicalOperator) or \
-                isinstance(root, node.Declaration):
+        if isinstance(root, BinaryOperator) or isinstance(root, LogicalOperator) or \
+                isinstance(root, Declaration):
             edges = "\n" + root.getId() + "--" + root.leftChild.getId() + "\n" + root.getId() + "--" + \
                     root.rightChild.getId()
             res = self.toDot(root.leftChild)
@@ -82,11 +96,17 @@ class AST:
             res = self.toDot(root.rightChild)
             nodes = nodes + res[0]
             edges = edges + res[1]
-        elif isinstance(root, node.UnaryOperator):
+        elif isinstance(root, UnaryOperator):
             edges = "\n" + root.getId() + "--" + root.rightChild.getId()
             res = self.toDot(root.rightChild)
             nodes = nodes + res[0]
             edges = edges + res[1]
+        elif isinstance(self.root, Scope):
+            for tree in self.root.trees:
+                edges = edges + "--" + tree.root.getId()
+                res = self.toDot(tree.root.value)
+                nodes = nodes + res[0]
+                edges = edges + res[1]
 
         return nodes, edges
 
@@ -94,7 +114,7 @@ class AST:
         """
         This function tries to reduce the size of the tree as much as possible
         """
-        if not isinstance(self.root, node.Value):
+        if not isinstance(self.root, Value):
             self.root = self.root.fold()
 
     def getVariables(self):
