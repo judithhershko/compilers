@@ -473,11 +473,11 @@ class nodeTestCase(unittest.TestCase):
 
         expected = Scope(1)
         temp = Scope(2)
-        expected.addTree(Value("94", LiteralType.INT, 1))
-        expected.addTree(Value("94", LiteralType.INT, 1))
-        temp.addTree(Value("94", LiteralType.INT, 1))
-        temp.addTree(Value("94", LiteralType.INT, 1))
-        temp.addTree(Value("94", LiteralType.INT, 1))
+        expected.addTree(Value("94.0", LiteralType.FLOAT, 1))
+        expected.addTree(Value("94.0", LiteralType.FLOAT, 1))
+        temp.addTree(Value("94.0", LiteralType.FLOAT, 1))
+        temp.addTree(Value("94.0", LiteralType.FLOAT, 1))
+        temp.addTree(Value("94.0", LiteralType.FLOAT, 1))
         expected.addTree(temp)
 
         tree = AST()

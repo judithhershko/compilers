@@ -25,6 +25,20 @@ class LiteralType(Enum):
         return self.name
 
 
+class ConditionType(Enum):
+    IF = 0
+    ELIF = 1
+    ELSE = 2
+
+    def __str__(self):
+        if self.value == 0:
+            return "if"
+        elif self.value == 1:
+            return "else if"
+        else:
+            return "else"
+
+
 class AST_node:
     number = None
     level = None
@@ -738,7 +752,11 @@ class Scope(AST_node):
     def __eq__(self, other):
         if not isinstance(other, Scope):
             return False
-        return self.parent == other.parent and self.line == other.line
+        same = True
+        for i in range(len(self.trees)):
+            if self.trees[i] != other.trees[i]:
+                same = False
+        return self.parent == other.parent and self.line == other.line and same
 
     def addTree(self, ast: AST_node):
         self.trees.append(ast)
@@ -784,7 +802,7 @@ class If(AST_node):
     if (){} ele if(){} else if(){}... else {}
     """
 
-    def __init__(self, line, operator='if'):
+    def __init__(self, line, operator: ConditionType = ConditionType.IF):
         self.line = line
         self.operator = operator
 
