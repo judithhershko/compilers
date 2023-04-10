@@ -73,11 +73,12 @@ chmod 777 run.sh
 - [ ] Conditional statements
   - [ ] if else 
 - [ ]  Loops.
-  - [ ] while
-    - [ ] for
-    - [ ] break 
-    - [ ] continue
+  -[ ] while
+  - [ ] for
+  - [ ] break 
+  - [ ] continue
 - [ ] scopes 
+- [ ] to llvm 
 
 ### optioneel:
 
@@ -95,7 +96,7 @@ chmod 777 run.sh
   - [ ] Passing parameters of basic types and pointer types
   - [ ] Returning values using the return keyword
   - [ ] Functions that return nothing
-
+- [ ] to llvm 
 ## project 6:
 
 ### verplicht:
@@ -103,7 +104,7 @@ chmod 777 run.sh
 - [ ]  Arrays
   - [ ] operations array elements
 - [ ]  Including stdio.h
-
+- [ ] to llvm 
 ### optioneel:
 - [ ] multi-dimensional arrays
 - [ ] assignments of complete arrays or array rows in case of multi-dimensional arrays.

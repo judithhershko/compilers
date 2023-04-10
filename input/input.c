@@ -1,9 +1,16 @@
 int u=0;
-for(int i=0;i<10;i=i+1)
-{
-    printf(i);
-    i=i+1;
-}
 
+if (u>0)
+{
+printf(u);
+}
+else if(u<0)
+{
+u=u+1;}
+else
+{
+u=u-1;}
+int w=0;
+w=w+1;
 
 

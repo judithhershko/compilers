@@ -293,7 +293,7 @@ class CustomListener(ExpressionListener):
 
     # Enter a parse tree produced by ExpressionParser#typed_var.
     def enterTyped_var(self, ctx: ParserRuleContext):
-        self.parent.leftChild.type = find_type(ctx.getText())
+        self.parent.leftChild.type = getType(ctx.getText())
         v = self.parent.leftChild.getValue()
         v = v[len(ctx.getText()):]
         self.parent.leftChild.setValue(v)
@@ -614,10 +614,8 @@ class CustomListener(ExpressionListener):
         """
         # (isinstance(self.loop, While) and self.loop.c_block is None and self.expr_layer==2)
         if self.declaration is False and isinstance(self.loop,For) and self.expr_layer == 0 and self.loop.Condition is None and self.loop.f_dec is not None:
-            print("fill condition")
             self.loop.Condition = self.parent
         elif not self.declaration and isinstance(self.loop,For) and self.expr_layer == 0 and self.loop.Condition is not None and self.loop.f_dec is not None and self.loop.f_incr is None:
-            print("fill increment")
             self.loop.f_incr = self.parent
         elif not self.declaration and self.expr_layer == 0:
             self.set_bracket()
@@ -626,6 +624,7 @@ class CustomListener(ExpressionListener):
             self.asT.setRoot(self.current)
             if self.is_loop and self.loop.Condition is None:
                 self.loop.Condition=self.asT
+                print("fill condition")
             else:
                 # self.c_block.trees.append(self.asT)
                 self.trees.append(self.asT)
@@ -808,7 +807,7 @@ class CustomListener(ExpressionListener):
 
     # Exit a parse tree produced by ExpressionParser#lscope.
     def exitLscope(self, ctx: ParserRuleContext):
-        if isinstance(self.loop, While) or isinstance(self.loop,For):
+        if isinstance(self.loop, While) or isinstance(self.loop,For) or isinstance(self.loop,If):
             self.loop.c_block = self.c_block
             self.c_block = block(None)
         # todo append a block not loop?
@@ -848,7 +847,8 @@ class CustomListener(ExpressionListener):
 
     # Enter a parse tree produced by ExpressionParser#if.
     def enterIf(self, ctx: ParserRuleContext):
-        pass
+        self.loop = If(line=ctx.start.line,operator=getIftype(ctx.getText()))
+        self.current = self.loop.Condition
 
     # Exit a parse tree produced by ExpressionParser#if.
     def exitIf(self, ctx: ParserRuleContext):
