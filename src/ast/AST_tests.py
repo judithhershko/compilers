@@ -148,59 +148,59 @@ class nodeTestCase(unittest.TestCase):
         # First element
         var1 = Value("x", LiteralType.INT, 1, None, True, False, True)
         val1 = Value("5", LiteralType.INT, 1, None, False, False, True)
-        dec1 =  Declaration(var1, 1)
+        dec1 = Declaration(var1, 1)
         dec1.setRightChild(val1)
         a = val.addSymbol(dec1, True)
         # Second element
         var2 = Value("y", LiteralType.INT, 1, None, True, True, True)
         val2 = Value("22", LiteralType.INT, 1, None, False, True, True)
-        dec2 =  Declaration(var2, 1)
+        dec2 = Declaration(var2, 1)
         dec2.setRightChild(val2)
         b = val.addSymbol(dec2, False)
         # Third element
         var3 = Value("z", LiteralType.INT, 1, None, True, False, True)
         val3 = Value("-78", LiteralType.INT, 1, None, False, False, True)
-        dec3 =  Declaration(var3, 1)
+        dec3 = Declaration(var3, 1)
         dec3.setRightChild(val3)
         c = val.addSymbol(dec3, False)
         # resubmit first
         var4 = Value("x", LiteralType.INT, 1, None, True, True, False)
         val4 = Value("6", LiteralType.INT, 1, None, False, True, False)
-        dec4 =  Declaration(var4, 1)
+        dec4 = Declaration(var4, 1)
         dec4.setRightChild(val4)
         with self.assertRaises(Exception) as except1:
             val.addSymbol(dec4, True)
         # resubmit second
         var5 = Value("y", LiteralType.INT, 1, None, True, False, False)
         val5 = Value("23", LiteralType.INT, 1, None, False, False, False)
-        dec5 =  Declaration(var5, 1)
+        dec5 = Declaration(var5, 1)
         dec5.setRightChild(val5)
         with self.assertRaises(Exception) as except2:
             val.addSymbol(dec5, False)
         # resubmit third
         var6 = Value("z", LiteralType.INT, 1, None, True, False, True)
         val6 = Value("-79", LiteralType.INT, 1, None, False, False, True)
-        dec6 =  Declaration(var6, 1)
+        dec6 = Declaration(var6, 1)
         dec6.setRightChild(val6)
         with self.assertRaises(Exception) as except3:
             val.addSymbol(dec3, False)
         # resubmit third (no decl)
         var7 = Value("z", LiteralType.INT, 1, None, True, False, False)
         val7 = Value("-79", LiteralType.INT, 1, None, False, False, False)
-        dec7 =  Declaration(var7, 1)
+        dec7 = Declaration(var7, 1)
         dec7.setRightChild(val7)
         d = val.addSymbol(dec7, False)
         # resubmit third (wrong type)
         var8 = Value("z", LiteralType.FLOAT, 1, None, True, False, False)
         val8 = Value("-80", LiteralType.FLOAT, 1, None, False, False, False)
-        dec8 =  Declaration(var8, 1)
+        dec8 = Declaration(var8, 1)
         dec8.setRightChild(val8)
         with self.assertRaises(Exception) as except4:
             val.addSymbol(dec8, False)
         # not defined yet
         var9 = Value("s", LiteralType.FLOAT, 1, None, True, False, False)
         val9 = Value("-80.2", LiteralType.FLOAT, 1, None, False, False, False)
-        dec9 =  Declaration(var9, 1)
+        dec9 = Declaration(var9, 1)
         dec9.setRightChild(val9)
         with self.assertRaises(Exception) as except5:
             val.addSymbol(dec9, False)
@@ -254,25 +254,25 @@ class nodeTestCase(unittest.TestCase):
         # First element
         var1 = Value("x", LiteralType.STR, 1, None, True, False, True)
         val1 = Value("5", LiteralType.STR, 1, None, False, False, True)
-        dec1 =  Declaration(var1, 1)
+        dec1 = Declaration(var1, 1)
         dec1.setRightChild(val1)
         val.addSymbol(dec1, True)
         # Second element
         var2 = Value("y", LiteralType.INT, 1, None, True, False, True)
         val2 = Value("22", LiteralType.INT, 1, None, False, False, True)
-        dec2 =  Declaration(var2, 1)
+        dec2 = Declaration(var2, 1)
         dec2.setRightChild(val2)
         val.addSymbol(dec2, True)
         # Third element
         var3 = Value("z", LiteralType.FLOAT, 1, None, True, False, True)
         val3 = Value("-78.0", LiteralType.FLOAT, 1, None, False, False, True)
-        dec3 =  Declaration(var3, 1)
+        dec3 = Declaration(var3, 1)
         dec3.setRightChild(val3)
         val.addSymbol(dec3, True)
         # resubmit first
         var4 = Value("w", LiteralType.INT, 1, None, True, True, True)
         val4 = Value("2", LiteralType.INT, 1, None, False, True, True)
-        dec4 =  Declaration(var4, 1)
+        dec4 = Declaration(var4, 1)
         dec4.setRightChild(val4)
         val.addSymbol(dec4, True)
 
@@ -326,22 +326,22 @@ class nodeTestCase(unittest.TestCase):
         # First element
         var1 = Value("x", LiteralType.INT, 1, None, True, False, True)
         val1 = Value("5", LiteralType.INT, 1, None, False, False, True)
-        dec1 =  Declaration(var1, 1)
+        dec1 = Declaration(var1, 1)
         dec1.setRightChild(val1)
         # Second element
         var2 = Value("y", LiteralType.INT, 1, None, True, False, True)
         val2 = Value("22", LiteralType.INT, 1, None, False, False, True)
-        dec2 =  Declaration(var2, 1)
+        dec2 = Declaration(var2, 1)
         dec2.setRightChild(val2)
         # Third element
         var3 = Value("z", LiteralType.FLOAT, 1, None, True, False, True)
         val3 = Value("-78.0", LiteralType.FLOAT, 1, None, False, False, True)
-        dec3 =  Declaration(var3, 1)
+        dec3 = Declaration(var3, 1)
         dec3.setRightChild(val3)
         # resubmit first
         var4 = Value("w", LiteralType.INT, 1, None, True, True, True)
         val4 = Value("2", LiteralType.INT, 1, None, False, True, True)
-        dec4 =  Declaration(var4, 1)
+        dec4 = Declaration(var4, 1)
         dec4.setRightChild(val4)
 
         val = prog.getSymbolTable()

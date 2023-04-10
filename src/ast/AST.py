@@ -1,5 +1,8 @@
-#from .node import AST_node, Value, BinaryOperator, UnaryOperator, LogicalOperator, Declaration, Scope
 from .node import *
+
+
+class block:
+    pass
 
 
 class AST:
@@ -32,7 +35,16 @@ class AST:
             number = self.setNodeIds(nextNode.rightChild, level + 1, number + 1)
         elif isinstance(nextNode, Scope):
             for tree in nextNode.trees:
-                number = self.setNodeIds(tree, level+1, number+1)
+                number = self.setNodeIds(tree, level + 1, number + 1)
+        elif isinstance(nextNode, If):
+            number = self.setNodeIds(nextNode.Condition, level + 1, number + 1)
+            number = self.setNodeIds(nextNode.c_block, level + 1, number + 1)
+        elif isinstance(nextNode, block):
+            number = self.setNodeIds(nextNode.getAst().root, level + 1, number + 1)
+            for tree in nextNode.trees:
+                number = self.setNodeIds(tree.root, level + 1, number + 1)
+            for localBlock in nextNode.blocks:
+                number = self.setNodeIds(localBlock, level + 1, number + 1)
 
         return number
 
@@ -66,7 +78,12 @@ class AST:
                 res = self.toDot(tree)
                 nodes = nodes + res[0]
                 edges = edges + res[1]
-            #edges = edges[:-2]
+        elif isinstance(self.root, If):
+            edges = self.root.getId() + "--" + self.root.Condition.getId() + "\n" + self.root.getId() + "--" + \
+                    self.root.c_block.getId()
+            res = self.toDot(self.root.c_block)
+            nodes = nodes + res[0]
+            edges = edges + res[1]
 
         output = "graph ast {\n" + nodes + "\n\n" + edges + "\n}"
         file = open(fileName, "w")
@@ -74,7 +91,7 @@ class AST:
         file.close()
         return output
 
-    def toDot(self, root: AST_node):
+    def toDot(self, root):
         """
         This function transforms the AST, given by its root, to the dot language
         :param root: the root of the AST that needs to be changed to a dot representation
@@ -83,7 +100,22 @@ class AST:
         nodes = "\n" + root.getId() + " [label=" + root.getLabel() + "]"
         edges = ""
 
-        if isinstance(root, BinaryOperator) or isinstance(root, LogicalOperator) or \
+        if isinstance(root, block):
+            edges = "\n" + root.getId() + "--" + root.getAst().root.getId()
+            res = self.toDot(root.getAst().root)
+            nodes = nodes + res[0]
+            edges = edges + res[1]
+            for tree in root.trees:
+                edges = "\n" + root.getId() + "--" + tree.root.getId()
+                res = self.toDot(tree.root)
+                nodes = nodes + res[0]
+                edges = edges + res[1]
+            for localBlock in root.blocks:
+                edges = "\n" + root.getId() + "--" + localBlock.getId()
+                res = self.toDot(localBlock)
+                nodes = nodes + res[0]
+                edges = edges + res[1]
+        elif isinstance(root, BinaryOperator) or isinstance(root, LogicalOperator) or \
                 isinstance(root, Declaration):
             edges = "\n" + root.getId() + "--" + root.leftChild.getId() + "\n" + root.getId() + "--" + \
                     root.rightChild.getId()
