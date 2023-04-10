@@ -6,13 +6,14 @@ from src.ErrorHandeling.GenerateError import *
 
 
 class block:
-    def __init__(self, parent):
+    def __init__(self, parent,name=""):
         self.symbols = SymbolTable()
         self.ast = AST()
         self.parent = parent
         self.blocks = []
         self.trees = []
-        # self.id=''
+        self.fname=name
+        self.id=''
 
     def getSymbolTable(self):
         return self.symbols

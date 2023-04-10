@@ -1,13 +1,14 @@
 grammar Expression;
 
-start_rule: (print ';'|expr ';'|dec ';'|comments|line|loop|scope)*;
+start_rule: (print ';'|expr ';'|dec ';'|comments|line|loop|scope (';')?)*;
 
 line:NLINE;
 print   : PRINT LBRAK (char_pri | pri) RBRAK ;
 comments: ML_COMMENT | SL_COMMENT;
 typed_var: INT| DOUBLE | FLOAT |CHAR | BOOL;
 
-scope : '{' start_rule '}' ;
+scope : '{' rule '}' (';')?;
+rule  : (print ';'|expr ';'|dec ';'|comments|line|loop|scope)*;
 lrules: (print ';' |expr ';' |dec ';' |comments |line |loop |break |continue | lscope)*;
 lscope: '{' lrules '}' ;
 loop  : while | for | if;

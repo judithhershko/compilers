@@ -1,5 +1,18 @@
 int u=0;
+    {
+    int scope =1;
+    }
 
+{
+int scope=2
+;
+{
+int scope=21;
+}
+;
+
+scope=1;
+}
 if (u>0)
 {
 printf(u);
@@ -14,5 +27,10 @@ else
 u=u-1;}
 int w=0;
 w=w+1;
+{
+int r=0;
+r=r-1;
+printf(r);
+}
 
 
