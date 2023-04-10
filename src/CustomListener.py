@@ -856,7 +856,10 @@ class CustomListener(ExpressionListener):
 
     # Enter a parse tree produced by ExpressionParser#break.
     def enterBreak(self, ctx: ParserRuleContext):
-        pass
+        self.asT = create_tree()
+        self.asT.setRoot(Break(line=ctx.start.line))
+        self.c_block.trees.append(self.asT)
+        self.asT = create_tree()
 
     # Exit a parse tree produced by ExpressionParser#break.
     def exitBreak(self, ctx: ParserRuleContext):
@@ -864,8 +867,10 @@ class CustomListener(ExpressionListener):
 
     # Enter a parse tree produced by ExpressionParser#continue.
     def enterContinue(self, ctx: ParserRuleContext):
-        pass
-
+        self.asT=create_tree()
+        self.asT.setRoot(Continue(line=ctx.start.line))
+        self.c_block.trees.append(self.asT)
+        self.asT = create_tree()
     # Exit a parse tree produced by ExpressionParser#continue.
     def exitContinue(self, ctx: ParserRuleContext):
         pass

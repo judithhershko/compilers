@@ -755,6 +755,16 @@ class If(AST_node):
         self.operator = operator
 
 
+class Break(AST_node):
+    def __init__(self,line):
+        self.line=line
+
+
+class Continue(AST_node):
+    def __init__(self,line):
+        self.line=line
+
+
 class While(AST_node):
     Condition = None
     c_block = None
