@@ -119,7 +119,7 @@ class CustomListener(ExpressionListener):
             self.dec_op.rightChild.setValue(ctx.getText())
 
     def set_val(self, ctx: ParserRuleContext):
-        #print("set val:" + ctx.getText())
+        print("set val:" + ctx.getText())
         self.line = ctx.start.line
         type_ = find_value_type(ctx.getText())
         v = ctx.getText()
@@ -152,7 +152,7 @@ class CustomListener(ExpressionListener):
             self.c_block.trees.append(self.asT)
             self.asT = create_tree()
             return
-        if self.right:
+        if self.right or (self.parent.rightChild is None and self.parent.leftChild is not None):
             self.parent.setRightChild(self.current)
             self.right = False
             self.left = True
@@ -501,15 +501,16 @@ class CustomListener(ExpressionListener):
         #todo : dont fill if block needs info previous block
         if self.is_loop:
             if isinstance(self.loop,For) and self.loop.f_dec is None:
-                print("enter for loop def")
                 self.loop.f_dec=self.asT
+            elif isinstance(self.loop,For) and self.loop.f_incr is None:
+                self.loop.f_incr = self.asT
             else:
                 self.c_block.trees.append(self.asT)
-                self.counter += 1
-                self.parent = None
-                self.current = None
-                self.declaration = False
-                self.asT = create_tree()
+            self.counter += 1
+            self.parent = None
+            self.current = None
+            self.declaration = False
+            self.asT = create_tree()
             return
 
         if not isinstance(self.asT.root.leftChild, Pointer):
@@ -612,7 +613,13 @@ class CustomListener(ExpressionListener):
             self.parent = None
         """
         # (isinstance(self.loop, While) and self.loop.c_block is None and self.expr_layer==2)
-        if not self.declaration and self.expr_layer == 0:
+        if self.declaration is False and isinstance(self.loop,For) and self.expr_layer == 0 and self.loop.Condition is None and self.loop.f_dec is not None:
+            print("fill condition")
+            self.loop.Condition = self.parent
+        elif not self.declaration and isinstance(self.loop,For) and self.expr_layer == 0 and self.loop.Condition is not None and self.loop.f_dec is not None and self.loop.f_incr is None:
+            print("fill increment")
+            self.loop.f_incr = self.parent
+        elif not self.declaration and self.expr_layer == 0:
             self.set_bracket()
             while self.current.parent is not None:
                 self.current = self.current.parent
@@ -795,12 +802,13 @@ class CustomListener(ExpressionListener):
     # Enter a parse tree produced by ExpressionParser#lscope.
     def enterLscope(self, ctx: ParserRuleContext):
         print("enter lscope:" + ctx.getText())
-        self.scope_stack.push(self.c_block)
-        self.c_block = block(None)
+        if self.c_block.trees is not None:
+            self.scope_stack.push(self.c_block)
+            self.c_block = block(None)
 
     # Exit a parse tree produced by ExpressionParser#lscope.
     def exitLscope(self, ctx: ParserRuleContext):
-        if isinstance(self.loop, While):
+        if isinstance(self.loop, While) or isinstance(self.loop,For):
             self.loop.c_block = self.c_block
             self.c_block = block(None)
         # todo append a block not loop?
