@@ -4,12 +4,10 @@ int u=0;
     }
 
 {
-int scope=2
-;
+int scope=2;
 {
 int scope=21;
 }
-;
 
 scope=1;
 }
@@ -32,5 +30,10 @@ int r=0;
 r=r-1;
 printf(r);
 }
+for(int i=0;i<30;i=i+1)
+{
+    printf(i);
+}
+int y=0;
 
 
