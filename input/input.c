@@ -23,8 +23,12 @@ continue;}
 else
 {
 u=u-1;}
+
+
 int w=0;
-w=w+1;
+//w=w+1;
+
+
 {
 int r=0;
 r=r-1;

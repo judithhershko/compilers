@@ -6,7 +6,7 @@ from .ast.block import *
 class CustomListener(ExpressionListener):
     def __init__(self, pathName):
         self.is_ref = False
-        self.is_loop=False
+        self.is_loop = False
         self.start_rule = None
         self.asT = create_tree()
         self.current = None
@@ -19,6 +19,7 @@ class CustomListener(ExpressionListener):
         self.counter = 0
         self.program = Program.program()
         self.c_block = block(None)
+        self.c_block.id=0
         self.print = False
         self.expr_layer = 0
         self.bracket_stack = stack()
@@ -115,7 +116,7 @@ class CustomListener(ExpressionListener):
             self.dec_op.rightChild.setValue(ctx.getText())
 
     def set_val(self, ctx: ParserRuleContext):
-        #print("set val:" + ctx.getText())
+        # print("set val:" + ctx.getText())
         type_ = find_value_type(ctx.getText())
         v = ctx.getText()
         if self.print:
@@ -157,7 +158,7 @@ class CustomListener(ExpressionListener):
 
     def set_expression(self, ctx: ParserRuleContext):
         self.expr_layer += 1
-        #print("expression :" + ctx.getText() + "with layer:" + str(self.expr_layer))
+        # print("expression :" + ctx.getText() + "with layer:" + str(self.expr_layer))
         if self.declaration and isinstance(self.parent, Declaration):
             self.dec_op = self.parent
             self.parent = BinaryOperator("", ctx.start.line)
@@ -258,7 +259,7 @@ class CustomListener(ExpressionListener):
     ########################################################################
     # Enter a parse tree produced by ExpressionParser#start_rule.
     def enterStart_rule(self, ctx: ParserRuleContext):
-        #print("start rule"+ctx.getText())
+        # print("start rule"+ctx.getText())
         self.start_rule = ctx.getText()
 
     # Exit a parse tree produced by ExpressionParser#start_rule.
@@ -397,7 +398,7 @@ class CustomListener(ExpressionListener):
 
     # Enter a parse tree produced by ExpressionParser#dec.
     def enterDec(self, ctx: ParserRuleContext):  # TODO: declaration needs to get right type
-        #print("ente dec:" + ctx.getText())
+        # print("ente dec:" + ctx.getText())
         # print("new dec:" + ctx.getText())
         self.start_rule = self.start_rule[len(ctx.getText()) + 1:]
         self.asT = create_tree()
@@ -419,7 +420,8 @@ class CustomListener(ExpressionListener):
                     self.current = Pointer(var, self.c_block.getSymbolTable().findSymbol(var)[1], ctx.start.line,
                                            self.c_block.getSymbolTable().findSymbol(var)[2], self.parent)
                 else:
-                    self.current = Value(var, self.c_block.getSymbolTable().findSymbol(var)[1], ctx.start.line, self.parent,
+                    self.current = Value(var, self.c_block.getSymbolTable().findSymbol(var)[1], ctx.start.line,
+                                         self.parent,
                                          variable=True)
             else:
                 self.current = Value(var, LiteralType.FLOAT, ctx.start.line, self.parent, variable=True, decl=False)
@@ -435,7 +437,7 @@ class CustomListener(ExpressionListener):
 
     # Exit a parse tree produced by ExpressionParser#dec.
     def exitDec(self, ctx: ParserRuleContext):
-        #print("exit dec:"+ctx.getText())
+        # print("exit dec:"+ctx.getText())
         """
         TODO:
         eerst fill literals
@@ -476,11 +478,11 @@ class CustomListener(ExpressionListener):
 
         self.asT.setNodeIds(self.asT.root)
         self.asT.generateDot(self.pathName + str(self.counter) + ".dot")
-        #todo : dont fill if block needs info previous block
+        # todo : dont fill if block needs info previous block
         if self.is_loop:
-            if isinstance(self.loop,For) and self.loop.f_dec is None:
-                self.loop.f_dec=self.asT
-            elif isinstance(self.loop,For) and self.loop.f_incr is None:
+            if isinstance(self.loop, For) and self.loop.f_dec is None:
+                self.loop.f_dec = self.asT
+            elif isinstance(self.loop, For) and self.loop.f_incr is None:
                 self.loop.f_incr = self.asT
             else:
                 self.c_block.trees.append(self.asT)
@@ -496,7 +498,7 @@ class CustomListener(ExpressionListener):
         self.asT.foldTree()
         self.asT.setNodeIds(self.asT.root)
         self.asT.generateDot(self.pathName + str(self.counter) + ".dot")
-        #self.c_block.trees.append(self.asT)
+        # self.c_block.trees.append(self.asT)
         self.asT.foldTree()
         self.asT.setNodeIds(self.asT.root)
 
@@ -505,7 +507,8 @@ class CustomListener(ExpressionListener):
         level = 0
         self.c_block.trees.append(self.asT)
         # if self.current.leftChild.declaration:
-        self.c_block.getSymbolTable().addSymbol(self.asT.root, False)  # TODO: make bool depend on current scope
+        self.c_block.getSymbolTable().addSymbol(self.asT.root,
+                                                self.c_block.id == 0)  # TODO: make bool depend on current scope
         # else:
         #    #TODO: replace value
         #    pass
@@ -574,7 +577,7 @@ class CustomListener(ExpressionListener):
     # Exit a parse tree produced by ExpressionParser#expr.
     def exitExpr(self, ctx: ParserRuleContext):
         self.expr_layer -= 1
-        #print("exit expression:" + ctx.getText() + "with layer " + str(self.expr_layer))
+        # print("exit expression:" + ctx.getText() + "with layer " + str(self.expr_layer))
         """
         if (isinstance(self.loop, While) or isinstance(self.loop,For)) and self.loop.Condition is None and self.expr_layer == 0:
             while self.current.parent is not None:
@@ -584,9 +587,11 @@ class CustomListener(ExpressionListener):
             self.parent = None
         """
         # (isinstance(self.loop, While) and self.loop.c_block is None and self.expr_layer==2)
-        if self.declaration is False and isinstance(self.loop,For) and self.expr_layer == 0 and self.loop.Condition is None and self.loop.f_dec is not None:
+        if self.declaration is False and isinstance(self.loop,
+                                                    For) and self.expr_layer == 0 and self.loop.Condition is None and self.loop.f_dec is not None:
             self.loop.Condition = self.parent
-        elif not self.declaration and isinstance(self.loop,For) and self.expr_layer == 0 and self.loop.Condition is not None and self.loop.f_dec is not None and self.loop.f_incr is None:
+        elif not self.declaration and isinstance(self.loop,
+                                                 For) and self.expr_layer == 0 and self.loop.Condition is not None and self.loop.f_dec is not None and self.loop.f_incr is None:
             self.loop.f_incr = self.parent
         elif not self.declaration and self.expr_layer == 0:
             self.set_bracket()
@@ -594,11 +599,11 @@ class CustomListener(ExpressionListener):
                 self.current = self.current.parent
             self.asT.setRoot(self.current)
             if self.is_loop and self.loop.Condition is None:
-                self.loop.Condition=self.asT
+                self.loop.Condition = self.asT
                 print("fill condition")
             else:
                 # self.c_block.trees.append(self.asT)
-                #self.c_block.trees.append(self.asT)
+                # self.c_block.trees.append(self.asT)
                 self.asT.setNodeIds(self.asT.root)
                 self.asT.generateDot(self.pathName + str(self.counter) + ".dot")
                 self.c_block.fillLiterals(self.asT)
@@ -647,7 +652,7 @@ class CustomListener(ExpressionListener):
     def enterComments(self, ctx: ParserRuleContext):
         # print("comment detected")
         type = commentType(ctx.getText())
-        comment = Comment(ctx.getText(), type,line=ctx.start.line)
+        comment = Comment(ctx.getText(), type, line=ctx.start.line)
         self.asT = create_tree()
         self.asT.root = comment
         self.c_block.trees.append(self.asT)
@@ -717,7 +722,8 @@ class CustomListener(ExpressionListener):
         var = getVariable(ctx.getText())
         type_ = getType(var)
         # TODO: check what is needed here
-        self.current = Pointer(var, type_, ctx.start.line, self.nr_pointers, self.parent, False, self.is_declaration(var))
+        self.current = Pointer(var, type_, ctx.start.line, self.nr_pointers, self.parent, False,
+                               self.is_declaration(var))
         self.parent.leftChild = self.current
         self.current = self.parent.rightChild
         self.dec_op = self.parent
@@ -734,17 +740,18 @@ class CustomListener(ExpressionListener):
 
     # Enter a parse tree produced by ExpressionParser#scope.
     def enterScope(self, ctx: ParserRuleContext):
-        print("scope:"+ctx.getText())
+        print("scope:" + ctx.getText())
         if self.c_block.trees is None:
-            return
-        self.scope_count+=1
+            if self.c_block.id==0:
+                self.c_block.id=1
+        self.scope_count += 1
         self.scope_stack.push(self.c_block)
         self.c_block = block(None)
-        self.asT=create_tree()
+        self.asT = create_tree()
 
     # Exit a parse tree produced by ExpressionParser#scope.
     def exitScope(self, ctx: ParserRuleContext):
-        self.scope_count-=1
+        self.scope_count -= 1
         if self.c_block.trees is None:
             return
         if self.scope_stack.__len__() == 0:
@@ -772,7 +779,7 @@ class CustomListener(ExpressionListener):
 
     # Exit a parse tree produced by ExpressionParser#lscope.
     def exitLscope(self, ctx: ParserRuleContext):
-        if isinstance(self.loop, While) or isinstance(self.loop,For) or isinstance(self.loop,If):
+        if isinstance(self.loop, While) or isinstance(self.loop, For) or isinstance(self.loop, If):
             self.loop.c_block = self.c_block
             self.c_block = block(None)
         # todo append a block not loop?
@@ -786,11 +793,11 @@ class CustomListener(ExpressionListener):
 
     # Enter a parse tree produced by ExpressionParser#loop.
     def enterLoop(self, ctx: ParserRuleContext):
-        self.is_loop=True
+        self.is_loop = True
 
     # Exit a parse tree produced by ExpressionParser#loop.
     def exitLoop(self, ctx: ParserRuleContext):
-        self.is_loop=False
+        self.is_loop = False
 
     # Enter a parse tree produced by ExpressionParser#while.
     def enterWhile(self, ctx: ParserRuleContext):
@@ -803,8 +810,8 @@ class CustomListener(ExpressionListener):
 
     # Enter a parse tree produced by ExpressionParser#for.
     def enterFor(self, ctx: ParserRuleContext):
-        self.loop=For(line=ctx.start.line)
-        self.current=self.loop.f_dec
+        self.loop = For(line=ctx.start.line)
+        self.current = self.loop.f_dec
 
     # Exit a parse tree produced by ExpressionParser#for.
     def exitFor(self, ctx: ParserRuleContext):
@@ -812,7 +819,7 @@ class CustomListener(ExpressionListener):
 
     # Enter a parse tree produced by ExpressionParser#if.
     def enterIf(self, ctx: ParserRuleContext):
-        self.loop = If(line=ctx.start.line,operator=getIftype(ctx.getText()))
+        self.loop = If(line=ctx.start.line, operator=getIftype(ctx.getText()))
         self.current = self.loop.Condition
 
     # Exit a parse tree produced by ExpressionParser#if.
@@ -832,10 +839,11 @@ class CustomListener(ExpressionListener):
 
     # Enter a parse tree produced by ExpressionParser#continue.
     def enterContinue(self, ctx: ParserRuleContext):
-        self.asT=create_tree()
+        self.asT = create_tree()
         self.asT.setRoot(Continue(line=ctx.start.line))
         self.c_block.trees.append(self.asT)
         self.asT = create_tree()
+
     # Exit a parse tree produced by ExpressionParser#continue.
     def exitContinue(self, ctx: ParserRuleContext):
         pass
