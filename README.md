@@ -72,8 +72,8 @@ chmod 777 run.sh
 
 - [ ] Conditional statements
   - [ ] if else 
-- [ ]  Loops.
-  -[ ] while
+- [ ]  Loops
+  - [ ] while
   - [ ] for
   - [ ] break 
   - [ ] continue
