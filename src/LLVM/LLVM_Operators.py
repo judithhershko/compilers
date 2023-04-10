@@ -192,7 +192,47 @@ class ToLLVM():
                 val = self.float_to_64bit_hex(input.value)
             allign = self.allignment(typpe_)
             self.store += "store {} {}, {}* %{}, align 1\n".format(typpe_, val, typpe_, self.get_variable(v.value))
+    def switch_global_Literals(self, v: Value, input: Value):
+        # comment above with original code:
+        if v.declaration:
+            const = ""
+            type = ""
+            if v.const:
+                const = "const"
 
+            if v.type == LiteralType.INT:
+                self.allocate += "; {} {} {} = {}\n".format(const, "int", v.value, input.value)
+                self.allocate += "%{} = alloca i32, align 4\n".format(self.add_variable(str(v.value)))
+                self.store += "store i32 {}, i32* %{}, align 4\n".format(input.value, self.get_variable(v.value))
+
+            elif v.type == LiteralType.FLOAT:
+                val = self.float_to_64bit_hex(input.value)
+                self.allocate += "; {} {} {} = {}\n".format(const, "float", v.value, input.value)
+                self.allocate += "%{} = alloca float, align 4\n".format(self.add_variable(v.value))
+                self.store += "store float {}, float* %{}, align 4\n".format(val, self.get_variable(v.value))
+
+            elif v.type == LiteralType.CHAR:
+                size = len(input.value)
+                self.allocate += "; {} {} {} = {}\n".format(const, "char", v.value, input.value)
+                self.allocate += "%{} = alloca i8, align 1\n".format(self.add_variable(v.value))
+
+                num = ord(input.value[1])
+                self.store += "store i8 {}, i8* %{}, align 1\n".format(num, self.get_variable(v.value))
+
+            elif v.type == LiteralType.BOOL:
+                bval = 0
+                if input.value == "True":
+                    bval = 1
+                self.allocate += "; {}{}{}={}\n".format(const, "_Bool", v.value, input.value)
+                self.allocate += "%{} = alloca i8, align 1\n".format(self.add_variable(v.value))
+                self.store += "store i8 {}, i8* %{}, align 1\n".format(bval, self.get_variable(v.value))
+        else:
+            typpe_ = self.type_store(self.get_type(v))
+            val = input.value
+            if typpe_ == 'float':
+                val = self.float_to_64bit_hex(input.value)
+            allign = self.allignment(typpe_)
+            self.store += "store {} {}, {}* %{}, align 1\n".format(typpe_, val, typpe_, self.get_variable(v.value))
     def to_bin_operator(self, ast: AST):
         pass
 

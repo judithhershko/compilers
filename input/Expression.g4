@@ -18,6 +18,13 @@ if    : IF LBRAK expr RBRAK lscope |  ELSE  lscope | ELSE IF  LBRAK expr RBRAK l
 break : BREAK ';';
 continue: CONTINUE ';';
 
+function_dec: return_type ID LBRAK parameters (',' parameters )* RBRAK ';';
+return_type: (CONST)? (INT| DOUBLE | FLOAT |CHAR | BOOL | VOID);
+parameters: (const)? typed_var (pointer)* (ref)? ID ;
+ref: REF;
+function_definition: return_type ID LBRAK parameters (',' parameters )* RBRAK '{' rule '}';
+return: RETURN (expr | char_expr) ? ;
+
 const : CONST;
 pointer:MULT;
 ref_ref: (REF)? ID;
@@ -56,6 +63,8 @@ BOOL    : 'bool'    ;
 CONST   : 'const'   ;
 REF     : '&'       ;
 PRINT   : 'printf'  ;
+VOID    : 'void'    ;
+RETURN  : 'return'  ;
 
 PT   : '.' ;
 WHILE:'while';

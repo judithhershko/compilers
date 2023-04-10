@@ -77,7 +77,7 @@ chmod 777 run.sh
   - [ ] for
   - [ ] break 
   - [ ] continue
-- [ ] scopes 
+- [ ] scopes
 - [ ] to llvm 
 
 ### optioneel:
@@ -96,6 +96,7 @@ chmod 777 run.sh
   - [ ] Passing parameters of basic types and pointer types
   - [ ] Returning values using the return keyword
   - [ ] Functions that return nothing
+
 - [ ] to llvm 
 ## project 6:
 
