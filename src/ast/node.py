@@ -728,6 +728,41 @@ class EmptyNode(AST_node):
         return []
 
 
+class Scope(AST_node):
+
+    def __init__(self, line: int, parent: AST_node = None):
+        self.parent = parent
+        self.line = line
+        self.trees = []
+
+    def __eq__(self, other):
+        if not isinstance(other, Scope):
+            return False
+        return self.parent == other.parent and self.line == other.line
+
+    def addTree(self, ast: AST_node):
+        self.trees.append(ast)
+
+    def getLabel(self):
+        return "\"New scope: \""
+
+    def fold(self):
+        folded = []
+        for tree in self.trees:
+            folded.append(tree.fold())
+        self.trees = folded
+        return self
+
+    def getVariables(self):
+        res = []
+        for tree in self.trees:
+            res.extend(tree.getVariables())
+        return res
+
+    def replaceVariables(self, values):
+        for tree in self.trees:
+            tree.replaceVariables(values)
+
 class For(AST_node):
     f_dec = None
     Condition = None

@@ -2,9 +2,6 @@
 from .node import *
 
 
-class Scope:
-    pass
-
 class AST:
     root = None
 
@@ -35,7 +32,7 @@ class AST:
             number = self.setNodeIds(nextNode.rightChild, level + 1, number + 1)
         elif isinstance(nextNode, Scope):
             for tree in nextNode.trees:
-                number = tree.setNodeIds(tree.root, level+1, number+1)
+                number = self.setNodeIds(tree, level+1, number+1)
 
         return number
 
@@ -65,8 +62,8 @@ class AST:
             edges = edges + res[1]
         elif isinstance(self.root, Scope):
             for tree in self.root.trees:
-                edges = edges + "--" + tree.root.getId()
-                res = self.toDot(tree.root.value)
+                edges = edges + "\n" + self.root.getId() + "--" + tree.getId()
+                res = self.toDot(tree)
                 nodes = nodes + res[0]
                 edges = edges + res[1]
             #edges = edges[:-2]
@@ -101,10 +98,10 @@ class AST:
             res = self.toDot(root.rightChild)
             nodes = nodes + res[0]
             edges = edges + res[1]
-        elif isinstance(self.root, Scope):
-            for tree in self.root.trees:
-                edges = edges + "--" + tree.root.getId()
-                res = self.toDot(tree.root.value)
+        elif isinstance(root, Scope):
+            for tree in root.trees:
+                edges = edges + "\n" + root.getId() + "--" + tree.getId()
+                res = self.toDot(tree)
                 nodes = nodes + res[0]
                 edges = edges + res[1]
 

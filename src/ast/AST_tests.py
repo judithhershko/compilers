@@ -11,7 +11,7 @@ from .AST import AST
 class nodeTestCase(unittest.TestCase):
     def test_getId(self):
         testNode = AST_node()
-        testNode.testsetLevel(12)
+        testNode.setLevel(12)
         testNode.setNumber(55)
         self.assertEqual(testNode.getId(), "12.55", "should be 12.55")
 
@@ -96,7 +96,7 @@ class nodeTestCase(unittest.TestCase):
         ast.setRoot(add)
         ast.setNodeIds(ast.root)
 
-        dot = ast.generateDot("test_generateDot")
+        dot = ast.generateDot("./src/ast/dotFiles/test_generateDot.dot")
         expected = "graph ast {\n0.0 [label=\"Binary operator: +\"]\n1.1 [label=\"Binary operator: *\"]\n2.2 " \
                    "[label=\"Literal: 5\"]\n2.3 [label=\"Literal: 22\"]\n1.4 [label=\"Unary operator: -\"]\n2.5 " \
                    "[label=\"Literal: -79\"]\n\n0.0--1.1\n0.0--1.4\n1.1--2.2\n1.1--2.3\n1.4--2.5\n}"
@@ -133,7 +133,7 @@ class nodeTestCase(unittest.TestCase):
 
         ast.foldTree()
         ast.setNodeIds(ast.root)
-        ast.generateDot("test_fold")
+        ast.generateDot("./src/ast/dotFiles/test_fold.dot")
 
         res = Value("94", LiteralType.INT, 1, variable=False)
         res.setLevel(0)
@@ -210,9 +210,9 @@ class nodeTestCase(unittest.TestCase):
         self.assertEqual(c, "placed")
         self.assertEqual(d, "replaced")
 
-        self.assertEqual(val.findSymbol("x"), ("5", LiteralType.INT))
-        self.assertEqual(val.findSymbol("y"), ("22", LiteralType.INT))
-        self.assertEqual(val.findSymbol("z"), ("-79", LiteralType.INT))
+        self.assertEqual(val.findSymbol("x"), ("5", LiteralType.INT, 0))
+        self.assertEqual(val.findSymbol("y"), ("22", LiteralType.INT, 0))
+        self.assertEqual(val.findSymbol("z"), ("-79", LiteralType.INT, 0))
 
         self.assertEqual("\n\tError in line 1: there is a reassignment of the global variable x",
                          str(except1.exception))
@@ -290,8 +290,6 @@ class nodeTestCase(unittest.TestCase):
         prog.getAst().foldTree()
 
         res = Value("281.0", LiteralType.FLOAT, 1, variable=False)
-        # res.setLevel(0)
-        # res.setNumber(0)
 
         self.assertEqual(prog.getAst().root, res)
 
@@ -381,17 +379,112 @@ class nodeTestCase(unittest.TestCase):
         ast = AST()
         ast.setRoot(dec)
         ast.setNodeIds(ast.root)
-        dot = ast.generateDot("Declaration")
+        dot = ast.generateDot("./src/ast/dotFiles/Declaration.dot")
         exp = "graph ast {\n0.0 [label=\"Declaration: =\"]\n1.1 [label=\"Literal: x\"]\n1.2 [label=" \
               "\"Binary operator: *\"]\n2.3 [label=\"Literal: 5\"]\n2.4 [label=\"Literal: 3\"]\n\n0.0--1.1\n0.0--1.2" \
               "\n1.2--2.3\n1.2--2.4\n}"
         self.assertEqual(dot, exp)
         ast.foldTree()
         ast.setNodeIds(ast.root)
-        dot = ast.generateDot("DeclarationFolded")
+        dot = ast.generateDot("./src/ast/dotFiles/DeclarationFolded.dot")
         exp = "graph ast {\n0.0 [label=\"Declaration: =\"]\n1.1 [label=\"Literal: x\"]\n1.2 [label=" \
               "\"Literal: 15\"]\n\n0.0--1.1\n0.0--1.2\n}"
         self.assertEqual(dot, exp)
+
+    def test_Scope(self):
+        def generateDiv():
+            div = BinaryOperator("/", 1)
+
+            add = BinaryOperator("+", 1)
+            div.setLeftChild(add)
+
+            mult = BinaryOperator("*", 1)
+            add.setLeftChild(mult)
+
+            leaf1 = Value("x", LiteralType.STR, 1, variable=True)
+            mult.setLeftChild(leaf1)
+
+            leaf2 = Value("y", LiteralType.INT, 1, variable=True)
+            mult.setRightChild(leaf2)
+
+            neg = UnaryOperator("-", 1)
+            add.setRightChild(neg)
+
+            leaf3 = Value("z", LiteralType.FLOAT, 1, variable=True)
+            neg.setRightChild(leaf3)
+
+            leaf4 = Value("w", LiteralType.INT, 1, variable=True)
+            div.setRightChild(leaf4)
+
+            return div
+
+        div1 = generateDiv()
+        div2 = generateDiv()
+        div3 = generateDiv()
+        div4 = generateDiv()
+        div5 = generateDiv()
+
+        scope1 = Scope(1)
+        scope2 = Scope(2)
+
+        scope1.addTree(div1)
+        scope1.addTree(div2)
+        scope2.addTree(div3)
+        scope2.addTree(div4)
+        scope2.addTree(div5)
+        scope1.addTree(scope2)
+
+        prog = program()
+        prog.getAst().setRoot(scope1)
+        prog.getAst().setNodeIds(prog.getAst().root)
+        prog.getAst().generateDot("./src/ast/dotFiles/scope_unfilled.dot")
+        val = prog.getSymbolTable()
+        # First element
+        var1 = Value("x", LiteralType.INT, 1, None, True, False, True)
+        val1 = Value("5", LiteralType.INT, 1, None, False, False, True)
+        dec1 = Declaration(var1, 1)
+        dec1.setRightChild(val1)
+        val.addSymbol(dec1, True)
+        # Second element
+        var2 = Value("y", LiteralType.INT, 1, None, True, False, True)
+        val2 = Value("22", LiteralType.INT, 1, None, False, False, True)
+        dec2 = Declaration(var2, 1)
+        dec2.setRightChild(val2)
+        val.addSymbol(dec2, True)
+        # Third element
+        var3 = Value("z", LiteralType.FLOAT, 1, None, True, False, True)
+        val3 = Value("-78.0", LiteralType.FLOAT, 1, None, False, False, True)
+        dec3 = Declaration(var3, 1)
+        dec3.setRightChild(val3)
+        val.addSymbol(dec3, True)
+        # resubmit first
+        var4 = Value("w", LiteralType.INT, 1, None, True, True, True)
+        val4 = Value("2", LiteralType.INT, 1, None, False, True, True)
+        dec4 = Declaration(var4, 1)
+        dec4.setRightChild(val4)
+        val.addSymbol(dec4, True)
+
+        prog.fillLiterals(prog.getAst())
+        prog.getAst().generateDot("./src/ast/dotFiles/scope_unfolded.dot")
+
+        prog.getAst().foldTree()
+        prog.getAst().setNodeIds(prog.getAst().root)
+        prog.getAst().generateDot("./src/ast/dotFiles/scope_folded.dot")
+
+        expected = Scope(1)
+        temp = Scope(2)
+        expected.addTree(Value("94", LiteralType.INT, 1))
+        expected.addTree(Value("94", LiteralType.INT, 1))
+        temp.addTree(Value("94", LiteralType.INT, 1))
+        temp.addTree(Value("94", LiteralType.INT, 1))
+        temp.addTree(Value("94", LiteralType.INT, 1))
+        expected.addTree(temp)
+
+        tree = AST()
+        tree.setRoot(expected)
+        tree.setNodeIds(tree.root)
+
+        self.assertEqual(prog.getAst(), tree)
 
 
 if __name__ == '__main__':
