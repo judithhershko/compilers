@@ -820,7 +820,7 @@ class If(AST_node):
 
     def setCondition(self, con: AST_node):
         try:
-            if self.Condition != ConditionType.ELSE:
+            if self.operator != ConditionType.ELSE:
                 self.Condition = con
             else:
                 raise ConditionElse(self.line)
@@ -832,18 +832,23 @@ class If(AST_node):
         self.c_block = newBlock
 
     def getLabel(self):
-        return "\"" + self.operator + " scope\""
+        return "\"" + self.operator.__str__() + " scope\""
 
     def fold(self):
-        self.Condition = self.Condition.fold()
+        if self.operator != ConditionType.ELSE:
+            self.Condition = self.Condition.fold()
         self.c_block = self.c_block.fold()
         return self
 
     def getVariables(self):
-        return self.Condition.getVariables()
+        if self.operator != ConditionType.ELSE:
+            return self.Condition.getVariables()
+        else:
+            return []
 
     def replaceVariables(self, values):
-        self.Condition.setVariable(values)
+        if self.operator != ConditionType.ELSE:
+            self.Condition.setVariable(values)
         self.c_block.fillBlock()
 
 

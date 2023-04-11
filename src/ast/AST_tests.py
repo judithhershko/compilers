@@ -36,24 +36,24 @@ def generateDiv():
     return div
 
 
-def generateoCondition():
+def generateCondition():
     And = LogicalOperator("&&", parent=None, line=1)
     gt = LogicalOperator(">", parent=None, line=1)
-    leaf1 = Value("x", LiteralType.STR, 1, variable=True)
-    leaf2 = Value("y", LiteralType.STR, 1, variable=True)
+    leaf1 = Value("y", LiteralType.FLOAT, 1, variable=True)
+    leaf2 = Value("x", LiteralType.FLOAT, 1, variable=True)
     gt.setLeftChild(leaf1)
     gt.setRightChild(leaf2)
     And.setLeftChild(gt)
     Or = LogicalOperator("||", parent=None, line=1)
     lt = LogicalOperator("<", parent=None, line=1)
-    leaf3 = Value("x", LiteralType.STR, 1, variable=True)
-    leaf4 = Value("y", LiteralType.STR, 1, variable=True)
+    leaf3 = Value("x", LiteralType.FLOAT, 1, variable=True)
+    leaf4 = Value("y", LiteralType.FLOAT, 1, variable=True)
     lt.setLeftChild(leaf3)
     lt.setRightChild(leaf4)
     Or.setLeftChild(lt)
     eq = LogicalOperator("==", parent=None, line=1)
-    leaf5 = Value("z", LiteralType.STR, 1, variable=True)
-    leaf6 = Value("z", LiteralType.STR, 1, variable=True)
+    leaf5 = Value("z", LiteralType.FLOAT, 1, variable=True)
+    leaf6 = Value("z", LiteralType.FLOAT, 1, variable=True)
 
     eq.setLeftChild(leaf5)
     eq.setRightChild(leaf6)
@@ -517,16 +517,59 @@ class nodeTestCase(unittest.TestCase):
         self.assertEqual(prog.getAst(), tree)
 
     def test_If(self):
-        And = generateoCondition()
+        And = generateCondition()
+        And2 = generateCondition()
 
-        ifstat = If(1)
-        ifstat.setCondition(And)
+        firstBlock = block(None)
+
+        ifStat = If(1)
+        ifStat.setCondition(And)
+        ifTree = AST()
+        ifTree.root = ifStat
+
+        elifStat = If(2, ConditionType.ELIF)
+        elifStat.setCondition(And2)
+        elifTree = AST()
+        elifTree.root = elifStat
+
+        elseStat = If(3, ConditionType.ELSE)
+        elseTree = AST()
+        elseTree.root = elseStat
 
         div1 = generateDiv()
+        tree1 = AST()
+        tree1.setRoot(div1)
+
         div2 = generateDiv()
+        tree2 = AST()
+        tree2.setRoot(div2)
+        ifBlock = block(firstBlock)
+        ifBlock.addTree(tree2)
+        ifStat.setBlock(ifBlock)
+
         div3 = generateDiv()
+        tree3 = AST()
+        tree3.setRoot(div3)
+        elifBlock = block(firstBlock)
+        elifBlock.addTree(tree3)
+        elifStat.setBlock(elifBlock)
 
+        div4 = generateDiv()
+        tree4 = AST()
+        tree4.setRoot(div4)
+        elseBlock = block(firstBlock)
+        elseBlock.addTree(tree4)
+        elseStat.setBlock(elseBlock)
 
+        prog = program()
+        firstBlock.addTree(tree1)
+        firstBlock.addTree(ifTree)
+        firstBlock.addTree(elifTree)
+        firstBlock.addTree(elseTree)
+
+        prog.addBlock(firstBlock)
+        prog.blocks[0].setNodeIds()
+        prog.blocks[0].generateDot("./src/ast/dotFiles/if_unfilled.dot")
 
 
 if __name__ == '__main__':

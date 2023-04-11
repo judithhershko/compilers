@@ -1,9 +1,9 @@
 from .node import *
 
 
-class block:
-    pass
-
+# class block:
+#     pass
+#
 
 class AST:
     root = None
@@ -37,14 +37,16 @@ class AST:
             for tree in nextNode.trees:
                 number = self.setNodeIds(tree, level + 1, number + 1)
         elif isinstance(nextNode, If):
-            number = self.setNodeIds(nextNode.Condition, level + 1, number + 1)
-            number = self.setNodeIds(nextNode.c_block, level + 1, number + 1)
-        elif isinstance(nextNode, block):
-            number = self.setNodeIds(nextNode.getAst().root, level + 1, number + 1)
-            for tree in nextNode.trees:
-                number = self.setNodeIds(tree.root, level + 1, number + 1)
-            for localBlock in nextNode.blocks:
-                number = self.setNodeIds(localBlock, level + 1, number + 1)
+            if nextNode.operator != ConditionType.ELSE:
+                number = self.setNodeIds(nextNode.Condition, level + 1, number + 1)
+            # number = self.setNodeIds(nextNode.c_block, level + 1, number + 1)
+            number = nextNode.c_block.setNodeIds(level+1, number+1)
+        # elif isinstance(nextNode, block):
+            # number = self.setNodeIds(nextNode.getAst().root, level + 1, number + 1)
+            # for tree in nextNode.trees:
+            #     number = self.setNodeIds(tree.root, level + 1, number + 1)
+            # for localBlock in nextNode.blocks:
+            #     number = self.setNodeIds(localBlock, level + 1, number + 1)
 
         return number
 
@@ -57,6 +59,21 @@ class AST:
         nodes = self.root.getId() + " [label=" + self.root.getLabel() + "]"
         edges = ""
 
+        # if isinstance(self.root, block):
+        #     edges = "\n" + self.root.getId() + "--" + self.root.getAst().root.getId()
+        #     res = self.toDot(self.root.getAst().root)
+        #     nodes = nodes + res[0]
+        #     edges = edges + res[1]
+        #     for tree in self.root.trees:
+        #         edges = "\n" + self.root.getId() + "--" + tree.root.getId()
+        #         res = self.toDot(tree.root)
+        #         nodes = nodes + res[0]
+        #         edges = edges + res[1]
+        #     for localBlock in self.root.blocks:
+        #         edges = "\n" + self.root.getId() + "--" + localBlock.getId()
+        #         res = self.toDot(localBlock)
+        #         nodes = nodes + res[0]
+        #         edges = edges + res[1]
         if isinstance(self.root, BinaryOperator) or isinstance(self.root, LogicalOperator) or \
                 isinstance(self.root, Declaration):
             edges = self.root.getId() + "--" + self.root.leftChild.getId() + "\n" + self.root.getId() + "--" + \
@@ -79,9 +96,16 @@ class AST:
                 nodes = nodes + res[0]
                 edges = edges + res[1]
         elif isinstance(self.root, If):
-            edges = self.root.getId() + "--" + self.root.Condition.getId() + "\n" + self.root.getId() + "--" + \
+            if self.root.operator != ConditionType.ELSE:
+                edges = self.root.getId() + "--" + self.root.Condition.getId() + "\n" + self.root.getId() + "--" + \
                     self.root.c_block.getId()
-            res = self.toDot(self.root.c_block)
+                temp = self.toDot(self.root.Condition)
+                nodes = nodes + temp[0]
+                edges = edges + temp[1]
+            else:
+                edges = self.root.getId() + "--" + self.root.c_block.getId()
+            #res = self.toDot(self.root.c_block)
+            res = self.root.c_block.toDot()
             nodes = nodes + res[0]
             edges = edges + res[1]
 
@@ -100,22 +124,22 @@ class AST:
         nodes = "\n" + root.getId() + " [label=" + root.getLabel() + "]"
         edges = ""
 
-        if isinstance(root, block):
-            edges = "\n" + root.getId() + "--" + root.getAst().root.getId()
-            res = self.toDot(root.getAst().root)
-            nodes = nodes + res[0]
-            edges = edges + res[1]
-            for tree in root.trees:
-                edges = "\n" + root.getId() + "--" + tree.root.getId()
-                res = self.toDot(tree.root)
-                nodes = nodes + res[0]
-                edges = edges + res[1]
-            for localBlock in root.blocks:
-                edges = "\n" + root.getId() + "--" + localBlock.getId()
-                res = self.toDot(localBlock)
-                nodes = nodes + res[0]
-                edges = edges + res[1]
-        elif isinstance(root, BinaryOperator) or isinstance(root, LogicalOperator) or \
+        # if isinstance(root, block):
+        #     edges = "\n" + root.getId() + "--" + root.getAst().root.getId()
+        #     res = self.toDot(root.getAst().root)
+        #     nodes = nodes + res[0]
+        #     edges = edges + res[1]
+        #     for tree in root.trees:
+        #         edges = "\n" + root.getId() + "--" + tree.root.getId()
+        #         res = self.toDot(tree.root)
+        #         nodes = nodes + res[0]
+        #         edges = edges + res[1]
+        #     for localBlock in root.blocks:
+        #         edges = "\n" + root.getId() + "--" + localBlock.getId()
+        #         res = self.toDot(localBlock)
+        #         nodes = nodes + res[0]
+        #         edges = edges + res[1]
+        if isinstance(root, BinaryOperator) or isinstance(root, LogicalOperator) or \
                 isinstance(root, Declaration):
             edges = "\n" + root.getId() + "--" + root.leftChild.getId() + "\n" + root.getId() + "--" + \
                     root.rightChild.getId()
@@ -136,6 +160,19 @@ class AST:
                 res = self.toDot(tree)
                 nodes = nodes + res[0]
                 edges = edges + res[1]
+        elif isinstance(root, If):
+            if root.operator != ConditionType.ELSE:
+                edges = edges + "\n" + root.getId() + "--" + root.Condition.getId() + "\n" + root.getId() + "--" + \
+                        root.c_block.getId()
+                temp = self.toDot(root.Condition)
+                nodes = nodes + temp[0]
+                edges = edges + temp[1]
+            else:
+                edges = edges + "\n" + root.getId() + "--" + root.c_block.getId()
+            #res = self.toDot(root.c_block)
+            res = root.c_block.toDot()
+            nodes = nodes + res[0]
+            edges = edges + res[1]
 
         return nodes, edges
 

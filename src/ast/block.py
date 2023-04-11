@@ -114,3 +114,43 @@ class block:
             self.fillLiterals(tree)
         for localBlock in self.blocks:
             localBlock.fillBlock()
+
+    def generateDot(self, fileName: str):
+        nodes = self.getId() + " [label=" + self.getLabel() + "]"
+        edges = ""
+
+        for tree in self.trees:
+            edges = edges + "\n" + self.getId() + "--" + tree.root.getId()
+            res = tree.toDot(tree.root)
+            nodes = nodes + res[0]
+            edges = edges + res[1]
+
+        output = "graph ast {\n" + nodes + "\n\n" + edges + "\n}"
+        file = open(fileName, "w")
+        file.write(output)
+        file.close()
+        return output
+
+    def toDot(self): # TODO: check what to do with blocks -> get them in right order with the trees
+        nodes = self.getId() + " [label=" + self.getLabel() + "]"
+        edges = ""
+
+        for tree in self.trees:
+            edges = edges + "\n" + self.getId() + "--" + tree.root.getId()
+            res = tree.toDot(tree.root)
+            nodes = nodes + res[0]
+            edges = edges + res[1]
+
+        return nodes, edges
+
+    def setNodeIds(self, level: int = 0, number: int = 0):
+        self.setNumber(number)
+        self.setLevel(level)
+        if self.ast.root is not None:
+            number = self.ast.setNodeIds(self.ast.root, level + 1, number + 1)
+        for tree in self.trees:
+            number = tree.setNodeIds(tree.root, level + 1, number + 1)
+        for localBlock in self.blocks:
+            number = localBlock.setNodeIds(level + 1, number + 1)
+
+        return number
