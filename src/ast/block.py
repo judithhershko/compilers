@@ -51,6 +51,9 @@ class block:
     def addBlock(self, newBlock):
         self.blocks.append(newBlock)
 
+    def addTree(self, newTree):
+        self.trees.append(newTree)
+
     def getAst(self):
         return self.ast
 

@@ -8,6 +8,62 @@ from .AST import AST
 # TODO: force input of functions to be of a certain type
 # TODO: write documentation for function
 
+
+def generateDiv():
+    div = BinaryOperator("/", 1)
+
+    add = BinaryOperator("+", 1)
+    div.setLeftChild(add)
+
+    mult = BinaryOperator("*", 1)
+    add.setLeftChild(mult)
+
+    leaf1 = Value("x", LiteralType.STR, 1, variable=True)
+    mult.setLeftChild(leaf1)
+
+    leaf2 = Value("y", LiteralType.INT, 1, variable=True)
+    mult.setRightChild(leaf2)
+
+    neg = UnaryOperator("-", 1)
+    add.setRightChild(neg)
+
+    leaf3 = Value("z", LiteralType.FLOAT, 1, variable=True)
+    neg.setRightChild(leaf3)
+
+    leaf4 = Value("w", LiteralType.INT, 1, variable=True)
+    div.setRightChild(leaf4)
+
+    return div
+
+
+def generateoCondition():
+    And = LogicalOperator("&&", parent=None, line=1)
+    gt = LogicalOperator(">", parent=None, line=1)
+    leaf1 = Value("x", LiteralType.STR, 1, variable=True)
+    leaf2 = Value("y", LiteralType.STR, 1, variable=True)
+    gt.setLeftChild(leaf1)
+    gt.setRightChild(leaf2)
+    And.setLeftChild(gt)
+    Or = LogicalOperator("||", parent=None, line=1)
+    lt = LogicalOperator("<", parent=None, line=1)
+    leaf3 = Value("x", LiteralType.STR, 1, variable=True)
+    leaf4 = Value("y", LiteralType.STR, 1, variable=True)
+    lt.setLeftChild(leaf3)
+    lt.setRightChild(leaf4)
+    Or.setLeftChild(lt)
+    eq = LogicalOperator("==", parent=None, line=1)
+    leaf5 = Value("z", LiteralType.STR, 1, variable=True)
+    leaf6 = Value("z", LiteralType.STR, 1, variable=True)
+
+    eq.setLeftChild(leaf5)
+    eq.setRightChild(leaf6)
+    Or.setRightChild(eq)
+    And.setRightChild(Or)
+
+    return And
+
+
+
 class nodeTestCase(unittest.TestCase):
     def test_getId(self):
         testNode = AST_node()
@@ -392,32 +448,6 @@ class nodeTestCase(unittest.TestCase):
         self.assertEqual(dot, exp)
 
     def test_Scope(self):
-        def generateDiv():
-            div = BinaryOperator("/", 1)
-
-            add = BinaryOperator("+", 1)
-            div.setLeftChild(add)
-
-            mult = BinaryOperator("*", 1)
-            add.setLeftChild(mult)
-
-            leaf1 = Value("x", LiteralType.STR, 1, variable=True)
-            mult.setLeftChild(leaf1)
-
-            leaf2 = Value("y", LiteralType.INT, 1, variable=True)
-            mult.setRightChild(leaf2)
-
-            neg = UnaryOperator("-", 1)
-            add.setRightChild(neg)
-
-            leaf3 = Value("z", LiteralType.FLOAT, 1, variable=True)
-            neg.setRightChild(leaf3)
-
-            leaf4 = Value("w", LiteralType.INT, 1, variable=True)
-            div.setRightChild(leaf4)
-
-            return div
-
         div1 = generateDiv()
         div2 = generateDiv()
         div3 = generateDiv()
@@ -485,6 +515,18 @@ class nodeTestCase(unittest.TestCase):
         tree.setNodeIds(tree.root)
 
         self.assertEqual(prog.getAst(), tree)
+
+    def test_If(self):
+        And = generateoCondition()
+
+        ifstat = If(1)
+        ifstat.setCondition(And)
+
+        div1 = generateDiv()
+        div2 = generateDiv()
+        div3 = generateDiv()
+
+
 
 
 if __name__ == '__main__':
