@@ -747,7 +747,7 @@ class EmptyNode(AST_node):
         return []
 
 
-class Scope(AST_node):
+class Scope(AST_node): # TODO: let it hold a block instead of trees
 
     def __init__(self, line: int, parent: AST_node = None):
         self.parent = parent
@@ -832,7 +832,7 @@ class If(AST_node):
         self.c_block = newBlock
 
     def getLabel(self):
-        return "\"" + self.operator.__str__() + " scope\""
+        return "\"" + self.operator.__str__() + "\""
 
     def fold(self):
         if self.operator != ConditionType.ELSE:
@@ -844,12 +844,13 @@ class If(AST_node):
         if self.operator != ConditionType.ELSE:
             return self.Condition.getVariables()
         else:
+            self.c_block.fillBlock()
             return []
 
     def replaceVariables(self, values):
         if self.operator != ConditionType.ELSE:
-            self.Condition.setVariable(values)
-        self.c_block.fillBlock()
+            self.Condition.replaceVariables(values)
+            self.c_block.fillBlock()
 
 
 class Break(AST_node):

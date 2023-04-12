@@ -182,6 +182,7 @@ class AST:
         """
         if not isinstance(self.root, Value):
             self.root = self.root.fold()
+        return self
 
     def getVariables(self):
         return self.root.getVariables()

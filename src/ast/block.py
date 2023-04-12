@@ -96,7 +96,8 @@ class block:
             raise
 
     def fold(self):
-        self.ast = self.ast.foldTree()
+        if self.ast.root is not None:
+            self.ast = self.ast.foldTree()
         foldedBlocks = []
         foldedTrees = []
         for block in self.blocks:
@@ -109,7 +110,8 @@ class block:
         return self
 
     def fillBlock(self):  # TODO make more efficient
-        self.fillLiterals(self.ast)
+        if self.ast.root is not None:
+            self.fillLiterals(self.ast)
         for tree in self.trees:
             self.fillLiterals(tree)
         for localBlock in self.blocks:

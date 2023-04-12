@@ -545,6 +545,31 @@ class nodeTestCase(unittest.TestCase):
         tree2.setRoot(div2)
         ifBlock = block(firstBlock)
         ifBlock.addTree(tree2)
+        # First element
+        ifvar1 = Value("x", LiteralType.INT, 1, None, True, False, True)
+        ifval1 = Value("1", LiteralType.INT, 1, None, False, False, True)
+        ifdec1 = Declaration(ifvar1, 1)
+        ifdec1.setRightChild(ifval1)
+        ifBlock.getSymbolTable().addSymbol(ifdec1, True)
+        # Second element
+        ifvar2 = Value("y", LiteralType.INT, 1, None, True, False, True)
+        ifval2 = Value("2", LiteralType.INT, 1, None, False, False, True)
+        ifdec2 = Declaration(ifvar2, 1)
+        ifdec2.setRightChild(ifval2)
+        ifBlock.getSymbolTable().addSymbol(ifdec2, True)
+        # Third element
+        ifvar3 = Value("z", LiteralType.FLOAT, 1, None, True, False, True)
+        ifval3 = Value("3", LiteralType.FLOAT, 1, None, False, False, True)
+        ifdec3 = Declaration(ifvar3, 1)
+        ifdec3.setRightChild(ifval3)
+        ifBlock.getSymbolTable().addSymbol(ifdec3, True)
+        # Fourth first
+        ifvar4 = Value("w", LiteralType.INT, 1, None, True, True, True)
+        ifval4 = Value("4", LiteralType.INT, 1, None, False, True, True)
+        ifdec4 = Declaration(ifvar4, 1)
+        ifdec4.setRightChild(ifval4)
+        ifBlock.getSymbolTable().addSymbol(ifdec4, True)
+
         ifStat.setBlock(ifBlock)
 
         div3 = generateDiv()
@@ -552,6 +577,20 @@ class nodeTestCase(unittest.TestCase):
         tree3.setRoot(div3)
         elifBlock = block(firstBlock)
         elifBlock.addTree(tree3)
+
+        # First element
+        elifvar1 = Value("x", LiteralType.INT, 1, None, True, False, True)
+        elifval1 = Value("8", LiteralType.INT, 1, None, False, False, True)
+        elifdec1 = Declaration(elifvar1, 1)
+        elifdec1.setRightChild(elifval1)
+        elifBlock.getSymbolTable().addSymbol(elifdec1, True)
+        # Second element
+        elifvar2 = Value("y", LiteralType.INT, 1, None, True, False, True)
+        elifval2 = Value("9", LiteralType.INT, 1, None, False, False, True)
+        elifdec2 = Declaration(elifvar2, 1)
+        elifdec2.setRightChild(elifval2)
+        elifBlock.getSymbolTable().addSymbol(elifdec2, True)
+
         elifStat.setBlock(elifBlock)
 
         div4 = generateDiv()
@@ -567,9 +606,39 @@ class nodeTestCase(unittest.TestCase):
         firstBlock.addTree(elifTree)
         firstBlock.addTree(elseTree)
 
+        # First element
+        var1 = Value("x", LiteralType.INT, 1, None, True, False, True)
+        val1 = Value("5", LiteralType.INT, 1, None, False, False, True)
+        dec1 = Declaration(var1, 1)
+        dec1.setRightChild(val1)
+        firstBlock.getSymbolTable().addSymbol(dec1, True)
+        # Second element
+        var2 = Value("y", LiteralType.INT, 1, None, True, False, True)
+        val2 = Value("22", LiteralType.INT, 1, None, False, False, True)
+        dec2 = Declaration(var2, 1)
+        dec2.setRightChild(val2)
+        firstBlock.getSymbolTable().addSymbol(dec2, True)
+        # Third element
+        var3 = Value("z", LiteralType.FLOAT, 1, None, True, False, True)
+        val3 = Value("-78.0", LiteralType.FLOAT, 1, None, False, False, True)
+        dec3 = Declaration(var3, 1)
+        dec3.setRightChild(val3)
+        firstBlock.getSymbolTable().addSymbol(dec3, True)
+        # Fourth first
+        var4 = Value("w", LiteralType.INT, 1, None, True, True, True)
+        val4 = Value("2", LiteralType.INT, 1, None, False, True, True)
+        dec4 = Declaration(var4, 1)
+        dec4.setRightChild(val4)
+        firstBlock.getSymbolTable().addSymbol(dec4, True)
+
         prog.addBlock(firstBlock)
         prog.blocks[0].setNodeIds()
         prog.blocks[0].generateDot("./src/ast/dotFiles/if_unfilled.dot")
+        prog.blocks[0].fillBlock()
+        prog.blocks[0].generateDot("./src/ast/dotFiles/if_unfolded.dot")
+        prog.blocks[0].fold()
+        prog.blocks[0].setNodeIds()
+        prog.blocks[0].generateDot("./src/ast/dotFiles/if_folded.dot")
 
 
 if __name__ == '__main__':
