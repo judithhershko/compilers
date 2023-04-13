@@ -747,7 +747,7 @@ class EmptyNode(AST_node):
         return []
 
 
-class Scope(AST_node): # TODO: let it hold a block instead of trees
+class Scope(AST_node):  # TODO: let it hold a block instead of trees
 
     def __init__(self, line: int, parent: AST_node = None):
         self.parent = parent
@@ -808,9 +808,10 @@ class If(AST_node):
     if (){} ele if(){} else if(){}... else {}
     """
 
-    def __init__(self, line, operator: ConditionType = ConditionType.IF):
+    def __init__(self, line, operator: ConditionType = ConditionType.IF, parent=None):
         self.line = line
         self.operator = operator
+        self.parent = parent
 
     def __eq__(self, other):
         if not isinstance(other, If):
@@ -871,7 +872,7 @@ class While(AST_node):
     child block: scope --> special node (multiple children)--> callable seperate from condition
     """
 
-    def __init__(self, line, parent):
+    def __init__(self, line, parent=None):
         self.line = line
         self.parent = parent
         """
@@ -891,3 +892,29 @@ class While(AST_node):
          }
          
         """
+
+    def __eq__(self, other):
+        if not isinstance(other, If):
+            return False
+        return self.operator == other.operator and self.line == other.line and self.Condition == other.Condition and \
+               self.c_block == other.c_block
+
+    def setCondition(self, con: AST_node):
+        self.Condition = con
+
+    def setBlock(self, newBlock: block):
+        self.c_block = newBlock
+
+    def getLabel(self):
+        return "\"while\""
+
+    def fold(self):
+        self.Condition = self.Condition.fold()
+        self.c_block = self.c_block.fold()
+        return self
+
+    def getVariables(self):  # TODO: for now no filling of variables because this can run multiple times
+        return []
+
+    def replaceVariables(self, values):  # TODO: for now no filling of variables because this can run multiple times
+        pass

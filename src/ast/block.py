@@ -30,8 +30,8 @@ class block:
         for j in range(len(self.trees)):
             if self.trees[j] != other.trees[j]:
                 treesTrue = False
-        return self.symbols == other.symbols and self.ast == other.ast and \
-               self.fname == other.fname and self.id == other.id and blocksTrue and treesTrue
+        return self.symbols == other.symbols and self.ast == other.ast and self.fname == other.fname and \
+               self.id == other.id and blocksTrue and treesTrue
 
     def getId(self):
         return str(self.level) + "." + str(self.number)
@@ -133,7 +133,7 @@ class block:
         file.close()
         return output
 
-    def toDot(self): # TODO: check what to do with blocks -> get them in right order with the trees
+    def toDot(self):  # TODO: check what to do with blocks -> get them in right order with the trees
         nodes = self.getId() + " [label=" + self.getLabel() + "]"
         edges = ""
 

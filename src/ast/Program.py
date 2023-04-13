@@ -5,6 +5,7 @@ from .AST import AST
 
 
 class program:
+    # TODO: add functions for fold and fill literals as in block
     def __init__(self):
         self.symbols = SymbolTable()
         self.ast = AST()

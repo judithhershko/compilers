@@ -63,7 +63,6 @@ def generateCondition():
     return And
 
 
-
 class nodeTestCase(unittest.TestCase):
     def test_getId(self):
         testNode = AST_node()
@@ -703,6 +702,78 @@ class nodeTestCase(unittest.TestCase):
         expected.setNodeIds()
 
         self.assertEqual(prog.blocks[0], expected)
+
+    def test_While(self):
+        And = generateCondition()
+
+        firstBlock = block(None)
+
+        whileStat = While(1)
+        whileStat.setCondition(And)
+        whileTree = AST()
+        whileTree.root = whileStat
+
+        div1 = generateDiv()
+        tree1 = AST()
+        tree1.setRoot(div1)
+
+        div2 = generateDiv()
+        tree2 = AST()
+        tree2.setRoot(div2)
+        whileBlock = block(firstBlock)
+        whileBlock.addTree(tree2)
+        # First element
+        whilevar1 = Value("x", LiteralType.INT, 1, None, True, False, True)
+        whileval1 = Value("1", LiteralType.INT, 1, None, False, False, True)
+        whiledec1 = Declaration(whilevar1, 1)
+        whiledec1.setRightChild(whileval1)
+        whileBlock.getSymbolTable().addSymbol(whiledec1, True)
+        # Second element
+        whilevar2 = Value("y", LiteralType.INT, 1, None, True, False, True)
+        whileval2 = Value("2", LiteralType.INT, 1, None, False, False, True)
+        whiledec2 = Declaration(whilevar2, 1)
+        whiledec2.setRightChild(whileval2)
+        whileBlock.getSymbolTable().addSymbol(whiledec2, True)
+
+        whileStat.setBlock(whileBlock)
+
+        prog = program()
+        firstBlock.addTree(tree1)
+        firstBlock.addTree(whileTree)
+
+        # First element
+        var1 = Value("x", LiteralType.INT, 1, None, True, False, True)
+        val1 = Value("5", LiteralType.INT, 1, None, False, False, True)
+        dec1 = Declaration(var1, 1)
+        dec1.setRightChild(val1)
+        firstBlock.getSymbolTable().addSymbol(dec1, True)
+        # Second element
+        var2 = Value("y", LiteralType.INT, 1, None, True, False, True)
+        val2 = Value("22", LiteralType.INT, 1, None, False, False, True)
+        dec2 = Declaration(var2, 1)
+        dec2.setRightChild(val2)
+        firstBlock.getSymbolTable().addSymbol(dec2, True)
+        # Third element
+        var3 = Value("z", LiteralType.FLOAT, 1, None, True, False, True)
+        val3 = Value("-78.0", LiteralType.FLOAT, 1, None, False, False, True)
+        dec3 = Declaration(var3, 1)
+        dec3.setRightChild(val3)
+        firstBlock.getSymbolTable().addSymbol(dec3, True)
+        # Fourth element
+        var4 = Value("w", LiteralType.INT, 1, None, True, True, True)
+        val4 = Value("2", LiteralType.INT, 1, None, False, True, True)
+        dec4 = Declaration(var4, 1)
+        dec4.setRightChild(val4)
+        firstBlock.getSymbolTable().addSymbol(dec4, True)
+
+        prog.addBlock(firstBlock)
+        prog.blocks[0].setNodeIds()
+        prog.blocks[0].generateDot("./src/ast/dotFiles/while_unfilled.dot")
+        prog.blocks[0].fillBlock()
+        prog.blocks[0].generateDot("./src/ast/dotFiles/while_unfolded.dot")
+        prog.blocks[0].fold()
+        prog.blocks[0].setNodeIds()
+        prog.blocks[0].generateDot("./src/ast/dotFiles/while_folded.dot")
 
 
 if __name__ == '__main__':

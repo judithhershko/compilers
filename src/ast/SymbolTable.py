@@ -21,6 +21,7 @@ class SymbolTable:
         return self.table.equals(other.table)
 
     def addSymbol(self, root: AST_node, isGlobal: bool):
+        # TODO: check if x is in upper scope, x = 5 replaces upper scope
         try:
             line = root.getLine()
             if not isinstance(root, Declaration):
