@@ -30,7 +30,7 @@ class block:
         for j in range(len(self.trees)):
             if self.trees[j] != other.trees[j]:
                 treesTrue = False
-        return self.symbols == other.symbols and self.ast == other.ast and self.parent == other.parent and \
+        return self.symbols == other.symbols and self.ast == other.ast and \
                self.fname == other.fname and self.id == other.id and blocksTrue and treesTrue
 
     def getId(self):

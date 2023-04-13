@@ -18,7 +18,7 @@ class SymbolTable:
     def __eq__(self, other):
         if not isinstance(other, SymbolTable):
             return False
-        return self.table == other.table
+        return self.table.equals(other.table)
 
     def addSymbol(self, root: AST_node, isGlobal: bool):
         try:

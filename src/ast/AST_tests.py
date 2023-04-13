@@ -624,7 +624,7 @@ class nodeTestCase(unittest.TestCase):
         dec3 = Declaration(var3, 1)
         dec3.setRightChild(val3)
         firstBlock.getSymbolTable().addSymbol(dec3, True)
-        # Fourth first
+        # Fourth element
         var4 = Value("w", LiteralType.INT, 1, None, True, True, True)
         val4 = Value("2", LiteralType.INT, 1, None, False, True, True)
         dec4 = Declaration(var4, 1)
@@ -639,6 +639,70 @@ class nodeTestCase(unittest.TestCase):
         prog.blocks[0].fold()
         prog.blocks[0].setNodeIds()
         prog.blocks[0].generateDot("./src/ast/dotFiles/if_folded.dot")
+
+        expected = block(None)
+        expected.getSymbolTable().addSymbol(dec1, True)
+        expected.getSymbolTable().addSymbol(dec2, True)
+        expected.getSymbolTable().addSymbol(dec3, True)
+        expected.getSymbolTable().addSymbol(dec4, True)
+
+        # tree
+        ast1 = AST()
+        leaf1 = Value("94.0", LiteralType.FLOAT, 1)
+        ast1.setRoot(leaf1)
+        # if
+        ifast = If(1)
+        con1 = Value(True, LiteralType.BOOL, 1)
+        ast2 = AST()
+        leaf2 = Value("-0.25", LiteralType.FLOAT, 1)
+        ast2.setRoot(leaf2)
+        ifast.setCondition(con1)
+        block1 = block(expected)
+        block1.addTree(ast2)
+        block1.getSymbolTable().addSymbol(ifdec1, True)
+        block1.getSymbolTable().addSymbol(ifdec2, True)
+        block1.getSymbolTable().addSymbol(ifdec3, True)
+        block1.getSymbolTable().addSymbol(ifdec4, True)
+        ifast.setBlock(block1)
+
+        IF = AST()
+        IF.setRoot(ifast)
+
+        # elif
+        elifast = If(2, ConditionType.ELIF)
+        con2 = Value(True, LiteralType.BOOL, 1)
+        ast3 = AST()
+        leaf3 = Value("75.0", LiteralType.FLOAT, 1)
+        ast3.setRoot(leaf3)
+        elifast.setCondition(con2)
+        block2 = block(expected)
+        block2.addTree(ast3)
+        block2.getSymbolTable().addSymbol(elifdec1, True)
+        block2.getSymbolTable().addSymbol(elifdec2, True)
+        elifast.setBlock(block2)
+
+        ELIF = AST()
+        ELIF.setRoot(elifast)
+        # else
+        elseast = If(3, ConditionType.ELSE)
+        ast4 = AST()
+        leaf4 = Value("94.0", LiteralType.FLOAT, 1)
+        ast4.setRoot(leaf4)
+        block3 = block(expected)
+        block3.addTree(ast4)
+        elseast.setBlock(block3)
+
+        ELSE = AST()
+        ELSE.setRoot(elseast)
+
+        expected.addTree(ast1)
+        expected.addTree(IF)
+        expected.addTree(ELIF)
+        expected.addTree(ELSE)
+
+        expected.setNodeIds()
+
+        self.assertEqual(prog.blocks[0], expected)
 
 
 if __name__ == '__main__':
