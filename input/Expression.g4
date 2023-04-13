@@ -1,13 +1,13 @@
 grammar Expression;
 
-start_rule: (print ';'|expr ';'|dec ';'|comments|line|loop|scope (';')?)*;
+start_rule: (print ';'|expr ';'|dec ';'|comments|line|loop|scope (';')?| function_definition )*;
 
 line:NLINE;
 print   : PRINT LBRAK (char_pri | pri) RBRAK ;
 comments: ML_COMMENT | SL_COMMENT;
 typed_var: INT| DOUBLE | FLOAT |CHAR | BOOL;
 
-scope : '{' rule '}' (';')?;
+scope : '{' rule (return)? '}' (';')?;
 rule  : (print ';'|expr ';'|dec ';'|comments|line|loop|scope)*;
 lrules: (print ';' |expr ';' |dec ';' |comments |line |loop |break |continue | lscope)*;
 lscope: '{' lrules '}' ;
@@ -18,12 +18,13 @@ if    : IF LBRAK expr RBRAK lscope |  ELSE  lscope | ELSE IF  LBRAK expr RBRAK l
 break : BREAK ';';
 continue: CONTINUE ';';
 
-function_dec: return_type ID LBRAK parameters (',' parameters )* RBRAK ';';
+function_dec: return_type ID LBRAK (parameters)? (',' parameters )* RBRAK ';';
 return_type: (CONST)? (INT| DOUBLE | FLOAT |CHAR | BOOL | VOID);
 parameters: (const)? typed_var (pointer)* (ref)? ID ;
 ref: REF;
-function_definition: return_type ID LBRAK parameters (',' parameters )* RBRAK '{' rule '}';
-return: RETURN (expr | char_expr) ? ;
+function_definition: return_type function_name LBRAK (parameters)? (',' parameters )* RBRAK scope ;
+function_name: ID;
+return: RETURN (expr | char_expr)? ';' ;
 
 const : CONST;
 pointer:MULT;

@@ -27,9 +27,10 @@ def main():
         # result = EvalVisitor().visit(tree)
         walker = ParseTreeWalker()
         walker.walk(printer, tree)
-        #print("end of walk")
         to_llvm=ToLLVM()
-        to_llvm.transverse_block(printer.c_block)
+
+        #to_llvm.transverse_block(printer.c_block)
+        to_llvm.transverse_program(printer.program)
         to_llvm.write_to_file("generated/output/llvm_output.ll")
 
     except SystemExit:

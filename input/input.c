@@ -3,6 +3,11 @@ int u=0;
     int scope =1;
     }
 
+int main()
+{
+
+return 0;
+}
 {
 int scope=2;
 {
