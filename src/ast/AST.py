@@ -34,8 +34,7 @@ class AST:
         elif isinstance(nextNode, UnaryOperator):
             number = self.setNodeIds(nextNode.rightChild, level + 1, number + 1)
         elif isinstance(nextNode, Scope):
-            for tree in nextNode.trees:
-                number = self.setNodeIds(tree, level + 1, number + 1)
+            number = nextNode.block.setNodeIds(level, number)
         elif isinstance(nextNode, If):
             if nextNode.operator != ConditionType.ELSE:
                 number = self.setNodeIds(nextNode.Condition, level + 1, number + 1)
@@ -93,11 +92,9 @@ class AST:
             nodes = nodes + res[0]
             edges = edges + res[1]
         elif isinstance(self.root, Scope):
-            for tree in self.root.trees:
-                edges = edges + "\n" + self.root.getId() + "--" + tree.getId()
-                res = self.toDot(tree)
-                nodes = nodes + res[0]
-                edges = edges + res[1]
+            res = self.root.block.toDot()
+            nodes = nodes + res[0]
+            edges = "\n" + edges + res[1]
         elif isinstance(self.root, If):
             if self.root.operator != ConditionType.ELSE:
                 edges = self.root.getId() + "--" + self.root.Condition.getId() + "\n" + self.root.getId() + "--" + \
@@ -167,11 +164,11 @@ class AST:
             nodes = nodes + res[0]
             edges = edges + res[1]
         elif isinstance(root, Scope):
-            for tree in root.trees:
-                edges = edges + "\n" + root.getId() + "--" + tree.getId()
-                res = self.toDot(tree)
-                nodes = nodes + res[0]
-                edges = edges + res[1]
+            # edges = edges + "\n" + self.getId() + "--" + tree.root.getId()
+            nodes = "\n"
+            res = root.block.toDot()
+            nodes = nodes + res[0]
+            edges = edges + res[1]
         elif isinstance(root, If):
             if root.operator != ConditionType.ELSE:
                 edges = edges + "\n" + root.getId() + "--" + root.Condition.getId() + "\n" + root.getId() + "--" + \

@@ -748,43 +748,39 @@ class EmptyNode(AST_node):
 
 
 class Scope(AST_node):  # TODO: let it hold a block instead of trees
+    block = None
 
     def __init__(self, line: int, parent: AST_node = None):
         self.parent = parent
         self.line = line
-        self.trees = []
 
     def __eq__(self, other):
         if not isinstance(other, Scope):
             return False
         same = True
-        for i in range(len(self.trees)):
-            if self.trees[i] != other.trees[i]:
-                same = False
+        if self.block is not None:
+            same = self.block == other.block
         return self.parent == other.parent and self.line == other.line and same
 
+    def setBlock(self, scope: block):
+        self.block = scope
+
     def addTree(self, ast: AST_node):
-        self.trees.append(ast)
+        self.block.addTree(ast)
 
     def getLabel(self):
         return "\"New scope: \""
 
     def fold(self):
-        folded = []
-        for tree in self.trees:
-            folded.append(tree.fold())
-        self.trees = folded
+        self.block.fold()
         return self
 
     def getVariables(self):
-        res = []
-        for tree in self.trees:
-            res.extend(tree.getVariables())
-        return res
+        self.block.fillBlock()
+        return []
 
     def replaceVariables(self, values):
-        for tree in self.trees:
-            tree.replaceVariables(values)
+        pass
 
 
 class For(AST_node):

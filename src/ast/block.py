@@ -77,7 +77,7 @@ class block:
 
         current = self
         while not isinstance(current, program) and notFound:
-            current = self.getParent()
+            current = current.getParent()
             variables = notFound
             notFound = []
             for elem in variables:
