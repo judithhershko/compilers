@@ -1,4 +1,5 @@
 import unittest
+import filecmp
 from .node import *
 from .Program import program
 from .block import block
@@ -713,9 +714,9 @@ class nodeTestCase(unittest.TestCase):
         whileTree = AST()
         whileTree.root = whileStat
 
-        div1 = generateDiv()
-        tree1 = AST()
-        tree1.setRoot(div1)
+        # div1 = generateDiv()
+        # tree1 = AST()
+        # tree1.setRoot(div1)
 
         div2 = generateDiv()
         tree2 = AST()
@@ -738,7 +739,7 @@ class nodeTestCase(unittest.TestCase):
         whileStat.setBlock(whileBlock)
 
         prog = program()
-        firstBlock.addTree(tree1)
+        # firstBlock.addTree(tree1)
         firstBlock.addTree(whileTree)
 
         # First element
@@ -774,6 +775,8 @@ class nodeTestCase(unittest.TestCase):
         prog.blocks[0].fold()
         prog.blocks[0].setNodeIds()
         prog.blocks[0].generateDot("./src/ast/dotFiles/while_folded.dot")
+
+        self.assertTrue(filecmp.cmp("./src/ast/dotFiles/while_unfolded.dot", "./src/ast/dotFiles/while_folded.dot"))
 
 
 if __name__ == '__main__':

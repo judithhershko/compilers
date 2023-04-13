@@ -909,8 +909,6 @@ class While(AST_node):
         return "\"while\""
 
     def fold(self):
-        self.Condition = self.Condition.fold()
-        self.c_block = self.c_block.fold()
         return self
 
     def getVariables(self):  # TODO: for now no filling of variables because this can run multiple times
