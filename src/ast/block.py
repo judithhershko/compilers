@@ -12,6 +12,7 @@ class block:
         self.parent = parent
         self.blocks = []
         self.trees = []
+        self.freturn=AST()
         self.fname=name
         self.id=''
 
