@@ -895,6 +895,12 @@ class CustomListener(ExpressionListener):
     # Exit a parse tree produced by ExpressionParser#function_name.
     def exitFunction_name(self, ctx: ParserRuleContext):
         pass
+    def enterFunction_dec(self, ctx: ParserRuleContext):
+        print("enter function_def:"+ctx.getText())
+
+    # Exit a parse tree produced by ExpressionParser#function_dec.
+    def exitFunction_dec(self, ctx: ParserRuleContext):
+        pass
 
     # Enter a parse tree produced by ExpressionParser#return_type.
     def enterReturn_type(self, ctx: ParserRuleContext):
