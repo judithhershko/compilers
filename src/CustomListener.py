@@ -44,43 +44,7 @@ class CustomListener(ExpressionListener):
             return True
         else:
             return False
-    def set_declaration(self,ctx):
-        print("ente dec:" + ctx.getText())
-        # print("new dec:" + ctx.getText())
-        self.start_rule = self.start_rule[len(ctx.getText()) + 1:]
-        self.asT = create_tree()
-        # self.parent = Declaration()
-        var = getVariable(ctx.getText())
 
-        if var == '':
-            if str(self.start_rule[-1]).isdigit():
-                raise RightValRef(ctx.start.line)
-            else:
-                raise ReservedWord(ctx.start.line, variable=var)
-            pass
-
-        type = getType(var)
-        if type is False:
-            # print("val is :" + var)
-            if self.c_block.getSymbolTable().findSymbol(var) is not None:
-                if self.c_block.getSymbolTable().findSymbol(var)[2] >= 1:
-                    self.current = Pointer(var, self.c_block.getSymbolTable().findSymbol(var)[1], ctx.start.line,
-                                           self.c_block.getSymbolTable().findSymbol(var)[2], self.parent)
-                else:
-                    self.current = Value(var, self.c_block.getSymbolTable().findSymbol(var)[1], ctx.start.line,
-                                         self.parent,
-                                         variable=True)
-            else:
-                self.current = Value(var, LiteralType.FLOAT, ctx.start.line, self.parent, variable=True, decl=False)
-
-
-        else:
-            self.current = Value(var, type, ctx.start.line, self.parent, variable=True, decl=True)
-        # self.parent.leftChild = self.current
-        self.parent = Declaration(self.current, ctx.start.line)
-        self.current = self.parent.rightChild
-        self.dec_op = self.parent
-        self.declaration = True
 
     def check_brackets(self, non_brack):
         if non_brack.leftChild is None:
@@ -437,7 +401,42 @@ class CustomListener(ExpressionListener):
 
     # Enter a parse tree produced by ExpressionParser#dec.
     def enterDec(self, ctx: ParserRuleContext):  # TODO: declaration needs to get right type
-        self.set_declaration(ctx)
+        print("ente dec:" + ctx.getText())
+        # print("new dec:" + ctx.getText())
+        self.start_rule = self.start_rule[len(ctx.getText()) + 1:]
+        self.asT = create_tree()
+        # self.parent = Declaration()
+        var = getVariable(ctx.getText())
+
+        if var == '':
+            if str(self.start_rule[-1]).isdigit():
+                raise RightValRef(ctx.start.line)
+            else:
+                raise ReservedWord(ctx.start.line, variable=var)
+            pass
+
+        type = getType(var)
+        if type is False:
+            # print("val is :" + var)
+            if self.c_block.getSymbolTable().findSymbol(var) is not None:
+                if self.c_block.getSymbolTable().findSymbol(var)[2] >= 1:
+                    self.current = Pointer(var, self.c_block.getSymbolTable().findSymbol(var)[1], ctx.start.line,
+                                           self.c_block.getSymbolTable().findSymbol(var)[2], self.parent)
+                else:
+                    self.current = Value(var, self.c_block.getSymbolTable().findSymbol(var)[1], ctx.start.line,
+                                         self.parent,
+                                         variable=True)
+            else:
+                self.current = Value(var, LiteralType.FLOAT, ctx.start.line, self.parent, variable=True, decl=False)
+
+
+        else:
+            self.current = Value(var, type, ctx.start.line, self.parent, variable=True, decl=True)
+        # self.parent.leftChild = self.current
+        self.parent = Declaration(self.current, ctx.start.line)
+        self.current = self.parent.rightChild
+        self.dec_op = self.parent
+        self.declaration = True
 
     # Exit a parse tree produced by ExpressionParser#dec.
     def exitDec(self, ctx: ParserRuleContext):
@@ -916,7 +915,7 @@ class CustomListener(ExpressionListener):
 
     # Enter a parse tree produced by ExpressionParser#parameters.
     def enterParameters(self, ctx: ParserRuleContext):
-        self.set_declaration(ctx)
+        self.enterDec(ctx)
 
     # Exit a parse tree produced by ExpressionParser#parameters.
     def exitParameters(self, ctx: ParserRuleContext):
