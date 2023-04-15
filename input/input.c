@@ -1,12 +1,18 @@
-int u=0;
+/**int u=0;
     {
     int scope =1;
     }
+**/
+int main(int x, int *y)
+{
 
+return 0;
+}
 {
 int scope=2;
 {
 int scope=21;
+main(scope);
 }
 
 scope=1;

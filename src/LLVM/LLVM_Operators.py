@@ -5,6 +5,7 @@ from src.ast import AST
 from src.ast.SymbolTable import SymbolTable
 from src.ast.node import Declaration, Value, LiteralType, Comment, CommentType, Print, Pointer
 from src.ast.block import block
+from src.ast.Program import program
 
 
 class ToLLVM():
@@ -15,6 +16,7 @@ class ToLLVM():
         self.couter = 0
         self.var_dic = dict()
         self.main = True
+        self.is_global = False
         self.g_count = 0
         self.g_assignment = ""
         self.f_declerations = ""
@@ -48,8 +50,8 @@ class ToLLVM():
         return hex(struct.unpack('<I', struct.pack('<f', f))[0])
 
     def float_to_64bit_hex(self, x):
-        if isinstance(x,str):
-            x=float(x)
+        if isinstance(x, str):
+            x = float(x)
         bytes_of_x = struct.pack('>f', x)
         x_as_int = struct.unpack('>f', bytes_of_x)[0]
         x_as_double = struct.pack('>d', x_as_int).hex()
@@ -78,52 +80,56 @@ class ToLLVM():
         self.store += "ret i32 0\n"
         self.store += "}\n"
 
+    def transverse_program(self, _program: program):
+        _block = _program.blocks.pop(0)
+        if _block.id == 0:
+            self.is_global = True
+        else:
+            self.is_global = False
+        if _block.fname == 'main':
+            self.start_main()
+            self.transverse_block(_block)
+            for _ in _block.blocks:
+                print("block in blocks")
+            self.end_main()
+        for tree in _block.trees:
+            if isinstance(tree.root, Declaration):
+                if tree.root.leftChild.declaration:
+                    self.to_declaration(tree)
+                else:
+                    self.redec.append(tree)
+            elif isinstance(tree.root, Value):
+                # print("expression no declaration is: "+str(tree.root.value))
+                pass
+            elif isinstance(tree.root, Comment):
+                self.to_comment(tree)
+            elif isinstance(tree.root, Print):
+                self.to_print(tree)
+        _block.trees = self.redec
+        for tree in _block.trees:
+            if isinstance(tree.root, Declaration):
+                self.to_declaration(tree)
+
     def transverse_block(self, cblock: block, main=True, redec=False):
         self.c_block = cblock
-        if main:
-            self.start_main()
-            for tree in cblock.trees:
-                if isinstance(tree.root, Declaration):
-                    if tree.root.leftChild.declaration:
-                        self.to_declaration(tree)
-                    else:
-                        self.redec.append(tree)
-                elif isinstance(tree.root, Value):
-                    # print("expression no declaration is: "+str(tree.root.value))
-                    pass
-                elif isinstance(tree.root, Comment):
-                    self.to_comment(tree)
-                elif isinstance(tree.root, Print):
-                    var = ""
-                    to_print = ""
-                    if type(tree.root.value) is tuple:
-                        to_print = tree.root.value[0]
-                    else:
-                        to_print = tree.root.value
-                    if len(to_print)>=7 and to_print[1]=="\"":
-                        v=""
-                        for i in to_print:
-                            if i=="\"":
-                                pass
-                            else:
-                                v+=i
-                        to_print=v
-                    if self.g_count > 0:
-                        var = "."
-                        var += str(self.g_count)
-                    else:
-                        self.f_declerations += "declare i32 @printf(ptr noundef, ...) #1\n"
-                    self.g_count += 1
-                    self.g_assignment += "@.str{} = private unnamed_addr constant [{}x i8] c\"{}\\0A\\00\", align 1\n".format(
-                        var, len(str(to_print)) + 2, to_print)
-                    s = self.add_variable("printf" + str(self.g_count))
-                    self.allocate += "; printf ({})\n".format(str(to_print))
-                    self.allocate += "%{} = call i32 (ptr, ...) @printf(ptr noundef @.str{})\n".format(s, var)
-            cblock.trees = self.redec
-            for tree in cblock.trees:
-                if isinstance(tree.root, Declaration):
+        for tree in cblock.trees:
+            if isinstance(tree.root, Declaration):
+                if tree.root.leftChild.declaration:
                     self.to_declaration(tree)
-            self.end_main()
+                else:
+                    self.redec.append(tree)
+            elif isinstance(tree.root, Value):
+                # print("expression no declaration is: "+str(tree.root.value))
+                pass
+            elif isinstance(tree.root, Comment):
+                self.to_comment(tree)
+            elif isinstance(tree.root, Print):
+                self.to_print(tree)
+        cblock.trees = self.redec
+        for tree in cblock.trees:
+            if isinstance(tree.root, Declaration):
+                self.to_declaration(tree)
+
 
     def write_to_file(self, filename: str):
         # open text file
@@ -192,6 +198,7 @@ class ToLLVM():
                 val = self.float_to_64bit_hex(input.value)
             allign = self.allignment(typpe_)
             self.store += "store {} {}, {}* %{}, align 1\n".format(typpe_, val, typpe_, self.get_variable(v.value))
+
     def switch_global_Literals(self, v: Value, input: Value):
         # comment above with original code:
         if v.declaration:
@@ -199,40 +206,29 @@ class ToLLVM():
             type = ""
             if v.const:
                 const = "const"
-
             if v.type == LiteralType.INT:
                 self.allocate += "; {} {} {} = {}\n".format(const, "int", v.value, input.value)
-                self.allocate += "%{} = alloca i32, align 4\n".format(self.add_variable(str(v.value)))
-                self.store += "store i32 {}, i32* %{}, align 4\n".format(input.value, self.get_variable(v.value))
+                self.allocate += "@{} = global i32 {}, align 4\n".format(v.value, input.value)
 
             elif v.type == LiteralType.FLOAT:
-                val = self.float_to_64bit_hex(input.value)
                 self.allocate += "; {} {} {} = {}\n".format(const, "float", v.value, input.value)
-                self.allocate += "%{} = alloca float, align 4\n".format(self.add_variable(v.value))
-                self.store += "store float {}, float* %{}, align 4\n".format(val, self.get_variable(v.value))
+                self.allocate += "@{} = global float {}, align 4\n".format(v.value,
+                                                                           self.float_to_64bit_hex(input.value))
 
             elif v.type == LiteralType.CHAR:
-                size = len(input.value)
-                self.allocate += "; {} {} {} = {}\n".format(const, "char", v.value, input.value)
-                self.allocate += "%{} = alloca i8, align 1\n".format(self.add_variable(v.value))
-
                 num = ord(input.value[1])
-                self.store += "store i8 {}, i8* %{}, align 1\n".format(num, self.get_variable(v.value))
+                self.allocate += "; {} {} {} = {}\n".format(const, "char", v.value, input.value)
+                self.allocate += "@{} = global i8 {}, align 1\n".format(v.value, num)
 
             elif v.type == LiteralType.BOOL:
                 bval = 0
                 if input.value == "True":
                     bval = 1
                 self.allocate += "; {}{}{}={}\n".format(const, "_Bool", v.value, input.value)
-                self.allocate += "%{} = alloca i8, align 1\n".format(self.add_variable(v.value))
-                self.store += "store i8 {}, i8* %{}, align 1\n".format(bval, self.get_variable(v.value))
+                self.allocate += "@{} = global i8 {}, align 1\n".format(v.value, bval)
         else:
-            typpe_ = self.type_store(self.get_type(v))
-            val = input.value
-            if typpe_ == 'float':
-                val = self.float_to_64bit_hex(input.value)
-            allign = self.allignment(typpe_)
-            self.store += "store {} {}, {}* %{}, align 1\n".format(typpe_, val, typpe_, self.get_variable(v.value))
+            raise "invalid input switch global literals"
+
     def to_bin_operator(self, ast: AST):
         pass
 
@@ -281,7 +277,10 @@ class ToLLVM():
                 pointer = self.get_variable(ast.root.leftChild.getValue())
                 self.store += "store ptr %{}, ptr %{}, align 8\n".format(reference, pointer)
         elif isinstance(ast.root, Declaration):
-            return self.switch_Literals(ast.root.leftChild, ast.root.rightChild)
+            if self.is_global:
+                return self.switch_global_Literals(ast.root.leftChild, ast.root.rightChild)
+            else:
+                return self.switch_Literals(ast.root.leftChild, ast.root.rightChild)
         return
 
     def to_comment(self, ast: AST):
@@ -300,12 +299,29 @@ class ToLLVM():
                         self.store += ";"
         self.store += "\n"
 
-    def to_print(self, ast: AST):
-        # len=len+1 van de variabele die je wilt meegeven
-        # cast momenteel naar een char
-        var = "x"
-        # check if variable in table:
-        # if yes/ add 1 loop
-        # if not:
-        self.store += "%{} = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([3 x i8], [3 x i8]* @.str, i64 0, i64 0), i32 %3)"
-        pass
+    def to_print(self, tree: AST):
+        var = ""
+        to_print = ""
+        if type(tree.root.value) is tuple:
+            to_print = tree.root.value[0]
+        else:
+            to_print = tree.root.value
+        if len(to_print) >= 7 and to_print[1] == "\"":
+            v = ""
+            for i in to_print:
+                if i == "\"":
+                    pass
+                else:
+                    v += i
+            to_print = v
+        if self.g_count > 0:
+            var = "."
+            var += str(self.g_count)
+        else:
+            self.f_declerations += "declare i32 @printf(ptr noundef, ...) #1\n"
+        self.g_count += 1
+        self.g_assignment += "@.str{} = private unnamed_addr constant [{}x i8] c\"{}\\0A\\00\", align 1\n".format(
+            var, len(str(to_print)) + 2, to_print)
+        s = self.add_variable("printf" + str(self.g_count))
+        self.allocate += "; printf ({})\n".format(str(to_print))
+        self.allocate += "%{} = call i32 (ptr, ...) @printf(ptr noundef @.str{})\n".format(s, var)

@@ -1,11 +1,15 @@
-; Function Attrs: noinline nounwind optnone ssp uwtable(sync)
 
-define i32 @main() #0 {
-%1 = alloca i32, align 4
+;  int w = 0
+@w = global i32 0, align 4
+;  int y = 0
+@y = global i32 0, align 4
 
-store i32 0, ptr %1, align 4
+;/**int u=0;
+;    {
+;    int scope =1;
+;    }
+;**/
+;//w=w+1;
 
-ret i32 0
-}
 
 
