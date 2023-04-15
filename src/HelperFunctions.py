@@ -1,5 +1,4 @@
 from src.ast import node
-from src.ast.AST import AST
 from src.ast.node import *
 from .ast.Program import *
 
@@ -36,29 +35,18 @@ def getType(txt):
         return LiteralType.CHAR
     else:
         return False
+def getIftype(var:str):
+
+    if var.__len__()>=6 and var[0:6]=="elseif":
+        return "elseif"
+    elif var.__len__()>=4 and var[0:4]=="else":
+        return "else"
+    else:
+        return "if"
 
 
 def separate_type_variable(old, type_):
     return old.replace(type_, '')
-
-
-def find_type(txt):
-    # type = types.get(txt)
-    if len(txt) >= 3 and txt[0:4] == 'int':
-        return LiteralType.INT
-    elif len(txt) >= 4 and txt[0:5] == 'float':
-        return LiteralType.FLOAT
-    elif len(txt) >= 6 and txt[0:7] == 'double':
-        return LiteralType.DOUBLE
-    elif len(txt) >= 6 and txt[0:7] == 'string':
-        return LiteralType.STR
-    elif len(txt) >= 4 and txt[0:5] == 'bool':
-        return LiteralType.BOOL
-    elif len(txt) >= 4 and txt[0:5] == 'char':
-        return LiteralType.CHAR
-    else:
-        return False
-
 
 def is_variable(v: str):
     for i in v:
