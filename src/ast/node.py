@@ -1,17 +1,21 @@
-import enum
-import sys
+from enum import Enum
 from src.ErrorHandeling.GenerateError import *
+
+
+class block:
+    pass
+
 
 types = \
     {"double": 4, "int": 5, "char": 6, "bool": 7, "string": 2, "float": 8, "pointer": 9, "nr": 1, "var": 3};
 
 
-class CommentType(enum.Enum):
+class CommentType(Enum):
     ML = 0
     SL = 1
 
 
-class LiteralType(enum.Enum):
+class LiteralType(Enum):
     NUM = 1
     STR = 2
     VAR = 3
@@ -24,6 +28,20 @@ class LiteralType(enum.Enum):
 
     def __str__(self):
         return self.name
+
+
+class ConditionType(Enum):
+    IF = 0
+    ELIF = 1
+    ELSE = 2
+
+    def __str__(self):
+        if self.value == 0:
+            return "if"
+        elif self.value == 1:
+            return "else if"
+        else:
+            return "else"
 
 
 class AST_node:
@@ -229,9 +247,9 @@ class BinaryOperator(AST_node):
         if not isinstance(other, BinaryOperator):
             return False
         return self.operator == other.operator and self.leftChild == other.leftChild and \
-            self.rightChild == other.rightChild and self.parent == other.parent and \
-            self.variable == other.variable and self.level == other.level and \
-            self.number == other.number and self.line == other.line
+               self.rightChild == other.rightChild and self.parent == other.parent and \
+               self.variable == other.variable and self.level == other.level and \
+               self.number == other.number and self.line == other.line
 
     def getValue(self):
         return self.operator
@@ -328,8 +346,8 @@ class UnaryOperator(AST_node):
         if not isinstance(other, UnaryOperator):
             return False
         return self.operator == other.operator and self.rightChild == other.rightChild and self.parent == other.parent \
-            and self.variable == other.variable and self.level == other.level and \
-            self.number == other.number and self.line == other.line
+               and self.variable == other.variable and self.level == other.level and \
+               self.number == other.number and self.line == other.line
 
     def getValue(self):
         return self.operator
@@ -410,9 +428,9 @@ class LogicalOperator(AST_node):
         if not isinstance(other, LogicalOperator):
             return False
         return self.operator == other.operator and self.leftChild == other.leftChild and \
-            self.rightChild == other.rightChild and self.parent == other.parent and \
-            self.variable == other.variable and self.level == other.level and \
-            self.number == other.number and self.line == other.line
+               self.rightChild == other.rightChild and self.parent == other.parent and \
+               self.variable == other.variable and self.level == other.level and \
+               self.number == other.number and self.line == other.line
 
     def getValue(self):
         return self.operator
@@ -517,8 +535,8 @@ class Declaration(AST_node):
         if not isinstance(other, LogicalOperator):
             return False
         return self.leftChild == other.leftChild and self.rightChild == other.rightChild and \
-            self.parent == other.parent and self.variable == other.variable and self.level == other.level and \
-            self.number == other.number and self.line == other.line
+               self.parent == other.parent and self.variable == other.variable and self.level == other.level and \
+               self.number == other.number and self.line == other.line
 
     def getLabel(self):
         return "\"Declaration: " + self.operator + "\""
@@ -594,8 +612,8 @@ class Pointer(AST_node):
         if not isinstance(other, Pointer):
             return False
         return self.value == other.value and self.type == other.type and self.parent == other.parent and \
-            self.variable == other.variable and self.pointerLevel == other.pointerLevel and \
-            self.const == other.const and self.number == other.number and self.line == other.line
+               self.variable == other.variable and self.pointerLevel == other.pointerLevel and \
+               self.const == other.const and self.number == other.number and self.line == other.line
 
     def getValue(self):
         return self.value
@@ -729,6 +747,42 @@ class EmptyNode(AST_node):
         return []
 
 
+class Scope(AST_node):  # TODO: let it hold a block instead of trees
+    block = None
+
+    def __init__(self, line: int, parent: AST_node = None):
+        self.parent = parent
+        self.line = line
+
+    def __eq__(self, other):
+        if not isinstance(other, Scope):
+            return False
+        same = True
+        if self.block is not None:
+            same = self.block == other.block
+        return self.parent == other.parent and self.line == other.line and same
+
+    def setBlock(self, scope: block):
+        self.block = scope
+
+    def addTree(self, ast: AST_node):
+        self.block.addTree(ast)
+
+    def getLabel(self):
+        return "\"New scope: \""
+
+    def fold(self):
+        self.block.fold()
+        return self
+
+    def getVariables(self):
+        self.block.fillBlock()
+        return []
+
+    def replaceVariables(self, values):
+        pass
+
+
 class For(AST_node):
     f_dec = None
     Condition = None
@@ -750,9 +804,50 @@ class If(AST_node):
     if (){} ele if(){} else if(){}... else {}
     """
 
-    def __init__(self, line, operator='if'):
+    def __init__(self, line, operator: ConditionType = ConditionType.IF, parent=None):
         self.line = line
         self.operator = operator
+        self.parent = parent
+
+    def __eq__(self, other):
+        if not isinstance(other, If):
+            return False
+        return self.operator == other.operator and self.line == other.line and self.Condition == other.Condition and \
+               self.c_block == other.c_block
+
+    def setCondition(self, con: AST_node):
+        try:
+            if self.operator != ConditionType.ELSE:
+                self.Condition = con
+            else:
+                raise ConditionElse(self.line)
+
+        except ConditionElse:
+            raise
+
+    def setBlock(self, newBlock: block):
+        self.c_block = newBlock
+
+    def getLabel(self):
+        return "\"" + self.operator.__str__() + "\""
+
+    def fold(self):
+        if self.operator != ConditionType.ELSE:
+            self.Condition = self.Condition.fold()
+        self.c_block = self.c_block.fold()
+        return self
+
+    def getVariables(self):
+        if self.operator != ConditionType.ELSE:
+            return self.Condition.getVariables()
+        else:
+            self.c_block.fillBlock()
+            return []
+
+    def replaceVariables(self, values):
+        if self.operator != ConditionType.ELSE:
+            self.Condition.replaceVariables(values)
+            self.c_block.fillBlock()
 
 
 class Break(AST_node):
@@ -764,7 +859,6 @@ class Continue(AST_node):
     def __init__(self, line):
         self.line = line
 
-
 """
 deze node is bedoelt om gemakkelijker llvm te gebruiken voor de volgorde van de trees/blocks ipv line telkens te gebruiken
 """
@@ -772,7 +866,7 @@ deze node is bedoelt om gemakkelijker llvm te gebruiken voor de volgorde van de 
 class Function(AST_node):
     def __init__(self, line):
         self.line = line
-
+        
 
 class While(AST_node):
     Condition = None
@@ -782,7 +876,7 @@ class While(AST_node):
     child block: scope --> special node (multiple children)--> callable seperate from condition
     """
 
-    def __init__(self, line, parent):
+    def __init__(self, line, parent=None):
         self.line = line
         self.parent = parent
         """
@@ -802,3 +896,27 @@ class While(AST_node):
          }
          
         """
+
+    def __eq__(self, other):
+        if not isinstance(other, If):
+            return False
+        return self.operator == other.operator and self.line == other.line and self.Condition == other.Condition and \
+               self.c_block == other.c_block
+
+    def setCondition(self, con: AST_node):
+        self.Condition = con
+
+    def setBlock(self, newBlock: block):
+        self.c_block = newBlock
+
+    def getLabel(self):
+        return "\"while\""
+
+    def fold(self):
+        return self
+
+    def getVariables(self):  # TODO: for now no filling of variables because this can run multiple times
+        return []
+
+    def replaceVariables(self, values):  # TODO: for now no filling of variables because this can run multiple times
+        pass

@@ -1,6 +1,6 @@
 import pandas as pd
 from src.ErrorHandeling.GenerateError import *
-from src.ast.node import *
+from .node import *
 
 
 class SymbolTable:
@@ -15,7 +15,13 @@ class SymbolTable:
                                    "Level": pd.Series(dtype=int),
                                    "Global": pd.Series(dtype=bool)})
 
+    def __eq__(self, other):
+        if not isinstance(other, SymbolTable):
+            return False
+        return self.table.equals(other.table)
+
     def addSymbol(self, root: AST_node, isGlobal: bool):
+        # TODO: check if x is in upper scope, x = 5 replaces upper scope
         try:
             line = root.getLine()
             if not isinstance(root, Declaration):
@@ -40,7 +46,7 @@ class SymbolTable:
                         ref = None
                 else:
                     raise LeftSideDeclaration(line)
-            if (level == 0 and ref is not None):
+            if level == 0 and ref is not None:
                 raise WrongPointer(line)
             elif name not in self.table.index:
                 if not decl:

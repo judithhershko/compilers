@@ -3,8 +3,6 @@
 # def printError(error):
 #     print(Fore.RED + error)
 
-from src.ast.node import *
-
 
 class Undeclared(Exception):
     def __init__(self, unresolved):
@@ -308,3 +306,11 @@ class PointerError(Exception):
 
     def __str__(self):
         return "\n\tError in line " + str(self.line) + ": " + str(self.name) + " cannot assign reference to value"
+
+
+class ConditionElse(Exception):
+    def __init__(self, line):
+        self.line = line
+
+    def __str__(self):
+        return "\n\tError in line " + str(self.line) + ": else statement does not have a condition"
