@@ -10,6 +10,10 @@ class FunctionTable:
     def addFunction(self, scope: Scope):
         pass
 
+    def findFunction(self, param=None):
+        if param is None:
+            param = []
+
 
 class SymbolTable:
     def __init__(self):

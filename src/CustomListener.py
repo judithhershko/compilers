@@ -778,7 +778,7 @@ class CustomListener(ExpressionListener):
         print("exit scope:" + ctx.getText())
         self.scope_count -= 1
         # self.c_scope.block = self.c_block
-        if self.c_scope.f_name != "":
+        if self.c_scope.f_name != "" and self.c_scope.f_name != "main":
             return
         # if self.c_block.parent is not None:
         #    self.c_block.parent.trees.append(self.c_scope)
@@ -806,13 +806,13 @@ class CustomListener(ExpressionListener):
     # Exit a parse tree produced by ExpressionParser#lscope.
     def exitLscope(self, ctx: ParserRuleContext):
         # for to while
-        if isinstance(self.loop,For):
+        if isinstance(self.loop, For):
             sblock = self.scope_stack.pop()
             sblock.trees.append(self.loop.f_dec)
-            wloop=While(self.loop.line,self.loop.parent)
-            wloop.Condition=self.loop.Condition
+            wloop = While(self.loop.line, self.loop.parent)
+            wloop.Condition = self.loop.Condition
             self.c_scope.block.trees.append(self.loop.f_incr)
-            wloop.c_block=self.c_scope.block
+            wloop.c_block = self.c_scope.block
             sblock.trees.append(wloop)
         else:
             self.loop.c_block = self.c_scope.block
@@ -896,6 +896,8 @@ class CustomListener(ExpressionListener):
     def exitFunction_definition(self, ctx: ParserRuleContext):
         print("exit function definition:" + ctx.getText())
         self.function_scope = False
+        if self.c_scope.f_name == "main":
+            return
         self.c_scope.block.parent = None
         # self.c_scope.block = self.c_block
         self.program.getFunctionTable().addFunction(self.c_scope)
