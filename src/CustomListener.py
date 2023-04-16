@@ -4,10 +4,10 @@ from .ast.block import block
 from .ast.Program import program
 
 
-# TODO: zet alles in trees (unnamed scopes in scope node) --> volgorde probleem llvm
-# TODO: ook program enkel trees niet block gebruiken
-# TODO : vorm for om in while lus.
-# nieuwe block aanmaken--> parent block meegeven aan nieuwe block.
+# TODO: zet alles in trees (unnamed scopes in scope node) --> volgorde probleem llvm --> ok
+# TODO: ook program enkel trees niet block gebruiken                                 --> ok
+# TODO : vorm for om in while lus                                                    --> ok
+# TODO :nieuwe block aanmaken--> parent block meegeven aan nieuwe block.             --> ok
 class CustomListener(ExpressionListener):
     def __init__(self, pathName):
         self.is_ref = False
@@ -805,12 +805,19 @@ class CustomListener(ExpressionListener):
 
     # Exit a parse tree produced by ExpressionParser#lscope.
     def exitLscope(self, ctx: ParserRuleContext):
-        if isinstance(self.loop, While) or isinstance(self.loop, For) or isinstance(self.loop, If):
+        # for to while
+        if isinstance(self.loop,For):
+            sblock = self.scope_stack.pop()
+            sblock.trees.append(self.loop.f_dec)
+            wloop=While(self.loop.line,self.loop.parent)
+            wloop.Condition=self.loop.Condition
+            self.c_scope.block.trees.append(self.loop.f_incr)
+            wloop.c_block=self.c_scope.block
+            sblock.trees.append(wloop)
+        else:
             self.loop.c_block = self.c_scope.block
-            # self.c_block = block(None)
-        # todo append a block not loop?
-        sblock = self.scope_stack.pop()
-        sblock.trees.append(self.loop)
+            sblock = self.scope_stack.pop()
+            sblock.trees.append(self.loop)
         self.c_scope.block = sblock
         self.loop = None
 
