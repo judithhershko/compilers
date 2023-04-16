@@ -926,9 +926,11 @@ class While(AST_node):
 
     def replaceVariables(self, values):  # TODO: for now no filling of variables because this can run multiple times
         pass
+
+
 class Function(AST_node):
-    def __init__(self,f_name,line, parent=None):
-        self.line=line
-        self.parent=parent
-        self.param=[]
-        self.f_name=f_name
+    def __init__(self, f_name, line, parent=None):
+        self.line = line
+        self.parent = parent
+        self.param = []
+        self.f_name = f_name
