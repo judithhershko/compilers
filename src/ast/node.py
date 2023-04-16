@@ -247,9 +247,9 @@ class BinaryOperator(AST_node):
         if not isinstance(other, BinaryOperator):
             return False
         return self.operator == other.operator and self.leftChild == other.leftChild and \
-               self.rightChild == other.rightChild and self.parent == other.parent and \
-               self.variable == other.variable and self.level == other.level and \
-               self.number == other.number and self.line == other.line
+            self.rightChild == other.rightChild and self.parent == other.parent and \
+            self.variable == other.variable and self.level == other.level and \
+            self.number == other.number and self.line == other.line
 
     def getValue(self):
         return self.operator
@@ -346,8 +346,8 @@ class UnaryOperator(AST_node):
         if not isinstance(other, UnaryOperator):
             return False
         return self.operator == other.operator and self.rightChild == other.rightChild and self.parent == other.parent \
-               and self.variable == other.variable and self.level == other.level and \
-               self.number == other.number and self.line == other.line
+            and self.variable == other.variable and self.level == other.level and \
+            self.number == other.number and self.line == other.line
 
     def getValue(self):
         return self.operator
@@ -428,9 +428,9 @@ class LogicalOperator(AST_node):
         if not isinstance(other, LogicalOperator):
             return False
         return self.operator == other.operator and self.leftChild == other.leftChild and \
-               self.rightChild == other.rightChild and self.parent == other.parent and \
-               self.variable == other.variable and self.level == other.level and \
-               self.number == other.number and self.line == other.line
+            self.rightChild == other.rightChild and self.parent == other.parent and \
+            self.variable == other.variable and self.level == other.level and \
+            self.number == other.number and self.line == other.line
 
     def getValue(self):
         return self.operator
@@ -535,8 +535,8 @@ class Declaration(AST_node):
         if not isinstance(other, LogicalOperator):
             return False
         return self.leftChild == other.leftChild and self.rightChild == other.rightChild and \
-               self.parent == other.parent and self.variable == other.variable and self.level == other.level and \
-               self.number == other.number and self.line == other.line
+            self.parent == other.parent and self.variable == other.variable and self.level == other.level and \
+            self.number == other.number and self.line == other.line
 
     def getLabel(self):
         return "\"Declaration: " + self.operator + "\""
@@ -612,8 +612,8 @@ class Pointer(AST_node):
         if not isinstance(other, Pointer):
             return False
         return self.value == other.value and self.type == other.type and self.parent == other.parent and \
-               self.variable == other.variable and self.pointerLevel == other.pointerLevel and \
-               self.const == other.const and self.number == other.number and self.line == other.line
+            self.variable == other.variable and self.pointerLevel == other.pointerLevel and \
+            self.const == other.const and self.number == other.number and self.line == other.line
 
     def getValue(self):
         return self.value
@@ -747,12 +747,16 @@ class EmptyNode(AST_node):
         return []
 
 
+# unnamed scopes gebruik scope node
 class Scope(AST_node):  # TODO: let it hold a block instead of trees
     block = None
 
     def __init__(self, line: int, parent: AST_node = None):
         self.parent = parent
         self.line = line
+        self.f_name = ""
+        self.f_return = None
+        self.global_ = False
 
     def __eq__(self, other):
         if not isinstance(other, Scope):
@@ -813,7 +817,7 @@ class If(AST_node):
         if not isinstance(other, If):
             return False
         return self.operator == other.operator and self.line == other.line and self.Condition == other.Condition and \
-               self.c_block == other.c_block
+            self.c_block == other.c_block
 
     def setCondition(self, con: AST_node):
         try:
@@ -859,14 +863,16 @@ class Continue(AST_node):
     def __init__(self, line):
         self.line = line
 
+
 """
 deze node is bedoelt om gemakkelijker llvm te gebruiken voor de volgorde van de trees/blocks ipv line telkens te gebruiken
 """
 
+
 class Function(AST_node):
     def __init__(self, line):
         self.line = line
-        
+
 
 class While(AST_node):
     Condition = None
@@ -901,7 +907,7 @@ class While(AST_node):
         if not isinstance(other, If):
             return False
         return self.operator == other.operator and self.line == other.line and self.Condition == other.Condition and \
-               self.c_block == other.c_block
+            self.c_block == other.c_block
 
     def setCondition(self, con: AST_node):
         self.Condition = con

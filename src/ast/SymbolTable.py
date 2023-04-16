@@ -3,6 +3,14 @@ from src.ErrorHandeling.GenerateError import *
 from .node import *
 
 
+class FunctionTable:
+    def __init__(self):
+        pass
+
+    def addFunction(self, scope: Scope):
+        pass
+
+
 class SymbolTable:
     def __init__(self):
         """

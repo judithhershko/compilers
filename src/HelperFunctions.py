@@ -38,11 +38,11 @@ def getType(txt):
 def getIftype(var:str):
 
     if var.__len__()>=6 and var[0:6]=="elseif":
-        return "elseif"
+        return ConditionType.ELIF
     elif var.__len__()>=4 and var[0:4]=="else":
-        return "else"
+        return ConditionType.ELSE
     else:
-        return "if"
+        return ConditionType.IF
 
 
 def separate_type_variable(old, type_):

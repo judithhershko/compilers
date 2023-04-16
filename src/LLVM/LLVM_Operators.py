@@ -81,7 +81,7 @@ class ToLLVM():
         self.store += "}\n"
 
     def transverse_program(self, _program: program):
-        _block = _program.blocks.pop(0)
+        _block = _program.block
         if _block.id == 0:
             self.is_global = True
         else:

@@ -1,6 +1,6 @@
 grammar Expression;
 
-start_rule: ( function_dec |print ';'|expr ';'|dec ';'|comments|line|loop|scope (';')?| function_definition | function_dec)*;
+start_rule: (print ';'|expr ';'|dec ';'|comments|line|loop|scope (';')?| function_definition | function_dec)*;
 
 line:NLINE;
 print   : PRINT LBRAK (char_pri | pri) RBRAK ;
@@ -8,7 +8,7 @@ comments: ML_COMMENT | SL_COMMENT;
 typed_var: INT| DOUBLE | FLOAT |CHAR | BOOL;
 
 scope : '{' rule (return)? '}' (';')?;
-rule  : (print ';'|expr ';'|dec ';'|comments|line|loop|scope| function_dec )*;
+rule  : (print ';'|expr ';'|dec ';'|comments|line|loop|scope | function_dec)*;
 lrules: (print ';' |expr ';' |dec ';' |comments |line |loop |break |continue | lscope | function_dec )*;
 lscope: '{' lrules '}' ;
 loop  : while | for | if;

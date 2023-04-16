@@ -8,6 +8,7 @@ int main(int x, int *y)
 
 return 0;
 }
+
 {
 int scope=2;
 {
