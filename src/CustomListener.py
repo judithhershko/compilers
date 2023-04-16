@@ -919,17 +919,21 @@ class CustomListener(ExpressionListener):
         pass
 
     def enterFunction_dec(self, ctx: ParserRuleContext):
-        print("enter function_def:" + ctx.getText())
         self.call_function = True
+        if self.dec_op is None or self.dec_op.leftChild is None:
+            self.parent = None
+        self.current = Function(f_name=getFunction(ctx.getText()), parent=self.parent, line=ctx.start.line)
 
     # Exit a parse tree produced by ExpressionParser#function_dec.
     def exitFunction_dec(self, ctx: ParserRuleContext):
-        print("exit function dec")
+        if self.declaration:
+            return
+        self.c_scope.block.trees.append(self.current)
         self.call_function = False
-
     # Enter a parse tree produced by ExpressionParser#f_variables.
     def enterF_variables(self, ctx: ParserRuleContext):
-        pass
+        if isinstance(self.current,Function):
+            self.current.addParameter(ctx.getText())
 
     # Exit a parse tree produced by ExpressionParser#f_variables.
     def exitF_variables(self, ctx: ParserRuleContext):

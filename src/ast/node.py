@@ -927,10 +927,18 @@ class While(AST_node):
     def replaceVariables(self, values):  # TODO: for now no filling of variables because this can run multiple times
         pass
 
-
+"""
+deze node is bij aanroepen van functies bv. 
+int i= functie(0)
+"""
 class Function(AST_node):
     def __init__(self, f_name, line, parent=None):
         self.line = line
         self.parent = parent
         self.param = []
         self.f_name = f_name
+    def addParameter(self, var):
+        #TODO: dit moet anders --> als value/pointer/ref wordt doorgegeven
+        # var= &x, *x, 21,
+        #TODO: check --> verwachte parameter ?
+        self.param.append(var)

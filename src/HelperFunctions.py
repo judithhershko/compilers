@@ -44,6 +44,9 @@ def getIftype(var:str):
     else:
         return ConditionType.IF
 
+def getFunction(name:str):
+    result_string = name.split('(')[0]
+    return result_string
 
 def separate_type_variable(old, type_):
     return old.replace(type_, '')
