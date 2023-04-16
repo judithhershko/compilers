@@ -23,7 +23,6 @@ class CustomListener(ExpressionListener):
         self.is_char = False
         self.counter = 0
         self.program = program()
-        # self.c_block = block(None)
         self.print = False
         self.expr_layer = 0
         self.bracket_stack = stack()
@@ -43,6 +42,8 @@ class CustomListener(ExpressionListener):
         self.return_function = False
         self.function_scope = False
         self.c_scope = Scope(0, None)
+        self.call_function = False
+        self.param = []
 
     def is_declaration(self, var: str):
         if var[:3] == "int" or var[:5] == "float" or var[:4] == "bool" or var[:5] == "const":
@@ -919,10 +920,20 @@ class CustomListener(ExpressionListener):
 
     def enterFunction_dec(self, ctx: ParserRuleContext):
         print("enter function_def:" + ctx.getText())
+        self.call_function = True
 
     # Exit a parse tree produced by ExpressionParser#function_dec.
     def exitFunction_dec(self, ctx: ParserRuleContext):
         print("exit function dec")
+        self.call_function = False
+
+    # Enter a parse tree produced by ExpressionParser#f_variables.
+    def enterF_variables(self, ctx: ParserRuleContext):
+        pass
+
+    # Exit a parse tree produced by ExpressionParser#f_variables.
+    def exitF_variables(self, ctx: ParserRuleContext):
+        pass
 
     # Enter a parse tree produced by ExpressionParser#return_type.
     def enterReturn_type(self, ctx: ParserRuleContext):

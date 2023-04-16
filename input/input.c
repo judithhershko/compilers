@@ -13,7 +13,7 @@ return 0;
 int scope=2;
 {
 int scope=21;
-main(scope);
+main(scope,scope);
 }
 
 scope=1;
