@@ -779,8 +779,9 @@ class CustomListener(ExpressionListener):
         print("exit scope:" + ctx.getText())
         self.scope_count -= 1
         # self.c_scope.block = self.c_block
-        if self.c_scope.f_name != "" and self.c_scope.f_name != "main":
-            return
+        #TODO dit moet weg
+        """if self.c_scope.f_name != "" and self.c_scope.f_name != "main":
+           return"""
         # if self.c_block.parent is not None:
         #    self.c_block.parent.trees.append(self.c_scope)
         if self.scope_stack.__len__() > 0:
@@ -900,14 +901,11 @@ class CustomListener(ExpressionListener):
         if self.c_scope.f_name == "main":
             return
         self.c_scope.block.parent = None
-        # self.c_scope.block = self.c_block
         self.program.getFunctionTable().addFunction(self.c_scope)
         if self.scope_stack.__len__() > 0:
             self.c_scope = self.scope_stack.pop()
-            # self.c_block = self.c_scope.block
         else:
             self.c_scope = self.program.tree
-            # self.c_block = self.program.tree.block
 
     # Enter a parse tree produced by ExpressionParser#function_name.
     def enterFunction_name(self, ctx: ParserRuleContext):
@@ -930,9 +928,10 @@ class CustomListener(ExpressionListener):
             return
         self.c_scope.block.trees.append(self.current)
         self.call_function = False
+
     # Enter a parse tree produced by ExpressionParser#f_variables.
     def enterF_variables(self, ctx: ParserRuleContext):
-        if isinstance(self.current,Function):
+        if isinstance(self.current, Function):
             self.current.addParameter(ctx.getText())
 
     # Exit a parse tree produced by ExpressionParser#f_variables.

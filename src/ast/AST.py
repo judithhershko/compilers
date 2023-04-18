@@ -194,12 +194,12 @@ class AST:
 
         return nodes, edges
 
-    def foldTree(self):
+    def foldTree(self, to_llvm=False):
         """
         This function tries to reduce the size of the tree as much as possible
         """
         if not isinstance(self.root, Value):
-            self.root = self.root.fold()
+            self.root = self.root.fold(to_llvm)
         return self
 
     def getVariables(self):

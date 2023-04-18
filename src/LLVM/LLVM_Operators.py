@@ -3,17 +3,18 @@ import struct
 
 from src.ast import AST
 from src.ast.SymbolTable import SymbolTable
-from src.ast.node import Declaration, Value, LiteralType, Comment, CommentType, Print, Pointer
+from src.ast.node import Declaration, Value, LiteralType, Comment, CommentType, Print, Pointer, Scope, If, While
 from src.ast.block import block
 from src.ast.Program import program
 
 
 class ToLLVM():
     def __init__(self):
+        self.c_scope = None
         self.global_ = ""
         self.allocate = ""
         self.store = ""
-        self.couter = 0
+        self.counter = 0
         self.var_dic = dict()
         self.main = True
         self.is_global = False
@@ -22,6 +23,7 @@ class ToLLVM():
         self.f_declerations = ""
         self.c_block = None
         self.redec = []
+        self.output = ""
 
     def STable_to_LLVM(self, table: SymbolTable):
         for entry in table:
@@ -34,8 +36,8 @@ class ToLLVM():
             return self.add_variable(var)
 
     def add_variable(self, var: str):
-        self.couter += 1
-        self.var_dic[var] = self.couter
+        self.counter += 1
+        self.var_dic[var] = self.counter
         return self.var_dic[var]
 
     def type_store(self, type_):
@@ -74,43 +76,111 @@ class ToLLVM():
         self.allocate += "%{} = alloca i32, align 4\n".format(self.add_variable("main"))
         self.store += "store i32 0, ptr %{}, align 4\n".format(self.get_variable("main"))
 
+    def start_function(self, f_name, parameters=None):
+        self.g_assignment += "; Function Attrs: noinline nounwind optnone ssp uwtable(sync)\n"
+        self.g_assignment += "define i32 @" + f_name
+        self.set_function_parameters(parameters)
+
+    def set_function_parameters(self, parameters):
+        self.g_assignment += "("
+        i = 1
+        for p in parameters:
+            if isinstance(p, Value) and p.getType() == LiteralType.INT:
+                self.g_assignment += "i32 noundef %{}".format(self.add_variable(p.getValue()))
+                old_var=self.get_variable(p.getValue())
+                self.allocate+="%{} = alloca i32, align 4\n".format(self.add_variable(p.getValue()))
+                self.store+="store i32 %{}, ptr %{}, align 4\n".format(old_var,self.get_variable(p.getValue()))
+
+            elif isinstance(p, Value) and p.getType() == LiteralType.FLOAT:
+                self.g_assignment += "float noundef %{}".format(self.add_variable(p.getValue()))
+                old_var = self.get_variable(p.getValue())
+                self.allocate += "%{} = alloca float, align 4\n".format(self.add_variable(p.getValue()))
+                self.store += "store float %{}, ptr %{}, align 4\n".format(old_var, self.get_variable(p.getValue()))
+
+            elif isinstance(p, Value) and p.getType() == LiteralType.CHAR:
+                self.g_assignment += "i8 noundef %{}".format(self.add_variable(p.getValue()))
+                old_var = self.get_variable(p.getValue())
+                self.allocate += "%{} = alloca i8, align 4\n".format(self.add_variable(p.getValue()))
+                self.store += "store i8 %{}, ptr %{}, align 4\n".format(old_var, self.get_variable(p.getValue()))
+
+            elif isinstance(p, Pointer):
+                self.g_assignment += "ptr noundef %{}".format(self.add_variable(p.getValue()))
+                old_var = self.get_variable(p.getValue())
+                self.allocate += "%{} = alloca ptr, align 4\n".format(self.add_variable(p.getValue()))
+                self.store += "store ptr %{}, ptr %{}, align 4\n".format(old_var, self.get_variable(p.getValue()))
+            if i != len(parameters):
+                self.g_assignment += ","
+            i += 1
+        self.g_assignment += ") #0 { \n"
+        self.g_assignment+=self.allocate
+        self.g_assignment+=self.store
+        self.allocate=""
+        self.store=""
+
     def end_main(self):
         self.g_assignment += "; Function Attrs: noinline nounwind optnone ssp uwtable(sync)\n"
         self.store += "\n"
         self.store += "ret i32 0\n"
         self.store += "}\n"
 
+    def end_function(self, type_, var_name=None):
+        print("end function aangeroepen")
+        if var_name is not None:
+            old_variable = self.get_variable(var_name)
+            self.g_assignment += " %{} = load ptr, ptr %{}, align 4\n".format(self.add_variable(var_name), old_variable)
+        if type_ == LiteralType.INT:
+            self.g_assignment += "ret i32 %{}".format(self.get_variable(var_name))
+        elif type_ == LiteralType.FLOAT:
+            self.g_assignment += "ret float %{}".format(self.get_variable(var_name))
+        elif type_ == LiteralType.CHAR:
+            self.g_assignment += "ret i8 %{}".format(self.get_variable(var_name))
+        elif type_ == LiteralType.BOOL:
+            self.g_assignment += "ret float %{}".format(self.get_variable(var_name))
+        else:
+            self.g_assignment += "ret void"
+        self.g_assignment += "}\n"
+        self.counter = 0
+        self.var_dic = dict()
+
+    def scope_tree(self, tree: AST):
+        if isinstance(tree, Scope) and tree.f_name == "":
+            return self.unnamed_scope(tree)
+        elif isinstance(tree, Scope) and tree.f_name != "":
+            return self.function_scope(tree)
+
     def transverse_program(self, _program: program):
         _block = _program.block
-        if _block.id == 0:
-            self.is_global = True
-        else:
-            self.is_global = False
+        self.is_global = _program.tree.global_
+        # set global functions
+        if isinstance(_program.tree, Scope):
+            self.c_scope = _program.tree
+            # set global functions
+            # set global variables
+            # enter unnamed scopes
+            for tree in self.c_scope.block.trees:
+                if isinstance(tree, Scope):
+                    self.scope_tree(tree)
+                elif isinstance(tree, If):
+                    pass
+                elif isinstance(tree, While):
+                    pass
+                elif isinstance(tree.root, Declaration):
+                    self.to_declaration(tree)
+                elif isinstance(tree.root, Print):
+                    self.to_print(tree)
+                elif isinstance(tree.root, Comment):
+                    self.to_comment(tree)
+
+        """
         if _block.fname == 'main':
             self.start_main()
             self.transverse_block(_block)
             for _ in _block.blocks:
                 print("block in blocks")
             self.end_main()
-        for tree in _block.trees:
-            if isinstance(tree.root, Declaration):
-                if tree.root.leftChild.declaration:
-                    self.to_declaration(tree)
-                else:
-                    self.redec.append(tree)
-            elif isinstance(tree.root, Value):
-                # print("expression no declaration is: "+str(tree.root.value))
-                pass
-            elif isinstance(tree.root, Comment):
-                self.to_comment(tree)
-            elif isinstance(tree.root, Print):
-                self.to_print(tree)
-        _block.trees = self.redec
-        for tree in _block.trees:
-            if isinstance(tree.root, Declaration):
-                self.to_declaration(tree)
+        """
 
-    def transverse_block(self, cblock: block, main=True, redec=False):
+    def transverse_block(self, cblock: block):
         self.c_block = cblock
         for tree in cblock.trees:
             if isinstance(tree.root, Declaration):
@@ -130,11 +200,12 @@ class ToLLVM():
             if isinstance(tree.root, Declaration):
                 self.to_declaration(tree)
 
-
     def write_to_file(self, filename: str):
         # open text file
         text_file = open(filename, "w")
+        text_file.write(self.output)
         # write string to file
+        """
         if self.main:
             text_file.write(self.g_assignment)
             text_file.write("\n")
@@ -147,7 +218,7 @@ class ToLLVM():
 
         else:
             text_file.write(self.global_)
-
+"""
         # close file
         text_file.close()
 
@@ -157,7 +228,7 @@ class ToLLVM():
         elif type == 'i8':
             return '1'
 
-    def switch_Literals(self, v: Value, input: Value):
+    def switch_Literals(self, v: Value, input: Value, one_side=False):
         # comment above with original code:
         if v.declaration:
             const = ""
@@ -168,12 +239,16 @@ class ToLLVM():
             if v.type == LiteralType.INT:
                 self.allocate += "; {} {} {} = {}\n".format(const, "int", v.value, input.value)
                 self.allocate += "%{} = alloca i32, align 4\n".format(self.add_variable(str(v.value)))
+                if one_side:
+                    return
                 self.store += "store i32 {}, i32* %{}, align 4\n".format(input.value, self.get_variable(v.value))
 
             elif v.type == LiteralType.FLOAT:
                 val = self.float_to_64bit_hex(input.value)
                 self.allocate += "; {} {} {} = {}\n".format(const, "float", v.value, input.value)
                 self.allocate += "%{} = alloca float, align 4\n".format(self.add_variable(v.value))
+                if one_side:
+                    return
                 self.store += "store float {}, float* %{}, align 4\n".format(val, self.get_variable(v.value))
 
             elif v.type == LiteralType.CHAR:
@@ -190,7 +265,9 @@ class ToLLVM():
                     bval = 1
                 self.allocate += "; {}{}{}={}\n".format(const, "_Bool", v.value, input.value)
                 self.allocate += "%{} = alloca i8, align 1\n".format(self.add_variable(v.value))
+                if one_side: return
                 self.store += "store i8 {}, i8* %{}, align 1\n".format(bval, self.get_variable(v.value))
+        """
         else:
             typpe_ = self.type_store(self.get_type(v))
             val = input.value
@@ -198,8 +275,9 @@ class ToLLVM():
                 val = self.float_to_64bit_hex(input.value)
             allign = self.allignment(typpe_)
             self.store += "store {} {}, {}* %{}, align 1\n".format(typpe_, val, typpe_, self.get_variable(v.value))
+        """
 
-    def switch_global_Literals(self, v: Value, input: Value):
+    def switch_global_Literals(self, v: Value, input: Value, one_side=False):
         # comment above with original code:
         if v.declaration:
             const = ""
@@ -229,10 +307,23 @@ class ToLLVM():
         else:
             raise "invalid input switch global literals"
 
-    def to_bin_operator(self, ast: AST):
-        pass
+    def to_bin_operator(self, operator, leftValue: Value, rightValue: Value, typeOfValue):
+        if operator == "/":
+            if typeOfValue == LiteralType.INT:
+                old_val = self.get_variable(leftValue.value)
+                self.g_assignment += "%{} = load i32, ptr %{}, align 4\n".format(old_val,
+                                                                                 self.add_variable(leftValue.value))
+                old_val = self.get_variable(rightValue.value)
+                self.g_assignment += "%{} = load i32, ptr %{}, align 4".format(self.add_variable(rightValue.value),
+                                                                               old_val)
+                self.g_assignment += "%{} = sdiv i32 %4, %5"
+                """
+                  %4 = load i32, ptr %2, align 4
+                  %5 = load i32, ptr %2, align 4
+                  %6 = sdiv i32 %4, %5
+                """
 
-    def to_declaration(self, ast: AST):
+    def to_declaration(self, ast: AST, one_side=False):
         if isinstance(ast.root.leftChild, Pointer):
 
             if ast.root.leftChild.declaration:
@@ -278,26 +369,42 @@ class ToLLVM():
                 self.store += "store ptr %{}, ptr %{}, align 8\n".format(reference, pointer)
         elif isinstance(ast.root, Declaration):
             if self.is_global:
-                return self.switch_global_Literals(ast.root.leftChild, ast.root.rightChild)
+                return self.switch_global_Literals(ast.root.leftChild, ast.root.rightChild, one_side)
             else:
-                return self.switch_Literals(ast.root.leftChild, ast.root.rightChild)
+                return self.switch_Literals(ast.root.leftChild, ast.root.rightChild, one_side)
         return
 
     def to_comment(self, ast: AST):
 
         if isinstance(ast.root, Comment):
             if ast.root.type == CommentType.SL:
-                self.store += ";"
-                self.store += ast.root.value
-                self.store += "\n"
+                if self.is_global:
+                    self.g_assignment += ";"
+                    self.g_assignment += ast.root.value
+                    self.g_assignment += "\n"
+                else:
+                    self.store += ";"
+                    self.store += ast.root.value
+                    self.store += "\n"
             elif ast.root.type == CommentType.ML:
-                # print("ml comment")
-                self.store += ";"
-                for s in ast.root.value:
-                    self.store += s
-                    if s == "\n":
-                        self.store += ";"
-        self.store += "\n"
+                if self.is_global:
+                    # print("ml comment")
+                    self.g_assignment += ";"
+                    for s in ast.root.value:
+                        self.g_assignment += s
+                        if s == "\n":
+                            self.g_assignment += ";"
+                else:
+                    # print("ml comment")
+                    self.store += ";"
+                    for s in ast.root.value:
+                        self.store += s
+                        if s == "\n":
+                            self.store += ";"
+        if self.is_global:
+            self.g_assignment += "\n"
+        else:
+            self.store += "\n"
 
     def to_print(self, tree: AST):
         var = ""
@@ -325,3 +432,37 @@ class ToLLVM():
         s = self.add_variable("printf" + str(self.g_count))
         self.allocate += "; printf ({})\n".format(str(to_print))
         self.allocate += "%{} = call i32 (ptr, ...) @printf(ptr noundef @.str{})\n".format(s, var)
+
+    def to_expression(self, param):
+        pass
+
+    def unnamed_scope(self, tree):
+        pass
+
+    def function_scope(self, tree):
+        print("function scope")
+        prev_global = self.is_global
+        self.is_global = False
+        self.counter = 0
+        # TODO: add parameter list to start function
+        self.start_function(tree.f_name, [])
+        self.output += self.g_assignment
+        self.g_assignment = ""
+        
+        # reduce alles dat niet met de variabelen te maken hebben
+        """for ctree in tree.block.trees:
+            current = ctree.root
+            if isinstance(ctree.root, Declaration):
+                self.to_declaration(ctree, True)
+                if isinstance(current.leftChild, Value):
+                    self.to_declaration(ctree, True)
+        self.output += self.allocate
+        self.output+=self.store
+        self.allocate=""
+        self.store="""""
+
+        if isinstance(tree.f_return.root, Value):
+            self.end_function(tree.f_return.root.getType(), tree.f_return.root.getValue())
+        self.output += self.g_assignment
+        self.g_assignment = ""
+        self.is_global = prev_global
