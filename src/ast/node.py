@@ -308,21 +308,19 @@ class BinaryOperator(AST_node):
                 rightValue = float(self.rightChild.getValue())
 
                 typeOfValue = self.leftChild.getHigherType(self.rightChild)
-                if not to_llvm:
-                    if self.operator == "*":
-                        res = leftValue * rightValue
-                    elif self.operator == "/":
-                        res = leftValue / rightValue
-                    elif self.operator == "+":
-                        res = leftValue + rightValue
-                    elif self.operator == "-":
-                        res = leftValue - rightValue
-                    elif self.operator == "%":
-                        res = leftValue % rightValue
-                    else:
-                        raise NotSupported("binary operator", self.operator, self.line)
+
+                if self.operator == "*":
+                    res = leftValue * rightValue
+                elif self.operator == "/":
+                    res = leftValue / rightValue
+                elif self.operator == "+":
+                    res = leftValue + rightValue
+                elif self.operator == "-":
+                    res = leftValue - rightValue
+                elif self.operator == "%":
+                    res = leftValue % rightValue
                 else:
-                    self.llvm.to_bin_operator(self.operator, self.leftChild, self.rightChild, typeOfValue)
+                    raise NotSupported("binary operator", self.operator, self.line)
 
                 if typeOfValue == LiteralType.INT:
                     res = int(res)
@@ -794,8 +792,14 @@ class Scope(AST_node):  # TODO: let it hold a block instead of trees
     def setBlock(self, scope: block):
         self.block = scope
 
-    def addParameter(self, var: str):
+    def addParameter(self,type:LiteralType, var: str, line=0, const=False):
         # *x
+        if type==LiteralType.INT:
+            var=var[3:]
+        elif type==LiteralType.FLOAT or type==LiteralType.BOOL or type==LiteralType.CHAR:
+            var = var[4:]
+        val=Value(var,type,line,None,True,const,True)
+
         pass
 
     def addTree(self, ast: AST_node):

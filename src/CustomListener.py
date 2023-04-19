@@ -13,8 +13,8 @@ class CustomListener(ExpressionListener):
         self.is_ref = False
         self.is_loop = False
         self.is_char = False
-        self.is_parameter=False
-        self.stop_fold=False
+        self.is_parameter = False
+        self.stop_fold = False
         self.start_rule = None
         self.asT = create_tree()
         self.current = None
@@ -456,10 +456,10 @@ class CustomListener(ExpressionListener):
     # Exit a parse tree produced by ExpressionParser#dec.
     def exitDec(self, ctx: ParserRuleContext):
         if self.is_parameter:
-            self.current=None
-            self.dec_op=None
-            self.parent=None
-            self.asT=create_tree()
+            self.current = None
+            self.dec_op = None
+            self.parent = None
+            self.asT = create_tree()
             return
         # print("exit dec:"+ctx.getText())
         """
@@ -796,15 +796,15 @@ class CustomListener(ExpressionListener):
         print("exit scope:" + ctx.getText())
         self.scope_count -= 1
         # self.c_scope.block = self.c_block
-        #TODO dit moet weg
+        # TODO dit moet weg
         """if self.c_scope.f_name != "" and self.c_scope.f_name != "main":
            return"""
         # if self.c_block.parent is not None:
         #    self.c_block.parent.trees.append(self.c_scope)
         if self.scope_stack.__len__() > 0:
             n_scope = self.scope_stack.pop()
-            ast=create_tree()
-            ast.root=self.c_scope
+            ast = create_tree()
+            ast.root = self.c_scope
             n_scope.block.trees.append(ast)
             self.c_scope = n_scope
         else:
@@ -821,12 +821,14 @@ class CustomListener(ExpressionListener):
     # Enter a parse tree produced by ExpressionParser#lscope.
     def enterLscope(self, ctx: ParserRuleContext):
         print("enter lscope:" + ctx.getText())
+        self.stop_fold = True
         self.scope_stack.push(self.c_scope.block)
         self.c_scope.block = block(self.scope_stack.peek())
 
     # Exit a parse tree produced by ExpressionParser#lscope.
     def exitLscope(self, ctx: ParserRuleContext):
         # for to while
+        self.stop_fold = False
         if isinstance(self.loop, For):
             sblock = self.scope_stack.pop()
             sblock.trees.append(self.loop.f_dec)
@@ -912,14 +914,14 @@ class CustomListener(ExpressionListener):
         print("enter function definition:" + ctx.getText())
         self.enterScope(ctx)
         self.function_scope = True
-        self.stop_fold=True
+        self.stop_fold = True
         return
 
     # Exit a parse tree produced by ExpressionParser#function_definition.
     def exitFunction_definition(self, ctx: ParserRuleContext):
         print("exit function definition:" + ctx.getText())
         self.function_scope = False
-        self.stop_fold=False
+        self.stop_fold = False
         if self.c_scope.f_name == "main":
             return
         self.c_scope.block.parent = None
@@ -980,12 +982,29 @@ class CustomListener(ExpressionListener):
     # Enter a parse tree produced by ExpressionParser#parameters.
     def enterParameters(self, ctx: ParserRuleContext):
         #
-        self.c_scope.addParameter(ctx.getText())
-        self.is_parameter=True
+        v = ctx.getText()
+        const = False
+        if len(ctx.getText()) >= 5 and ctx.getText()[0:5] == 'const':
+            const = True
+            v = v[5:]
+        plevel = 0
+        if v[0] == "*":
+            while v[0] == "*":
+                plevel += 1
+                v = v[1]
+        ptype = getType(v)
+        v=remove_type(ptype,v)
+        if plevel>0:
+            val=Pointer(v,ptype,ctx.start.line,plevel,None,const,True)
+        else:
+            val=Value(v,ptype,ctx.start.line,None,True,const,True)
+        self.c_scope.parameters.append(val)
+        self.is_parameter = True
         self.enterDec(ctx)
+
     # Exit a parse tree produced by ExpressionParser#parameters.
     def exitParameters(self, ctx: ParserRuleContext):
         print("exit paramaters:" + ctx.getText())
         self.exitDec(ctx)
-        self.is_parameter=False
+        self.is_parameter = False
         #
