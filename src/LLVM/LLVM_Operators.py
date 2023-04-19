@@ -125,7 +125,7 @@ class ToLLVM():
             i += 1
         self.g_assignment += ") #0 { \n"
 
-    def store_alloc_function_parameters(self,parameters):
+    def store_alloc_function_parameters(self, parameters):
         for pi in parameters:
             p = parameters[pi]
             if isinstance(p, Value) and p.getType() == LiteralType.INT:
@@ -151,13 +151,6 @@ class ToLLVM():
                 self.function_alloc += "%{} = alloca ptr, align 4\n".format(self.add_variable(p.getValue()))
                 self.function_store += "store ptr %{}, ptr %{}, align 4\n".format(old_var,
                                                                                   self.get_variable(p.getValue()))
-
-        print(self.function_alloc)
-        print(self.function_store)
-        self.g_assignment+=self.function_alloc
-        self.g_assignment+=self.function_store
-        self.function_alloc=""
-        self.function_store=""
 
     def end_main(self):
         self.g_assignment += "; Function Attrs: noinline nounwind optnone ssp uwtable(sync)\n"
@@ -488,16 +481,20 @@ class ToLLVM():
         self.counter = 0
         self.redec = []
         # TODO: add parameter list to start function
-        self.skip_count=len(tree.root.parameters)
+        self.skip_count = len(tree.root.parameters)
         self.start_function(tree.root.f_name, tree.root.parameters, tree.root.return_type)
         self.skip_count = -2
-        self.output += self.g_assignment
-        self.g_assignment = ""
-        # load parameters into variables
-
-        # self.transverse_block(tree.root.block)
+        """
+        if declaration encountered in self.function_store
+        operations:
+        self.function_load
+        """
         self.parameters = tree.root.parameters
         self.transverse_tree(tree.root.block)
+
+        self.g_assignment += self.function_alloc
+        self.g_assignment += self.function_store
+
         if isinstance(tree.root.f_return.root, Value):
             self.end_function(tree.root.f_return.root.getType(), tree.root.f_return.root.getValue())
         self.output += self.g_assignment
@@ -506,13 +503,22 @@ class ToLLVM():
 
     def transverse_tree(self, cblock: block):
         for tree in cblock.trees:
+            if isinstance(tree.root, Declaration) and tree.root.leftChild.declaration:
+                print("entered for dec" + tree.root.leftChild.getValue())
+                self.to_declaration(tree, True)
+                self.function_alloc += self.allocate
+                self.allocate = ""
+        """
+        
+        self.g_assignment += self.function_alloc
+        self.g_assignment += self.function_store
+        for tree in cblock.trees:
             # don't change tree function permanently
             t = tree
             t.root.fold(self)
-            """store i32 %7, ptr %3, align 4
-            %8 = load i32, ptr %3, align 4"""
             self.g_assignment += self.function_load
             self.function_load = ""
+    """
 
     def add_parameter(self, val):
         if isinstance(val, Pointer):
