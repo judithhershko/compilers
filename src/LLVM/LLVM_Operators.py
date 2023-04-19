@@ -152,10 +152,12 @@ class ToLLVM():
                 self.function_store += "store ptr %{}, ptr %{}, align 4\n".format(old_var,
                                                                                   self.get_variable(p.getValue()))
 
-            print(self.function_alloc)
-            print(self.function_store)
-            self.function_alloc=""
-            self.function_store=""
+        print(self.function_alloc)
+        print(self.function_store)
+        self.g_assignment+=self.function_alloc
+        self.g_assignment+=self.function_store
+        self.function_alloc=""
+        self.function_store=""
 
     def end_main(self):
         self.g_assignment += "; Function Attrs: noinline nounwind optnone ssp uwtable(sync)\n"
