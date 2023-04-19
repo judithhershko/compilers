@@ -15,7 +15,7 @@ def set_llvm_comparators(left: Value, right: Value, op: str):
     pass
 
 
-def set_llvm_binary_operators(left: Value, right: Value, op: str):
+def set_llvm_binary_operators(left: Value, right: Value, op: str, parameters):
     print("binary operator called")
     # get all types
     # move higher type if necessary

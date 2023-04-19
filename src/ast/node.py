@@ -296,7 +296,7 @@ class BinaryOperator(AST_node):
                     not (isinstance(self.rightChild, Value) or isinstance(self.rightChild, Pointer)):
                 return self
             elif self.leftChild.getVariables() or self.rightChild.getVariables():
-                to_llvm.add_output_fold(set_llvm_binary_operators(self.leftChild, self.rightChild, self.operator))
+                to_llvm.add_output_fold(set_llvm_binary_operators(self.leftChild, self.rightChild, self.operator,to_llvm.parameters))
                 return self
 
             elif not self.leftChild.getType() in (LiteralType.DOUBLE, LiteralType.FLOAT, LiteralType.INT) or \
@@ -779,7 +779,7 @@ class Scope(AST_node):  # TODO: let it hold a block instead of trees
         self.f_return = None
         self.global_ = False
         # hier moeten de parameters als values en pointers binnen
-        self.parameters = []
+        self.parameters = dict()
 
     def __eq__(self, other):
         if not isinstance(other, Scope):
@@ -794,7 +794,8 @@ class Scope(AST_node):  # TODO: let it hold a block instead of trees
 
     def addParameter(self, val):
         # val is ofwel een pointer, ofwel een value en zit in param[]
-        pass
+        if val.getValue() not in self.parameters.keys():
+            self.parameters[val.getValue()] = val
 
     def addTree(self, ast: AST_node):
         self.block.addTree(ast)

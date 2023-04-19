@@ -933,6 +933,7 @@ class CustomListener(ExpressionListener):
 
     # Enter a parse tree produced by ExpressionParser#function_name.
     def enterFunction_name(self, ctx: ParserRuleContext):
+        print("function name:"+ctx.getText())
         if self.function_scope:
             self.c_scope.f_name = ctx.getText()
 
@@ -999,7 +1000,7 @@ class CustomListener(ExpressionListener):
             val=Pointer(v,ptype,ctx.start.line,plevel,None,const,True)
         else:
             val=Value(v,ptype,ctx.start.line,None,True,const,True)
-        self.c_scope.parameters.append(val)
+        self.c_scope.addParameter(val)
         self.is_parameter = True
         self.enterDec(ctx)
 

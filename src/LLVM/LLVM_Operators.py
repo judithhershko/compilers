@@ -10,6 +10,7 @@ from src.ast.Program import program
 
 class ToLLVM():
     def __init__(self):
+        self.parameters = None
         self.c_scope = None
         self.global_ = ""
         self.allocate = ""
@@ -451,6 +452,7 @@ class ToLLVM():
         self.g_assignment = ""
 
         # self.transverse_block(tree.root.block)
+        self.parameters=tree.root.parameters
         self.transverse_tree(tree.root.block)
         if isinstance(tree.root.f_return.root, Value):
             self.end_function(tree.root.f_return.root.getType(), tree.root.f_return.root.getValue())
@@ -459,7 +461,7 @@ class ToLLVM():
         self.is_global = prev_global
 
     def transverse_tree(self, cblock: block):
-
+        
         for tree in cblock.trees:
             tree.root.fold(self)
 
