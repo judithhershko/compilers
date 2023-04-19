@@ -792,14 +792,8 @@ class Scope(AST_node):  # TODO: let it hold a block instead of trees
     def setBlock(self, scope: block):
         self.block = scope
 
-    def addParameter(self,type:LiteralType, var: str, line=0, const=False):
-        # *x
-        if type==LiteralType.INT:
-            var=var[3:]
-        elif type==LiteralType.FLOAT or type==LiteralType.BOOL or type==LiteralType.CHAR:
-            var = var[4:]
-        val=Value(var,type,line,None,True,const,True)
-
+    def addParameter(self,val):
+        #val is ofwel een pointer, ofwel een value en zit in param[]
         pass
 
     def addTree(self, ast: AST_node):
