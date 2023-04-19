@@ -95,7 +95,7 @@ class block:
         except Undeclared:
             raise
 
-    def fold(self):
+    def fold(self,llvm=None):
         if self.ast.root is not None:
             self.ast = self.ast.foldTree()
         foldedBlocks = []

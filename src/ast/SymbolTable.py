@@ -1,8 +1,6 @@
 import pandas as pd
 from src.ErrorHandeling.GenerateError import *
 from .node import *
-
-
 class FunctionTable:
     def __init__(self):
         pass

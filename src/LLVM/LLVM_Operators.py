@@ -87,9 +87,9 @@ class ToLLVM():
         for p in parameters:
             if isinstance(p, Value) and p.getType() == LiteralType.INT:
                 self.g_assignment += "i32 noundef %{}".format(self.add_variable(p.getValue()))
-                old_var=self.get_variable(p.getValue())
-                self.allocate+="%{} = alloca i32, align 4\n".format(self.add_variable(p.getValue()))
-                self.store+="store i32 %{}, ptr %{}, align 4\n".format(old_var,self.get_variable(p.getValue()))
+                old_var = self.get_variable(p.getValue())
+                self.allocate += "%{} = alloca i32, align 4\n".format(self.add_variable(p.getValue()))
+                self.store += "store i32 %{}, ptr %{}, align 4\n".format(old_var, self.get_variable(p.getValue()))
 
             elif isinstance(p, Value) and p.getType() == LiteralType.FLOAT:
                 self.g_assignment += "float noundef %{}".format(self.add_variable(p.getValue()))
@@ -112,10 +112,10 @@ class ToLLVM():
                 self.g_assignment += ","
             i += 1
         self.g_assignment += ") #0 { \n"
-        self.g_assignment+=self.allocate
-        self.g_assignment+=self.store
-        self.allocate=""
-        self.store=""
+        self.g_assignment += self.allocate
+        self.g_assignment += self.store
+        self.allocate = ""
+        self.store = ""
 
     def end_main(self):
         self.g_assignment += "; Function Attrs: noinline nounwind optnone ssp uwtable(sync)\n"
@@ -143,9 +143,9 @@ class ToLLVM():
         self.var_dic = dict()
 
     def scope_tree(self, tree: AST):
-        if isinstance(tree, Scope) and tree.f_name == "":
+        if isinstance(tree.root, Scope) and tree.root.f_name == "":
             return self.unnamed_scope(tree)
-        elif isinstance(tree, Scope) and tree.f_name != "":
+        elif isinstance(tree.root, Scope) and tree.root.f_name != "":
             return self.function_scope(tree)
 
     def transverse_program(self, _program: program):
@@ -158,9 +158,9 @@ class ToLLVM():
             # set global variables
             # enter unnamed scopes
             for tree in self.c_scope.block.trees:
-                if isinstance(tree, Scope):
+                if isinstance(tree.root, Scope):
                     self.scope_tree(tree)
-                elif isinstance(tree, If):
+                elif isinstance(tree.root, If):
                     pass
                 elif isinstance(tree, While):
                     pass
@@ -444,25 +444,25 @@ class ToLLVM():
         prev_global = self.is_global
         self.is_global = False
         self.counter = 0
+        self.redec = []
         # TODO: add parameter list to start function
-        self.start_function(tree.f_name, [])
+        self.start_function(tree.root.f_name, tree.root.parameters)
         self.output += self.g_assignment
         self.g_assignment = ""
-        
-        # reduce alles dat niet met de variabelen te maken hebben
-        """for ctree in tree.block.trees:
-            current = ctree.root
-            if isinstance(ctree.root, Declaration):
-                self.to_declaration(ctree, True)
-                if isinstance(current.leftChild, Value):
-                    self.to_declaration(ctree, True)
-        self.output += self.allocate
-        self.output+=self.store
-        self.allocate=""
-        self.store="""""
 
-        if isinstance(tree.f_return.root, Value):
-            self.end_function(tree.f_return.root.getType(), tree.f_return.root.getValue())
+        # self.transverse_block(tree.root.block)
+        self.transverse_tree(tree.root.block)
+        if isinstance(tree.root.f_return.root, Value):
+            self.end_function(tree.root.f_return.root.getType(), tree.root.f_return.root.getValue())
         self.output += self.g_assignment
         self.g_assignment = ""
         self.is_global = prev_global
+
+    def transverse_tree(self, cblock: block):
+
+        for tree in cblock.trees:
+            tree.root.fold(self)
+
+    def add_output_fold(self, out: str):
+        self.g_assignment += out
+        return
