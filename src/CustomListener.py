@@ -969,7 +969,7 @@ class CustomListener(ExpressionListener):
 
     # Exit a parse tree produced by ExpressionParser#return_type.
     def exitReturn_type(self, ctx: ParserRuleContext):
-        pass
+        self.c_scope.setReturnType(ctx.getText())
 
     # Enter a parse tree produced by ExpressionParser#return.
     def enterReturn(self, ctx: ParserRuleContext):

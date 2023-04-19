@@ -1,6 +1,7 @@
 from enum import Enum
 from src.ErrorHandeling.GenerateError import *
 from src.LLVM.Helper_LLVM import set_llvm_comparators, set_llvm_binary_operators
+from src.ast.node_types.node_type import LiteralType, ConditionType
 
 
 class ToLLVM:
@@ -18,35 +19,6 @@ types = \
 class CommentType(Enum):
     ML = 0
     SL = 1
-
-
-class LiteralType(Enum):
-    NUM = 1
-    STR = 2
-    VAR = 3
-    DOUBLE = 4
-    INT = 5
-    CHAR = 6
-    BOOL = 7
-    FLOAT = 8
-    POINTER = 9
-
-    def __str__(self):
-        return self.name
-
-
-class ConditionType(Enum):
-    IF = 0
-    ELIF = 1
-    ELSE = 2
-
-    def __str__(self):
-        if self.value == 0:
-            return "if"
-        elif self.value == 1:
-            return "else if"
-        else:
-            return "else"
 
 
 class AST_node:
@@ -296,8 +268,14 @@ class BinaryOperator(AST_node):
                     not (isinstance(self.rightChild, Value) or isinstance(self.rightChild, Pointer)):
                 return self
             elif self.leftChild.getVariables() or self.rightChild.getVariables():
-                to_llvm.add_output_fold(set_llvm_binary_operators(self.leftChild, self.rightChild, self.operator,to_llvm.parameters))
-                return self
+                ptype = set_llvm_binary_operators(self.leftChild, self.rightChild, self.operator, to_llvm)
+                # need left child for inbetween steps
+                self.leftChild.value = 0
+                if ptype == LiteralType.CHAR:
+                    self.leftChild.value = '0'
+                self.leftChild.type = ptype
+                return self.leftChild
+
 
             elif not self.leftChild.getType() in (LiteralType.DOUBLE, LiteralType.FLOAT, LiteralType.INT) or \
                     not self.rightChild.getType() in (LiteralType.DOUBLE, LiteralType.FLOAT, LiteralType.INT):
@@ -777,6 +755,7 @@ class Scope(AST_node):  # TODO: let it hold a block instead of trees
         self.line = line
         self.f_name = ""
         self.f_return = None
+        self.return_type = None
         self.global_ = False
         # hier moeten de parameters als values en pointers binnen
         self.parameters = dict()
@@ -791,6 +770,15 @@ class Scope(AST_node):  # TODO: let it hold a block instead of trees
 
     def setBlock(self, scope: block):
         self.block = scope
+    def setReturnType(self,type):
+        if type=="int":
+            self.return_type=LiteralType.INT
+        elif type=="float":
+            self.return_type=LiteralType.FLOAT
+        elif type=="bool":
+            self.return_type=LiteralType.BOOL
+        elif type=="char":
+            self.return_type=LiteralType.CHAR
 
     def addParameter(self, val):
         # val is ofwel een pointer, ofwel een value en zit in param[]

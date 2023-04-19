@@ -25,6 +25,10 @@ class ToLLVM():
         self.c_block = None
         self.redec = []
         self.output = ""
+        self.function_load = ""
+        self.function_store = ""
+        self.function_alloc = ""
+        self.skip_count = -2
 
     def STable_to_LLVM(self, table: SymbolTable):
         for entry in table:
@@ -38,6 +42,8 @@ class ToLLVM():
 
     def add_variable(self, var: str):
         self.counter += 1
+        if self.counter == self.skip_count:
+            self.counter += 1
         self.var_dic[var] = self.counter
         return self.var_dic[var]
 
@@ -84,8 +90,11 @@ class ToLLVM():
 
     def set_function_parameters(self, parameters):
         self.g_assignment += "("
+        self.var_dic = dict()
+        self.counter = -1
         i = 1
-        for p in parameters:
+        for pi in parameters:
+            p = parameters[pi]
             if isinstance(p, Value) and p.getType() == LiteralType.INT:
                 self.g_assignment += "i32 noundef %{}".format(self.add_variable(p.getValue()))
                 old_var = self.get_variable(p.getValue())
@@ -101,22 +110,20 @@ class ToLLVM():
             elif isinstance(p, Value) and p.getType() == LiteralType.CHAR:
                 self.g_assignment += "i8 noundef %{}".format(self.add_variable(p.getValue()))
                 old_var = self.get_variable(p.getValue())
-                self.allocate += "%{} = alloca i8, align 4\n".format(self.add_variable(p.getValue()))
-                self.store += "store i8 %{}, ptr %{}, align 4\n".format(old_var, self.get_variable(p.getValue()))
+                self.function_alloc += "%{} = alloca i8, align 4\n".format(self.add_variable(p.getValue()))
+                self.function_store += "store i8 %{}, ptr %{}, align 4\n".format(old_var,
+                                                                                 self.get_variable(p.getValue()))
 
             elif isinstance(p, Pointer):
                 self.g_assignment += "ptr noundef %{}".format(self.add_variable(p.getValue()))
                 old_var = self.get_variable(p.getValue())
-                self.allocate += "%{} = alloca ptr, align 4\n".format(self.add_variable(p.getValue()))
-                self.store += "store ptr %{}, ptr %{}, align 4\n".format(old_var, self.get_variable(p.getValue()))
+                self.function_alloc += "%{} = alloca ptr, align 4\n".format(self.add_variable(p.getValue()))
+                self.function_store += "store ptr %{}, ptr %{}, align 4\n".format(old_var,
+                                                                                  self.get_variable(p.getValue()))
             if i != len(parameters):
                 self.g_assignment += ","
             i += 1
         self.g_assignment += ") #0 { \n"
-        self.g_assignment += self.allocate
-        self.g_assignment += self.store
-        self.allocate = ""
-        self.store = ""
 
     def end_main(self):
         self.g_assignment += "; Function Attrs: noinline nounwind optnone ssp uwtable(sync)\n"
@@ -447,12 +454,15 @@ class ToLLVM():
         self.counter = 0
         self.redec = []
         # TODO: add parameter list to start function
+        #self.skip_count=len(tree.root.parameters)
         self.start_function(tree.root.f_name, tree.root.parameters)
+        self.skip_count=-2
         self.output += self.g_assignment
         self.g_assignment = ""
+        # load parameters into variables
 
         # self.transverse_block(tree.root.block)
-        self.parameters=tree.root.parameters
+        self.parameters = tree.root.parameters
         self.transverse_tree(tree.root.block)
         if isinstance(tree.root.f_return.root, Value):
             self.end_function(tree.root.f_return.root.getType(), tree.root.f_return.root.getValue())
@@ -461,9 +471,30 @@ class ToLLVM():
         self.is_global = prev_global
 
     def transverse_tree(self, cblock: block):
-        
         for tree in cblock.trees:
-            tree.root.fold(self)
+            # don't change tree function permanently
+            t = tree
+            t.root.fold(self)
+            """store i32 %7, ptr %3, align 4
+            %8 = load i32, ptr %3, align 4"""
+            self.g_assignment += self.function_load
+            self.function_load = ""
+
+    def add_parameter(self, val):
+        if isinstance(val, Pointer):
+            self.g_assignment += "%{} = load ptr, ptr %{}, align 4\n".format(new, old)
+        if val.getType() == LiteralType.INT:
+            self.g_assignment += "%{} = load i32, ptr %{}, align 4\n".format(new, old)
+        if val.getType() == LiteralType.FLOAT:
+            self.g_assignment += "%{} = load float, ptr %{}, align 4\n".format(new, old)
+        if val.getType() == LiteralType.CHAR:
+            self.g_assignment += "%{} = load i8, ptr %{}, align 4\n".format(new, old)
+        if val.getType() == LiteralType.BOOL:
+            self.g_assignment += "%{} = load i1, ptr %{}, align 4\n".format(new, old)
+
+    def set_parameters(self, parameters):
+        for p in parameters:
+            self.output += ""
 
     def add_output_fold(self, out: str):
         self.g_assignment += out
