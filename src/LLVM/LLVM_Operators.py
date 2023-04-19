@@ -83,10 +83,25 @@ class ToLLVM():
         self.allocate += "%{} = alloca i32, align 4\n".format(self.add_variable("main"))
         self.store += "store i32 0, ptr %{}, align 4\n".format(self.get_variable("main"))
 
-    def start_function(self, f_name, parameters=None):
+    def set_return_type(self, type):
+        if type == LiteralType.CHAR:
+            self.g_assignment += "define i8 @"
+        elif type == LiteralType.INT:
+            self.g_assignment += "define i32 @"
+        elif type == LiteralType.FLOAT:
+            self.g_assignment += "define float @"
+        elif type == LiteralType.BOOL:
+            self.g_assignment += "define i8 @"
+        else:
+            self.g_assignment += "define void @"
+        return
+
+    def start_function(self, f_name, parameters=None, return_type=None):
         self.g_assignment += "; Function Attrs: noinline nounwind optnone ssp uwtable(sync)\n"
-        self.g_assignment += "define i32 @" + f_name
+        self.set_return_type(return_type)
+        self.g_assignment += f_name
         self.set_function_parameters(parameters)
+        self.store_alloc_function_parameters(parameters)
 
     def set_function_parameters(self, parameters):
         self.g_assignment += "("
@@ -97,33 +112,50 @@ class ToLLVM():
             p = parameters[pi]
             if isinstance(p, Value) and p.getType() == LiteralType.INT:
                 self.g_assignment += "i32 noundef %{}".format(self.add_variable(p.getValue()))
-                old_var = self.get_variable(p.getValue())
-                self.allocate += "%{} = alloca i32, align 4\n".format(self.add_variable(p.getValue()))
-                self.store += "store i32 %{}, ptr %{}, align 4\n".format(old_var, self.get_variable(p.getValue()))
 
             elif isinstance(p, Value) and p.getType() == LiteralType.FLOAT:
                 self.g_assignment += "float noundef %{}".format(self.add_variable(p.getValue()))
-                old_var = self.get_variable(p.getValue())
-                self.allocate += "%{} = alloca float, align 4\n".format(self.add_variable(p.getValue()))
-                self.store += "store float %{}, ptr %{}, align 4\n".format(old_var, self.get_variable(p.getValue()))
 
             elif isinstance(p, Value) and p.getType() == LiteralType.CHAR:
                 self.g_assignment += "i8 noundef %{}".format(self.add_variable(p.getValue()))
+            elif isinstance(p, Pointer):
+                self.g_assignment += "ptr noundef %{}".format(self.add_variable(p.getValue()))
+            if i != len(parameters):
+                self.g_assignment += ","
+            i += 1
+        self.g_assignment += ") #0 { \n"
+
+    def store_alloc_function_parameters(self,parameters):
+        for pi in parameters:
+            p = parameters[pi]
+            if isinstance(p, Value) and p.getType() == LiteralType.INT:
+                old_var = self.get_variable(p.getValue())
+                self.function_alloc += "%{} = alloca i32, align 4\n".format(self.add_variable(p.getValue()))
+                self.function_store += "store i32 %{}, ptr %{}, align 4\n".format(old_var,
+                                                                                  self.get_variable(p.getValue()))
+
+            elif isinstance(p, Value) and p.getType() == LiteralType.FLOAT:
+                old_var = self.get_variable(p.getValue())
+                self.function_alloc += "%{} = alloca float, align 4\n".format(self.add_variable(p.getValue()))
+                self.function_store += "store float %{}, ptr %{}, align 4\n".format(old_var,
+                                                                                    self.get_variable(p.getValue()))
+
+            elif isinstance(p, Value) and p.getType() == LiteralType.CHAR:
                 old_var = self.get_variable(p.getValue())
                 self.function_alloc += "%{} = alloca i8, align 4\n".format(self.add_variable(p.getValue()))
                 self.function_store += "store i8 %{}, ptr %{}, align 4\n".format(old_var,
                                                                                  self.get_variable(p.getValue()))
 
             elif isinstance(p, Pointer):
-                self.g_assignment += "ptr noundef %{}".format(self.add_variable(p.getValue()))
                 old_var = self.get_variable(p.getValue())
                 self.function_alloc += "%{} = alloca ptr, align 4\n".format(self.add_variable(p.getValue()))
                 self.function_store += "store ptr %{}, ptr %{}, align 4\n".format(old_var,
                                                                                   self.get_variable(p.getValue()))
-            if i != len(parameters):
-                self.g_assignment += ","
-            i += 1
-        self.g_assignment += ") #0 { \n"
+
+            print(self.function_alloc)
+            print(self.function_store)
+            self.function_alloc=""
+            self.function_store=""
 
     def end_main(self):
         self.g_assignment += "; Function Attrs: noinline nounwind optnone ssp uwtable(sync)\n"
@@ -454,9 +486,9 @@ class ToLLVM():
         self.counter = 0
         self.redec = []
         # TODO: add parameter list to start function
-        #self.skip_count=len(tree.root.parameters)
-        self.start_function(tree.root.f_name, tree.root.parameters)
-        self.skip_count=-2
+        self.skip_count=len(tree.root.parameters)
+        self.start_function(tree.root.f_name, tree.root.parameters, tree.root.return_type)
+        self.skip_count = -2
         self.output += self.g_assignment
         self.g_assignment = ""
         # load parameters into variables
