@@ -982,18 +982,19 @@ class CustomListener(ExpressionListener):
     # Enter a parse tree produced by ExpressionParser#parameters.
     def enterParameters(self, ctx: ParserRuleContext):
         #
+        print("enter param"+ctx.getText())
         v = ctx.getText()
         const = False
         if len(ctx.getText()) >= 5 and ctx.getText()[0:5] == 'const':
             const = True
             v = v[5:]
+        ptype = getType(v)
+        v = remove_type(ptype, v)
         plevel = 0
         if v[0] == "*":
             while v[0] == "*":
                 plevel += 1
                 v = v[1]
-        ptype = getType(v)
-        v=remove_type(ptype,v)
         if plevel>0:
             val=Pointer(v,ptype,ctx.start.line,plevel,None,const,True)
         else:

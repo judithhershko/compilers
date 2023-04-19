@@ -195,7 +195,7 @@ class Value(AST_node):
         :param node2: AST_node type containing the other child of the parent node in the AST
         :return: returns the LiteralType with the highest priority (str>char; double>float>int)
         """
-        if not isinstance(node2,Value):
+        if not isinstance(node2, Value):
             return self.type
         type1 = self.type
         type2 = node2.getType()
@@ -792,8 +792,8 @@ class Scope(AST_node):  # TODO: let it hold a block instead of trees
     def setBlock(self, scope: block):
         self.block = scope
 
-    def addParameter(self,val):
-        #val is ofwel een pointer, ofwel een value en zit in param[]
+    def addParameter(self, val):
+        # val is ofwel een pointer, ofwel een value en zit in param[]
         pass
 
     def addTree(self, ast: AST_node):
