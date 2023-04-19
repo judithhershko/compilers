@@ -10,6 +10,7 @@ from src.ast.Program import program
 
 class ToLLVM():
     def __init__(self):
+        self.c_function = None
         self.parameters = None
         self.c_scope = None
         self.global_ = ""
@@ -35,12 +36,16 @@ class ToLLVM():
             line = ""
 
     def get_variable(self, var: str):
+        if isinstance(var,Value):
+            var=var.value
         if var in self.var_dic:
             return self.var_dic[var]
         else:
             return self.add_variable(var)
 
     def add_variable(self, var: str):
+        if isinstance(var,Value):
+            var=var.value
         self.counter += 1
         if self.counter == self.skip_count:
             self.counter += 1
@@ -105,7 +110,6 @@ class ToLLVM():
 
     def set_function_parameters(self, parameters):
         self.g_assignment += "("
-        self.var_dic = dict()
         self.counter = -1
         i = 1
         for pi in parameters:
@@ -175,7 +179,6 @@ class ToLLVM():
             self.g_assignment += "ret void"
         self.g_assignment += "}\n"
         self.counter = 0
-        self.var_dic = dict()
 
     def scope_tree(self, tree: AST):
         if isinstance(tree.root, Scope) and tree.root.f_name == "":
@@ -475,11 +478,13 @@ class ToLLVM():
         pass
 
     def function_scope(self, tree):
+        self.c_function = tree
         print("function scope")
         prev_global = self.is_global
         self.is_global = False
         self.counter = 0
         self.redec = []
+        self.var_dic=dict()
         # TODO: add parameter list to start function
         self.skip_count = len(tree.root.parameters)
         self.start_function(tree.root.f_name, tree.root.parameters, tree.root.return_type)
@@ -493,7 +498,7 @@ class ToLLVM():
         self.transverse_tree(tree.root.block)
 
         self.g_assignment += self.function_alloc
-        self.g_assignment+="\n"
+        self.g_assignment += "\n"
         self.g_assignment += self.function_store
         self.g_assignment += "\n"
         self.g_assignment += self.function_load
@@ -501,28 +506,27 @@ class ToLLVM():
             self.end_function(tree.root.f_return.root.getType(), tree.root.f_return.root.getValue())
         self.output += self.g_assignment
 
+        self.c_function=None
         self.g_assignment = ""
-        self.function_load=""
-        self.function_alloc=""
-        self.function_store=""
-
+        self.function_load = ""
+        self.function_alloc = ""
+        self.function_store = ""
         self.is_global = prev_global
+        self.var_dic=dict()
 
     def transverse_tree(self, cblock: block):
-        #declarations
+        # declarations
         for tree in cblock.trees:
             if isinstance(tree.root, Declaration) and tree.root.leftChild.declaration:
                 print("entered for dec" + tree.root.leftChild.getValue())
                 self.to_declaration(tree, True)
                 self.function_alloc += self.allocate
                 self.allocate = ""
-        #operations
-
+        # operations
         for tree in cblock.trees:
             # don't change tree function permanently
             t = tree
-            #t.root.fold(self)
-
+            t.root.fold(self)
 
     def add_parameter(self, val):
         if isinstance(val, Pointer):

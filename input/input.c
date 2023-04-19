@@ -5,7 +5,8 @@ return 0;
 }
 int function(int x)
 {
-x=x+1;
+    int z=0;
+    x=x-z+90*x;
 return x;
 }
 

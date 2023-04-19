@@ -270,9 +270,9 @@ class BinaryOperator(AST_node):
             elif self.leftChild.getVariables() or self.rightChild.getVariables():
                 ptype = set_llvm_binary_operators(self.leftChild, self.rightChild, self.operator, to_llvm)
                 # need left child for inbetween steps
-                self.leftChild.value = 0
-                if ptype == LiteralType.CHAR:
-                    self.leftChild.value = '0'
+                #self.leftChild.value = 0
+                #if ptype == LiteralType.CHAR:
+                #    self.leftChild.value = '0'
                 self.leftChild.type = ptype
                 return self.leftChild
 

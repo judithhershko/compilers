@@ -518,6 +518,8 @@ class CustomListener(ExpressionListener):
             return
         if self.stop_fold:
             self.c_scope.block.trees.append(self.asT)
+            if self.c_scope.block.getSymbolTable().findSymbol(self.current.leftChild.getValue()) is None and self.current.leftChild.declaration:
+                self.c_scope.block.getSymbolTable().addSymbol(self.asT.root,self.c_scope.global_)
             self.counter += 1
             self.parent = None
             self.current = None
@@ -933,7 +935,7 @@ class CustomListener(ExpressionListener):
 
     # Enter a parse tree produced by ExpressionParser#function_name.
     def enterFunction_name(self, ctx: ParserRuleContext):
-        print("function name:"+ctx.getText())
+        print("function name:" + ctx.getText())
         if self.function_scope:
             self.c_scope.f_name = ctx.getText()
 
@@ -983,7 +985,7 @@ class CustomListener(ExpressionListener):
     # Enter a parse tree produced by ExpressionParser#parameters.
     def enterParameters(self, ctx: ParserRuleContext):
         #
-        print("enter param"+ctx.getText())
+        print("enter param" + ctx.getText())
         v = ctx.getText()
         const = False
         if len(ctx.getText()) >= 5 and ctx.getText()[0:5] == 'const':
@@ -996,10 +998,10 @@ class CustomListener(ExpressionListener):
             while v[0] == "*":
                 plevel += 1
                 v = v[1]
-        if plevel>0:
-            val=Pointer(v,ptype,ctx.start.line,plevel,None,const,True)
+        if plevel > 0:
+            val = Pointer(v, ptype, ctx.start.line, plevel, None, const, True)
         else:
-            val=Value(v,ptype,ctx.start.line,None,True,const,True)
+            val = Value(v, ptype, ctx.start.line, None, True, const, True)
         self.c_scope.addParameter(val)
         self.is_parameter = True
         self.enterDec(ctx)

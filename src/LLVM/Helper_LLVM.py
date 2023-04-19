@@ -45,21 +45,41 @@ def load_higher_type_int_to_float(old, new):
     return "%{} = sitofp i32 %{} to float".format(new, old)
 
 
-def store_mult(left, right, rtype):
-    pass
+def store_mult(left, right, rtype, llvm):
+    load = ""
+    old_left = llvm.get_variable(left.value)
+    if rtype == LiteralType.INT:
+        load += "% {} = mult nsw i32 %{}, %{}\n".format(llvm.add_variable(left.value), old_left,
+                                                        llvm.get_variable(right.value))
+    elif rtype == LiteralType.FLOAT:
+        load += " %{} = call float @llvm.fmuladd.f32(float %{}, float %{}, float %{})\n".format(
+            llvm.add_variable(left.value), old_left, llvm.get_variable(left.value), llvm.get_variable(right.value))
+    return load
 
 
-def store_div(left, right, rtype):
-    pass
-
-
-def store_add(left, right, rtype,llvm):
+def store_div(left, right, rtype, llvm):
     """%2 = load i32, ptr %1, align 4
     % 3 = add nsw i32 %2, %4"""
     load = ""
     old_left = llvm.get_variable(left.value)
     if rtype == LiteralType.INT:
-        load += "% {} = add nsw i32 %{}, %{}\n".format(llvm.add_variable(left.value), old_left, llvm.get_variable(right.value))
+        load += "% {} = sdiv nsw i32 %{}, %{}\n".format(llvm.add_variable(left.value), old_left,
+                                                        llvm.get_variable(right.value))
+    elif rtype == LiteralType.FLOAT:
+        load += "%{} = fdiv float %{}, %{}\n".format(llvm.add_variable(left.value), old_left,
+                                                     llvm.get_variable(right.value))
+    return load
+
+
+def store_add(left, right, rtype, llvm):
+    load = ""
+    old_left = llvm.get_variable(left.value)
+    if rtype == LiteralType.INT:
+        load += "% {} = add nsw i32 %{}, %{}\n".format(llvm.add_variable(left.value), old_left,
+                                                       llvm.get_variable(right.value))
+    elif rtype==LiteralType.FLOAT:
+        load+="%{} = fadd float %{}, %{}\n".format(llvm.add_variable(left.value), old_left,
+                                                       llvm.get_variable(right.value))
     return load
 
 
@@ -68,11 +88,19 @@ def store_min(left, right, rtype, llvm):
     old_left = llvm.get_variable(left)
     if rtype == LiteralType.INT:
         load += "% {} = sub nsw i32 %{}, %{}\n".format(llvm.add_variable(left), old_left, llvm.get_variable(right))
+    elif rtype == LiteralType.FLOAT:
+        load += "% {} = fsub float %{}, %{}\n".format(llvm.add_variable(left), old_left, llvm.get_variable(right))
     return load
 
 
-def store_mod(left, right, rtype):
-    pass
+def store_mod(left, right, rtype, llvm):
+    load = ""
+    old_left = llvm.get_variable(left)
+    if rtype == LiteralType.INT:
+        load += "% {} = srem nsw i32 %{}, %{}\n".format(llvm.add_variable(left), old_left, llvm.get_variable(right))
+    elif rtype == LiteralType.FLOAT:
+        raise NotSupported("%", "float")
+    return load
 
 
 def set_llvm_binary_operators(left: Value, right: Value, op: str, llvm):
@@ -92,7 +120,10 @@ def set_llvm_binary_operators(left: Value, right: Value, op: str, llvm):
     if left.variable:
         old_var = llvm.get_variable(left.value)
         llvm.add_variable(left.value)
-        ltype = llvm.parameters[left.value].getType()
+        if llvm.c_function.root.block.getSymbolTable().findSymbol(left.value) is None:
+            ltype = llvm.parameters[left.value].getType()
+        else:
+            ltype = llvm.c_function.root.block.getSymbolTable().findSymbol(right.value)[1]
         llvm.function_load += load_type(old_var, llvm.get_variable(left.value), ltype, isinstance(left, Pointer))
     else:
         ltype = left.getType()
@@ -100,7 +131,10 @@ def set_llvm_binary_operators(left: Value, right: Value, op: str, llvm):
     if right.variable:
         old_var = llvm.get_variable(right.value)
         llvm.add_variable(right.value)
-        rtype = llvm.parameters[right.value].getType()
+        if llvm.c_function.root.block.getSymbolTable().findSymbol(right.value) is None:
+            rtype = llvm.parameters[right.value].getType()
+        else:
+            rtype = llvm.c_function.root.block.getSymbolTable().findSymbol(right.value)[1]
         llvm.function_load += load_type(old_var, llvm.get_variable(right.value), rtype, isinstance(right, Pointer))
     else:
         rtype = right.getType()
@@ -115,15 +149,15 @@ def set_llvm_binary_operators(left: Value, right: Value, op: str, llvm):
         rtype = LiteralType.FLOAT
 
     if op == "*":
-        llvm.function_load += store_mult(left, right, rtype,llvm)
+        llvm.function_load += store_mult(left, right, rtype, llvm)
     elif op == "/":
-        llvm.function_load += store_div(left, right, rtype,llvm)
+        llvm.function_load += store_div(left, right, rtype, llvm)
     elif op == "+":
-        llvm.function_load += store_add(left, right, rtype,llvm)
+        llvm.function_load += store_add(left, right, rtype, llvm)
     elif op == "-":
-        llvm.function_load += store_min(left, right, rtype,llvm)
+        llvm.function_load += store_min(left, right, rtype, llvm)
     elif op == "%":
-        llvm.function_load += store_mod(left, right, rtype,llvm)
+        llvm.function_load += store_mod(left, right, rtype, llvm)
     else:
         raise NotSupported("binary operator", op, left.line)
     return ltype
