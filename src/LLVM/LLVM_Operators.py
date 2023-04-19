@@ -493,32 +493,36 @@ class ToLLVM():
         self.transverse_tree(tree.root.block)
 
         self.g_assignment += self.function_alloc
+        self.g_assignment+="\n"
         self.g_assignment += self.function_store
-
+        self.g_assignment += "\n"
+        self.g_assignment += self.function_load
         if isinstance(tree.root.f_return.root, Value):
             self.end_function(tree.root.f_return.root.getType(), tree.root.f_return.root.getValue())
         self.output += self.g_assignment
+
         self.g_assignment = ""
+        self.function_load=""
+        self.function_alloc=""
+        self.function_store=""
+
         self.is_global = prev_global
 
     def transverse_tree(self, cblock: block):
+        #declarations
         for tree in cblock.trees:
             if isinstance(tree.root, Declaration) and tree.root.leftChild.declaration:
                 print("entered for dec" + tree.root.leftChild.getValue())
                 self.to_declaration(tree, True)
                 self.function_alloc += self.allocate
                 self.allocate = ""
-        """
-        
-        self.g_assignment += self.function_alloc
-        self.g_assignment += self.function_store
+        #operations
+
         for tree in cblock.trees:
             # don't change tree function permanently
             t = tree
-            t.root.fold(self)
-            self.g_assignment += self.function_load
-            self.function_load = ""
-    """
+            #t.root.fold(self)
+
 
     def add_parameter(self, val):
         if isinstance(val, Pointer):
