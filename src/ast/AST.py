@@ -196,12 +196,25 @@ class AST:
         This function tries to reduce the size of the tree as much as possible
          tree, self.g_assignment
         """
+        temp = None
         if not isinstance(self.root, Value):
-            self.root = self.root.fold(to_llvm)
-        return self
+            temp = self.root.fold(to_llvm)
+            self.root = temp[0]
+            return self, temp[1]
+        return self, True
 
     def getVariables(self):
         return self.root.getVariables()
 
     def replaceVariables(self, values):
         self.root.replaceVariables(values)
+
+    def createUnfilledDeclaration(self, root: AST_node):
+        left = root.leftChild
+        var = Value(left.value, left.type, left.line, None, left.variable, left.const, left.declaration)
+        val = EmptyNode(left.line, None, left.type)
+        dec = Declaration(var, root.line, None)
+        dec.setRightChild(val)
+        return dec
+
+

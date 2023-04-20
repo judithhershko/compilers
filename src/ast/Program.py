@@ -11,9 +11,9 @@ class program:
         self.symbols = SymbolTable()
         self.functions = FunctionTable()
         self.ast = AST()
-        # self.blocks = []
+        self.blocks = []
         self.block = block(None)
-        # self.trees = []
+        self.trees = []
         self.tree = Scope(0)
         self.tree.global_ = True
         self.level = None
@@ -27,9 +27,9 @@ class program:
 
     def getFunctionTable(self):
         return self.functions
-
-    def addBlock(self, block: block):
-        self.blocks.append(block)
+    #
+    # def addBlock(self, block: block):
+    #     self.blocks.append(block)
 
     def addTree(self, tree: AST):
         self.trees.append(tree)
@@ -50,7 +50,8 @@ class program:
         """
          This function will try to replace the variables in the AST with the actual values.
          """
-        variables = tree.getVariables()
+        res = tree.getVariables()
+        variables = res[0]
         notFound = []
         values = dict()
         if not variables:
@@ -72,18 +73,28 @@ class program:
             raise
 
     def fold(self):
+        folded = True
         if self.ast.root is not None:
-            self.ast = self.ast.foldTree()
+            temp = self.ast.foldTree()
+            self.ast = temp[0]
+            if not temp[1]:
+                folded = False
         foldedBlocks = []
         foldedTrees = []
         for block in self.blocks:
-            foldedBlocks.append(block.fold())
+            temp = block.fold()
+            foldedBlocks.append(temp[0])
+            if not temp[1]:
+                folded = False
         for tree in self.trees:
-            foldedTrees.append(tree.foldTree())  # TODO: double check if a tree or a node in put in here
+            temp = tree.foldTree()
+            foldedTrees.append(temp[0])  # TODO: double check if a tree or a node in put in here
+            if not temp[1]:
+                folded = False
         self.blocks = foldedBlocks
         self.trees = foldedTrees
 
-        return self
+        return self, folded
 
     def fillBlock(self):  # TODO make more efficient
         if self.ast.root is not None:

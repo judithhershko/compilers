@@ -1,16 +1,2 @@
-int main(int x, int *y)
-{
-int z=0;
-return 0;
-}
-int function(int x)
-{
-    int z=0;
-    x=x-z+90*x+90;
-return x;
-}
-
-
-
-
-
+int z = 5;
+bool q = z > z+1 || z < z - 1;
