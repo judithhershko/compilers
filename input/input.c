@@ -40,4 +40,11 @@ for(int i=0;i<30;i=i+1)
 }
 int y=0;
 
+int f(x, y){
+    z = x+y;
+    return z;
+}
 
+f(4, 5)
+
+f(3, 2)
