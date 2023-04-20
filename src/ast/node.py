@@ -276,7 +276,7 @@ class BinaryOperator(AST_node):
                 return self, False
             elif self.leftChild.variable or self.rightChild.variable:
                 return self, False
-            # elif self.leftChild.getVariables()[0] or self.rightChild.getVariables()[0]:
+            # elif self.leftChild.getVariables()[0] or self.rightChild.getVariables()[0]: TODO: discus where llvm function needs to be placed
             #     ptype = set_llvm_binary_operators(self.leftChild, self.rightChild, self.operator, to_llvm)
             #     # need left child for inbetween steps
             #     # self.leftChild.value = 0
@@ -485,7 +485,7 @@ class LogicalOperator(AST_node):
                 raise LogicalOp(self.leftChild.getType(), self.rightChild.getType(), self.operator, self.line)
             elif self.leftChild.variable or self.rightChild.variable:
                 return self, False
-            # elif self.leftChild.getVariables()[0] or self.rightChild.getVariables()[0]:
+            # elif self.leftChild.getVariables()[0] or self.rightChild.getVariables()[0]: TODO: discuss where llvm function needs to come
             #     to_llvm.g_assigment += set_llvm_comparators(self.leftChild, self.rightChild, self.operator)
             #     return self
 
