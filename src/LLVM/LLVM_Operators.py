@@ -49,6 +49,8 @@ class ToLLVM():
         self.counter += 1
         if self.counter == self.skip_count:
             self.counter += 1
+        if isinstance(var, str) and var[0]=="$":
+            self.counter-=1
         self.var_dic[var] = self.counter
         return self.var_dic[var]
 

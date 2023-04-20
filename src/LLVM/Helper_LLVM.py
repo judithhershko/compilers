@@ -108,16 +108,23 @@ def stor_binary_operation(op, left, right, rtype, llvm, load_left, load_right):
                 llvm.get_variable(right.value),
                 llvm.get_variable(right.value))
 
-    load += "%{} = ".format(llvm.add_variable(left))
-    load += op
+
     if load_left and load_right:
+        load += "%{} = ".format(llvm.add_variable(left))
+        load += op
         load += "%{}, %{}\n".format(old_left, llvm.get_variable(right))
     elif load_left:
+        load += "%{} = ".format(llvm.add_variable(left))
+        load += op
         load += "%{}, {}\n".format(old_left, llvm.get_variable("$" + str(right.value)))
     elif load_right:
+        llvm.counter-=1
+        load += "%{} = ".format(llvm.add_variable(right))
+        load += op
         old_right = llvm.get_variable(right)
         load += "{}, %{}\n".format(llvm.get_variable("$" + str(right.value)), old_right)
-
+    if not (load_right and load_left):
+        pass
     return load
 
 
@@ -125,13 +132,11 @@ def set_llvm_binary_operators(left: Value, right: Value, op: str, llvm):
     print("binary operator called")
     # get all types
     # move higher type if necessary
-    # todo : if is value and not variable: don't add new register
     ltype = None
     rype = None
     load_left = True
     load_right = True
     if isinstance(right.value, int):
-        print("right is digit")
         llvm.var_dic["$" + str(right.value)] = right.value
         load_right = False
     elif isinstance(right.value, float):
@@ -166,7 +171,6 @@ def set_llvm_binary_operators(left: Value, right: Value, op: str, llvm):
     else:
         rtype = right.getType()
     # fix different types
-
     if rtype == LiteralType.FLOAT and ltype == LiteralType.INT:
         llvm.function_load += load_higher_type_int_to_float(llvm.get_variable(left.value),
                                                             llvm.add_variable(left.value))

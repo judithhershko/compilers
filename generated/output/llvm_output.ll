@@ -22,8 +22,10 @@ store i32 %0, ptr %2, align 4
 %5 = load i32, ptr %3, align 4
 %6 = sub nsw i32 %4, %5
 %7 = load i32, ptr %6, align 4
-%9 = mult nsw i32 10, %7
-%11 = load i32, ptr %7, align 4
+%8 = mult nsw i32 8, %8
+%9 = load i32, ptr %8, align 4
+%10 = add nsw i32 %9, 90
+%11 = load i32, ptr %10, align 4
 %12 = add nsw i32 %11, 90
  %13 = load ptr, ptr %12, align 4
 ret void}
