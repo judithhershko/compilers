@@ -1,13 +1,10 @@
 from .node import *
-
-
 # class block:
 #     pass
 #
 
 class AST:
     root = None
-
     def __eq__(self, other):
         if not isinstance(other, AST):
             return False
@@ -194,12 +191,13 @@ class AST:
 
         return nodes, edges
 
-    def foldTree(self):
+    def foldTree(self,to_llvm=None):
         """
         This function tries to reduce the size of the tree as much as possible
+         tree, self.g_assignment
         """
         if not isinstance(self.root, Value):
-            self.root = self.root.fold()
+            self.root = self.root.fold(to_llvm)
         return self
 
     def getVariables(self):

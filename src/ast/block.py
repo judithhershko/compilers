@@ -8,14 +8,13 @@ class program:
 
 
 class block:
-    def __init__(self, parent, name=""):
+    def __init__(self, parent):
         self.symbols = SymbolTable()
         self.ast = AST()
         self.parent = parent
         self.blocks = []
         self.trees = []
-        self.freturn=AST()
-        self.fname = name
+        self.line=None
         self.id = ''
         self.level = None
         self.number = None
@@ -32,7 +31,7 @@ class block:
             if self.trees[j] != other.trees[j]:
                 treesTrue = False
         return self.symbols == other.symbols and self.ast == other.ast and self.fname == other.fname and \
-               self.id == other.id and blocksTrue and treesTrue
+            self.id == other.id and blocksTrue and treesTrue
 
     def getId(self):
         return str(self.level) + "." + str(self.number)
@@ -96,7 +95,7 @@ class block:
         except Undeclared:
             raise
 
-    def fold(self):
+    def fold(self,llvm=None):
         if self.ast.root is not None:
             self.ast = self.ast.foldTree()
         foldedBlocks = []

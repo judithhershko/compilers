@@ -1,6 +1,19 @@
 import pandas as pd
 from src.ErrorHandeling.GenerateError import *
 from .node import *
+class FunctionTable:
+    def __init__(self):
+        pass
+
+    def addFunction(self, scope: Scope):
+        pass
+
+    def findFunction(self, f_name: str):
+        return Scope(0)
+
+    # TODO: for pointers/references --> give block that calls the function?
+    def callFunction(self, f_name: str, block: block, param: list):
+        pass
 
 
 class SymbolTable:

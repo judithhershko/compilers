@@ -1,5 +1,11 @@
 from enum import Enum
 from src.ErrorHandeling.GenerateError import *
+from src.LLVM.Helper_LLVM import set_llvm_comparators, set_llvm_binary_operators
+from src.ast.node_types.node_type import LiteralType, ConditionType
+
+
+class ToLLVM:
+    pass
 
 
 class block:
@@ -15,41 +21,15 @@ class CommentType(Enum):
     SL = 1
 
 
-class LiteralType(Enum):
-    NUM = 1
-    STR = 2
-    VAR = 3
-    DOUBLE = 4
-    INT = 5
-    CHAR = 6
-    BOOL = 7
-    FLOAT = 8
-    POINTER = 9
-
-    def __str__(self):
-        return self.name
-
-
-class ConditionType(Enum):
-    IF = 0
-    ELIF = 1
-    ELSE = 2
-
-    def __str__(self):
-        if self.value == 0:
-            return "if"
-        elif self.value == 1:
-            return "else if"
-        else:
-            return "else"
-
-
 class AST_node:
     number = None
     level = None
     parent = None
     line = None
     variable = False
+
+    def __init__(self, llvm=ToLLVM()):
+        self.llvm = llvm
 
     def getId(self):
         return str(self.level) + "." + str(self.number)
@@ -187,6 +167,8 @@ class Value(AST_node):
         :param node2: AST_node type containing the other child of the parent node in the AST
         :return: returns the LiteralType with the highest priority (str>char; double>float>int)
         """
+        if not isinstance(node2, Value):
+            return self.type
         type1 = self.type
         type2 = node2.getType()
 
@@ -247,9 +229,9 @@ class BinaryOperator(AST_node):
         if not isinstance(other, BinaryOperator):
             return False
         return self.operator == other.operator and self.leftChild == other.leftChild and \
-               self.rightChild == other.rightChild and self.parent == other.parent and \
-               self.variable == other.variable and self.level == other.level and \
-               self.number == other.number and self.line == other.line
+            self.rightChild == other.rightChild and self.parent == other.parent and \
+            self.variable == other.variable and self.level == other.level and \
+            self.number == other.number and self.line == other.line
 
     def getValue(self):
         return self.operator
@@ -269,7 +251,7 @@ class BinaryOperator(AST_node):
     def getLeftChild(self):
         return self.leftChild
 
-    def fold(self):
+    def fold(self, to_llvm=None):
         """
         This function will try to reduce the whole binary operation by first folding both children of the node.
         Thereafter, the binary operation will be calculated and a Value node will replace the current BinaryOperator
@@ -277,20 +259,34 @@ class BinaryOperator(AST_node):
         :return: the replacing Value node
         """
         if not (isinstance(self.leftChild, Value) or isinstance(self.leftChild, Pointer)):
-            self.leftChild = self.leftChild.fold()
+            self.leftChild = self.leftChild.fold(to_llvm)
         if not (isinstance(self.rightChild, Value) or isinstance(self.rightChild, Pointer)):
-            self.rightChild = self.rightChild.fold()
+            self.rightChild = self.rightChild.fold(to_llvm)
 
         try:
             if not (isinstance(self.leftChild, Value) or isinstance(self.leftChild, Pointer)) or \
                     not (isinstance(self.rightChild, Value) or isinstance(self.rightChild, Pointer)):
                 return self
+            elif self.leftChild.getVariables() or self.rightChild.getVariables():
+                ptype = set_llvm_binary_operators(self.leftChild, self.rightChild, self.operator, to_llvm)
+                # need left child for inbetween steps
+                #self.leftChild.value = 0
+                #if ptype == LiteralType.CHAR:
+                #    self.leftChild.value = '0'
+                self.leftChild.type = ptype
+                return self.leftChild
+
+
             elif not self.leftChild.getType() in (LiteralType.DOUBLE, LiteralType.FLOAT, LiteralType.INT) or \
                     not self.rightChild.getType() in (LiteralType.DOUBLE, LiteralType.FLOAT, LiteralType.INT):
                 raise BinaryOp(self.leftChild.getType(), self.rightChild.getType(), self.operator, self.line)
+
             else:
                 leftValue = float(self.leftChild.getValue())
                 rightValue = float(self.rightChild.getValue())
+
+                typeOfValue = self.leftChild.getHigherType(self.rightChild)
+
                 if self.operator == "*":
                     res = leftValue * rightValue
                 elif self.operator == "/":
@@ -303,8 +299,6 @@ class BinaryOperator(AST_node):
                     res = leftValue % rightValue
                 else:
                     raise NotSupported("binary operator", self.operator, self.line)
-
-                typeOfValue = self.leftChild.getHigherType(self.rightChild)
 
                 if typeOfValue == LiteralType.INT:
                     res = int(res)
@@ -346,8 +340,8 @@ class UnaryOperator(AST_node):
         if not isinstance(other, UnaryOperator):
             return False
         return self.operator == other.operator and self.rightChild == other.rightChild and self.parent == other.parent \
-               and self.variable == other.variable and self.level == other.level and \
-               self.number == other.number and self.line == other.line
+            and self.variable == other.variable and self.level == other.level and \
+            self.number == other.number and self.line == other.line
 
     def getValue(self):
         return self.operator
@@ -358,7 +352,7 @@ class UnaryOperator(AST_node):
     def setRightChild(self, child):
         self.rightChild = child
 
-    def fold(self):
+    def fold(self, to_llvm=None):
         """
         This function will try to reduce the whole unary operation by first folding the child of the node.
         Thereafter, the unary operation will be calculated and a Value node will replace the current UnaryOperator
@@ -366,7 +360,7 @@ class UnaryOperator(AST_node):
         :return: the replacing Value node
         """
         if not (isinstance(self.rightChild, Value) or isinstance(self.rightChild, Pointer)):
-            self.rightChild = self.rightChild.fold()
+            self.rightChild = self.rightChild.fold(to_llvm)
         try:
             if not (isinstance(self.rightChild, Value) or isinstance(self.rightChild, Pointer)):
                 return self
@@ -428,9 +422,9 @@ class LogicalOperator(AST_node):
         if not isinstance(other, LogicalOperator):
             return False
         return self.operator == other.operator and self.leftChild == other.leftChild and \
-               self.rightChild == other.rightChild and self.parent == other.parent and \
-               self.variable == other.variable and self.level == other.level and \
-               self.number == other.number and self.line == other.line
+            self.rightChild == other.rightChild and self.parent == other.parent and \
+            self.variable == other.variable and self.level == other.level and \
+            self.number == other.number and self.line == other.line
 
     def getValue(self):
         return self.operator
@@ -450,7 +444,7 @@ class LogicalOperator(AST_node):
     def setRightChild(self, child):
         self.rightChild = child
 
-    def fold(self):
+    def fold(self, to_llvm=None):
         """
         This function will try to reduce the whole logical operation by first folding the children of the node.
         Thereafter, the logical operation will be calculated and a Value node will replace the current LogicalOperator
@@ -458,9 +452,9 @@ class LogicalOperator(AST_node):
         :return: the replacing Value node
         """
         if not (isinstance(self.leftChild, Value) or isinstance(self.leftChild, Pointer)):
-            self.leftChild = self.leftChild.fold()
+            self.leftChild = self.leftChild.fold(to_llvm)
         if not (isinstance(self.rightChild, Value) or isinstance(self.rightChild, Pointer)):
-            self.rightChild = self.rightChild.fold()
+            self.rightChild = self.rightChild.fold(to_llvm)
 
         leftType = self.leftChild.getType()
         rightType = self.rightChild.getType()
@@ -474,9 +468,14 @@ class LogicalOperator(AST_node):
             elif self.operator in ("&&", "||") and self.leftChild.getType() != LiteralType.BOOL and \
                     self.rightChild.getType() != LiteralType.BOOL:
                 raise LogicalOp(self.leftChild.getType(), self.rightChild.getType(), self.operator, self.line)
+            elif self.leftChild.getVariables() or self.rightChild.getVariables():
+                to_llvm.g_assigment += set_llvm_comparators(self.leftChild, self.rightChild, self.operator)
+                return self
+
             else:
                 self.leftChild.setValueToType()
                 self.rightChild.setValueToType()
+
                 if self.operator == "&&":
                     res = self.leftChild.getValue() and self.rightChild.getValue()
                 elif self.operator == "||":
@@ -535,8 +534,8 @@ class Declaration(AST_node):
         if not isinstance(other, LogicalOperator):
             return False
         return self.leftChild == other.leftChild and self.rightChild == other.rightChild and \
-               self.parent == other.parent and self.variable == other.variable and self.level == other.level and \
-               self.number == other.number and self.line == other.line
+            self.parent == other.parent and self.variable == other.variable and self.level == other.level and \
+            self.number == other.number and self.line == other.line
 
     def getLabel(self):
         return "\"Declaration: " + self.operator + "\""
@@ -553,16 +552,16 @@ class Declaration(AST_node):
     def getRightChild(self):
         return self.rightChild
 
-    def fold(self):
+    def fold(self, to_llvm=None):
         """
         This function will try to fold the tree by folding both children until they are a single Value-type node
         :return: it returns itself, but now with the folded children (if possible)
         """
         if not (isinstance(self.leftChild, Value) or isinstance(self.leftChild, Pointer)):
-            self.leftChild = self.leftChild.fold()
+            self.leftChild = self.leftChild.fold(to_llvm)
         if not (isinstance(self.rightChild, Value) or isinstance(self.rightChild, Pointer) or
                 isinstance(self.rightChild, EmptyNode)):
-            self.rightChild = self.rightChild.fold()
+            self.rightChild = self.rightChild.fold(to_llvm)
 
         highestType = self.leftChild.getHigherType(self.rightChild)
         try:
@@ -612,8 +611,8 @@ class Pointer(AST_node):
         if not isinstance(other, Pointer):
             return False
         return self.value == other.value and self.type == other.type and self.parent == other.parent and \
-               self.variable == other.variable and self.pointerLevel == other.pointerLevel and \
-               self.const == other.const and self.number == other.number and self.line == other.line
+            self.variable == other.variable and self.pointerLevel == other.pointerLevel and \
+            self.const == other.const and self.number == other.number and self.line == other.line
 
     def getValue(self):
         return self.value
@@ -747,12 +746,19 @@ class EmptyNode(AST_node):
         return []
 
 
+# unnamed scopes gebruik scope node
 class Scope(AST_node):  # TODO: let it hold a block instead of trees
     block = None
 
     def __init__(self, line: int, parent: AST_node = None):
         self.parent = parent
         self.line = line
+        self.f_name = ""
+        self.f_return = None
+        self.return_type = None
+        self.global_ = False
+        # hier moeten de parameters als values en pointers binnen
+        self.parameters = dict()
 
     def __eq__(self, other):
         if not isinstance(other, Scope):
@@ -764,6 +770,20 @@ class Scope(AST_node):  # TODO: let it hold a block instead of trees
 
     def setBlock(self, scope: block):
         self.block = scope
+    def setReturnType(self,type):
+        if type=="int":
+            self.return_type=LiteralType.INT
+        elif type=="float":
+            self.return_type=LiteralType.FLOAT
+        elif type=="bool":
+            self.return_type=LiteralType.BOOL
+        elif type=="char":
+            self.return_type=LiteralType.CHAR
+
+    def addParameter(self, val):
+        # val is ofwel een pointer, ofwel een value en zit in param[]
+        if val.getValue() not in self.parameters.keys():
+            self.parameters[val.getValue()] = val
 
     def addTree(self, ast: AST_node):
         self.block.addTree(ast)
@@ -771,8 +791,8 @@ class Scope(AST_node):  # TODO: let it hold a block instead of trees
     def getLabel(self):
         return "\"New scope: \""
 
-    def fold(self):
-        self.block.fold()
+    def fold(self, to_llvm=None):
+        self.block.fold(to_llvm)
         return self
 
     def getVariables(self):
@@ -813,7 +833,7 @@ class If(AST_node):
         if not isinstance(other, If):
             return False
         return self.operator == other.operator and self.line == other.line and self.Condition == other.Condition and \
-               self.c_block == other.c_block
+            self.c_block == other.c_block
 
     def setCondition(self, con: AST_node):
         try:
@@ -831,10 +851,10 @@ class If(AST_node):
     def getLabel(self):
         return "\"" + self.operator.__str__() + "\""
 
-    def fold(self):
+    def fold(self, to_llvm=None):
         if self.operator != ConditionType.ELSE:
-            self.Condition = self.Condition.fold()
-        self.c_block = self.c_block.fold()
+            self.Condition = self.Condition.fold(to_llvm)
+        self.c_block = self.c_block.fold(to_llvm)
         return self
 
     def getVariables(self):
@@ -859,14 +879,6 @@ class Continue(AST_node):
     def __init__(self, line):
         self.line = line
 
-"""
-deze node is bedoelt om gemakkelijker llvm te gebruiken voor de volgorde van de trees/blocks ipv line telkens te gebruiken
-"""
-
-class Function(AST_node):
-    def __init__(self, line):
-        self.line = line
-        
 
 class While(AST_node):
     Condition = None
@@ -901,7 +913,7 @@ class While(AST_node):
         if not isinstance(other, If):
             return False
         return self.operator == other.operator and self.line == other.line and self.Condition == other.Condition and \
-               self.c_block == other.c_block
+            self.c_block == other.c_block
 
     def setCondition(self, con: AST_node):
         self.Condition = con
@@ -912,7 +924,7 @@ class While(AST_node):
     def getLabel(self):
         return "\"while\""
 
-    def fold(self):
+    def fold(self, to_llvm=None):
         return self
 
     def getVariables(self):  # TODO: for now no filling of variables because this can run multiple times
@@ -921,3 +933,21 @@ class While(AST_node):
     def replaceVariables(self, values):  # TODO: for now no filling of variables because this can run multiple times
         pass
 
+"""
+deze node is bij aanroepen van functies bv. 
+int i= functie(0)
+"""
+
+
+class Function(AST_node):
+    def __init__(self, f_name, line, parent=None):
+        self.line = line
+        self.parent = parent
+        self.param = []
+        self.f_name = f_name
+
+    def addParameter(self, var):
+        # TODO: dit moet anders --> als value/pointer/ref wordt doorgegeven
+        # var= &x, *x, 21,
+        # TODO: check --> verwachte parameter ?
+        self.param.append(var)

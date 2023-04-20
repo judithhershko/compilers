@@ -1,16 +1,21 @@
-from .SymbolTable import SymbolTable
+from .SymbolTable import SymbolTable, FunctionTable
 from src.ErrorHandeling.GenerateError import *
 from .block import block
 from .AST import AST
+from .node import Scope
 
 
 class program:
     # TODO: add functions for fold and fill literals as in block
     def __init__(self):
         self.symbols = SymbolTable()
+        self.functions = FunctionTable()
         self.ast = AST()
-        self.blocks = []
-        self.trees = []
+        # self.blocks = []
+        self.block = block(None)
+        # self.trees = []
+        self.tree = Scope(0)
+        self.tree.global_ = True
         self.level = None
         self.number = None
 
@@ -19,6 +24,9 @@ class program:
 
     def getSymbolTable(self):
         return self.symbols
+
+    def getFunctionTable(self):
+        return self.functions
 
     def addBlock(self, block: block):
         self.blocks.append(block)
