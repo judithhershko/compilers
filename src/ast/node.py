@@ -859,6 +859,14 @@ class Continue(AST_node):
     def __init__(self, line):
         self.line = line
 
+"""
+deze node is bedoelt om gemakkelijker llvm te gebruiken voor de volgorde van de trees/blocks ipv line telkens te gebruiken
+"""
+
+class Function(AST_node):
+    def __init__(self, line):
+        self.line = line
+        
 
 class While(AST_node):
     Condition = None
