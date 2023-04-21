@@ -269,10 +269,6 @@ class BinaryOperator(AST_node):
                 return self
             elif self.leftChild.getVariables() or self.rightChild.getVariables():
                 ptype = set_llvm_binary_operators(self.leftChild, self.rightChild, self.operator, to_llvm)
-                # need left child for inbetween steps
-                #self.leftChild.value = 0
-                #if ptype == LiteralType.CHAR:
-                #    self.leftChild.value = '0'
                 self.leftChild.type = ptype
                 return self.leftChild
 
@@ -463,14 +459,16 @@ class LogicalOperator(AST_node):
             if not (isinstance(self.leftChild, Value) or isinstance(self.leftChild, Pointer)) or \
                     not (isinstance(self.rightChild, Value) or isinstance(self.rightChild, Pointer)):
                 return self
+            elif self.leftChild.getVariables() or self.rightChild.getVariables():
+                ptype = set_llvm_comparators(self.leftChild, self.rightChild, self.operator, to_llvm)
+                self.leftChild.type = ptype
+                return self.leftChild
+
             elif leftType != rightType:
                 raise LogicalOp(self.leftChild.getType(), self.rightChild.getType(), self.operator, self.line)
             elif self.operator in ("&&", "||") and self.leftChild.getType() != LiteralType.BOOL and \
                     self.rightChild.getType() != LiteralType.BOOL:
                 raise LogicalOp(self.leftChild.getType(), self.rightChild.getType(), self.operator, self.line)
-            elif self.leftChild.getVariables() or self.rightChild.getVariables():
-                to_llvm.g_assigment += set_llvm_comparators(self.leftChild, self.rightChild, self.operator)
-                return self
 
             else:
                 self.leftChild.setValueToType()
@@ -770,15 +768,16 @@ class Scope(AST_node):  # TODO: let it hold a block instead of trees
 
     def setBlock(self, scope: block):
         self.block = scope
-    def setReturnType(self,type):
-        if type=="int":
-            self.return_type=LiteralType.INT
-        elif type=="float":
-            self.return_type=LiteralType.FLOAT
-        elif type=="bool":
-            self.return_type=LiteralType.BOOL
-        elif type=="char":
-            self.return_type=LiteralType.CHAR
+
+    def setReturnType(self, type):
+        if type == "int":
+            self.return_type = LiteralType.INT
+        elif type == "float":
+            self.return_type = LiteralType.FLOAT
+        elif type == "bool":
+            self.return_type = LiteralType.BOOL
+        elif type == "char":
+            self.return_type = LiteralType.CHAR
 
     def addParameter(self, val):
         # val is ofwel een pointer, ofwel een value en zit in param[]

@@ -24,10 +24,6 @@ def to_type(ptype):
     pass
 
 
-def set_llvm_comparators(left: Value, right: Value, op: str):
-    pass
-
-
 def load_type(old, new, ptype_, pointer):
     if pointer:
         return "%{} = load ptr, ptr %{}, align 4\n".format(new, old)
@@ -91,7 +87,7 @@ def get_operation(op: str, type):
 
 def stor_binary_operation(op, left, right, rtype, llvm, load_left, load_right):
     load = ""
-    op = get_operation(op,rtype)
+    op = get_operation(op, rtype)
     old_left = llvm.get_variable(left)
     if op == "call":
         if load_left and load_right:
@@ -108,7 +104,6 @@ def stor_binary_operation(op, left, right, rtype, llvm, load_left, load_right):
                 llvm.get_variable(right.value),
                 llvm.get_variable(right.value))
 
-
     if load_left and load_right:
         load += "%{} = ".format(llvm.add_variable(left))
         load += op
@@ -118,7 +113,7 @@ def stor_binary_operation(op, left, right, rtype, llvm, load_left, load_right):
         load += op
         load += "%{}, {}\n".format(old_left, llvm.get_variable("$" + str(right.value)))
     elif load_right:
-        llvm.counter-=1
+        llvm.counter -= 1
         load += "%{} = ".format(llvm.add_variable(right))
         load += op
         old_right = llvm.get_variable(right)
@@ -128,12 +123,20 @@ def stor_binary_operation(op, left, right, rtype, llvm, load_left, load_right):
     return load
 
 
+def set_llvm_comparators(left: Value, right: Value, op: str, llvm):
+    load_left = True
+    load_right = True
+
+    if (left.type == LiteralType.INT or left.type == LiteralType.FLOAT) and right.type == LiteralType.VAR:
+        return left.type
+    if left.type == LiteralType.VAR and (right.type == LiteralType.INT or right.type == LiteralType.FLOAT):
+        return right.type
+
+
 def set_llvm_binary_operators(left: Value, right: Value, op: str, llvm):
     print("binary operator called")
     # get all types
     # move higher type if necessary
-    ltype = None
-    rype = None
     load_left = True
     load_right = True
     if isinstance(right.value, int):
@@ -155,7 +158,7 @@ def set_llvm_binary_operators(left: Value, right: Value, op: str, llvm):
         if llvm.c_function.root.block.getSymbolTable().findSymbol(left.value) is None:
             ltype = llvm.parameters[left.value].getType()
         else:
-            ltype = llvm.c_function.root.block.getSymbolTable().findSymbol(right.value)[1]
+            ltype = llvm.c_function.root.block.getSymbolTable().findSymbol(left.value)[1]
         llvm.function_load += load_type(old_var, llvm.get_variable(left.value), ltype, isinstance(left, Pointer))
     else:
         ltype = left.getType()

@@ -3,7 +3,6 @@ from src.HelperFunctions import *
 from .ast.block import block
 from .ast.Program import program
 
-
 # TODO: zet alles in trees (unnamed scopes in scope node) --> volgorde probleem llvm --> ok
 # TODO: ook program enkel trees niet block gebruiken                                 --> ok
 # TODO : vorm for om in while lus                                                    --> ok
