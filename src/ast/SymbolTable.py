@@ -1,12 +1,29 @@
 import pandas as pd
 from src.ErrorHandeling.GenerateError import *
 from .node import *
+
+
+class block:
+    pass
+
+
 class FunctionTable:
     def __init__(self):
         pass
+        # self.table = pd.DataFrame({"param": pd.Series(dtype=dict),
+        #                            "body": pd.Series(dtype=block)})
 
-    def addFunction(self, scope: Scope):
+    def __eq__(self, other):
+        if not isinstance(other, FunctionTable):
+            return False
+        return self.table.equals(other.table)
+
+    def addFunction(self, func: Function):
+        if func.f_name in self.table.index:
+            raise Redeclaration(func.f_name, func.line)
         pass
+        # else:
+        #     self.table.loc[func.f_name] =
 
     def findFunction(self, f_name: str):
         return Scope(0)
@@ -24,16 +41,15 @@ class SymbolTable:
         self.table = pd.DataFrame({"Value": pd.Series(dtype=str),
                                    "Type": pd.Series(dtype=str),
                                    "Const": pd.Series(dtype=bool),
-                                   # "Ref": pd.Series(dtype="str"),
                                    "Level": pd.Series(dtype=int),
-                                   "Global": pd.Series(dtype=bool)})
-
+                                   "Global": pd.Series(dtype=bool),
+                                   "Fillable": pd.Series(dtype=bool)})
     def __eq__(self, other):
         if not isinstance(other, SymbolTable):
             return False
         return self.table.equals(other.table)
 
-    def addSymbol(self, root: AST_node, isGlobal: bool):
+    def addSymbol(self, root: AST_node, isGlobal: bool, fill: bool = True):
         # TODO: check if x is in upper scope, x = 5 replaces upper scope
         try:
             line = root.getLine()
@@ -65,7 +81,7 @@ class SymbolTable:
                 if not decl:
                     raise NotDeclared(name, line)
                 if ref is None:
-                    self.table.loc[name] = [value, symType, const, level, isGlobal]
+                    self.table.loc[name] = [value, symType, const, level, isGlobal, fill]
                     return "placed"
                 elif ref not in self.table.index:
                     raise ImpossibleRef(ref, line)
@@ -74,7 +90,7 @@ class SymbolTable:
                     raise RefPointerLevel(name, refValue["Level"], level, line)
                 elif symType != refValue["Type"]:
                     raise PointerType(name, refValue["Type"], symType, line)
-                self.table.loc[name] = [value, symType, const, level, isGlobal]
+                self.table.loc[name] = [value, symType, const, level, isGlobal, fill]
                 return "placed"
             else:
                 row = self.table.loc[name]
@@ -96,9 +112,11 @@ class SymbolTable:
                 else:
                     if isinstance(root.getLeftChild(), Value):
                         self.table.loc[name, ["Value"]] = str(value)
+                        self.table.loc[name, ["Fillable"]] = fill
                     else:
                         if ref in self.table.index:
                             self.table.loc[name, ["Value"]] = str(value)
+                            self.table.loc[name, ["Fillable"]] = fill
                         elif root.getRightChild().getType() != LiteralType.VAR:
                             for i in range(level):
                                 temp = self.table.loc[name]
@@ -109,7 +127,7 @@ class SymbolTable:
                             elif temp["Const"]:
                                 raise ResetConst(name, line)
                             self.table.loc[name, ["Value"]] = str(value)
-                            return "replaced"
+                            self.table.loc[name, ["Fillable"]] = fill
                         else:
                             raise NotReference(line, ref)
                     return "replaced"
@@ -150,6 +168,10 @@ class SymbolTable:
             level = self.table.at[name, "Level"]
             while self.table.at[name, "Level"] > 0:
                 name = self.table.at[name, "Value"]
-            return self.table.at[name, "Value"], self.table.at[name, "Type"], level
+            return self.table.at[name, "Value"], self.table.at[name, "Type"], level, self.table.at[name, "Fillable"]
         else:
-            return self.table.at[name, "Value"], self.table.at[name, "Type"], self.table.at[name, "Level"]
+            return self.table.at[name, "Value"], self.table.at[name, "Type"], self.table.at[name, "Level"], \
+                   self.table.at[name, "Fillable"]
+
+    def makeUnfillable(self):
+        self.table = self.table.assign(Fillable=False)
