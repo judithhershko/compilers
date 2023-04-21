@@ -890,6 +890,7 @@ class While(AST_node):
     def __init__(self, line, parent=None):
         self.line = line
         self.parent = parent
+        self.stop_loop = False
         """
         condition--> tree--> fold--> bool
         block (scope) ; store value in block of condition
@@ -931,6 +932,7 @@ class While(AST_node):
 
     def replaceVariables(self, values):  # TODO: for now no filling of variables because this can run multiple times
         pass
+
 
 """
 deze node is bij aanroepen van functies bv. 

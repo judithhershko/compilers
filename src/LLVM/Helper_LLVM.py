@@ -1,5 +1,3 @@
-from pandas._libs.lib import Enum
-
 from src.ErrorHandeling.GenerateError import NotSupported
 from src.ast.node_types.node_type import LiteralType
 
