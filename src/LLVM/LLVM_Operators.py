@@ -561,7 +561,10 @@ class ToLLVM():
         self.function_load += "br label %{}\n".format(self.increase_counter())
         self.function_load += str(self.get_counter()) + " :\n"
         self.function_load += " "
-
+        self.transverse_tree(t.root.c_block)
+        #condition true: branch a
+        #condition false: branch b
+        #self.function_load+=
     def add_output_fold(self, out: str):
         self.g_assignment += out
         return
