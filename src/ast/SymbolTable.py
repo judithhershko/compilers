@@ -19,8 +19,9 @@ class FunctionTable:
         return self.table.equals(other.table)
 
     def addFunction(self, func: Function):
-        if func.f_name in self.table.index:
-            raise Redeclaration(func.f_name, func.line)
+        """if func.f_name in self.table.index:
+            raise Redeclaration(func.f_name, func.line)"""
+
         pass
         # else:
         #     self.table.loc[func.f_name] =
