@@ -278,12 +278,9 @@ class BinaryOperator(AST_node):
                 return self, False
             # elif self.leftChild.getVariables()[0] or self.rightChild.getVariables()[0]: TODO: discus where llvm function needs to be placed
             #     ptype = set_llvm_binary_operators(self.leftChild, self.rightChild, self.operator, to_llvm)
-            #     # need left child for inbetween steps
-            #     # self.leftChild.value = 0
-            #     # if ptype == LiteralType.CHAR:
-            #     #    self.leftChild.value = '0'
             #     self.leftChild.type = ptype
             #     return self.leftChild
+
 
 
             elif not self.leftChild.getType() in (LiteralType.DOUBLE, LiteralType.FLOAT, LiteralType.INT) or \
@@ -478,6 +475,11 @@ class LogicalOperator(AST_node):
             if not (isinstance(self.leftChild, Value) or isinstance(self.leftChild, Pointer)) or \
                     not (isinstance(self.rightChild, Value) or isinstance(self.rightChild, Pointer)):
                 return self, False
+            # elif self.leftChild.getVariables() or self.rightChild.getVariables():
+            #     ptype = set_llvm_comparators(self.leftChild, self.rightChild, self.operator, to_llvm)
+            #     self.leftChild.type = ptype
+            #     return self.leftChild
+
             elif leftType != rightType:
                 raise LogicalOp(self.leftChild.getType(), self.rightChild.getType(), self.operator, self.line)
             elif self.operator in ("&&", "||") and self.leftChild.getType() != LiteralType.BOOL and \
@@ -485,9 +487,6 @@ class LogicalOperator(AST_node):
                 raise LogicalOp(self.leftChild.getType(), self.rightChild.getType(), self.operator, self.line)
             elif self.leftChild.variable or self.rightChild.variable:
                 return self, False
-            # elif self.leftChild.getVariables()[0] or self.rightChild.getVariables()[0]: TODO: discuss where llvm function needs to come
-            #     to_llvm.g_assigment += set_llvm_comparators(self.leftChild, self.rightChild, self.operator)
-            #     return self
 
             else:
                 self.leftChild.setValueToType()
@@ -937,6 +936,8 @@ class While(AST_node):
         self.line = line
         self.parent = parent
         self.name = "while"
+        self.stop_loop = False
+
         """
         condition--> tree--> fold--> bool
         block (scope) ; store value in block of condition
@@ -981,6 +982,7 @@ class While(AST_node):
 
     def replaceVariables(self, values):  # TODO: for now no filling of variables because this can run multiple times
         pass
+
 
 """
 deze node is bij aanroepen van functies bv. 

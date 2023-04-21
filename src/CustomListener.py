@@ -517,9 +517,16 @@ class CustomListener(ExpressionListener):
             self.asT = create_tree()
             return
         if self.stop_fold:
+            if self.c_scope.f_name != "" and self.c_scope.f_return is None:
+                self.parent = None
+                self.current = None
+                self.declaration = False
+                self.asT = create_tree()
+                return
             self.c_scope.block.trees.append(self.asT)
-            if self.c_scope.block.getSymbolTable().findSymbol(self.current.leftChild.getValue()) is None and self.current.leftChild.declaration:
-                self.c_scope.block.getSymbolTable().addSymbol(self.asT.root,self.c_scope.global_)
+            if self.c_scope.block.getSymbolTable().findSymbol(
+                    self.current.leftChild.getValue()) is None and self.current.leftChild.declaration:
+                self.c_scope.block.getSymbolTable().addSymbol(self.asT.root, self.c_scope.global_)
             self.counter += 1
             self.parent = None
             self.current = None
@@ -643,6 +650,8 @@ class CustomListener(ExpressionListener):
                 self.asT.generateDot(self.pathName + str(self.counter) + ".dot")
                 if self.return_function:
                     self.c_scope.f_return = self.asT
+                elif self.c_scope.f_name != "" and self.c_scope.f_return is not None:
+                    return
                 else:
                     self.c_scope.block.fillLiterals(self.asT)
                     self.asT.foldTree()
@@ -838,11 +847,15 @@ class CustomListener(ExpressionListener):
             wloop.Condition = self.loop.Condition
             self.c_scope.block.trees.append(self.loop.f_incr)
             wloop.c_block = self.c_scope.block
-            sblock.trees.append(wloop)
+            ast = create_tree()
+            ast.root = wloop
+            sblock.trees.append(ast)
         else:
             self.loop.c_block = self.c_scope.block
             sblock = self.scope_stack.pop()
-            sblock.trees.append(self.loop)
+            ast = create_tree()
+            ast.root = self.loop
+            sblock.trees.append(ast)
         self.c_scope.block = sblock
         self.loop = None
 

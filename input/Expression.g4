@@ -7,7 +7,7 @@ print   : PRINT LBRAK (char_pri | pri) RBRAK ;
 comments: ML_COMMENT | SL_COMMENT;
 typed_var: INT| DOUBLE | FLOAT |CHAR | BOOL;
 
-scope : '{' rule (return)? '}' (';')?;
+scope : '{' rule (return)? rule'}' (';')?;
 rule  : (print ';'|expr ';'|dec ';'|comments|line|loop|scope | function_dec)*;
 lrules: (print ';' |expr ';' |dec ';' |comments |line |loop |break |continue | lscope | function_dec )*;
 lscope: '{' lrules '}' ;

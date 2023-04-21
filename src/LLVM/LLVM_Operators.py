@@ -277,7 +277,10 @@ class ToLLVM():
                 const = "const"
 
             if v.type == LiteralType.INT:
-                self.allocate += "; {} {} {} = {}\n".format(const, "int", v.value, input.value)
+                if one_side:
+                    self.allocate += "; {} {} {};\n".format(const, "int", v.value)
+                else:
+                    self.allocate += "; {} {} {} = {}\n".format(const, "int", v.value, input.value)
                 self.allocate += "%{} = alloca i32, align 4\n".format(self.add_variable(str(v.value)))
                 if one_side:
                     return
@@ -528,8 +531,19 @@ class ToLLVM():
         for tree in cblock.trees:
             # don't change tree function permanently
             t = tree
-            t.root.fold(self)
-
+            if isinstance(t.root,Comment):
+                pass
+            elif isinstance(t.root,Print):
+                pass
+            elif isinstance(t.root, While):
+                print("while loop")
+                self.set_loop(t)
+            elif t is None:
+                pass
+            else:
+                t.root.fold(self)
+    def set_loop(self,t:AST):
+        pass
     def add_parameter(self, val):
         if isinstance(val, Pointer):
             self.g_assignment += "%{} = load ptr, ptr %{}, align 4\n".format(new, old)
