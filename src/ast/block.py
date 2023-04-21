@@ -22,6 +22,7 @@ class block:
         self.id = ''
         self.level = None
         self.number = None
+        self.name = "block"
 
     def __eq__(self, other):
         if not isinstance(other, block):
@@ -64,6 +65,12 @@ class block:
     def getLabel(self):
         return "\"new scope: \""
 
+    def getVariables(self):
+        result = []
+        for tree in self.trees:
+            result.append(tree.getVariables()[0])
+        return result
+
     def fillLiterals(self, tree: AST):
         """
         This function will try to replace the variables in the AST with the actual values. If it can not find the
@@ -81,7 +88,7 @@ class block:
                 notFound.append(elem)
 
         current = self
-        while not isinstance(current, program) and notFound:
+        while not current.name == "program" and notFound:
             current = current.getParent()
             variables = notFound
             notFound = []

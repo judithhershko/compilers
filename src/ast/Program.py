@@ -18,6 +18,7 @@ class program:
         self.tree.global_ = True
         self.level = None
         self.number = None
+        self.name = "program"
 
     def getAst(self):
         return self.ast
@@ -143,3 +144,18 @@ class program:
             number = localBlock.setNodeIds(level + 1, number + 1)
 
         return number
+
+    def makeUnfillable(self):
+        self.symbols.makeUnfillable()
+
+    def cleanBlock(self, glob: bool = False):
+        for tree in self.trees:
+            all = self.fillLiterals(tree.root)
+            if not all:
+                self.makeUnfillable()
+            fold = tree.foldTree()
+            if fold[1] and tree.root.name == "declaration":
+                self.symbols.addSymbol(tree.root, glob)
+            elif tree.root.name == "declaration":
+                none = tree.createUnfilledDeclaration(tree.root)
+                self.symbols.addSymbol(none, glob, False)

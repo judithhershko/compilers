@@ -852,7 +852,7 @@ class nodeTestCase(unittest.TestCase):
         decTree4.setRoot(dec4)
 
         # Fifth declaration
-        var5 = Value("w", LiteralType.INT, 1, None, True, False, True)
+        var5 = Value("x", LiteralType.INT, 1, None, True, False, False)
         val5 = Value("7", LiteralType.INT, 1, None, False, False, True)
         dec5 = Declaration(var5, 1)
         dec5.setRightChild(val5)
@@ -869,13 +869,14 @@ class nodeTestCase(unittest.TestCase):
         tree1.setRoot(mult)
 
         # while operation
-        lt = LogicalOperator("<", parent=None, line=1)
-        leaf3 = Value("x", LiteralType.FLOAT, 1, variable=True)
-        leaf4 = Value("y", LiteralType.FLOAT, 1, variable=True)
-        lt.setLeftChild(leaf3)
-        lt.setRightChild(leaf4)
+        # lt = LogicalOperator("<", parent=None, line=1)
+        # leaf3 = Value("x", LiteralType.FLOAT, 1, variable=True)
+        # leaf4 = Value("y", LiteralType.FLOAT, 1, variable=True)
+        # lt.setLeftChild(leaf3)
+        # lt.setRightChild(leaf4)
+        con = generateCondition()
         whileStat = While(1)
-        whileStat.setCondition(lt)
+        whileStat.setCondition(con)
         multW = BinaryOperator("*", 1)
         leafW = Value("x", LiteralType.INT, 1, variable=True)
         multW.setLeftChild(leafW)
@@ -908,11 +909,19 @@ class nodeTestCase(unittest.TestCase):
         testBlock.addTree(decTree4)
         testBlock.addTree(decTree5)
 
-        testBlock.setNodeIds()
-        testBlock.generateDot("./src/ast/dotFiles/clean_unfolded.dot")
-        testBlock.cleanBlock()
-        testBlock.setNodeIds()
-        testBlock.generateDot("./src/ast/dotFiles/clean_folded.dot")
+        prog = program()
+        testBlock.parent = prog
+        scope = Scope(1, None)
+        scope.setBlock(testBlock)
+        ast = AST()
+        ast.setRoot(scope)
+        prog.addTree(ast)
+
+        prog.trees[0].root.block.setNodeIds()
+        prog.trees[0].root.block.generateDot("./src/ast/dotFiles/clean_unfolded.dot")
+        prog.cleanBlock()
+        prog.trees[0].root.block.setNodeIds()
+        prog.trees[0].root.block.generateDot("./src/ast/dotFiles/clean_folded.dot")
 
 
 if __name__ == '__main__':

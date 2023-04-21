@@ -974,8 +974,10 @@ class While(AST_node):
         return self, False
 
     def getVariables(self):  # TODO: for now no filling of variables because this can run multiple times
-        # self.c_block.cleanBlock()
-        return [[], False]
+        res = self.Condition.getVariables()[0]
+        for elem in self.c_block.getVariables()[0]:
+            res.append(elem)
+        return [res, False]
 
     def replaceVariables(self, values):  # TODO: for now no filling of variables because this can run multiple times
         pass
