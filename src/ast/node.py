@@ -351,7 +351,8 @@ class UnaryOperator(AST_node):
         try:
             if not (isinstance(self.rightChild, Value) or isinstance(self.rightChild, Pointer)):
                 return self
-            elif self.rightChild.getType() not in (LiteralType.BOOL, LiteralType.INT,LiteralType.FLOAT) and self.operator == "!":
+            elif self.rightChild.getType() not in (LiteralType.BOOL, LiteralType.INT,LiteralType.FLOAT) \
+                    and self.operator == "!":
                 raise ChildType("unary operator", self.rightChild.getType(), None, self.line)
             else:
                 if self.rightChild.getType() == LiteralType.FLOAT:
@@ -454,11 +455,14 @@ class LogicalOperator(AST_node):
             if not (isinstance(self.leftChild, Value) or isinstance(self.leftChild, Pointer)) or \
                     not (isinstance(self.rightChild, Value) or isinstance(self.rightChild, Pointer)):
                 return self
-            elif leftType != rightType:
+            elif leftType not in (LiteralType.FLOAT, LiteralType.INT, LiteralType.BOOL, LiteralType.DOUBLE) \
+                    or rightType not in (LiteralType.FLOAT, LiteralType.INT, LiteralType.BOOL, LiteralType.DOUBLE):
                 raise LogicalOp(self.leftChild.getType(), self.rightChild.getType(), self.operator, self.line)
-            elif self.operator in ("&&", "||") and self.leftChild.getType() != LiteralType.BOOL and \
-                    self.rightChild.getType() != LiteralType.BOOL:
-                raise LogicalOp(self.leftChild.getType(), self.rightChild.getType(), self.operator, self.line)
+            # elif leftType != rightType:
+            #     raise LogicalOp(self.leftChild.getType(), self.rightChild.getType(), self.operator, self.line)
+            # elif self.operator in ("&&", "||") and self.leftChild.getType() != LiteralType.BOOL and \
+            #         self.rightChild.getType() != LiteralType.BOOL:
+            #     raise LogicalOp(self.leftChild.getType(), self.rightChild.getType(), self.operator, self.line)
             else:
                 self.leftChild.setValueToType()
                 self.rightChild.setValueToType()
