@@ -27,4 +27,11 @@ return z;
 
 
 
+int f(x, y){
+    z = x+y;
+    return z;
+}
 
+f(4, 5)
+
+f(3, 2)
