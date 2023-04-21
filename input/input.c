@@ -4,6 +4,7 @@ int f(bool q)
     //q=z > z + 1 + 3 || z < z - 1 ;
     return 1;
 }
+
 int main(int x, int *y)
 {
 int z=0;
