@@ -499,7 +499,8 @@ class LogicalOperator(AST_node):
                 else:
                     raise NotSupported("logical operator", self.operator, self.line)
 
-                newNode = Value(res, LiteralType.BOOL, self.line, self.parent)
+                resBool = bool(res)
+                newNode = Value(resBool, LiteralType.BOOL, self.line, self.parent)
                 return newNode
 
         except LogicalOp:
