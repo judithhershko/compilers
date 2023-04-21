@@ -598,6 +598,9 @@ class CustomListener(ExpressionListener):
                                                  For) and self.expr_layer == 0 and self.loop.Condition is not None and self.loop.f_dec is not None and self.loop.f_incr is None:
             self.loop.f_incr = self.parent
         elif not self.declaration and self.expr_layer == 0:
+            if isinstance(self.parent, BinaryOperator) and self.parent.operator == "":
+                self.parent = None
+                self.current.parent = None
             self.set_bracket()
             while self.current.parent is not None:
                 self.current = self.current.parent
@@ -624,7 +627,6 @@ class CustomListener(ExpressionListener):
             self.parent = None
             self.current = None
             self.asT = create_tree()
-
     # Enter a parse tree produced by ExpressionParser#pri.
     def enterPri(self, ctx: ParserRuleContext):
         self.set_val(ctx)
