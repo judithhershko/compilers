@@ -625,7 +625,7 @@ class CustomListener(ExpressionListener):
                 self.c_block.fillLiterals(self.asT)
                 self.asT.foldTree()
                 self.asT.setNodeIds(self.asT.root)
-                self.asT.generateDot(self.pathName + str(self.counter) + ".dot")
+                self.asT.generateDot(self.pathName + str(self.counter) + "-noFold.dot")
                 if self.return_function:
                     self.c_block.freturn = self.asT
                 else:
