@@ -2,8 +2,10 @@
 define i32 @f() #0 { 
 
 
- %1 = load ptr, ptr %0, align 4
-ret i32 %1}
+br label %0
+0 :
+  %2 = load ptr, ptr %1, align 4
+ret i32 %2}
 ; Function Attrs: noinline nounwind optnone ssp uwtable(sync)
 define i32 @main(i32 noundef %0,ptr noundef %1) #0 { 
 %3 = alloca i32, align 4

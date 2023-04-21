@@ -1,6 +1,7 @@
 import ast
 import struct
 
+from src.LLVM.helper_functions import stack
 from src.ast import AST
 from src.ast.SymbolTable import SymbolTable
 from src.ast.node import Declaration, Value, LiteralType, Comment, CommentType, Print, Pointer, Scope, If, While
@@ -13,6 +14,8 @@ class ToLLVM():
         self.c_function = None
         self.parameters = None
         self.c_scope = None
+        self.scope_counter = None
+        self.scope_dic_stack = stack()
         self.global_ = ""
         self.allocate = ""
         self.store = ""
@@ -36,23 +39,34 @@ class ToLLVM():
             line = ""
 
     def get_variable(self, var: str):
-        if isinstance(var,Value):
-            var=var.value
+        if isinstance(var, Value):
+            var = var.value
         if var in self.var_dic:
             return self.var_dic[var]
         else:
             return self.add_variable(var)
 
     def add_variable(self, var: str):
-        if isinstance(var,Value):
-            var=var.value
+        if isinstance(var, Value):
+            var = var.value
         self.counter += 1
         if self.counter == self.skip_count:
             self.counter += 1
-        if isinstance(var, str) and var[0]=="$":
-            self.counter-=1
+        if isinstance(var, str) and var[0] == "$":
+            self.counter -= 1
         self.var_dic[var] = self.counter
         return self.var_dic[var]
+
+    def increase_counter(self):
+        self.counter += 1
+        return self.counter
+
+    def decrease_counter(self):
+        self.counter -= 1
+        return self.counter
+
+    def get_counter(self):
+        return self.counter
 
     def type_store(self, type_):
         if type_ == "int":
@@ -489,7 +503,7 @@ class ToLLVM():
         self.is_global = False
         self.counter = 0
         self.redec = []
-        self.var_dic=dict()
+        self.var_dic = dict()
         # TODO: add parameter list to start function
         self.skip_count = len(tree.root.parameters)
         self.start_function(tree.root.f_name, tree.root.parameters, tree.root.return_type)
@@ -511,13 +525,13 @@ class ToLLVM():
             self.end_function(tree.root.f_return.root.getType(), tree.root.f_return.root.getValue())
         self.output += self.g_assignment
 
-        self.c_function=None
+        self.c_function = None
         self.g_assignment = ""
         self.function_load = ""
         self.function_alloc = ""
         self.function_store = ""
         self.is_global = prev_global
-        self.var_dic=dict()
+        self.var_dic = dict()
 
     def transverse_tree(self, cblock: block):
         # declarations
@@ -531,9 +545,9 @@ class ToLLVM():
         for tree in cblock.trees:
             # don't change tree function permanently
             t = tree
-            if isinstance(t.root,Comment):
+            if isinstance(t.root, Comment):
                 pass
-            elif isinstance(t.root,Print):
+            elif isinstance(t.root, Print):
                 pass
             elif isinstance(t.root, While):
                 print("while loop")
@@ -542,23 +556,11 @@ class ToLLVM():
                 pass
             else:
                 t.root.fold(self)
-    def set_loop(self,t:AST):
-        pass
-    def add_parameter(self, val):
-        if isinstance(val, Pointer):
-            self.g_assignment += "%{} = load ptr, ptr %{}, align 4\n".format(new, old)
-        if val.getType() == LiteralType.INT:
-            self.g_assignment += "%{} = load i32, ptr %{}, align 4\n".format(new, old)
-        if val.getType() == LiteralType.FLOAT:
-            self.g_assignment += "%{} = load float, ptr %{}, align 4\n".format(new, old)
-        if val.getType() == LiteralType.CHAR:
-            self.g_assignment += "%{} = load i8, ptr %{}, align 4\n".format(new, old)
-        if val.getType() == LiteralType.BOOL:
-            self.g_assignment += "%{} = load i1, ptr %{}, align 4\n".format(new, old)
 
-    def set_parameters(self, parameters):
-        for p in parameters:
-            self.output += ""
+    def set_loop(self, t: AST):
+        self.function_load += "br label %{}\n".format(self.increase_counter())
+        self.function_load += str(self.get_counter()) + " :\n"
+        self.function_load += " "
 
     def add_output_fold(self, out: str):
         self.g_assignment += out
