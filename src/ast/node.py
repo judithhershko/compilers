@@ -275,6 +275,7 @@ class BinaryOperator(AST_node):
                     not (isinstance(self.rightChild, Value) or isinstance(self.rightChild, Pointer)):
                 return self, False
             elif self.leftChild.variable or self.rightChild.variable:
+               # ptype = set_llvm_binary_operators(self.leftChild, self.rightChild, self.operator, to_llvm)
                 return self, False
             # elif self.leftChild.getVariables()[0] or self.rightChild.getVariables()[0]: TODO: discus where llvm function needs to be placed
             #     ptype = set_llvm_binary_operators(self.leftChild, self.rightChild, self.operator, to_llvm)
