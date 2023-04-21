@@ -11,7 +11,7 @@ from src.CustomErrorListener import *
 
 def main():
     try:
-        argv = "input/projecten_123_zonder_main/proj1_man_pass_operators.c"
+        argv = "input/projecten_123_zonder_main/proj1_opt_pass_constantFolding.c"
         input_stream = FileStream(argv)
         print(input_stream)
         lexer = ExpressionLexer(input_stream)
