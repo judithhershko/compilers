@@ -28,11 +28,7 @@ return z;
 
 
 
-int f(x, y){
-    z = x+y;
+int f(int x,int y){
+    int z = x+y;
     return z;
 }
-
-f(4, 5)
-
-f(3, 2)

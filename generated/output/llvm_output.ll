@@ -52,3 +52,18 @@ define i32 @main() #0 {
 %5 = add nsw i32 5, %5
  %6 = load ptr, ptr %3, align 4
 ret void}
+; Function Attrs: noinline nounwind optnone ssp uwtable(sync)
+define i32 @f(i32 noundef %0,i32 noundef %1) #0 { 
+%3 = alloca i32, align 4
+%4 = alloca i32, align 4
+;  int z;
+%5 = alloca i32, align 4
+
+store i32 %0, ptr %3, align 4
+store i32 %1, ptr %4, align 4
+
+%6 = load i32, ptr %3, align 4
+%7 = load i32, ptr %4, align 4
+%8 = add nsw i32 %6, %7
+ %9 = load ptr, ptr %5, align 4
+ret void}
