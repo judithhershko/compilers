@@ -2,7 +2,6 @@ from antlr4.error.ErrorListener import *
 
 
 class CustomError(ErrorListener):
-
     INSTANCE = None
 
     def syntaxError(self, recognizer, offendingSymbol, line, column, msg, e):

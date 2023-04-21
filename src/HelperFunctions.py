@@ -1,5 +1,4 @@
 from src.ast import node
-from src.ast.AST import AST
 from src.ast.node import *
 from .ast.Program import *
 
@@ -22,43 +21,32 @@ def getVariable(ctx):
 
 
 def getType(txt):
-    if len(txt)>=3 and txt[0:4] == 'int':
+    if len(txt) >= 3 and txt[0:4] == 'int':
         return LiteralType.INT
-    elif len(txt)>=4 and txt[0:5] == 'float':
+    elif len(txt) >= 4 and txt[0:5] == 'float':
         return LiteralType.FLOAT
-    elif len(txt)>=6 and txt[0:7] == 'double':
+    elif len(txt) >= 6 and txt[0:7] == 'double':
         return LiteralType.DOUBLE
-    elif len(txt)>=6 and txt[0:7] == 'string':
+    elif len(txt) >= 6 and txt[0:7] == 'string':
         return LiteralType.STR
-    elif len(txt)>=4 and txt[0:5] == 'bool':
+    elif len(txt) >= 4 and txt[0:5] == 'bool':
         return LiteralType.BOOL
-    elif len(txt)>=4 and txt[0:5]== 'char':
+    elif len(txt) >= 4 and txt[0:5] == 'char':
         return LiteralType.CHAR
     else:
         return False
+def getIftype(var:str):
+
+    if var.__len__()>=6 and var[0:6]=="elseif":
+        return "elseif"
+    elif var.__len__()>=4 and var[0:4]=="else":
+        return "else"
+    else:
+        return "if"
 
 
 def separate_type_variable(old, type_):
     return old.replace(type_, '')
-
-
-def find_type(txt):  # TODO: check if this gives no problems
-    # type = types.get(txt)
-    if len(txt)>=3 and txt[0:4] == 'int':
-        return LiteralType.INT
-    elif len(txt)>=4 and txt[0:5] == 'float':
-        return LiteralType.FLOAT
-    elif len(txt)>=6 and txt[0:7] == 'double':
-        return LiteralType.DOUBLE
-    elif len(txt)>=6 and txt[0:7] == 'string':
-        return LiteralType.STR
-    elif len(txt)>=4 and txt[0:5] == 'bool':
-        return LiteralType.BOOL
-    elif len(txt)>=4 and txt[0:5]== 'char':
-        return LiteralType.CHAR
-    else:
-        return False
-
 
 def is_variable(v: str):
     for i in v:
@@ -80,7 +68,7 @@ def find_value_type(v: str):
         return node.LiteralType.CHAR
     elif isFloat(v):
         return node.LiteralType.FLOAT
-    elif v[0].isdigit() or (v[0]=='-' and len(v)>1 and v[1].isdigit()):
+    elif v[0].isdigit() or (v[0] == '-' and len(v) > 1 and v[1].isdigit()):
         return node.LiteralType.INT
     else:
         return node.LiteralType.VAR
@@ -101,7 +89,8 @@ def commentType(v: str):
         return CommentType.ML
 
 
-order_prec = {"++": 0, "--": 1, "!": 2, "*": 3, "/": 3,"%":3, "+": 4, "-": 4,"":4, "<": 5, ">": 5, "<=": 5, ">=": 5, "==": 6,
+order_prec = {"++": 0, "--": 1, "!": 2, "*": 3, "/": 3, "%": 3, "+": 4, "-": 4, "": 4, "<": 5, ">": 5, "<=": 5, ">=": 5,
+              "==": 6,
               "!=": 6, "&&": 7, "||": 8}
 
 

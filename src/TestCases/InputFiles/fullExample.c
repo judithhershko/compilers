@@ -21,3 +21,6 @@ x = 6*2/(4+5);
 y = 6*2/(4+5.0);
 
 const int v = 5;
+
+printf(u);
+printf(x);

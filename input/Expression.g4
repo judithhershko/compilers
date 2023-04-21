@@ -1,11 +1,31 @@
 grammar Expression;
 
-start_rule: (print ';'|expr ';'|dec ';'|comments|line)*;
+start_rule: ( function_dec |print ';'|expr ';'|dec ';'|comments|line|loop|scope (';')?| function_definition | function_dec)*;
 
 line:NLINE;
 print   : PRINT LBRAK (char_pri | pri) RBRAK ;
 comments: ML_COMMENT | SL_COMMENT;
 typed_var: INT| DOUBLE | FLOAT |CHAR | BOOL;
+
+scope : '{' rule (return)? '}' (';')?;
+rule  : (print ';'|expr ';'|dec ';'|comments|line|loop|scope| function_dec )*;
+lrules: (print ';' |expr ';' |dec ';' |comments |line |loop |break |continue | lscope | function_dec )*;
+lscope: '{' lrules '}' ;
+loop  : while | for | if;
+while : WHILE '(' expr ')' lscope;
+for   : FOR LBRAK dec ';' expr ';' (expr|dec) RBRAK lscope ;
+if    : IF LBRAK expr RBRAK lscope |  ELSE  lscope | ELSE IF  LBRAK expr RBRAK lscope;
+break : BREAK ';';
+continue: CONTINUE ';';
+
+function_dec: function_name '(' f_variables  (',' f_variables )* ')'';';
+return_type: (CONST)? (INT| DOUBLE | FLOAT |CHAR | BOOL | VOID);
+parameters: (const)? typed_var (pointer)* (ref)? ID ;
+f_variables: ID;
+ref: REF;
+function_definition: return_type function_name LBRAK (parameters)? (',' parameters )* RBRAK scope ;
+function_name: ID;
+return: RETURN (expr | char_expr)? ';' ;
 
 const : CONST;
 pointer:MULT;
@@ -28,7 +48,7 @@ suffix_op: PP | MM ;
 expr: expr suffix_op | prefix_op expr | expr binop_md expr | expr binop expr | expr comparator expr |  expr equality expr | expr or_and expr  | fac;
 fac : brackets|pri;
 brackets: LBRAK expr RBRAK;
-pri:  ID | ('-')?num+ '.' num* | '.' num+ | ('-')?num;
+pri:  ID | ('-' | '+')?num+ '.' num* | '.' num+ | ('-' | '+') ?num;
 fnum: num | num+ '.' num* | '.' num+ ;
 num: NUM;
 
@@ -45,8 +65,16 @@ BOOL    : 'bool'    ;
 CONST   : 'const'   ;
 REF     : '&'       ;
 PRINT   : 'printf'  ;
+VOID    : 'void'    ;
+RETURN  : 'return'  ;
 
 PT   : '.' ;
+WHILE:'while';
+FOR  :'for' ;
+IF   : 'if' ;
+ELSE : 'else';
+BREAK: 'break';
+CONTINUE: 'continue';
 MULT : '*' ;
 NUM  : [0-9]+ ;
 ID   : [a-zA-Z_][a-zA-Z_0-9]*;

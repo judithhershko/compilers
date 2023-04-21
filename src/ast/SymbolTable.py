@@ -1,10 +1,13 @@
 import pandas as pd
 from src.ErrorHandeling.GenerateError import *
-from src.ast.node import *
+from .node import *
 
 
 class SymbolTable:
     def __init__(self):
+        """
+        position meegeven,
+        """
         self.table = pd.DataFrame({"Value": pd.Series(dtype=str),
                                    "Type": pd.Series(dtype=str),
                                    "Const": pd.Series(dtype=bool),
@@ -12,7 +15,13 @@ class SymbolTable:
                                    "Level": pd.Series(dtype=int),
                                    "Global": pd.Series(dtype=bool)})
 
+    def __eq__(self, other):
+        if not isinstance(other, SymbolTable):
+            return False
+        return self.table.equals(other.table)
+
     def addSymbol(self, root: AST_node, isGlobal: bool):
+        # TODO: check if x is in upper scope, x = 5 replaces upper scope
         try:
             line = root.getLine()
             if not isinstance(root, Declaration):
@@ -37,8 +46,7 @@ class SymbolTable:
                         ref = None
                 else:
                     raise LeftSideDeclaration(line)
-            #if (ref is None and level != 0) or
-            if (level == 0 and ref is not None):
+            if level == 0 and ref is not None:
                 raise WrongPointer(line)
             elif name not in self.table.index:
                 if not decl:
@@ -72,12 +80,6 @@ class SymbolTable:
                     raise TypeDeclaration(name, row["Type"], symType, line)
                 elif row["Level"] != level:
                     raise PointerLevel(name, row["Level"], level, line)
-                # elif row["Level"] > 0:
-                #     refRow = self.table.loc[ref]
-                #     if refRow["level"] != level - 1:
-                #         return "pointerLevel"
-                #     self.table.loc[name, ["Value"]] = value
-                #     return "replaced"
                 else:
                     if isinstance(root.getLeftChild(), Value):
                         self.table.loc[name, ["Value"]] = str(value)
@@ -128,15 +130,9 @@ class SymbolTable:
         except NotReference:
             raise
 
-    def findSymbol(self, name: str, onlyNext:bool = False): #, deref: int = 0):
+    def findSymbol(self, name: str, onlyNext: bool = False):  # , deref: int = 0):
         if name not in self.table.index:
             return None
-        # elif deref == 0:
-        #     return self.table.at[name, "Value"], self.table.at[name, "Type"]
-        # elif deref > 0 and self.table.at[name, "level"] > 0:
-        #     return self.findSymbol(self.table.at[name, "value"], deref=deref - 1)
-        # else:
-        #     return None
         if not onlyNext:
             level = self.table.at[name, "Level"]
             while self.table.at[name, "Level"] > 0:

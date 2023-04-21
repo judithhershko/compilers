@@ -1,17 +1,21 @@
-import enum
-import sys
+from enum import Enum
 from src.ErrorHandeling.GenerateError import *
+
+
+class block:
+    pass
+
 
 types = \
     {"double": 4, "int": 5, "char": 6, "bool": 7, "string": 2, "float": 8, "pointer": 9, "nr": 1, "var": 3};
 
 
-class CommentType(enum.Enum):
+class CommentType(Enum):
     ML = 0
     SL = 1
 
 
-class LiteralType(enum.Enum):
+class LiteralType(Enum):
     NUM = 1
     STR = 2
     VAR = 3
@@ -24,6 +28,20 @@ class LiteralType(enum.Enum):
 
     def __str__(self):
         return self.name
+
+
+class ConditionType(Enum):
+    IF = 0
+    ELIF = 1
+    ELSE = 2
+
+    def __str__(self):
+        if self.value == 0:
+            return "if"
+        elif self.value == 1:
+            return "else if"
+        else:
+            return "else"
 
 
 class AST_node:
@@ -322,6 +340,7 @@ class UnaryOperator(AST_node):
         self.operator = oper
         self.parent = parent
         self.line = line
+        self.value = self.operator
 
     def __eq__(self, other):
         if not isinstance(other, UnaryOperator):
@@ -429,8 +448,6 @@ class LogicalOperator(AST_node):
         self.type = type
 
     def setRightChild(self, child):
-        # if self.operator == "!":
-        #     print("! operator can only have a left child", file=sys.stderr)
         self.rightChild = child
 
     def fold(self):
@@ -446,9 +463,6 @@ class LogicalOperator(AST_node):
             self.rightChild = self.rightChild.fold()
 
         leftType = self.leftChild.getType()
-        # if self.operator == "!":
-        #     rightType = leftType
-        # else:
         rightType = self.rightChild.getType()
 
         try:
@@ -484,19 +498,12 @@ class LogicalOperator(AST_node):
                     res = self.leftChild.getValue() != self.rightChild.getValue()
                 else:
                     raise NotSupported("logical operator", self.operator, self.line)
-                # else:
-                #     if self.leftChild.getType() == LiteralType.BOOL:
-                #         res = not self.leftChild.getValue()
-                #     else:
-                #         raise NotOp
 
                 newNode = Value(res, LiteralType.BOOL, self.line, self.parent)
                 return newNode
 
         except LogicalOp:
             raise
-        # except NotOp:
-        #     raise
         except NotSupported:
             raise
 
@@ -508,7 +515,7 @@ class LogicalOperator(AST_node):
 
     def replaceVariables(self, values):
         self.leftChild.replaceVariables(values)
-        self.rightChild.replaceVaribles(values)
+        self.rightChild.replaceVariables(values)
 
 
 class Declaration(AST_node):
@@ -709,22 +716,21 @@ class Pointer(AST_node):
 
 
 class EmptyNode(AST_node):
-    def __init__(self, line: int, parent: AST_node = None,type_=None):
+    def __init__(self, line: int, parent: AST_node = None, type_=None):
         self.value = None
         self.type = type_
-        # if self.type==LiteralType.CHAR:
-        #     self.value=''
-        # else:
-        #     self.value=0
         self.parent = parent
         self.variable = False
         self.const = False
         self.declaration = False
         self.line = line
+
     def getLabel(self):
         return "\"Empty Node: " + str(self.value) + "\""
+
     def getType(self):
         return self.type
+
     def getValue(self):
         return None
 
@@ -742,3 +748,178 @@ class EmptyNode(AST_node):
 
     def getVariables(self):
         return []
+
+
+class Scope(AST_node):  # TODO: let it hold a block instead of trees
+    block = None
+
+    def __init__(self, line: int, parent: AST_node = None):
+        self.parent = parent
+        self.line = line
+
+    def __eq__(self, other):
+        if not isinstance(other, Scope):
+            return False
+        same = True
+        if self.block is not None:
+            same = self.block == other.block
+        return self.parent == other.parent and self.line == other.line and same
+
+    def setBlock(self, scope: block):
+        self.block = scope
+
+    def addTree(self, ast: AST_node):
+        self.block.addTree(ast)
+
+    def getLabel(self):
+        return "\"New scope: \""
+
+    def fold(self):
+        self.block.fold()
+        return self
+
+    def getVariables(self):
+        self.block.fillBlock()
+        return []
+
+    def replaceVariables(self, values):
+        pass
+
+
+class For(AST_node):
+    f_dec = None
+    Condition = None
+    f_incr = None
+    c_block = None
+
+    def __init__(self, line):
+        self.line = line
+
+
+class If(AST_node):
+    Condition = None
+    c_block = None
+    """
+    if(){}
+    if (){} else{}
+    if (){} else if(){}
+    if (){} ele if(){} else if(){}...
+    if (){} ele if(){} else if(){}... else {}
+    """
+
+    def __init__(self, line, operator: ConditionType = ConditionType.IF, parent=None):
+        self.line = line
+        self.operator = operator
+        self.parent = parent
+
+    def __eq__(self, other):
+        if not isinstance(other, If):
+            return False
+        return self.operator == other.operator and self.line == other.line and self.Condition == other.Condition and \
+               self.c_block == other.c_block
+
+    def setCondition(self, con: AST_node):
+        try:
+            if self.operator != ConditionType.ELSE:
+                self.Condition = con
+            else:
+                raise ConditionElse(self.line)
+
+        except ConditionElse:
+            raise
+
+    def setBlock(self, newBlock: block):
+        self.c_block = newBlock
+
+    def getLabel(self):
+        return "\"" + self.operator.__str__() + "\""
+
+    def fold(self):
+        if self.operator != ConditionType.ELSE:
+            self.Condition = self.Condition.fold()
+        self.c_block = self.c_block.fold()
+        return self
+
+    def getVariables(self):
+        if self.operator != ConditionType.ELSE:
+            return self.Condition.getVariables()
+        else:
+            self.c_block.fillBlock()
+            return []
+
+    def replaceVariables(self, values):
+        if self.operator != ConditionType.ELSE:
+            self.Condition.replaceVariables(values)
+            self.c_block.fillBlock()
+
+
+class Break(AST_node):
+    def __init__(self, line):
+        self.line = line
+
+
+class Continue(AST_node):
+    def __init__(self, line):
+        self.line = line
+
+"""
+deze node is bedoelt om gemakkelijker llvm te gebruiken voor de volgorde van de trees/blocks ipv line telkens te gebruiken
+"""
+
+class Function(AST_node):
+    def __init__(self, line):
+        self.line = line
+        
+
+class While(AST_node):
+    Condition = None
+    c_block = None
+    """
+    child condition
+    child block: scope --> special node (multiple children)--> callable seperate from condition
+    """
+
+    def __init__(self, line, parent=None):
+        self.line = line
+        self.parent = parent
+        """
+        condition--> tree--> fold--> bool
+        block (scope) ; store value in block of condition
+        translate for loop to while loop
+        """
+        """"
+        global scope--> program
+        block: (level+nr) --> unique id
+             : if function --> keep name (callable)
+        een node scope while lus->trees in block combineren
+        in program set id/nodes-> fold/dot aanpassen 
+         
+         {
+            
+         }
+         
+        """
+
+    def __eq__(self, other):
+        if not isinstance(other, If):
+            return False
+        return self.operator == other.operator and self.line == other.line and self.Condition == other.Condition and \
+               self.c_block == other.c_block
+
+    def setCondition(self, con: AST_node):
+        self.Condition = con
+
+    def setBlock(self, newBlock: block):
+        self.c_block = newBlock
+
+    def getLabel(self):
+        return "\"while\""
+
+    def fold(self):
+        return self
+
+    def getVariables(self):  # TODO: for now no filling of variables because this can run multiple times
+        return []
+
+    def replaceVariables(self, values):  # TODO: for now no filling of variables because this can run multiple times
+        pass
