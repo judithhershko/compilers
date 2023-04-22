@@ -70,7 +70,9 @@ def generateFunction():
     func.f_return = "a"
     func.setReturnType("int")
     param = Value("y", LiteralType.INT, 1, variable=True)
+    param2 = Value("z", LiteralType.INT, 1, variable=True)
     func.addParameter(param)
+    func.addParameter(param2)
     fBlock = block(None)
     func.setBlock(fBlock)
 
@@ -947,7 +949,7 @@ class nodeTestCase(unittest.TestCase):
 
         prog.trees[0].root.block.setNodeIds()
         prog.trees[0].root.block.generateDot("./src/ast/dotFiles/clean_unfolded.dot")
-        prog.cleanBlock()
+        prog.cleanProgram()
         prog.trees[0].root.block.setNodeIds()
         prog.trees[0].root.block.generateDot("./src/ast/dotFiles/clean_folded.dot")
 
@@ -963,8 +965,8 @@ class nodeTestCase(unittest.TestCase):
         dec.setRightChild(val)
         ast = AST()
         ast.setRoot(dec)
-
         prog.addTree(ast)
+
         fun1 = AST()
         fun1.setRoot(prog.functions.findFunction(name))
         prog.addTree(fun1)
@@ -972,8 +974,19 @@ class nodeTestCase(unittest.TestCase):
         # fun2.setRoot(prog.functions.findFunction(name))
         # prog.addTree(fun2)
 
+        var2 = Value("w", LiteralType.INT, 1, None, True, False, True)
+        val2 = Value("x", LiteralType.INT, 1, None, True, False, True)
+        dec2 = Declaration(var2, 1)
+        dec2.setRightChild(val2)
+        ast2 = AST()
+        ast2.setRoot(dec2)
+        prog.addTree(ast2)
+
         prog.setNodeIds()
         prog.generateDot("./src/ast/dotFiles/function_unfolded.dot")
+        prog.cleanProgram()
+        prog.setNodeIds()
+        prog.generateDot("./src/ast/dotFiles/function_folded.dot")
 
 
 if __name__ == '__main__':

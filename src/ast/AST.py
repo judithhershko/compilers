@@ -173,14 +173,15 @@ class AST:
             nodes = nodes + res[0]
             edges = edges + res[1]
         elif isinstance(root, Scope):
-            # edges = edges + "\n" + self.getId() + "--" + tree.root.getId()
-            nodes = "\n"
             if root.f_name != "":
                 for param in root.parameters:
                     edges = edges + "\n" + root.getId() + "--" + root.parameters[param].getId()
                     res = self.toDot(root.parameters[param])
                     nodes = nodes + res[0]
                     edges = edges + res[1]
+                edges = edges + "\n" + root.getId() + "--" + root.block.getId()
+            else:
+                nodes = "\n"
             res = root.block.toDot()
             nodes = nodes + res[0]
             edges = edges + res[1]

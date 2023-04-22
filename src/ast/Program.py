@@ -68,10 +68,12 @@ class program:
                 raise Undeclared(notFound)
             else:
                 tree.replaceVariables(values)
-                return "filled"
+                # return "filled"
 
         except Undeclared:
             raise
+
+        return res[1]
 
     def fold(self):
         folded = True
@@ -148,7 +150,7 @@ class program:
     def makeUnfillable(self):
         self.symbols.makeUnfillable()
 
-    def cleanBlock(self, glob: bool = False):
+    def cleanProgram(self, glob: bool = False):
         for tree in self.trees:
             all = self.fillLiterals(tree.root)
             if not all:

@@ -842,9 +842,10 @@ class Scope(AST_node):  # TODO: let it hold a block instead of trees
             self.block.cleanBlock()
             return [[], True]
         else:
-            res = self.parameters.keys() # TODO: check if this does not give problems with undefined values
-            for elem in self.c_block.getVariables()[0]:
-                res.append(elem)
+            res = []
+            for elem in self.block.getVariables():
+                if elem[0][0] not in self.parameters:
+                    res.append(elem[0])
             return [res, False]
 
     def replaceVariables(self, values):
