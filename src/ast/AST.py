@@ -31,7 +31,12 @@ class AST:
         elif isinstance(nextNode, UnaryOperator):
             number = self.setNodeIds(nextNode.rightChild, level + 1, number + 1)
         elif isinstance(nextNode, Scope):
-            number = nextNode.block.setNodeIds(level, number)
+            if nextNode.f_name != "":
+                for tree in nextNode.parameters:
+                    number = self.setNodeIds(nextNode.parameters[tree], level+1, number+1)
+                number = nextNode.block.setNodeIds(level+1, number+1)
+            else:
+                number = nextNode.block.setNodeIds(level, number)
         elif isinstance(nextNode, If):
             if nextNode.operator != ConditionType.ELSE:
                 number = self.setNodeIds(nextNode.Condition, level + 1, number + 1)
@@ -89,6 +94,13 @@ class AST:
             nodes = nodes + res[0]
             edges = edges + res[1]
         elif isinstance(self.root, Scope):
+            # if self.root.f_name != "":
+            #     params = self.root.parameters
+            #     for param in self.root.parameters:
+            #         edges = edges + "\n" + self.getId() + "--" + tree.root.getId()
+            #         res = tree.toDot(tree.root)
+            #         nodes = nodes + res[0]
+            #         edges = edges + res[1]
             res = self.root.block.toDot()
             nodes = nodes + res[0]
             edges = "\n" + edges + res[1]
@@ -163,6 +175,12 @@ class AST:
         elif isinstance(root, Scope):
             # edges = edges + "\n" + self.getId() + "--" + tree.root.getId()
             nodes = "\n"
+            if root.f_name != "":
+                for param in root.parameters:
+                    edges = edges + "\n" + root.getId() + "--" + root.parameters[param].getId()
+                    res = self.toDot(root.parameters[param])
+                    nodes = nodes + res[0]
+                    edges = edges + res[1]
             res = root.block.toDot()
             nodes = nodes + res[0]
             edges = edges + res[1]

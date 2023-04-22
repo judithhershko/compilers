@@ -800,7 +800,9 @@ class Scope(AST_node):  # TODO: let it hold a block instead of trees
         same = True
         if self.block is not None:
             same = self.block == other.block
-        return self.parent == other.parent and self.line == other.line and same
+        return self.parent == other.parent and self.line == other.line and same and self.f_name == other.f_name and \
+               self.f_return == other.f_return and self.return_type == other.return_type and \
+               self.parameters == other.parameters
 
     def setBlock(self, scope: block):
         self.block = scope
@@ -824,15 +826,26 @@ class Scope(AST_node):  # TODO: let it hold a block instead of trees
         self.block.addTree(ast)
 
     def getLabel(self):
-        return "\"New scope: \""
+        if self.f_name == "":
+            return "\"New scope\""
+        else:
+            return "\"Function: " + self.f_name + "\""
 
     def fold(self, to_llvm=None):
-        # self.block.fold(to_llvm)
-        return self, True
+        if self.f_name == "":
+            return self, True
+        else:
+            return self, False
 
     def getVariables(self):
-        self.block.cleanBlock()
-        return [[], True]
+        if self.f_name == "":
+            self.block.cleanBlock()
+            return [[], True]
+        else:
+            res = self.parameters.keys() # TODO: check if this does not give problems with undefined values
+            for elem in self.c_block.getVariables()[0]:
+                res.append(elem)
+            return [res, False]
 
     def replaceVariables(self, values):
         pass
