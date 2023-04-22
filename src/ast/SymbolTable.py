@@ -9,25 +9,22 @@ class block:
 
 class FunctionTable:
     def __init__(self):
-        pass
+        self.functions = dict()
         # self.table = pd.DataFrame({"param": pd.Series(dtype=dict),
         #                            "body": pd.Series(dtype=block)})
 
     def __eq__(self, other):
         if not isinstance(other, FunctionTable):
             return False
-        return self.table.equals(other.table)
+        return self.functions.equals(other.functions)
 
-    def addFunction(self, func: Function):
-        """if func.f_name in self.table.index:
-            raise Redeclaration(func.f_name, func.line)"""
-
-        pass
-        # else:
-        #     self.table.loc[func.f_name] =
+    def addFunction(self, func: Scope):
+        if self.functions and func.f_name in self.functions.index():
+            raise Redeclaration(func.f_name, func.line)
+        self.functions[func.f_name] = func
 
     def findFunction(self, f_name: str):
-        return Scope(0)
+        return self.functions[f_name]
 
     # TODO: for pointers/references --> give block that calls the function?
     def callFunction(self, f_name: str, block: block, param: list):

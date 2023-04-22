@@ -63,7 +63,7 @@ class block:
         return self.ast
 
     def getLabel(self):
-        return "\"new scope: \""
+        return "\"new scope\""
 
     def getVariables(self):
         result = []
@@ -158,7 +158,7 @@ class block:
         return output
 
     def toDot(self):  # TODO: check what to do with blocks -> get them in right order with the trees
-        nodes = self.getId() + " [label=" + self.getLabel() + "]"
+        nodes = "\n" + self.getId() + " [label=" + self.getLabel() + "]"
         edges = ""
 
         for tree in self.trees:
