@@ -970,9 +970,9 @@ class nodeTestCase(unittest.TestCase):
         fun1 = AST()
         fun1.setRoot(prog.functions.findFunction(name))
         prog.addTree(fun1)
-        # fun2 = AST()
-        # fun2.setRoot(prog.functions.findFunction(name))
-        # prog.addTree(fun2)
+        fun2 = AST()
+        fun2.setRoot(prog.functions.findFunction(name))
+        prog.addTree(fun2)
 
         var2 = Value("w", LiteralType.INT, 1, None, True, False, True)
         val2 = Value("x", LiteralType.INT, 1, None, True, False, True)
