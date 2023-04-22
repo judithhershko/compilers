@@ -11,9 +11,8 @@ from src.CustomErrorListener import *
 
 def main():
     try:
-        argv = "input/projecten_123_zonder_main/proj2_man_semanticErr_pointerOperations.c"
+        argv = "input/projecten_123_zonder_main/proj3_man_syntaxErr_commentSingleLine2.c"
         input_stream = FileStream(argv)
-        print(input_stream)
         lexer = ExpressionLexer(input_stream)
         MyError = CustomError()
         lexer.removeErrorListeners()
