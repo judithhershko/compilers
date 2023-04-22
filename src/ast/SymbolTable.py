@@ -19,9 +19,12 @@ class FunctionTable:
         return self.functions.equals(other.functions)
 
     def addFunction(self, func: Scope):
-        if self.functions and func.f_name in self.functions.index():
+        if not self.functions:
+            self.functions[func.f_name] = func
+        elif func.f_name in self.functions:
             raise Redeclaration(func.f_name, func.line)
-        self.functions[func.f_name] = func
+        else:
+            self.functions[func.f_name] = func
 
     def findFunction(self, f_name: str):
         return self.functions[f_name]
