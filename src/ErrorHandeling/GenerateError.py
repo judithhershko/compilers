@@ -314,3 +314,14 @@ class ConditionElse(Exception):
 
     def __str__(self):
         return "\n\tError in line " + str(self.line) + ": else statement does not have a condition"
+
+
+class ArrayOutOfBounds(Exception):
+    def __init__(self, name, line, maxPos):
+        self.name = name
+        self.line = line
+        self.maxPos = maxPos
+
+    def __str__(self):
+        return "\n\tError in line " + str(self.line) + ": the value is assigned out of the bounds of array " + \
+               str(self.name) + " (max pos: " + str(int(self.maxPos)-1) + ")"

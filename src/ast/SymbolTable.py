@@ -58,7 +58,7 @@ class SymbolTable:
     def addSymbol(self, root: AST_node, isGlobal: bool, fill: bool = True):
         # TODO: check if x is in upper scope, x = 5 replaces upper scope
         if isinstance(root, Array) or isinstance(root.getLeftChild(), Array):
-            return addArray(root, isGlobal, fill)
+            return self.addArray(root, isGlobal, fill)
         try:
             line = root.getLine()
             if not isinstance(root, Declaration):
@@ -187,6 +187,9 @@ class SymbolTable:
                     raise Redeclaration(root.name, root.line)
                 elif root.getLeftChild().name not in self.table.index:
                     raise NotDeclared(root.getLeftChild().name, root.getLeftChild().line)
+                elif root.getLeftChild().pos >= self.table.loc[root.getLeftChild().name]["Value"] or \
+                        root.getLeftChild().pos < 0:
+                    raise ArrayOutOfBounds(root.getLeftChild().name, root.getLeftChild().line, root.getLeftChild().pos)
                 elif root.getLeftChild().name in self.table.index:
                     name = str(root.getLeftChild().pos) + root.getLeftChild().name
                     row = self.table.loc[name]
@@ -202,10 +205,21 @@ class SymbolTable:
             raise
         except TypeDeclaration:
             raise
+        except ArrayOutOfBounds:
+            raise
 
-    def findSymbol(self, name: str, onlyNext: bool = False):  # , deref: int = 0):
+    def findSymbol(self, name: str, onlyNext: bool = False, pos: int = None, line: int = None):  # TODO: tell adition of pos and line for arrayCall
         if name not in self.table.index:
             return None
+        if pos is not None:
+            try:
+                if pos < 0 or pos >= self.table.at[name, "Value"]:
+                    raise ArrayOutOfBounds(name, line, self.table.at[name, "Value"])
+                arrayName = str(pos) + name
+                return self.table.at[arrayName, "Value"], self.table.at[arrayName, "Type"], \
+                       self.table.at[arrayName, "Level"], self.table.at[arrayName, "Fillable"]
+            except ArrayOutOfBounds:
+                raise
         if not onlyNext:
             level = self.table.at[name, "Level"]
             while self.table.at[name, "Level"] > 0:
