@@ -28,6 +28,7 @@ class program:
 
     def getFunctionTable(self):
         return self.functions
+
     #
     # def addBlock(self, block: block):
     #     self.blocks.append(block)

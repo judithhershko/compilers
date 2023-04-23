@@ -19,12 +19,16 @@ class FunctionTable:
         return self.functions.equals(other.functions)
 
     def addFunction(self, func: Scope):
+        function = dict()
+        for param in func.parameters:
+            function[param] = func.parameters[param].type
+        function["return"] = func.return_type
         if not self.functions:
-            self.functions[func.f_name] = func
+            self.functions[func.f_name] = function
         elif func.f_name in self.functions:
             raise Redeclaration(func.f_name, func.line)
         else:
-            self.functions[func.f_name] = func
+            self.functions[func.f_name] = function
 
     def findFunction(self, f_name: str):
         return self.functions[f_name]
@@ -45,6 +49,7 @@ class SymbolTable:
                                    "Level": pd.Series(dtype=int),
                                    "Global": pd.Series(dtype=bool),
                                    "Fillable": pd.Series(dtype=bool)})
+
     def __eq__(self, other):
         if not isinstance(other, SymbolTable):
             return False
@@ -52,6 +57,8 @@ class SymbolTable:
 
     def addSymbol(self, root: AST_node, isGlobal: bool, fill: bool = True):
         # TODO: check if x is in upper scope, x = 5 replaces upper scope
+        if isinstance(root, Array) or isinstance(root.getLeftChild(), Array):
+            return addArray(root, isGlobal, fill)
         try:
             line = root.getLine()
             if not isinstance(root, Declaration):
@@ -160,6 +167,40 @@ class SymbolTable:
         except PointerLevel:
             raise
         except NotReference:
+            raise
+
+    def addArray(self,  root: AST_node, isGlobal: bool, fill: bool):
+        try:
+            if isinstance(root, Array):
+                if not root.init:
+                    raise NotDeclared(root.name, root.line)
+                elif root.name in self.table.index:
+                    raise Redeclaration(root.name, root.line)
+                elif root.name not in self.table.index:
+                    self.table.loc[root.name] = [root.pos, root.type, True, 0, isGlobal, fill]  # TODO: check if arrays are indeed always const
+                    for pos in range(root.pos):
+                        name = str(pos) + root.name
+                        self.table.loc[name] = [None, root.type, False, 0, isGlobal, fill]
+                    return "placed"
+            elif isinstance(root, Declaration):
+                if root.getLeftChild().init:
+                    raise Redeclaration(root.name, root.line)
+                elif root.getLeftChild().name not in self.table.index:
+                    raise NotDeclared(root.getLeftChild().name, root.getLeftChild().line)
+                elif root.getLeftChild().name in self.table.index:
+                    name = str(root.getLeftChild().pos) + root.getLeftChild().name
+                    row = self.table.loc[name]
+                    if row["Type"] != root.getRightChild().type:
+                        raise TypeDeclaration
+                    self.table.loc[name, ["Value"]] = str(root.getRightChild().value)
+                    self.table.loc[name, ["Fillable"]] = fill
+                    return "replaced"
+
+        except NotDeclared:
+            raise
+        except Redeclaration:
+            raise
+        except TypeDeclaration:
             raise
 
     def findSymbol(self, name: str, onlyNext: bool = False):  # , deref: int = 0):

@@ -18,7 +18,7 @@ class block:
         self.parent = parent
         self.blocks = []
         self.trees = []
-        self.line=None
+        self.line = None
         self.id = ''
         self.level = None
         self.number = None
@@ -36,7 +36,7 @@ class block:
             if self.trees[j] != other.trees[j]:
                 treesTrue = False
         return self.symbols == other.symbols and self.ast == other.ast and \
-            self.id == other.id and blocksTrue and treesTrue
+               self.id == other.id and blocksTrue and treesTrue
 
     def getId(self):
         return str(self.level) + "." + str(self.number)
@@ -109,7 +109,7 @@ class block:
 
         return res[1]
 
-    def fold(self,llvm=None):
+    def fold(self, llvm=None):
         folded = True
         if self.ast.root is not None:
             temp = self.ast.foldTree()
