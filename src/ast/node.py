@@ -1014,6 +1014,7 @@ class Function(AST_node):
         self.f_name = f_name
         self.decl = decl
         self.name = "function"
+        self.counter = 0 #  TODO: use this to check which variable is being read
 
     def __eq__(self, other):
         if not isinstance(other, Function):
@@ -1021,12 +1022,12 @@ class Function(AST_node):
         return self.line == other.line and self.param == other.param and self.f_name == other.f_name and \
                self.decl == other.decl
 
-    def addParameter(self, var):
+    def addParameter(self, var, scope, line):
         # TODO: dit moet anders --> als value/pointer/ref wordt doorgegeven
         # var= &x, *x, 21,
         # ]\\\\\\\
         #TODO: check --> verwachte parameter ?
-        self.param.append(var)
+        self.param.append(var) # TODO: variable comes in as string -> look up in Symbtable -> check type -> make Value/Pointer node
 
     def getLabel(self):
         return "\"function call: " + self.f_name + "\""

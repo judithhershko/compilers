@@ -19,7 +19,7 @@ class FunctionTable:
         return self.functions.equals(other.functions)
 
     def addFunction(self, func: Scope):
-        function = dict()
+        function = dict() # TODO: use ordered dict
         for param in func.parameters:
             function[param] = func.parameters[param].type
         function["return"] = func.return_type
