@@ -151,14 +151,17 @@ class program:
     def makeUnfillable(self):
         self.symbols.makeUnfillable()
 
-    def cleanProgram(self, glob: bool = False):
-        for tree in self.trees:
+    def cleanProgram(self):
+        if self.ast.root is not None:
+            tree = self.ast
             all = self.fillLiterals(tree.root)
             if not all:
                 self.makeUnfillable()
             fold = tree.foldTree()
             if fold[1] and tree.root.name == "declaration":
-                self.symbols.addSymbol(tree.root, glob)
+                self.symbols.addSymbol(tree.root, True)
             elif tree.root.name == "declaration":
                 none = tree.createUnfilledDeclaration(tree.root)
-                self.symbols.addSymbol(none, glob, False)
+                self.symbols.addSymbol(none, True, False)
+            tree.setNodeIds(tree.root)
+            self.generateDot("./generated/output/programAST.dot")
