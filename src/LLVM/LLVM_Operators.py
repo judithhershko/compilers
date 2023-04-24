@@ -85,7 +85,7 @@ class ToLLVM():
 
     def float_to_64bit_hex(self, x):
         if x is None:
-            print("x is none in scope:"+self.c_function.root.f_name)
+            print("x is none in scope:" + self.c_function.root.f_name)
         if isinstance(x, str):
             x = float(x)
         bytes_of_x = struct.pack('>f', x)
@@ -471,8 +471,8 @@ class ToLLVM():
 
     def to_print(self, tree: AST):
         var = ""
-        to_print = ""
-        if type(tree.root.value) is tuple:
+        # to_print = ""
+        """if type(tree.root.value) is tuple:
             to_print = tree.root.value[0]
         else:
             to_print = tree.root.value
@@ -482,8 +482,14 @@ class ToLLVM():
                 if i == "\"":
                     pass
                 else:
-                    v += i
-            to_print = v
+                    v += i"""
+        to_print = tree.root.getValue()
+        if isinstance(to_print, Value):
+            to_print = to_print.value
+            if self.c_scope.block.getSymbolTable().findSymbol(to_print) is not None:
+                to_print=self.c_scope.block.getSymbolTable().findSymbol(to_print)[0]
+            elif self.c_scope.f_name != "":
+                to_print=self.c_scope.parameters[to_print]
         if self.g_count > 0:
             var = "."
             var += str(self.g_count)
@@ -587,8 +593,10 @@ class ToLLVM():
         self.function_load += "br i1 %{}, label %{}, label %$\n".format(self.get_counter(), self.increase_counter())
         self.function_load += str(self.get_counter()) + " :\n"
         self.transverse_tree(t.root.c_block)
-        self.function_load.replace("%$", "%" + str(self.counter))
+        self.function_load.replace('%$', "%" + str(self.counter))
+
         self.function_load += str(self.increase_counter()) + " :\n"
+
     def add_output_fold(self, out: str):
         self.g_assignment += out
         return
