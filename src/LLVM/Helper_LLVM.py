@@ -36,7 +36,7 @@ def load_type(old, new, ptype_, pointer):
 
 
 def load_higher_type_int_to_float(old, new):
-    return "%{} = sitofp i32 %{} to float".format(new, old)
+    return "%{} = sitofp i32 %{} to float\n".format(new, old)
 
 
 def store_mult(left, right, rtype, llvm, load_left, load_right):
@@ -81,6 +81,30 @@ def get_operation(op: str, type):
         return "srem nsw i32 "
     if op == "%" and type == LiteralType.FLOAT:
         raise NotSupported("%", "float")
+    if op == ">" and type == LiteralType.INT:
+        return "icmp sgt i32 "
+    if op == ">" and type == LiteralType.FLOAT:
+        return "fcmp ogt float "
+    if op == ">=" and type == LiteralType.INT:
+        return "icmp sge i32 "
+    if op == ">=" and type == LiteralType.FLOAT:
+        return "fcmp oge float "
+    if op == "<" and type == LiteralType.INT:
+        return "icmp slt i32 "
+    if op == "<" and type == LiteralType.FLOAT:
+        return "fcmp olt float "
+    if op == "<=" and type == LiteralType.INT:
+        return "icmp sle i32 "
+    if op == "<=" and type == LiteralType.FLOAT:
+        return "fcmp ole float "
+    if op == "==" and type == LiteralType.INT:
+        return "icmp eq i32 "
+    if op == "==" and type == LiteralType.FLOAT:
+        return "fcmp oeq float "
+
+
+def store_comparator_operation(op, left, right, rtype, llvm, load_left, load_right):
+    pass
 
 
 def stor_binary_operation(op, left, right, rtype, llvm, load_left, load_right):
@@ -88,6 +112,11 @@ def stor_binary_operation(op, left, right, rtype, llvm, load_left, load_right):
     op = get_operation(op, rtype)
     old_left = llvm.get_variable(left)
     if op == "call":
+        if "fmuladd" not in llvm.g_def:
+            llvm.f_count += 1
+            llvm.f_declerations += "declare float @llvm.fmuladd.f32(float, float, float) #{}\n".format(llvm.f_count)
+            llvm.g_def["fmuladd"] = True
+
         if load_left and load_right:
             load += " %{} = call float @llvm.fmuladd.f32(float %{}, float %{}, float %{})\n".format(
                 llvm.add_variable(left.value), old_left, llvm.get_variable(left.value), llvm.get_variable(right.value))
@@ -119,16 +148,6 @@ def stor_binary_operation(op, left, right, rtype, llvm, load_left, load_right):
     if not (load_right and load_left):
         pass
     return load
-
-
-def set_llvm_comparators(left: Value, right: Value, op: str, llvm):
-    load_left = True
-    load_right = True
-
-    if (left.type == LiteralType.INT or left.type == LiteralType.FLOAT) and right.type == LiteralType.VAR:
-        return left.type
-    if left.type == LiteralType.VAR and (right.type == LiteralType.INT or right.type == LiteralType.FLOAT):
-        return right.type
 
 
 def set_llvm_binary_operators(left: Value, right: Value, op: str, llvm):
@@ -180,8 +199,8 @@ def set_llvm_binary_operators(left: Value, right: Value, op: str, llvm):
                                                             llvm.add_variable(right.value))
         rtype = LiteralType.FLOAT
 
-    if op == "*" or op == "/" or op == "+" or op == "-" or op == "%":
+    if op == "*" or op == "/" or op == "+" or op == "-" or op == "%" or op == ">=" or op == "<=" or op == ">" or op == "<" or op == "==":
         llvm.function_load += stor_binary_operation(op, left, right, rtype, llvm, load_left, load_right)
     else:
-        raise NotSupported("binary operator", op, left.line)
+        raise NotSupported("operator", op, left.line)
     return ltype
