@@ -8,7 +8,7 @@ int function(float x, float* y)
     x=x-z+40*z;
     while (z>=10)
     {
-        printf('a');
+
         z=z+1;
     }
     int zz=90;

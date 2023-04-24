@@ -1047,5 +1047,3 @@ class CustomListener(ExpressionListener):
         self.program.ast.root=self.program.tree
         self.program.tree=None
         self.program.cleanProgram()
-        self.program.setNodeIds()
-        self.program.generateDot("generated/output/result.dot")
