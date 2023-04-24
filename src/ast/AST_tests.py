@@ -54,10 +54,14 @@ def generateCondition():
     Or.setLeftChild(lt)
     eq = LogicalOperator("==", parent=None, line=1)
     leaf5 = Value("z", LiteralType.FLOAT, 1, variable=True)
-    leaf6 = Value("z", LiteralType.FLOAT, 1, variable=True)
+    mul = BinaryOperator("*", 1)
+    leaf6 = Value(5.0, LiteralType.FLOAT, 1, variable=False)
+    leaf7 = Value(6.0, LiteralType.FLOAT, 1, variable=False)
+    mul.setLeftChild(leaf6)
+    mul.setRightChild(leaf7)
 
     eq.setLeftChild(leaf5)
-    eq.setRightChild(leaf6)
+    eq.setRightChild(mul)
     Or.setRightChild(eq)
     And.setRightChild(Or)
 

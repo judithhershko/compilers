@@ -473,9 +473,6 @@ class LogicalOperator(AST_node):
         if not (isinstance(self.rightChild, Value) or isinstance(self.rightChild, Pointer)):
             self.rightChild = self.rightChild.fold(to_llvm)[0]
 
-        leftType = self.leftChild.getType()
-        rightType = self.rightChild.getType()
-
         try:
             if not (isinstance(self.leftChild, Value) or isinstance(self.leftChild, Pointer)) or \
                     not (isinstance(self.rightChild, Value) or isinstance(self.rightChild, Pointer)):
@@ -485,7 +482,10 @@ class LogicalOperator(AST_node):
                     set_llvm_binary_operators(self.leftChild, self.rightChild, self.operator, to_llvm)
                 return self, False
 
-            elif leftType != rightType:
+            leftType = self.leftChild.getType()
+            rightType = self.rightChild.getType()
+
+            if leftType != rightType:
                 raise LogicalOp(self.leftChild.getType(), self.rightChild.getType(), self.operator, self.line)
             elif self.operator in ("&&", "||") and self.leftChild.getType() != LiteralType.BOOL and \
                     self.rightChild.getType() != LiteralType.BOOL:
@@ -994,14 +994,15 @@ class While(AST_node):
     def fold(self, to_llvm=None):
         return self, False
 
-    def getVariables(self):  # TODO: for now no filling of variables because this can run multiple times
+    def getVariables(self):
         res = self.Condition.getVariables()[0]
+        self.Condition.fold()
         for elem in self.c_block.getVariables()[0]:
             res.append(elem)
-        self.c_block.cleanBlock(onlyLocal=True)
+        self.c_block.fold()
         return [res, False]
 
-    def replaceVariables(self, values):  # TODO: for now no filling of variables because this can run multiple times
+    def replaceVariables(self, values):
         pass
 
 
