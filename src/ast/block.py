@@ -195,8 +195,8 @@ class block:
             if not all:
                 self.makeUnfillable()
             fold = tree.foldTree()
-            if fold[1] and tree.root.name == "declaration":
+            if fold[1] and (tree.root.name == "declaration" or tree.root.name == "array"):
                 self.symbols.addSymbol(tree.root, glob)
-            elif tree.root.name == "declaration":
+            elif tree.root.name == "declaration" or tree.root.name == "array":
                 none = tree.createUnfilledDeclaration(tree.root)
                 self.symbols.addSymbol(none, glob, False)

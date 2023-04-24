@@ -182,7 +182,7 @@ class Value(AST_node):
         :param node2: AST_node type containing the other child of the parent node in the AST
         :return: returns the LiteralType with the highest priority (str>char; double>float>int)
         """
-        if not isinstance(node2, Value):
+        if not (isinstance(node2, Value) or isinstance(node2, Array)):
             return self.type
         type1 = self.type
         type2 = node2.getType()
@@ -274,14 +274,18 @@ class BinaryOperator(AST_node):
         node.
         :return: the replacing Value node
         """
-        if not (isinstance(self.leftChild, Value) or isinstance(self.leftChild, Pointer)):
+        if not (isinstance(self.leftChild, Value) or isinstance(self.leftChild, Pointer) or
+                isinstance(self.leftChild, Array)):
             self.leftChild = self.leftChild.fold(to_llvm)[0]
-        if not (isinstance(self.rightChild, Value) or isinstance(self.rightChild, Pointer)):
+        if not (isinstance(self.rightChild, Value) or isinstance(self.rightChild, Pointer) or
+                isinstance(self.rightChild, Array)):
             self.rightChild = self.rightChild.fold(to_llvm)[0]
 
         try:
-            if not (isinstance(self.leftChild, Value) or isinstance(self.leftChild, Pointer)) or \
-                    not (isinstance(self.rightChild, Value) or isinstance(self.rightChild, Pointer)):
+            if not (isinstance(self.leftChild, Value) or isinstance(self.leftChild, Pointer) or
+                    isinstance(self.leftChild, Array)) or \
+                    not (isinstance(self.rightChild, Value) or isinstance(self.rightChild, Pointer) or
+                         isinstance(self.rightChild, Array)):
                 return self, False
             elif self.leftChild.variable or self.rightChild.variable:
                 if to_llvm is not None:
@@ -582,13 +586,14 @@ class Declaration(AST_node):
         :return: it returns itself, but now with the folded children (if possible)
         """
         folded = True
-        if not (isinstance(self.leftChild, Value) or isinstance(self.leftChild, Pointer)):
+        if not (isinstance(self.leftChild, Value) or isinstance(self.leftChild, Pointer) or
+                isinstance(self.leftChild, Array)):
             temp = self.leftChild.fold(to_llvm)
             self.leftChild = temp[0]
             if not temp[1]:
                 folded = False
         if not (isinstance(self.rightChild, Value) or isinstance(self.rightChild, Pointer) or
-                isinstance(self.rightChild, EmptyNode)):
+                isinstance(self.rightChild, EmptyNode) or isinstance(self.rightChild, Array)):
             temp = self.rightChild.fold(to_llvm)
             self.rightChild = temp[0]
             if not temp[1]:
@@ -1080,40 +1085,83 @@ class Function(AST_node):
 
 
 class Array(AST_node):
-    def __init__(self, name: str, pos: int, valueType: LiteralType, line: int, init: bool = False, parent = None):
-        self.name = name
+    def __init__(self, value: str, pos: int, valueType: LiteralType, line: int, init: bool = False, parent = None):
+        self.value = value
         self.pos = pos
         self.type = valueType
         self.line = line
         self.init = init
         self.parent = parent
         self.isValue = False
+        self.name = "array"
 
     def __eq__(self, other):
-        return self.name == other.name and self.pos == other.pos and self.type == other.type and \
+        return self.value == other.value and self.pos == other.pos and self.type == other.type and \
                self.line == other.line and self.init == other.init
 
     def getType(self):
         return self.type
 
     def getValue(self):
-        return self.name
+        if self.init:
+            return str(self.value)
+        else:
+            return str(self.value)
 
     def getLabel(self):
         if self.init:
-            return "\"array: " + self.name + "\nsize: " + str(self.pos) + "\""
+            return "\"array: " + str(self.value) + "\nsize: " + str(self.pos) + "\""
         elif self.isValue:
-            return "\"array value: " + self.name + "\""
+            return "\"array value: " + str(self.value) + "\""
         else:
-            return "\"array: " + self.name + "\nposition: " + str(self.pos) + "\""
+            return "\"array: " + str(self.value) + "\nposition: " + str(self.pos) + "\""
 
     def getVariables(self):
-        return [[(self.name, self.line)], True]
+        if self.init:
+            return [[], True]
+        return [[(str(self.pos)+str(self.value), self.line)], True]
 
     def replaceVariables(self, values):
-        if values[self.value][3]:
-            self.type = values[self.value][1]
-            self.name = values[self.value][0]
+        name = str(self.pos) + str(self.value)
+        if values[name][3]:
+            self.type = values[name][1]
+            self.value = values[name][0]
             self.isValue = True
         elif self.variable:
-            self.type = values[self.value][1]
+            self.type = values[name][1]
+
+    def getHigherType(self, node2: AST_node):
+        """
+        :param node2: AST_node type containing the other child of the parent node in the AST
+        :return: returns the LiteralType with the highest priority (str>char; double>float>int)
+        """
+        if not (isinstance(node2, Value) or isinstance(node2, Array)):
+            return self.type
+        type1 = self.type
+        type2 = node2.getType()
+
+        try:
+            if (type1 == LiteralType.STR and type2 in (LiteralType.STR, LiteralType.CHAR)) or \
+                    (type2 == LiteralType.STR and type1 == LiteralType.CHAR):
+                return LiteralType.STR
+            elif type1 == LiteralType.CHAR and type2 == LiteralType.CHAR:
+                return LiteralType.CHAR
+            elif (type1 == LiteralType.DOUBLE and type2 in (LiteralType.DOUBLE, LiteralType.FLOAT, LiteralType.INT)) or \
+                    (type2 == LiteralType.DOUBLE and type1 in (LiteralType.FLOAT, LiteralType.INT)):
+                return LiteralType.DOUBLE
+            elif (type1 == LiteralType.FLOAT and type2 in (LiteralType.FLOAT, LiteralType.INT)) or \
+                    (type2 == LiteralType.FLOAT and type1 == LiteralType.INT):
+                return LiteralType.FLOAT
+            elif type1 == LiteralType.INT and type2 == LiteralType.INT:
+                return LiteralType.INT
+            elif type1 == LiteralType.BOOL and type2 == LiteralType.BOOL:
+                return LiteralType.BOOL
+            elif type1 is None:
+                return type2
+            elif type1 in (LiteralType.INT, LiteralType.FLOAT) and type2 == LiteralType.BOOL:
+                return type1
+            else:
+                raise WrongType(type1, type2, self.line)
+
+        except WrongType:
+            raise

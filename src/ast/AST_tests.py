@@ -110,6 +110,52 @@ def generateFunction():
     return func
 
 
+def generateArrayScope():
+    init = Array("array", 2, LiteralType.INT, 1, True)
+    ast1 = AST()
+    ast1.root = init
+
+    param = Value("x", LiteralType.INT, 1, variable=True, decl=True)
+    val = Value(5, LiteralType.INT, 1)
+    dec = Declaration(param, 1)
+    dec.setRightChild(val)
+    ast = AST()
+    ast.root = dec
+
+    param1 = Array("array", 0, LiteralType.INT, 2, False)
+    val1 = Value("x", LiteralType.INT, 1, variable=True)
+    dec1 = Declaration(param1, 1)
+    dec1.setRightChild(val1)
+    ast2 = AST()
+    ast2.root = dec1
+
+    param2 = Array("array", 1, LiteralType.INT, 3, False)
+    val2 = Value(6, LiteralType.INT, 1)
+    dec2 = Declaration(param2, 1)
+    dec2.setRightChild(val2)
+    ast3 = AST()
+    ast3.root = dec2
+
+    mul = BinaryOperator("*", 4)
+    val3 = Array("array", 1, LiteralType.INT, 4, False)
+    val4 = Array("array", 0, LiteralType.INT, 4, False)
+    mul.setLeftChild(val3)
+    mul.setRightChild(val4)
+    ast4 = AST()
+    ast4.root = mul
+
+    scope = Scope(1)
+    sBlock = block(None)
+    scope.setBlock(sBlock)
+    scope.addTree(ast)
+    scope.addTree(ast1)
+    scope.addTree(ast2)
+    scope.addTree(ast3)
+    scope.addTree(ast4)
+
+    return scope
+
+
 class nodeTestCase(unittest.TestCase):
     def test_getId(self):
         testNode = AST_node()
@@ -1033,6 +1079,20 @@ class nodeTestCase(unittest.TestCase):
         prog.cleanProgram()
         prog.setNodeIds()
         prog.generateDot("./src/ast/dotFiles/function_folded.dot")
+
+    def test_array(self):
+        array = generateArrayScope()
+        ast = AST()
+        ast.root = array
+
+        prog = program()
+        prog.ast = ast
+
+        prog.setNodeIds()
+        prog.generateDot("./src/ast/dotFiles/array_unfolded.dot")
+        prog.cleanProgram()
+        prog.setNodeIds()
+        prog.generateDot("./src/ast/dotFiles/array_folded.dot")
 
 
 if __name__ == '__main__':
