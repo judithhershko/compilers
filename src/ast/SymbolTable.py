@@ -1,6 +1,7 @@
 import pandas as pd
 from src.ErrorHandeling.GenerateError import *
 from .node import *
+from collections import OrderedDict
 
 
 class block:
@@ -9,7 +10,7 @@ class block:
 
 class FunctionTable:
     def __init__(self):
-        self.functions = dict()
+        self.functions = OrderedDict()
         # self.table = pd.DataFrame({"param": pd.Series(dtype=dict),
         #                            "body": pd.Series(dtype=block)})
 
@@ -30,8 +31,11 @@ class FunctionTable:
         else:
             self.functions[func.f_name] = function
 
-    def findFunction(self, f_name: str):
-        return self.functions[f_name]
+    def findFunction(self, f_name: str, line: int):
+        if f_name in self.functions:
+            return self.functions[f_name]
+        else:
+            raise NotDeclared(f_name, line)
 
     # TODO: for pointers/references --> give block that calls the function?
     def callFunction(self, f_name: str, block: block, param: list):

@@ -2,6 +2,7 @@ from enum import Enum
 from src.ErrorHandeling.GenerateError import *
 from src.LLVM.Helper_LLVM import set_llvm_binary_operators
 from src.ast.node_types.node_type import LiteralType, ConditionType
+from itertools import islice
 
 
 class ToLLVM:
@@ -167,7 +168,9 @@ class Value(AST_node):
             return [[], True]
 
     def replaceVariables(self, values):
-        if self.variable and values[self.value][3]:
+        if len(values) == 0:
+            pass
+        elif self.variable and values[self.value][3]:
             self.type = values[self.value][1]
             self.value = values[self.value][0]
             self.variable = False
@@ -847,7 +850,8 @@ class Scope(AST_node):  # TODO: let it hold a block instead of trees
             for elem in self.block.getVariables():
                 if len(elem) != 0 and elem[0][0] not in self.parameters:
                     res.append(elem[0])
-            return [res, False]
+            self.block.cleanBlock(onlyLocal=True)
+            return [res, True]
 
     def replaceVariables(self, values):
         pass
@@ -994,6 +998,7 @@ class While(AST_node):
         res = self.Condition.getVariables()[0]
         for elem in self.c_block.getVariables()[0]:
             res.append(elem)
+        self.c_block.cleanBlock(onlyLocal=True)
         return [res, False]
 
     def replaceVariables(self, values):  # TODO: for now no filling of variables because this can run multiple times
@@ -1016,6 +1021,7 @@ class Function(AST_node):
         self.decl = decl
         self.name = "function"
         self.counter = 0 #  TODO: use this to check which variable is being read
+        self.expected = None
 
     def __eq__(self, other):
         if not isinstance(other, Function):
@@ -1028,10 +1034,34 @@ class Function(AST_node):
         # var= &x, *x, 21,
         # ]\\\\\\\
         #TODO: check --> verwachte parameter ?
-        self.param.append(var) # TODO: variable comes in as string -> look up in Symbtable -> check type -> make Value/Pointer node
+        # self.param.append(var) # TODO: variable comes in as string -> look up in Symbtable -> check type -> make Value/Pointer node
+        # if self.expected is None:
+        #     self.setExpected(scope.functions.findFunction(self.name))
+        # try:
+        #     if self.counter >= len(self.expected):
+        #         raise FunctionParam(var, self.expected, line)
+        #
+        # except FunctionParam:
+        #     raise
+        #
+        # exp = self.expected[next(islice(self.expected.items(), self.counter, None))]
+        # given = scope.symbols.findSymbol(var)[1]
+        # try:
+        #     if exp == given:
+        val = Value(var, None, line)
+        self.param.append(val)
+                # self.counter += 1
+        #     else:
+        #         raise TypeDeclaration(var, exp, given, line)
+        #
+        # except TypeDeclaration:
+        #     raise
 
     def getLabel(self):
         return "\"function call: " + self.f_name + "\""
+
+    def setExpected(self, exp: dict):
+        self.expected = exp
 
     def fold(self, to_llvm=None):
         return self, False
@@ -1039,11 +1069,13 @@ class Function(AST_node):
     def getVariables(self):  # TODO: for now no filling of variables because this can run multiple times
         params = []
         for param in self.param:
-            pass
+            params.append(param.value)
         return [params, True]
 
-    def replaceVariables(self, values):  # TODO: for now no filling of variables because this can run multiple times
-        pass
+    def replaceVariables(self, values):  # TODO: possible to get from listener if it is a variable or not???
+        for var in self.param:
+            var.variable = True
+            var.replaceVariables(values)
 
 
 class Array(AST_node):
@@ -1084,6 +1116,3 @@ class Array(AST_node):
             self.isValue = True
         elif self.variable:
             self.type = values[self.value][1]
-
-    def a(self):
-        pass

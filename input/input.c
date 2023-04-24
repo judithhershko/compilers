@@ -1,5 +1,5 @@
 int f(){
-is=0;
+int is=0;
 return is;
 };
 int function(float x, float* y)

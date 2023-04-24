@@ -112,11 +112,11 @@ class program:
         nodes = self.getId() + " [label=" + self.getLabel() + "]"
         edges = ""
 
-        for tree in self.trees:
-            edges = edges + "\n" + self.getId() + "--" + tree.root.getId()
-            res = tree.toDot(tree.root)
-            nodes = nodes + res[0]
-            edges = edges + res[1]
+        tree = self.ast
+        edges = edges + "\n" + self.getId() + "--" + tree.root.getId()
+        res = tree.toDot(tree.root)
+        nodes = nodes + res[0]
+        edges = edges + res[1]
 
         output = "graph ast {\n" + nodes + "\n\n" + edges + "\n}"
         file = open(fileName, "w")
