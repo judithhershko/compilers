@@ -85,6 +85,9 @@ class Comment(AST_node):
     def getType(self):
         return self.type
 
+    def getVariables(self):
+        return [[], True]
+
 
 class Print(AST_node):
     def __init__(self, lit):
@@ -780,7 +783,7 @@ class EmptyNode(AST_node):
 # unnamed scopes gebruik scope node
 class Scope(AST_node):  # TODO: let it hold a block instead of trees
     block = None
-
+    # TODO: check if block in Scope is cleaned -> same with while3
     def __init__(self, line: int, parent: AST_node = None):
         self.parent = parent
         self.line = line
