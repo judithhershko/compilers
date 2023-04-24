@@ -2,6 +2,7 @@ from generated.input.ExpressionListener import *
 from src.HelperFunctions import *
 from .ast.block import block
 from .ast.Program import program
+import string
 
 
 # TODO: zet alles in trees (unnamed scopes in scope node) --> volgorde probleem llvm --> ok
@@ -103,14 +104,14 @@ class CustomListener(ExpressionListener):
 
     def set_print(self, ctx: ParserRuleContext, type_):
         if type_ == LiteralType.INT:
-            self.current = Print(int(ctx.getText()))
+
+            self.current = Print(Value(ctx.getText(), LiteralType.INT, ctx.start.line, None))
         elif type_ == LiteralType.FLOAT:
-            self.current = Print(float(ctx.getText()))
+            self.current = Print(Value(ctx.getText(), LiteralType.FLOAT, ctx.start.line, None))
         elif type_ == LiteralType.STR:
-            self.current = Print(ctx.getText())
+            self.current = Print(Value(ctx.getText(), LiteralType.CHAR, ctx.start.line, None))
         else:
-            var = self.c_scope.block.getSymbolTable().findSymbol(ctx.getText())
-            self.current = Print(str(var))
+            self.current = Print(Value(ctx.getText(),LiteralType.VAR, ctx.start.line, None))
         self.asT.root = self.current
         self.c_scope.block.trees.append(self.asT)
         self.current = None
@@ -1044,8 +1045,8 @@ class CustomListener(ExpressionListener):
         #
 
     def get_program(self):
-        self.program.ast.root=self.program.tree
-        self.program.tree=None
+        self.program.ast.root = self.program.tree
+        self.program.tree = None
         self.program.cleanProgram()
         self.program.setNodeIds()
         self.program.generateDot("generated/output/result.dot")
