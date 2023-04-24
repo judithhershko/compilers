@@ -100,6 +100,9 @@ class Print(AST_node):
     def getValue(self):
         return self.value
 
+    def getVariables(self):
+        return self.value.getVariables()
+
     def setValue(self, val):
         self.value = val
 
@@ -839,7 +842,7 @@ class Scope(AST_node):  # TODO: let it hold a block instead of trees
         else:
             res = []
             for elem in self.block.getVariables():
-                if elem[0][0] not in self.parameters:
+                if len(elem) != 0 and elem[0][0] not in self.parameters:
                     res.append(elem[0])
             return [res, False]
 
