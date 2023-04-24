@@ -325,3 +325,14 @@ class ArrayOutOfBounds(Exception):
     def __str__(self):
         return "\n\tError in line " + str(self.line) + ": the value is assigned out of the bounds of array " + \
                str(self.name) + " (max pos: " + str(int(self.maxPos)-1) + ")"
+
+
+class FunctionParam(Exception):
+    def __init__(self, name, size, line):
+        self.name = name
+        self.size = size
+        self.line = line
+
+    def __str__(self):
+        return "\n\tError in line " + str(self.line) + ": the function " + self.name + " can only hold " + \
+               str(self.size) + " parameters"

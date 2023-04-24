@@ -2,6 +2,7 @@ from enum import Enum
 from src.ErrorHandeling.GenerateError import *
 from src.LLVM.Helper_LLVM import set_llvm_binary_operators
 from src.ast.node_types.node_type import LiteralType, ConditionType
+from itertools import islice
 
 
 class ToLLVM:
@@ -85,6 +86,9 @@ class Comment(AST_node):
     def getType(self):
         return self.type
 
+    def getVariables(self):
+        return [[], True]
+
 
 class Print(AST_node):
     def __init__(self, lit):
@@ -164,7 +168,9 @@ class Value(AST_node):
             return [[], True]
 
     def replaceVariables(self, values):
-        if self.variable and values[self.value][3]:
+        if len(values) == 0:
+            pass
+        elif self.variable and values[self.value][3]:
             self.type = values[self.value][1]
             self.value = values[self.value][0]
             self.variable = False
@@ -176,7 +182,7 @@ class Value(AST_node):
         :param node2: AST_node type containing the other child of the parent node in the AST
         :return: returns the LiteralType with the highest priority (str>char; double>float>int)
         """
-        if not isinstance(node2, Value):
+        if not (isinstance(node2, Value) or isinstance(node2, Array)):
             return self.type
         type1 = self.type
         type2 = node2.getType()
@@ -268,14 +274,18 @@ class BinaryOperator(AST_node):
         node.
         :return: the replacing Value node
         """
-        if not (isinstance(self.leftChild, Value) or isinstance(self.leftChild, Pointer)):
+        if not (isinstance(self.leftChild, Value) or isinstance(self.leftChild, Pointer) or
+                isinstance(self.leftChild, Array)):
             self.leftChild = self.leftChild.fold(to_llvm)[0]
-        if not (isinstance(self.rightChild, Value) or isinstance(self.rightChild, Pointer)):
+        if not (isinstance(self.rightChild, Value) or isinstance(self.rightChild, Pointer) or
+                isinstance(self.rightChild, Array)):
             self.rightChild = self.rightChild.fold(to_llvm)[0]
 
         try:
-            if not (isinstance(self.leftChild, Value) or isinstance(self.leftChild, Pointer)) or \
-                    not (isinstance(self.rightChild, Value) or isinstance(self.rightChild, Pointer)):
+            if not (isinstance(self.leftChild, Value) or isinstance(self.leftChild, Pointer) or
+                    isinstance(self.leftChild, Array)) or \
+                    not (isinstance(self.rightChild, Value) or isinstance(self.rightChild, Pointer) or
+                         isinstance(self.rightChild, Array)):
                 return self, False
             elif self.leftChild.variable or self.rightChild.variable:
                 if to_llvm is not None:
@@ -467,9 +477,6 @@ class LogicalOperator(AST_node):
         if not (isinstance(self.rightChild, Value) or isinstance(self.rightChild, Pointer)):
             self.rightChild = self.rightChild.fold(to_llvm)[0]
 
-        leftType = self.leftChild.getType()
-        rightType = self.rightChild.getType()
-
         try:
             if not (isinstance(self.leftChild, Value) or isinstance(self.leftChild, Pointer)) or \
                     not (isinstance(self.rightChild, Value) or isinstance(self.rightChild, Pointer)):
@@ -479,7 +486,10 @@ class LogicalOperator(AST_node):
                     set_llvm_binary_operators(self.leftChild, self.rightChild, self.operator, to_llvm)
                 return self, False
 
-            elif leftType != rightType:
+            leftType = self.leftChild.getType()
+            rightType = self.rightChild.getType()
+
+            if leftType != rightType:
                 raise LogicalOp(self.leftChild.getType(), self.rightChild.getType(), self.operator, self.line)
             elif self.operator in ("&&", "||") and self.leftChild.getType() != LiteralType.BOOL and \
                     self.rightChild.getType() != LiteralType.BOOL:
@@ -576,13 +586,14 @@ class Declaration(AST_node):
         :return: it returns itself, but now with the folded children (if possible)
         """
         folded = True
-        if not (isinstance(self.leftChild, Value) or isinstance(self.leftChild, Pointer)):
+        if not (isinstance(self.leftChild, Value) or isinstance(self.leftChild, Pointer) or
+                isinstance(self.leftChild, Array)):
             temp = self.leftChild.fold(to_llvm)
             self.leftChild = temp[0]
             if not temp[1]:
                 folded = False
         if not (isinstance(self.rightChild, Value) or isinstance(self.rightChild, Pointer) or
-                isinstance(self.rightChild, EmptyNode)):
+                isinstance(self.rightChild, EmptyNode) or isinstance(self.rightChild, Array)):
             temp = self.rightChild.fold(to_llvm)
             self.rightChild = temp[0]
             if not temp[1]:
@@ -780,7 +791,7 @@ class EmptyNode(AST_node):
 # unnamed scopes gebruik scope node
 class Scope(AST_node):  # TODO: let it hold a block instead of trees
     block = None
-
+    # TODO: check if block in Scope is cleaned -> same with while3
     def __init__(self, line: int, parent: AST_node = None):
         self.parent = parent
         self.line = line
@@ -844,7 +855,8 @@ class Scope(AST_node):  # TODO: let it hold a block instead of trees
             for elem in self.block.getVariables():
                 if len(elem) != 0 and elem[0][0] not in self.parameters:
                     res.append(elem[0])
-            return [res, False]
+            self.block.cleanBlock(onlyLocal=True)
+            return [res, True]
 
     def replaceVariables(self, values):
         pass
@@ -987,13 +999,15 @@ class While(AST_node):
     def fold(self, to_llvm=None):
         return self, False
 
-    def getVariables(self):  # TODO: for now no filling of variables because this can run multiple times
+    def getVariables(self):
         res = self.Condition.getVariables()[0]
+        self.Condition.fold()
         for elem in self.c_block.getVariables()[0]:
             res.append(elem)
+        self.c_block.fold()
         return [res, False]
 
-    def replaceVariables(self, values):  # TODO: for now no filling of variables because this can run multiple times
+    def replaceVariables(self, values):
         pass
 
 
@@ -1013,6 +1027,7 @@ class Function(AST_node):
         self.decl = decl
         self.name = "function"
         self.counter = 0 #  TODO: use this to check which variable is being read
+        self.expected = None
 
     def __eq__(self, other):
         if not isinstance(other, Function):
@@ -1025,10 +1040,34 @@ class Function(AST_node):
         # var= &x, *x, 21,
         # ]\\\\\\\
         #TODO: check --> verwachte parameter ?
-        self.param.append(var) # TODO: variable comes in as string -> look up in Symbtable -> check type -> make Value/Pointer node
+        # self.param.append(var) # TODO: variable comes in as string -> look up in Symbtable -> check type -> make Value/Pointer node
+        # if self.expected is None:
+        #     self.setExpected(scope.functions.findFunction(self.name))
+        # try:
+        #     if self.counter >= len(self.expected):
+        #         raise FunctionParam(var, self.expected, line)
+        #
+        # except FunctionParam:
+        #     raise
+        #
+        # exp = self.expected[next(islice(self.expected.items(), self.counter, None))]
+        # given = scope.symbols.findSymbol(var)[1]
+        # try:
+        #     if exp == given:
+        val = Value(var, None, line)
+        self.param.append(val)
+                # self.counter += 1
+        #     else:
+        #         raise TypeDeclaration(var, exp, given, line)
+        #
+        # except TypeDeclaration:
+        #     raise
 
     def getLabel(self):
         return "\"function call: " + self.f_name + "\""
+
+    def setExpected(self, exp: dict):
+        self.expected = exp
 
     def fold(self, to_llvm=None):
         return self, False
@@ -1036,51 +1075,93 @@ class Function(AST_node):
     def getVariables(self):  # TODO: for now no filling of variables because this can run multiple times
         params = []
         for param in self.param:
-            pass
+            params.append(param.value)
         return [params, True]
 
-    def replaceVariables(self, values):  # TODO: for now no filling of variables because this can run multiple times
-        pass
+    def replaceVariables(self, values):  # TODO: possible to get from listener if it is a variable or not???
+        for var in self.param:
+            var.variable = True
+            var.replaceVariables(values)
 
 
 class Array(AST_node):
-    def __init__(self, name: str, pos: int, valueType: LiteralType, line: int, init: bool = False, parent = None):
-        self.name = name
+    def __init__(self, value: str, pos: int, valueType: LiteralType, line: int, init: bool = False, parent = None):
+        self.value = value
         self.pos = pos
         self.type = valueType
         self.line = line
         self.init = init
         self.parent = parent
         self.isValue = False
+        self.name = "array"
 
     def __eq__(self, other):
-        return self.name == other.name and self.pos == other.pos and self.type == other.type and \
+        return self.value == other.value and self.pos == other.pos and self.type == other.type and \
                self.line == other.line and self.init == other.init
 
     def getType(self):
         return self.type
 
     def getValue(self):
-        return self.name
+        if self.init:
+            return str(self.value)
+        else:
+            return str(self.value)
 
     def getLabel(self):
         if self.init:
-            return "\"array: " + self.name + "\nsize: " + str(self.pos) + "\""
+            return "\"array: " + str(self.value) + "\nsize: " + str(self.pos) + "\""
         elif self.isValue:
-            return "\"array value: " + self.name + "\""
+            return "\"array value: " + str(self.value) + "\""
         else:
-            return "\"array: " + self.name + "\nposition: " + str(self.pos) + "\""
+            return "\"array: " + str(self.value) + "\nposition: " + str(self.pos) + "\""
 
     def getVariables(self):
-        return [[(self.name, self.line)], True]
+        if self.init:
+            return [[], True]
+        return [[(str(self.pos)+str(self.value), self.line)], True]
 
     def replaceVariables(self, values):
-        if values[self.value][3]:
-            self.type = values[self.value][1]
-            self.name = values[self.value][0]
+        name = str(self.pos) + str(self.value)
+        if values[name][3]:
+            self.type = values[name][1]
+            self.value = values[name][0]
             self.isValue = True
         elif self.variable:
-            self.type = values[self.value][1]
+            self.type = values[name][1]
 
-    def a(self):
-        pass
+    def getHigherType(self, node2: AST_node):
+        """
+        :param node2: AST_node type containing the other child of the parent node in the AST
+        :return: returns the LiteralType with the highest priority (str>char; double>float>int)
+        """
+        if not (isinstance(node2, Value) or isinstance(node2, Array)):
+            return self.type
+        type1 = self.type
+        type2 = node2.getType()
+
+        try:
+            if (type1 == LiteralType.STR and type2 in (LiteralType.STR, LiteralType.CHAR)) or \
+                    (type2 == LiteralType.STR and type1 == LiteralType.CHAR):
+                return LiteralType.STR
+            elif type1 == LiteralType.CHAR and type2 == LiteralType.CHAR:
+                return LiteralType.CHAR
+            elif (type1 == LiteralType.DOUBLE and type2 in (LiteralType.DOUBLE, LiteralType.FLOAT, LiteralType.INT)) or \
+                    (type2 == LiteralType.DOUBLE and type1 in (LiteralType.FLOAT, LiteralType.INT)):
+                return LiteralType.DOUBLE
+            elif (type1 == LiteralType.FLOAT and type2 in (LiteralType.FLOAT, LiteralType.INT)) or \
+                    (type2 == LiteralType.FLOAT and type1 == LiteralType.INT):
+                return LiteralType.FLOAT
+            elif type1 == LiteralType.INT and type2 == LiteralType.INT:
+                return LiteralType.INT
+            elif type1 == LiteralType.BOOL and type2 == LiteralType.BOOL:
+                return LiteralType.BOOL
+            elif type1 is None:
+                return type2
+            elif type1 in (LiteralType.INT, LiteralType.FLOAT) and type2 == LiteralType.BOOL:
+                return type1
+            else:
+                raise WrongType(type1, type2, self.line)
+
+        except WrongType:
+            raise

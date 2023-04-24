@@ -54,10 +54,14 @@ def generateCondition():
     Or.setLeftChild(lt)
     eq = LogicalOperator("==", parent=None, line=1)
     leaf5 = Value("z", LiteralType.FLOAT, 1, variable=True)
-    leaf6 = Value("z", LiteralType.FLOAT, 1, variable=True)
+    mul = BinaryOperator("*", 1)
+    leaf6 = Value(5.0, LiteralType.FLOAT, 1, variable=False)
+    leaf7 = Value(6.0, LiteralType.FLOAT, 1, variable=False)
+    mul.setLeftChild(leaf6)
+    mul.setRightChild(leaf7)
 
     eq.setLeftChild(leaf5)
-    eq.setRightChild(leaf6)
+    eq.setRightChild(mul)
     Or.setRightChild(eq)
     And.setRightChild(Or)
 
@@ -83,15 +87,73 @@ def generateFunction():
     ast1 = AST()
     ast1.setRoot(dec1)
     func.addTree(ast1)
-    var2 = Value("b", LiteralType.INT, 1, None, True, False, True)
-    val2 = Value("y", LiteralType.INT, 1, None, True, False, True)
+    var2 = Value("b", LiteralType.INT, 2, None, True, False, True)
+    val2 = Value("y", LiteralType.INT, 2, None, True, False, True)
     dec2 = Declaration(var2, 2)
     dec2.setRightChild(val2)
     ast2 = AST()
     ast2.setRoot(dec2)
     func.addTree(ast2)
 
+    var3 = Value("c", LiteralType.INT, 3, None, True, False, True)
+    val3 = Value(5, LiteralType.INT, 3, None, False, False, True)
+    val4 = Value(6, LiteralType.INT, 3, None, False, False, True)
+    mul = BinaryOperator("*", 3)
+    mul.setLeftChild(val3)
+    mul.setRightChild(val4)
+    dec3 = Declaration(var3, 3)
+    dec3.setRightChild(mul)
+    ast3 = AST()
+    ast3.setRoot(dec3)
+    func.addTree(ast3)
+
     return func
+
+
+def generateArrayScope():
+    init = Array("array", 2, LiteralType.INT, 1, True)
+    ast1 = AST()
+    ast1.root = init
+
+    param = Value("x", LiteralType.INT, 1, variable=True, decl=True)
+    val = Value(5, LiteralType.INT, 1)
+    dec = Declaration(param, 1)
+    dec.setRightChild(val)
+    ast = AST()
+    ast.root = dec
+
+    param1 = Array("array", 0, LiteralType.INT, 2, False)
+    val1 = Value("x", LiteralType.INT, 1, variable=True)
+    dec1 = Declaration(param1, 1)
+    dec1.setRightChild(val1)
+    ast2 = AST()
+    ast2.root = dec1
+
+    param2 = Array("array", 1, LiteralType.INT, 3, False)
+    val2 = Value(6, LiteralType.INT, 1)
+    dec2 = Declaration(param2, 1)
+    dec2.setRightChild(val2)
+    ast3 = AST()
+    ast3.root = dec2
+
+    mul = BinaryOperator("*", 4)
+    val3 = Array("array", 1, LiteralType.INT, 4, False)
+    val4 = Array("array", 0, LiteralType.INT, 4, False)
+    mul.setLeftChild(val3)
+    mul.setRightChild(val4)
+    ast4 = AST()
+    ast4.root = mul
+
+    scope = Scope(1)
+    sBlock = block(None)
+    scope.setBlock(sBlock)
+    scope.addTree(ast)
+    scope.addTree(ast1)
+    scope.addTree(ast2)
+    scope.addTree(ast3)
+    scope.addTree(ast4)
+
+    return scope
 
 
 class nodeTestCase(unittest.TestCase):
@@ -512,9 +574,10 @@ class nodeTestCase(unittest.TestCase):
         scope1.addTree(ast0)
 
         prog = program()
-        ast = AST()
-        ast.setRoot(scope1)
-        prog.addTree(ast)
+        prog.ast.root = scope1
+        # ast = AST()
+        # ast.setRoot(scope1)
+        # prog.addTree(ast)
         # prog.getAst().setRoot(scope1)
         prog.setNodeIds()
         prog.generateDot("./src/ast/dotFiles/scope_unfilled.dot")
@@ -545,9 +608,10 @@ class nodeTestCase(unittest.TestCase):
         dec4.setRightChild(val4)
         val.addSymbol(dec4, True)
 
-        for tree in prog.trees:
-            prog.fillLiterals(tree)
-        prog.generateDot("./src/ast/dotFiles/scope_unfolded.dot")
+        # for tree in prog.trees:
+        #     prog.fillLiterals(tree)
+        prog.fillLiterals(prog.ast.root)
+        # prog.generateDot("./src/ast/dotFiles/scope_unfolded.dot")
 
         prog.fold()
         prog.setNodeIds()
@@ -582,7 +646,7 @@ class nodeTestCase(unittest.TestCase):
         tree.setRoot(expected)
         tree.setNodeIds(tree.root, 1, 1)
 
-        self.assertEqual(prog.trees[0], tree)
+        self.assertEqual(prog.ast, tree)
 
     def test_If(self):
         And = generateCondition()
@@ -915,6 +979,19 @@ class nodeTestCase(unittest.TestCase):
         treeW.setRoot(multW)
         whileBlock = block(None)
         whileBlock.addTree(treeW)
+
+        var3W = Value("c", LiteralType.INT, 3, None, True, False, True)
+        val3W = Value(5, LiteralType.INT, 3, None, False, False, True)
+        val4W = Value(6, LiteralType.INT, 3, None, False, False, True)
+        mulW = BinaryOperator("*", 3)
+        mulW.setLeftChild(val3W)
+        mulW.setRightChild(val4W)
+        dec3W = Declaration(var3W, 3)
+        dec3W.setRightChild(mulW)
+        ast3W = AST()
+        ast3W.setRoot(dec3W)
+        whileBlock.addTree(ast3W)
+
         whileStat.setBlock(whileBlock)
         whileTree = AST()
         whileTree.setRoot(whileStat)
@@ -942,15 +1019,16 @@ class nodeTestCase(unittest.TestCase):
         testBlock.parent = prog
         scope = Scope(1, None)
         scope.setBlock(testBlock)
-        ast = AST()
-        ast.setRoot(scope)
-        prog.addTree(ast)
+        # ast = AST()
+        # ast.setRoot(scope)
+        # prog.addTree(ast)
+        prog.ast.root = scope
 
-        prog.trees[0].root.block.setNodeIds()
-        prog.trees[0].root.block.generateDot("./src/ast/dotFiles/clean_unfolded.dot")
+        prog.ast.root.block.setNodeIds()
+        prog.ast.root.block.generateDot("./src/ast/dotFiles/clean_unfolded.dot")
         prog.cleanProgram()
-        prog.trees[0].root.block.setNodeIds()
-        prog.trees[0].root.block.generateDot("./src/ast/dotFiles/clean_folded.dot")
+        prog.ast.root.block.setNodeIds()
+        prog.ast.root.block.generateDot("./src/ast/dotFiles/clean_folded.dot")
 
     def test_function(self):
         fun = generateFunction()
@@ -958,20 +1036,33 @@ class nodeTestCase(unittest.TestCase):
         prog = program()
         prog.functions.addFunction(fun)
 
+        scope = Scope(1)
+        sBlock = block(prog)
+        scope.setBlock(sBlock)
+
         var = Value("x", LiteralType.INT, 1, None, True, False, True)
         val = Value("5", LiteralType.INT, 1, None, False, False, True)
         dec = Declaration(var, 1)
         dec.setRightChild(val)
         ast = AST()
         ast.setRoot(dec)
-        prog.addTree(ast)
+        scope.addTree(ast)
+
+        funDef = AST()
+        funDef.root = fun
+        scope.addTree(funDef)
 
         fun1 = AST()
-        fun1.setRoot(prog.functions.findFunction(name))
-        prog.addTree(fun1)
-        fun2 = AST()
-        fun2.setRoot(prog.functions.findFunction(name))
-        prog.addTree(fun2)
+        call1 = Function("function1", 1)
+        call1.addParameter("x", prog, 1)
+        call1.addParameter("x", prog, 1)
+        fun1.root = call1
+        scope.addTree(fun1)
+        # fun1.setRoot(prog.functions.findFunction(name))
+        # prog.addTree(fun1)
+        # fun2 = AST()
+        # fun2.setRoot(prog.functions.findFunction(name))
+        # prog.addTree(fun2)
 
         var2 = Value("w", LiteralType.INT, 1, None, True, False, True)
         val2 = Value("x", LiteralType.INT, 1, None, True, False, True)
@@ -979,13 +1070,29 @@ class nodeTestCase(unittest.TestCase):
         dec2.setRightChild(val2)
         ast2 = AST()
         ast2.setRoot(dec2)
-        prog.addTree(ast2)
+        scope.addTree(ast2)
+
+        prog.ast.root = scope
 
         prog.setNodeIds()
         prog.generateDot("./src/ast/dotFiles/function_unfolded.dot")
         prog.cleanProgram()
         prog.setNodeIds()
         prog.generateDot("./src/ast/dotFiles/function_folded.dot")
+
+    def test_array(self):
+        array = generateArrayScope()
+        ast = AST()
+        ast.root = array
+
+        prog = program()
+        prog.ast = ast
+
+        prog.setNodeIds()
+        prog.generateDot("./src/ast/dotFiles/array_unfolded.dot")
+        prog.cleanProgram()
+        prog.setNodeIds()
+        prog.generateDot("./src/ast/dotFiles/array_folded.dot")
 
 
 if __name__ == '__main__':
