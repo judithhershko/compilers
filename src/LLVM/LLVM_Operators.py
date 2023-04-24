@@ -11,7 +11,9 @@ from src.ast.Program import program
 
 class ToLLVM():
     def __init__(self):
+        print("------------------START LLVM-----------------")
         self.c_function = None
+        self.g_def = dict()
         self.parameters = None
         self.c_scope = None
         self.scope_counter = None
@@ -24,6 +26,7 @@ class ToLLVM():
         self.main = True
         self.is_global = False
         self.g_count = 0
+        self.f_count = 0
         self.g_assignment = ""
         self.f_declerations = ""
         self.c_block = None
@@ -32,6 +35,7 @@ class ToLLVM():
         self.function_load = ""
         self.function_store = ""
         self.function_alloc = ""
+        self.function_end = ""
         self.skip_count = -2
 
     def STable_to_LLVM(self, table: SymbolTable):
@@ -80,6 +84,8 @@ class ToLLVM():
         return hex(struct.unpack('<I', struct.pack('<f', f))[0])
 
     def float_to_64bit_hex(self, x):
+        if x is None:
+            print("x is none in scope:"+self.c_function.root.f_name)
         if isinstance(x, str):
             x = float(x)
         bytes_of_x = struct.pack('>f', x)
@@ -482,9 +488,12 @@ class ToLLVM():
             var = "."
             var += str(self.g_count)
         else:
-            self.f_declerations += "declare i32 @printf(ptr noundef, ...) #1\n"
+            if "print" not in self.g_def:
+                self.f_count += 1
+                self.f_declerations += "declare i32 @printf(ptr noundef, ...) #{}\n".format(self.f_count)
+                self.g_def["print"] = True
         self.g_count += 1
-        self.g_assignment += "@.str{} = private unnamed_addr constant [{}x i8] c\"{}\\0A\\00\", align 1\n".format(
+        self.f_declerations += "@.str{} = private unnamed_addr constant [{}x i8] c\"{}\\0A\\00\", align 1\n".format(
             var, len(str(to_print)) + 2, to_print)
         s = self.add_variable("printf" + str(self.g_count))
         self.allocate += "; printf ({})\n".format(str(to_print))
@@ -507,6 +516,8 @@ class ToLLVM():
         # TODO: add parameter list to start function
         self.skip_count = len(tree.root.parameters)
         self.start_function(tree.root.f_name, tree.root.parameters, tree.root.return_type)
+        if self.counter == -1:
+            self.counter = 0
         self.skip_count = -2
         """
         if declaration encountered in self.function_store
@@ -521,15 +532,18 @@ class ToLLVM():
         self.g_assignment += self.function_store
         self.g_assignment += "\n"
         self.g_assignment += self.function_load
+
         if isinstance(tree.root.f_return.root, Value):
             self.end_function(tree.root.f_return.root.getType(), tree.root.f_return.root.getValue())
         self.output += self.g_assignment
+        self.output = self.f_declerations + self.output
 
         self.c_function = None
         self.g_assignment = ""
         self.function_load = ""
         self.function_alloc = ""
         self.function_store = ""
+        self.f_declerations = ""
         self.is_global = prev_global
         self.var_dic = dict()
 
@@ -546,12 +560,17 @@ class ToLLVM():
             # don't change tree function permanently
             t = tree
             if isinstance(t.root, Comment):
-                pass
+                self.to_comment(t)
+                self.function_store += self.store
+                self.store = ""
             elif isinstance(t.root, Print):
-                pass
+                self.to_print(t)
+                self.function_alloc += self.allocate
+                self.allocate = ""
             elif isinstance(t.root, While):
                 print("while loop")
                 self.set_loop(t)
+                pass
             elif t is None:
                 pass
             else:
@@ -561,10 +580,15 @@ class ToLLVM():
         self.function_load += "br label %{}\n".format(self.increase_counter())
         self.function_load += str(self.get_counter()) + " :\n"
         self.function_load += " "
+        if isinstance(t.root, While):
+            b = block(None)
+            b.trees.append(t.root.Condition)
+            self.transverse_tree(b)
+        self.function_load += "br i1 %{}, label %{}, label %$\n".format(self.get_counter(), self.increase_counter())
+        self.function_load += str(self.get_counter()) + " :\n"
         self.transverse_tree(t.root.c_block)
-        #condition true: branch a
-        #condition false: branch b
-        #self.function_load+=
+        self.function_load.replace("%$", "%" + str(self.counter))
+        self.function_load += str(self.increase_counter()) + " :\n"
     def add_output_fold(self, out: str):
         self.g_assignment += out
         return

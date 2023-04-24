@@ -1,10 +1,13 @@
 from .node import *
+
+
 # class block:
 #     pass
 #
 
 class AST:
     root = None
+
     def __eq__(self, other):
         if not isinstance(other, AST):
             return False
@@ -33,8 +36,8 @@ class AST:
         elif isinstance(nextNode, Scope):
             if nextNode.f_name != "":
                 for tree in nextNode.parameters:
-                    number = self.setNodeIds(nextNode.parameters[tree], level+1, number+1)
-                number = nextNode.block.setNodeIds(level+1, number+1)
+                    number = self.setNodeIds(nextNode.parameters[tree], level + 1, number + 1)
+                number = nextNode.block.setNodeIds(level + 1, number + 1)
             else:
                 number = nextNode.block.setNodeIds(level, number)
         elif isinstance(nextNode, If):
@@ -210,7 +213,7 @@ class AST:
 
         return nodes, edges
 
-    def foldTree(self,to_llvm=None):
+    def foldTree(self, to_llvm=None):
         """
         This function tries to reduce the size of the tree as much as possible
          tree, self.g_assignment
@@ -235,5 +238,3 @@ class AST:
         dec = Declaration(var, root.line, None)
         dec.setRightChild(val)
         return dec
-
-

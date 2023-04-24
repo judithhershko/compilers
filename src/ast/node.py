@@ -1,6 +1,6 @@
 from enum import Enum
 from src.ErrorHandeling.GenerateError import *
-from src.LLVM.Helper_LLVM import set_llvm_comparators, set_llvm_binary_operators
+from src.LLVM.Helper_LLVM import set_llvm_binary_operators
 from src.ast.node_types.node_type import LiteralType, ConditionType
 
 
@@ -275,14 +275,9 @@ class BinaryOperator(AST_node):
                     not (isinstance(self.rightChild, Value) or isinstance(self.rightChild, Pointer)):
                 return self, False
             elif self.leftChild.variable or self.rightChild.variable:
-               # ptype = set_llvm_binary_operators(self.leftChild, self.rightChild, self.operator, to_llvm)
+                if to_llvm is not None:
+                    set_llvm_binary_operators(self.leftChild, self.rightChild, self.operator, to_llvm)
                 return self, False
-            # elif self.leftChild.getVariables()[0] or self.rightChild.getVariables()[0]: TODO: discus where llvm function needs to be placed
-            #     ptype = set_llvm_binary_operators(self.leftChild, self.rightChild, self.operator, to_llvm)
-            #     self.leftChild.type = ptype
-            #     return self.leftChild
-
-
 
             elif not self.leftChild.getType() in (LiteralType.DOUBLE, LiteralType.FLOAT, LiteralType.INT) or \
                     not self.rightChild.getType() in (LiteralType.DOUBLE, LiteralType.FLOAT, LiteralType.INT):
@@ -476,10 +471,10 @@ class LogicalOperator(AST_node):
             if not (isinstance(self.leftChild, Value) or isinstance(self.leftChild, Pointer)) or \
                     not (isinstance(self.rightChild, Value) or isinstance(self.rightChild, Pointer)):
                 return self, False
-            # elif self.leftChild.getVariables() or self.rightChild.getVariables():
-            #     ptype = set_llvm_comparators(self.leftChild, self.rightChild, self.operator, to_llvm)
-            #     self.leftChild.type = ptype
-            #     return self.leftChild
+            elif self.leftChild.variable or self.rightChild.variable:
+                if to_llvm is not None:
+                    set_llvm_binary_operators(self.leftChild, self.rightChild, self.operator, to_llvm)
+                return self, False
 
             elif leftType != rightType:
                 raise LogicalOp(self.leftChild.getType(), self.rightChild.getType(), self.operator, self.line)
