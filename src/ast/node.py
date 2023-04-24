@@ -1001,7 +1001,6 @@ int i= functie(0)
 
 
 class Function(AST_node):
-    c_block = None
 
     def __init__(self, f_name, line, parent=None, decl=False):
         self.line = line
@@ -1010,6 +1009,7 @@ class Function(AST_node):
         self.f_name = f_name
         self.decl = decl
         self.name = "function"
+        self.counter = 0 #  TODO: use this to check which variable is being read
 
     def __eq__(self, other):
         if not isinstance(other, Function):
@@ -1017,18 +1017,15 @@ class Function(AST_node):
         return self.line == other.line and self.param == other.param and self.f_name == other.f_name and \
                self.decl == other.decl
 
-    def addParameter(self, var):
+    def addParameter(self, var, scope, line):
         # TODO: dit moet anders --> als value/pointer/ref wordt doorgegeven
         # var= &x, *x, 21,
         # ]\\\\\\\
         #TODO: check --> verwachte parameter ?
-        self.param.append(var)
-
-    def setBlock(self, newBlock: block):
-        self.c_block = newBlock
+        self.param.append(var) # TODO: variable comes in as string -> look up in Symbtable -> check type -> make Value/Pointer node
 
     def getLabel(self):
-        return "\"function: " + self.f_name + "\""
+        return "\"function call: " + self.f_name + "\""
 
     def fold(self, to_llvm=None):
         return self, False
@@ -1040,4 +1037,47 @@ class Function(AST_node):
         return [params, True]
 
     def replaceVariables(self, values):  # TODO: for now no filling of variables because this can run multiple times
+        pass
+
+
+class Array(AST_node):
+    def __init__(self, name: str, pos: int, valueType: LiteralType, line: int, init: bool = False, parent = None):
+        self.name = name
+        self.pos = pos
+        self.type = valueType
+        self.line = line
+        self.init = init
+        self.parent = parent
+        self.isValue = False
+
+    def __eq__(self, other):
+        return self.name == other.name and self.pos == other.pos and self.type == other.type and \
+               self.line == other.line and self.init == other.init
+
+    def getType(self):
+        return self.type
+
+    def getValue(self):
+        return self.name
+
+    def getLabel(self):
+        if self.init:
+            return "\"array: " + self.name + "\nsize: " + str(self.pos) + "\""
+        elif self.isValue:
+            return "\"array value: " + self.name + "\""
+        else:
+            return "\"array: " + self.name + "\nposition: " + str(self.pos) + "\""
+
+    def getVariables(self):
+        return [[(self.name, self.line)], True]
+
+    def replaceVariables(self, values):
+        if values[self.value][3]:
+            self.type = values[self.value][1]
+            self.name = values[self.value][0]
+            self.isValue = True
+        elif self.variable:
+            self.type = values[self.value][1]
+
+    def a(self):
         pass

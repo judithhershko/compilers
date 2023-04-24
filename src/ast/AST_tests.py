@@ -846,7 +846,6 @@ class nodeTestCase(unittest.TestCase):
         #
         # self.assertTrue(filecmp.cmp("./src/ast/dotFiles/while_unfolded.dot", "./src/ast/dotFiles/while_folded.dot"))
 
-
     def test_cleanBlock(self):
         testBlock = block(None)
         # First declaration
