@@ -12,12 +12,17 @@ define i32 @f() #0 {
 
 br label %3
 3 :
- %4 = load i32, ptr %1, align 4
+%4 = load i32, ptr %1, align 4
 %5 = icmp slt i32 %4, 90
-br i1 %5, label %6, label %$
+br i1 %5, label %6, label %8
+br label %3
+3 :
+%4 = load i32, ptr %1, align 4
+%5 = icmp slt i32 %4, 90
 6 :
 %7 = load i32, ptr %5, align 4
 %8 = add nsw i32 %7, 1
+br label %3, !llvm.loop !5
 9 :
  %11 = load ptr, ptr %10, align 4
 ret i32 %11}
