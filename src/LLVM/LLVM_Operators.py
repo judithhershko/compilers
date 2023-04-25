@@ -9,6 +9,12 @@ from src.ast.block import block
 from src.ast.Program import program
 
 
+# TODO   break/continue
+# TODO   if
+# TODO   scopes
+# TODO   counter in return
+# TODO   function calls
+# TODO   arrays
 class ToLLVM():
     def __init__(self):
         print("------------------START LLVM-----------------")
@@ -584,7 +590,7 @@ class ToLLVM():
 
     def set_loop(self, t: AST):
         self.function_load += "br label %{}\n".format(self.increase_counter())
-        counter0=self.get_counter()
+        counter0 = self.get_counter()
         self.function_load += str(self.get_counter()) + " :\n"
         if isinstance(t.root, While):
             b = block(None)
@@ -598,8 +604,8 @@ class ToLLVM():
         self.function_load += str(self.get_counter()) + " :\n"
         self.transverse_tree(t.root.c_block)
         tijdelijk += "br i1 %{}, label %{}, label %{}\n".format(counter1, counter2, self.get_counter())
-        self.function_load=tijdelijk+self.function_load
-        self.function_load+="br label %{}, !llvm.loop !5\n".format(counter0)
+        self.function_load = tijdelijk + self.function_load
+        self.function_load += "br label %{}, !llvm.loop !5\n".format(counter0)
 
         self.function_load += str(self.increase_counter()) + " :\n"
 

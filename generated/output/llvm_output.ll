@@ -17,7 +17,6 @@ br label %3
 br i1 %5, label %6, label %8
 br label %3
 3 :
-
 %4 = load i32, ptr %1, align 4
 %5 = icmp slt i32 %4, 90
 6 :
