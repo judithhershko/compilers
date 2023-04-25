@@ -112,11 +112,11 @@ class program:
         nodes = self.getId() + " [label=" + self.getLabel() + "]"
         edges = ""
 
-        for tree in self.trees:
-            edges = edges + "\n" + self.getId() + "--" + tree.root.getId()
-            res = tree.toDot(tree.root)
-            nodes = nodes + res[0]
-            edges = edges + res[1]
+        tree = self.ast
+        edges = edges + "\n" + self.getId() + "--" + tree.root.getId()
+        res = tree.toDot(tree.root)
+        nodes = nodes + res[0]
+        edges = edges + res[1]
 
         output = "graph ast {\n" + nodes + "\n\n" + edges + "\n}"
         file = open(fileName, "w")
@@ -158,9 +158,9 @@ class program:
             if not all:
                 self.makeUnfillable()
             fold = tree.foldTree()
-            if fold[1] and tree.root.name == "declaration":
+            if fold[1] and (tree.root.name == "declaration" or tree.root.name == "array"):
                 self.symbols.addSymbol(tree.root, True)
-            elif tree.root.name == "declaration":
+            elif tree.root.name == "declaration" or tree.root.name == "array":
                 none = tree.createUnfilledDeclaration(tree.root)
                 self.symbols.addSymbol(none, True, False)
             tree.setNodeIds(tree.root)

@@ -71,7 +71,7 @@ class block:
             result.append(tree.getVariables()[0])
         return result
 
-    def fillLiterals(self, tree: AST):
+    def fillLiterals(self, tree: AST, onlyLocal: bool = False):
         """
         This function will try to replace the variables in the AST with the actual values. If it can not find the
         variables in its own symbol table, it will look at the symbol tables of its parents
@@ -88,6 +88,9 @@ class block:
                 notFound.append(elem)
 
         current = self
+        if onlyLocal:
+            tree.replaceVariables(values)
+            return res[1]
         while not current.name == "program" and notFound:
             current = current.getParent()
             variables = notFound
@@ -186,14 +189,14 @@ class block:
         if self.parent is not None:
             self.parent.symbols.makeUnfillable()
 
-    def cleanBlock(self, glob: bool = False):
+    def cleanBlock(self, glob: bool = False, onlyLocal: bool = False):
         for tree in self.trees:
-            all = self.fillLiterals(tree.root)
+            all = self.fillLiterals(tree.root, onlyLocal)
             if not all:
                 self.makeUnfillable()
             fold = tree.foldTree()
-            if fold[1] and tree.root.name == "declaration":
+            if fold[1] and (tree.root.name == "declaration" or tree.root.name == "array"):
                 self.symbols.addSymbol(tree.root, glob)
-            elif tree.root.name == "declaration":
+            elif tree.root.name == "declaration" or tree.root.name == "array":
                 none = tree.createUnfilledDeclaration(tree.root)
                 self.symbols.addSymbol(none, glob, False)
