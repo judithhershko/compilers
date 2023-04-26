@@ -791,6 +791,7 @@ class EmptyNode(AST_node):
 # unnamed scopes gebruik scope node
 class Scope(AST_node):  # TODO: let it hold a block instead of trees
     block = None
+
     # TODO: check if block in Scope is cleaned -> same with while3
     def __init__(self, line: int, parent: AST_node = None):
         self.parent = parent
@@ -1026,7 +1027,7 @@ class Function(AST_node):
         self.f_name = f_name
         self.decl = decl
         self.name = "function"
-        self.counter = 0 #  TODO: use this to check which variable is being read
+        self.counter = 0  # TODO: use this to check which variable is being read
         self.expected = None
 
     def __eq__(self, other):
@@ -1039,7 +1040,7 @@ class Function(AST_node):
         # TODO: dit moet anders --> als value/pointer/ref wordt doorgegeven
         # var= &x, *x, 21,
         # ]\\\\\\\
-        #TODO: check --> verwachte parameter ?
+        # TODO: check --> verwachte parameter ?
         # self.param.append(var) # TODO: variable comes in as string -> look up in Symbtable -> check type -> make Value/Pointer node
         # if self.expected is None:
         #     self.setExpected(scope.functions.findFunction(self.name))
@@ -1056,7 +1057,7 @@ class Function(AST_node):
         #     if exp == given:
         val = Value(var, None, line)
         self.param.append(val)
-                # self.counter += 1
+        # self.counter += 1
         #     else:
         #         raise TypeDeclaration(var, exp, given, line)
         #
@@ -1085,7 +1086,7 @@ class Function(AST_node):
 
 
 class Array(AST_node):
-    def __init__(self, value: str, pos: int, valueType: LiteralType, line: int, init: bool = False, parent = None):
+    def __init__(self, value: str, pos: int, valueType: LiteralType, line: int, init: bool = False, parent=None):
         self.value = value
         self.pos = pos
         self.type = valueType
@@ -1119,7 +1120,7 @@ class Array(AST_node):
     def getVariables(self):
         if self.init:
             return [[], True]
-        return [[(str(self.pos)+str(self.value), self.line)], True]
+        return [[(str(self.pos) + str(self.value), self.line)], True]
 
     def replaceVariables(self, values):
         name = str(self.pos) + str(self.value)
