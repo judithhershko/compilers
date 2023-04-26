@@ -9,6 +9,12 @@ from src.ast.block import block
 from src.ast.Program import program
 
 
+# TODO   break/continue
+# TODO   if
+# TODO   scopes
+# TODO   counter in return
+# TODO   function calls
+# TODO   arrays
 class ToLLVM():
     def __init__(self):
         print("------------------START LLVM-----------------")
@@ -487,9 +493,9 @@ class ToLLVM():
         if isinstance(to_print, Value):
             to_print = to_print.value
             if self.c_scope.block.getSymbolTable().findSymbol(to_print) is not None:
-                to_print=self.c_scope.block.getSymbolTable().findSymbol(to_print)[0]
+                to_print = self.c_scope.block.getSymbolTable().findSymbol(to_print)[0]
             elif self.c_scope.f_name != "":
-                to_print=self.c_scope.parameters[to_print]
+                to_print = self.c_scope.parameters[to_print]
         if self.g_count > 0:
             var = "."
             var += str(self.g_count)
@@ -584,16 +590,22 @@ class ToLLVM():
 
     def set_loop(self, t: AST):
         self.function_load += "br label %{}\n".format(self.increase_counter())
+        counter0 = self.get_counter()
         self.function_load += str(self.get_counter()) + " :\n"
-        self.function_load += " "
         if isinstance(t.root, While):
             b = block(None)
             b.trees.append(t.root.Condition)
             self.transverse_tree(b)
-        self.function_load += "br i1 %{}, label %{}, label %$\n".format(self.get_counter(), self.increase_counter())
+        tijdelijk = self.function_load
+        counter1 = self.get_counter()
+        counter2 = self.increase_counter()
+
+        # self.function_load += "br i1 %{}, label %{}, label %$\n".format(self.get_counter(), self.increase_counter())
         self.function_load += str(self.get_counter()) + " :\n"
         self.transverse_tree(t.root.c_block)
-        self.function_load.replace('%$', "%" + str(self.counter))
+        tijdelijk += "br i1 %{}, label %{}, label %{}\n".format(counter1, counter2, self.get_counter())
+        self.function_load = tijdelijk + self.function_load
+        self.function_load += "br label %{}, !llvm.loop !5\n".format(counter0)
 
         self.function_load += str(self.increase_counter()) + " :\n"
 
