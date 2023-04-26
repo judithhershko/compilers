@@ -126,7 +126,7 @@ class Print(AST_node):
 
 class Value(AST_node):
     def __init__(self, lit: str, valueType, line: int, parent: AST_node = None, variable: bool = False,
-                 const: bool = False, decl: bool = False):
+                 const: bool = False, decl: bool = False, deref: bool = False):
         """
         :param lit: string containing the value (int, string, variable, ...) of the node
         :param valueType: LiteralType containing the type of element saved in the node
@@ -143,6 +143,7 @@ class Value(AST_node):
         self.const = const
         self.declaration = decl
         self.line = line
+        self.deref = deref
 
     def __eq__(self, other):
         if not isinstance(other, Value):
@@ -175,6 +176,9 @@ class Value(AST_node):
             return [(self.value, self.line)]
         else:
             return []
+
+    def getDeref(self):
+        return self.deref
 
     def replaceVariables(self, values):
         if self.variable:

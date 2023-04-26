@@ -35,6 +35,7 @@ class SymbolTable:
                 symType = root.getLeftChild().getType()
                 const = root.getLeftChild().const
                 decl = root.getLeftChild().declaration
+                deref = root.getRightChild().deref
                 if isinstance(root.getLeftChild(), Value) and root.getLeftChild().isVariable():
                     ref = None
                     level = 0
@@ -57,7 +58,9 @@ class SymbolTable:
                 elif ref not in self.table.index:
                     raise ImpossibleRef(ref, line)
                 refValue = self.table.loc[ref]
-                if level - 1 != refValue["Level"]:
+                if not deref and level - 1 != refValue["Level"]:
+                    raise RefPointerLevel(name, refValue["Level"], level, line)
+                elif deref and level != refValue["Level"]:
                     raise RefPointerLevel(name, refValue["Level"], level, line)
                 elif symType != refValue["Type"]:
                     raise PointerType(name, refValue["Type"], symType, line)
