@@ -20,3 +20,7 @@ class stack:
 
     def __str__(self):
         return str(self.__index)
+
+
+def remove_last_line_from_string(s):
+    return s[:s.rfind('\n')]

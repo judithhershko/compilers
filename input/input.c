@@ -2,10 +2,15 @@ int f(bool q)
 {
     int z=0;
     printf(z);
-    while (z<90)
+
+    if (z>=10)
     {
-    z=z+1;
-        }
+        printf('a');
+        z=z+1;
+    }
+    else {
+        z=z+2;
+    }
     //q=z > z + 1 + 3 || z < z - 1 ;
     return 1;
 }
