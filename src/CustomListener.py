@@ -276,6 +276,7 @@ class CustomListener(ExpressionListener):
         self.c_scope = Scope(ctx.start.line)
         self.c_scope.global_ = True
         self.c_scope.block = block(None)
+        self.c_scope.block.setParent(self.program)
         self.c_scope.block.name = "program"
         self.program.tree = self.c_scope
 
@@ -533,7 +534,7 @@ class CustomListener(ExpressionListener):
                     self.current.leftChild.getValue()) is None and self.current.leftChild.declaration:
                 """if self.current.rightChild is not Value:
                     self.asT.root.rightChild = EmptyNode(self.current.leftChild.line, self.current)"""
-                self.c_scope.block.getSymbolTable().addSymbol(self.asT.root, self.c_scope.global_)
+                # self.c_scope.block.getSymbolTable().addSymbol(self.asT.root, self.c_scope.global_)
             self.counter += 1
             self.parent = None
             self.current = None
@@ -541,21 +542,20 @@ class CustomListener(ExpressionListener):
             self.asT = create_tree()
             return
 
-        if not isinstance(self.asT.root.leftChild, Pointer):
-            self.c_scope.block.fillLiterals(self.asT)
-        self.asT.foldTree()
-        self.asT.setNodeIds(self.asT.root)
-        self.asT.generateDot(self.pathName + str(self.counter) + ".dot")
-        # self.c_block.trees.append(self.asT)
-        self.asT.foldTree()
-        self.asT.setNodeIds(self.asT.root)
-        self.asT.generateDot(self.pathName + str(self.counter) + ".dot")
+        # if not isinstance(self.asT.root.leftChild, Pointer):
+        #     self.c_scope.block.fillLiterals(self.asT)
+        # self.asT.foldTree()
+        # self.asT.setNodeIds(self.asT.root)
+        # self.asT.generateDot(self.pathName + str(self.counter) + ".dot")
+        # # self.c_block.trees.append(self.asT)
+        # self.asT.foldTree()
+        # self.asT.setNodeIds(self.asT.root)
+        # self.asT.generateDot(self.pathName + str(self.counter) + ".dot")
         pointer = ""
         level = 0
         self.c_scope.block.trees.append(self.asT)
         # if self.current.leftChild.declaration:
-        self.c_scope.block.getSymbolTable().addSymbol(self.asT.root,
-                                                      self.c_scope.global_)  # TODO: make bool depend on current scope
+        # self.c_scope.block.getSymbolTable().addSymbol(self.asT.root, self.c_scope.global_)  # TODO: make bool depend on current scope
         # else:
         #    #TODO: replace value
         #    pass
@@ -665,22 +665,22 @@ class CustomListener(ExpressionListener):
             else:
                 # self.c_block.trees.append(self.asT)
                 # self.c_block.trees.append(self.asT)
-                self.asT.setNodeIds(self.asT.root)
-                self.asT.generateDot(self.pathName + str(self.counter) + ".dot")
-                self.c_block.fillLiterals(self.asT)
-                self.asT.foldTree()
-                self.asT.setNodeIds(self.asT.root)
-                self.asT.generateDot(self.pathName + str(self.counter) + "-noFold.dot")
+                # self.asT.setNodeIds(self.asT.root)
+                # self.asT.generateDot(self.pathName + str(self.counter) + ".dot")
+                # self.c_block.fillLiterals(self.asT)
+                # self.asT.foldTree()
+                # self.asT.setNodeIds(self.asT.root)
+                # self.asT.generateDot(self.pathName + str(self.counter) + "-noFold.dot")
 
                 if self.return_function:
                     self.c_scope.f_return = self.asT
                 elif self.c_scope.f_name != "" and self.c_scope.f_return is not None:
                     return
                 else:
-                    self.c_scope.block.fillLiterals(self.asT)
-                    self.asT.foldTree()
-                    self.asT.setNodeIds(self.asT.root)
-                    self.asT.generateDot(self.pathName + str(self.counter) + ".dot")
+                    # self.c_scope.block.fillLiterals(self.asT)
+                    # self.asT.foldTree()
+                    # self.asT.setNodeIds(self.asT.root)
+                    # self.asT.generateDot(self.pathName + str(self.counter) + ".dot")
                     self.c_scope.block.trees.append(self.asT)
         elif self.return_function:
             self.c_scope.f_return = self.asT
@@ -838,6 +838,10 @@ class CustomListener(ExpressionListener):
         #    self.c_block.parent.trees.append(self.c_scope)
         if self.scope_stack.__len__() > 0:
             n_scope = self.scope_stack.pop()
+            self.asT=create_tree()
+            self.asT.root=n_scope
+            self.c_scope.parent = self.asT
+            self.c_scope.block.setParent(self.asT.root.block)
             ast = create_tree()
             ast.root = self.c_scope
             n_scope.block.trees.append(ast)
@@ -859,6 +863,7 @@ class CustomListener(ExpressionListener):
         self.stop_fold = True
         self.scope_stack.push(self.c_scope.block)
         self.c_scope.block = block(self.scope_stack.peek())
+        self.c_scope.block.setParent(self.scope_stack.peek())
 
     # Exit a parse tree produced by ExpressionParser#lscope.
     def exitLscope(self, ctx: ParserRuleContext):
@@ -955,7 +960,7 @@ class CustomListener(ExpressionListener):
         self.stop_fold = False
         if self.c_scope.f_name == "main":
             return
-        self.c_scope.block.parent = None
+        # self.c_scope.block.parent = None
         # self.program.getFunctionTable().addFunction(self.c_scope)
         if self.scope_stack.__len__() > 0:
             self.c_scope = self.scope_stack.pop()
@@ -1047,7 +1052,7 @@ class CustomListener(ExpressionListener):
         symbol = Declaration(var=val, line=ctx.start.line, parent=None)
         symbol.leftChild = val
         symbol.rightChild = None
-        self.c_scope.block.getSymbolTable().addSymbol(symbol, self.c_scope.global_)
+        # self.c_scope.block.getSymbolTable().addSymbol(symbol, self.c_scope.global_)
         self.is_parameter = True
         self.enterDec(ctx)
 

@@ -113,6 +113,12 @@ class Print(AST_node):
     def getLabel(self):
         return "\"Print: " + self.value + "\""
 
+    def fold(self, to_llvm=None):
+        return self, True # TODO: redo this when the print function is adapted to the final form
+
+    def replaceVariables(self, values):
+        pass # TODO: redo this when the print function is adapted to the final form
+
 
 class Value(AST_node):
     def __init__(self, lit: str, valueType, line: int, parent: AST_node = None, variable: bool = False,
@@ -860,11 +866,11 @@ class Scope(AST_node):  # TODO: let it hold a block instead of trees
             self.block.cleanBlock()
             return [[], True]
         else:
+            self.block.cleanBlock(onlyLocal=True)
             res = []
             for elem in self.block.getVariables():
                 if len(elem) != 0 and elem[0][0] not in self.parameters:
                     res.append(elem[0])
-            self.block.cleanBlock(onlyLocal=True)
             return [res, True]
 
     def replaceVariables(self, values):

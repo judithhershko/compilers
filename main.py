@@ -11,7 +11,7 @@ from src.CustomErrorListener import *
 
 def main():
     try:
-        argv = "input/projecten_123_zonder_main/proj3_man_syntaxErr_commentSingleLine2.c"
+        argv = "input/input.c"
         input_stream = FileStream(argv)
         lexer = ExpressionLexer(input_stream)
         MyError = CustomError()
@@ -27,7 +27,7 @@ def main():
         # result = EvalVisitor().visit(tree)
         walker = ParseTreeWalker()
         walker.walk(printer, tree)
-        #printer.get_program()
+        printer.get_program()
         to_llvm=ToLLVM()
 
         #to_llvm.transverse_block(printer.c_block)

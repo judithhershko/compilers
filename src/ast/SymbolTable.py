@@ -53,11 +53,15 @@ class SymbolTable:
                                    "Level": pd.Series(dtype=int),
                                    "Global": pd.Series(dtype=bool),
                                    "Fillable": pd.Series(dtype=bool)})
+        self.parent = None
 
     def __eq__(self, other):
         if not isinstance(other, SymbolTable):
             return False
         return self.table.equals(other.table)
+
+    def setParent(self, parent):
+        self.parent = parent
 
     def addSymbol(self, root: AST_node, isGlobal: bool, fill: bool = True):
         # TODO: check if x is in upper scope, x = 5 replaces upper scope
@@ -92,7 +96,10 @@ class SymbolTable:
                 raise WrongPointer(line)
             elif name not in self.table.index:
                 if not decl:
-                    raise NotDeclared(name, line)
+                    if self.parent is None:
+                        raise NotDeclared(name, line)
+                    else:
+                        self.parent.findSymbol(root, isGlobal, fill)
                 if ref is None:
                     self.table.loc[name] = [value, symType, const, level, isGlobal, fill]
                     return "placed"
