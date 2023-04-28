@@ -1,13 +1,10 @@
 grammar Expression;
 
 start_rule : (includes)? s_rule ;
-s_rule: (print ';'|expr ';'|dec ';'|comments|line|loop|scope (';')?| function_definition | function_dec| includes)*;
+s_rule: (print ';'|scan ';'|expr ';'|dec ';'|comments|line|loop|scope (';')?| function_definition | function_dec| includes)*;
 
 includes: INCLUDE|INCLUDEH (';')?;
 line:NLINE;
-//print   : PRINT LBRAK (char_pri | pri) RBRAK ;
-//print : PRINT LBRAK (print_input) RBRAK ;
-//(',' print_param)*
 
 print : PRINT '(' format_string (',' pri)* ')';
 scan  : SCAN '(' format_string (',' pri)* ')';
@@ -17,8 +14,8 @@ comments: ML_COMMENT | SL_COMMENT;
 typed_var: INT| DOUBLE | FLOAT |CHAR | BOOL;
 
 scope : '{' rule (return)? rule'}' (';')?;
-rule  : (print ';'|expr ';'|dec ';'|comments|line|loop|scope | function_dec)*;
-lrules: (print ';' |expr ';' |dec ';' |comments |line |loop (';')? |break |continue | lscope | function_dec )*;
+rule  : (print ';'|scan ';' |expr ';'|dec ';'|comments|line|loop|scope | function_dec)*;
+lrules: (print ';' |scan ';' |expr ';' |dec ';' |comments |line |loop (';')? |break |continue | lscope | function_dec )*;
 lscope: '{' lrules '}' ;
 loop  : while | for | if;
 while : WHILE '(' expr ')' lscope;
