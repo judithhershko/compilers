@@ -2,12 +2,13 @@
 
 int f(bool q)
 {
+    int a[20]=90;
     int z=0;
-    printf(z);
+    printf("%c",z);
 
     if (z>=10)
     {
-        printf('a');
+        printf("a text with %i ok!",z);
         z=z+1;
     }
     else {

@@ -5,7 +5,13 @@ s_rule: (print ';'|expr ';'|dec ';'|comments|line|loop|scope (';')?| function_de
 
 includes: INCLUDE|INCLUDEH (';')?;
 line:NLINE;
-print   : PRINT LBRAK (char_pri | pri) RBRAK ;
+//print   : PRINT LBRAK (char_pri | pri) RBRAK ;
+//print : PRINT LBRAK (print_input) RBRAK ;
+//(',' print_param)*
+
+print : PRINT '(' format_string (',' pri)* ')';
+format_string: STRING_LITERAL (',' STRING_LITERAL)*;
+
 comments: ML_COMMENT | SL_COMMENT;
 typed_var: INT| DOUBLE | FLOAT |CHAR | BOOL;
 
@@ -110,6 +116,8 @@ END_COMMENT:'**/' ;
 ML_COMMENT:  '/*' .* '*/';
 SL_COMMENT:  '//' ~('\r' | '\n')*;
 
+STRING_LITERAL: '"' (ESC_SEQ |~('%'|'"'|'\n'|'\r'))* '"';
+fragment ESC_SEQ: '%' ('d'|'i'|'s'|'c');
 NLINE: '\n';
 //NLINE:';' .*? '\n' ;
 //NLINE:';' .*? '\n' -> skip;

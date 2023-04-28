@@ -822,6 +822,7 @@ class CustomListener(ExpressionListener):
         #    self.c_block.parent.trees.append(self.c_scope)
         if self.scope_stack.__len__() > 0:
             n_scope = self.scope_stack.pop()
+            self.c_scope.parent=n_scope
             ast = create_tree()
             ast.root = self.c_scope
             n_scope.block.trees.append(ast)
