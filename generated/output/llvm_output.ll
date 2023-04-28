@@ -1,5 +1,6 @@
 declare i32 @printf(ptr noundef, ...) #1
 @.str = private unnamed_addr constant [3x i8] c"z\0A\00", align 1
+@.str.1 = private unnamed_addr constant [3x i8] c"z\0A\00", align 1
 ; Function Attrs: noinline nounwind optnone ssp uwtable(sync)
 define i32 @f() #0 { 
 ;  int a[20];
@@ -14,22 +15,24 @@ define i32 @f() #0 {
 %3 = call i32 (ptr, ...) @printf(ptr noundef @.str)
 br label %4
 4 :
-br i1 %4, label %5, label %7
+br i1 %4, label %5, label %8
 5 :
-%6 = load i32, ptr %2, align 4
-%7 = add nsw i32 %6, 1
+; printf (z)
+%6 = call i32 (ptr, ...) @printf(ptr noundef @.str.1)
+%7 = load i32, ptr %2, align 4
+%8 = add nsw i32 %7, 1
 br label %4, !llvm.loop !5
-8 :
-br label %9
 9 :
-br i1 %9, label %10, label %12
+br label %10
 10 :
-%11 = load i32, ptr %7, align 4
-%12 = add nsw i32 %11, 2
-br label %9, !llvm.loop !5
-13 :
- %15 = load ptr, ptr %14, align 4
-ret i32 %15}
+br i1 %10, label %11, label %13
+11 :
+%12 = load i32, ptr %8, align 4
+%13 = add nsw i32 %12, 2
+br label %10, !llvm.loop !5
+14 :
+ %16 = load ptr, ptr %15, align 4
+ret i32 %16}
 ; Function Attrs: noinline nounwind optnone ssp uwtable(sync)
 define i32 @main(i32 noundef %0,i32 noundef %1) #0 { 
 %3 = alloca i32, align 4
