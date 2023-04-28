@@ -1,3 +1,5 @@
+#include <stdio.h>
+
 int f(bool q)
 {
     int z=0;

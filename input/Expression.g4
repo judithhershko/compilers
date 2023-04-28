@@ -1,7 +1,9 @@
 grammar Expression;
 
-start_rule: (print ';'|expr ';'|dec ';'|comments|line|loop|scope (';')?| function_definition | function_dec)*;
+start_rule : (includes)? s_rule ;
+s_rule: (print ';'|expr ';'|dec ';'|comments|line|loop|scope (';')?| function_definition | function_dec| includes)*;
 
+includes: INCLUDE|INCLUDEH (';')?;
 line:NLINE;
 print   : PRINT LBRAK (char_pri | pri) RBRAK ;
 comments: ML_COMMENT | SL_COMMENT;
@@ -69,6 +71,8 @@ REF     : '&'       ;
 PRINT   : 'printf'  ;
 VOID    : 'void'    ;
 RETURN  : 'return'  ;
+INCLUDE : '#include <stdio.h>' ;
+INCLUDEH: '#include "stdio.h"' ;
 
 PT   : '.' ;
 WHILE:'while';
