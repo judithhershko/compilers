@@ -207,7 +207,6 @@ class CustomListener(ExpressionListener):
             self.end_bracket = False
             self.right = True
             self.left = False
-
         else:
             while order_prec[operator.operator] >= order_prec[self.parent.operator] and self.parent.parent is not None:
                 self.parent = self.parent.parent
