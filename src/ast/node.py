@@ -119,7 +119,7 @@ class Print(AST_node):
     def replaceVariables(self, values):
         pass # TODO: redo this when the print function is adapted to the final form
 
-
+# Used to hald a single value/variable, normally a leaf of the AST
 class Value(AST_node):
     def __init__(self, lit: str, valueType, line: int, parent: AST_node = None, variable: bool = False,
                  const: bool = False, decl: bool = False, deref: bool = False):
@@ -131,6 +131,7 @@ class Value(AST_node):
         :param variable: boolean telling if the saved element is a variable or an actual value
         :param const: boolean telling if the saved element is a const (only used when talking about variables)
         :param decl: boolean telling if the saved element is a declaration of the variable
+        :param deref: boolean telling if the variable is proceeded with an &
         """
         self.value = lit
         self.type = valueType
@@ -169,6 +170,10 @@ class Value(AST_node):
         return self.type
 
     def getVariables(self):
+        """
+        returns the variable contained within the node
+        :return:
+        """
         if self.variable:
             return [[(self.value, self.line)], True]
         else:
@@ -178,6 +183,10 @@ class Value(AST_node):
         return self.deref
 
     def replaceVariables(self, values):
+        """
+        replaces the variables in the node with the actual values contained in values
+        :param values: dictionary containing the variable names as keys and the corresponding values as values
+        """
         if len(values) == 0:
             pass
         elif self.variable and values[self.value][3]:
@@ -189,6 +198,7 @@ class Value(AST_node):
 
     def getHigherType(self, node2: AST_node):
         """
+        This function will compare the type of this node with the one of the inputted node
         :param node2: AST_node type containing the other child of the parent node in the AST
         :return: returns the LiteralType with the highest priority (str>char; double>float>int)
         """
@@ -224,6 +234,10 @@ class Value(AST_node):
             raise
 
     def setValueToType(self):
+        """
+        replaces the string representation of the value with the actual value
+        :return:
+        """
         if self.getType() == LiteralType.STR:
             self.value = str(self.value)
         elif self.getType() == LiteralType.INT:
@@ -236,6 +250,7 @@ class Value(AST_node):
             raise
 
 
+# used to hold a binary operator containing the operator and two children with the operand
 class BinaryOperator(AST_node):
     leftChild = None
     rightChild = None
@@ -337,6 +352,10 @@ class BinaryOperator(AST_node):
             raise
 
     def getVariables(self):
+        """
+        returns the variable contained within the node
+        :return:
+        """
         res = self.leftChild.getVariables()
         right = self.rightChild.getVariables()
         res[0].extend(right[0])
@@ -345,10 +364,15 @@ class BinaryOperator(AST_node):
         return res
 
     def replaceVariables(self, values):
+        """
+        replaces the variables in the node with the actual values contained in values
+        :param values: dictionary containing the variable names as keys and the corresponding values as values
+        """
         self.leftChild.replaceVariables(values)
         self.rightChild.replaceVariables(values)
 
 
+# Used to hold a unary operator with its operator and the operand in the right child
 class UnaryOperator(AST_node):
     rightChild = None
 
@@ -428,12 +452,21 @@ class UnaryOperator(AST_node):
             raise
 
     def getVariables(self):
+        """
+        returns the variable contained within the node
+        :return:
+        """
         return self.rightChild.getVariables()
 
     def replaceVariables(self, values):
+        """
+        replaces the variables in the node with the actual values contained in values
+        :param values: dictionary containing the variable names as keys and the corresponding values as values
+        """
         self.rightChild.replaceVariables(values)
 
 
+# Used for logical operators with the corresponding operator and the children holding the operators
 class LogicalOperator(AST_node):
     leftChild = None
     rightChild = None
@@ -543,6 +576,10 @@ class LogicalOperator(AST_node):
             raise
 
     def getVariables(self):
+        """
+        returns the variable contained within the node
+        :return:
+        """
         res = self.leftChild.getVariables()
         right = self.rightChild.getVariables()
         res[0].extend(right[0])
@@ -551,10 +588,15 @@ class LogicalOperator(AST_node):
         return res
 
     def replaceVariables(self, values):
+        """
+        replaces the variables in the node with the actual values contained in values
+        :param values: dictionary containing the variable names as keys and the corresponding values as values
+        """
         self.leftChild.replaceVariables(values)
         self.rightChild.replaceVariables(values)
 
-
+# Used to hold a (re)declaration of a variable, the left child holds the variable and the left child the value/operation
+# that needs to be placed in the variable
 class Declaration(AST_node):
     leftChild = None
     rightChild = None
@@ -632,12 +674,27 @@ class Declaration(AST_node):
             raise
 
     def getVariables(self):
-        return self.rightChild.getVariables()
+        """
+        returns the variable contained within the node
+        :return:
+        """
+        values = self.rightChild.getVariables()
+        if not self.leftChild.declaration:
+            temp = self.leftChild.getVariables()
+            values[0].append(temp[0][0])
+        return values
 
     def replaceVariables(self, values):
+        """
+        replaces the variables in the node with the actual values contained in values
+        :param values: dictionary containing the variable names as keys and the corresponding values as values
+        """
+        if not self.leftChild.declaration:
+            self.leftChild.type = values[self.leftChild.value][1]
         self.rightChild.replaceVariables(values)
 
 
+# Used to hold pointeres
 class Pointer(AST_node):
     def __init__(self, value: str, valueType: LiteralType, line: int, level: int, parent: AST_node = None,
                  const: bool = False, decl: bool = False):
@@ -725,9 +782,17 @@ class Pointer(AST_node):
         self.declaration = decl
 
     def getVariables(self):
+        """
+        returns the variable contained within the node
+        :return:
+        """
         return [[(self.value, self.line)], True]
 
     def replaceVariables(self, values):
+        """
+        replaces the variables in the node with the actual values contained in values
+        :param values: dictionary containing the variable names as keys and the corresponding values as values
+        """
         if self.variable and values[self.value][3]:
             self.value = values[self.value]
             self.variable = False
@@ -766,8 +831,14 @@ class Pointer(AST_node):
             raise
 
 
+# Used for empty nodes in the AST if necessary
 class EmptyNode(AST_node):
     def __init__(self, line: int, parent: AST_node = None, type_=None):
+        """
+        :param line: int, the line on which this node was formed
+        :param parent: AST_node, the parent node of this node
+        :param type_: LiteralType, the type of the values
+        """
         self.value = None
         self.type = type_
         self.parent = parent
@@ -799,15 +870,29 @@ class EmptyNode(AST_node):
         return self.type
 
     def getVariables(self):
+        """
+        returns the variable contained within the node
+        :return:
+        """
         return [[], True]
 
 
-# unnamed scopes gebruik scope node
+# Used to hold unnamed scopes or function definitions
 class Scope(AST_node):  # TODO: let it hold a block instead of trees
     block = None
 
     # TODO: check if block in Scope is cleaned -> same with while3
     def __init__(self, line: int, parent: AST_node = None):
+        """
+        :param line: the line on which the scope/function was formed
+        :param parent: the parent node of this node
+        :param f_name: str, the name of the function (left as "" when it is an unnamed scope)
+        :param f_return: AST_node, the return node of the function
+        :param return_type: LiteralType, the type of the return value
+        :param global_: bool, tells if it is a global varialbe or not
+        :param parameters: sortedDict, the input parameters of the functions,
+                            with the names as keys and Value nodes as values
+        """
         self.parent = parent
         self.line = line
         self.f_name = ""
@@ -832,6 +917,10 @@ class Scope(AST_node):  # TODO: let it hold a block instead of trees
         self.block = scope
 
     def setReturnType(self, type):
+        """
+        sets the return type as a LiteralType based on the inputted string
+        :param type: str, type of the return of the function
+        """
         if type == "int":
             self.return_type = LiteralType.INT
         elif type == "float":
@@ -842,9 +931,14 @@ class Scope(AST_node):  # TODO: let it hold a block instead of trees
             self.return_type = LiteralType.CHAR
 
     def addParameter(self, val):
-        # val is ofwel een pointer, ofwel een value en zit in param[]
+        """
+        add an input variable to the function
+        :param val: Value node, input variable of the function
+        """
         if val.getValue() not in self.parameters.keys():
             self.parameters[val.getValue()] = val
+        else:
+            pass # TODO: add error with duplicate inputs
 
     def addTree(self, ast: AST_node):
         self.block.addTree(ast)
@@ -856,12 +950,19 @@ class Scope(AST_node):  # TODO: let it hold a block instead of trees
             return "\"Function: " + self.f_name + "\""
 
     def fold(self, to_llvm=None):
+        """
+        'folds' the node and gives true with a nameless scope and false with a function
+        """
         if self.f_name == "":
             return self, True
         else:
             return self, False
 
     def getVariables(self):
+        """
+        returns the variable contained within the node
+        :return:
+        """
         if self.f_name == "":
             self.block.cleanBlock()
             return [[], True]
@@ -874,9 +975,14 @@ class Scope(AST_node):  # TODO: let it hold a block instead of trees
             return [res, True]
 
     def replaceVariables(self, values):
+        """
+        replaces the variables in the node with the actual values contained in values
+        :param values: dictionary containing the variable names as keys and the corresponding values as values
+        """
         pass
 
 
+# Used to hold the for loops TODO: is this used?
 class For(AST_node):
     f_dec = None
     Condition = None
@@ -888,6 +994,7 @@ class For(AST_node):
         self.name = "for"
 
 
+# Used to hold if/elif/else nodes with the corresponding conditions and bodies
 class If(AST_node):
     Condition = None
     c_block = None
@@ -900,6 +1007,13 @@ class If(AST_node):
     """
 
     def __init__(self, line, operator: ConditionType = ConditionType.IF, parent=None):
+        """
+        :param line: int, line on which the condition was generated
+        :param operator: ConditionType, tells if it is an IF, ELIF or ELSE condition
+        :param parent: AST_node, the parent of the current node
+        :param Condition: AST_node, the condition to check if the if needs to be performed
+        :param c_block: block, contains the body of the if
+        """
         self.line = line
         self.operator = operator
         self.parent = parent
@@ -928,6 +1042,11 @@ class If(AST_node):
         return "\"" + self.operator.__str__() + "\""
 
     def fold(self, to_llvm=None):
+        """
+        'folds' the if condition as much as possible
+        :param to_llvm:
+        :return:
+        """
         res = None
         if self.operator != ConditionType.ELSE:
             res = self.Condition.fold(to_llvm)
@@ -937,6 +1056,10 @@ class If(AST_node):
         return self, True
 
     def getVariables(self):
+        """
+        returns the variable contained within the node
+        :return:
+        """
         res = None
         if self.operator != ConditionType.ELSE:
             res = self.Condition.getVariables()
@@ -947,23 +1070,30 @@ class If(AST_node):
             return res
 
     def replaceVariables(self, values):
+        """
+        replaces the variables in the node with the actual values contained in values
+        :param values: dictionary containing the variable names as keys and the corresponding values as values
+        """
         if self.operator != ConditionType.ELSE:
             self.Condition.replaceVariables(values)
             # self.c_block.fillBlock()
 
 
+# Used to indicate a break TODO: stop generation of tree in the body
 class Break(AST_node):
     def __init__(self, line):
         self.line = line
         self.name = "break"
 
 
+# Used to indicate a continue in the code
 class Continue(AST_node):
     def __init__(self, line):
         self.line = line
         self.name = "cont"
 
 
+# Used to hold a while loop
 class While(AST_node):
     Condition = None
     c_block = None
@@ -973,6 +1103,12 @@ class While(AST_node):
     """
 
     def __init__(self, line, parent=None):
+        """
+        :param line: int, line on which the while loop was initiated
+        :param parent: AST_node, the parent node of the current node
+        :param Condtion: AST_node, the condition based on which the while loop needs to be excecuted
+        :param c_block: block, the body of the while loop
+        """
         self.line = line
         self.parent = parent
         self.name = "while"
@@ -1015,6 +1151,10 @@ class While(AST_node):
         return self, False
 
     def getVariables(self):
+        """
+        returns the variable contained within the node
+        :return:
+        """
         res = self.Condition.getVariables()[0]
         self.Condition.fold()
         for elem in self.c_block.getVariables()[0]:
@@ -1023,6 +1163,10 @@ class While(AST_node):
         return [res, False]
 
     def replaceVariables(self, values):
+        """
+        replaces the variables in the node with the actual values contained in values
+        :param values: dictionary containing the variable names as keys and the corresponding values as values
+        """
         pass
 
 
@@ -1032,9 +1176,19 @@ int i= functie(0)
 """
 
 
+# Used to hold function calls within the AST
 class Function(AST_node):
 
     def __init__(self, f_name, line, parent=None, decl=False):
+        """
+        :param f_name: str, the name of the function
+        :param line: int, the line on which the function was called
+        :param parent: AST_node, the parent node of the current node
+        :param decl: ???
+        :param param: a list of Value nodes containing the input variables
+        :param counter: int, keeps track of the number of variables that is inputted
+        :param expected: orderedDict, tells which type the input variables should have
+        """
         self.line = line
         self.parent = parent
         self.param = []
@@ -1051,6 +1205,7 @@ class Function(AST_node):
                self.decl == other.decl
 
     def addParameter(self, var, scope, line):
+        # TODO: check type of input parameter and amount of added input parameters
         # TODO: dit moet anders --> als value/pointer/ref wordt doorgegeven
         # var= &x, *x, 21,
         # ]\\\\\\\
@@ -1088,19 +1243,37 @@ class Function(AST_node):
         return self, False
 
     def getVariables(self):  # TODO: for now no filling of variables because this can run multiple times
+        """
+        returns the variable contained within the node
+        :return:
+        """
         params = []
         for param in self.param:
             params.append(param.value)
         return [params, True]
 
     def replaceVariables(self, values):  # TODO: possible to get from listener if it is a variable or not???
+        """
+        replaces the variables in the node with the actual values contained in values
+        :param values: dictionary containing the variable names as keys and the corresponding values as values
+        """
         for var in self.param:
             var.variable = True
             var.replaceVariables(values)
 
 
+# Used to set initialisation or call of arrays
 class Array(AST_node):
     def __init__(self, value: str, pos: int, valueType: LiteralType, line: int, init: bool = False, parent=None):
+        """
+        :param value: str, the name of the array
+        :param pos: int, the length of the array when initialization or the position of the called value
+        :param valueType: LiteralType, the type of values in the array
+        :param line: int, the line on which the array was initialized
+        :param init: bool, tells if it is an initialization of the array
+        :param parent: AST_node, the parent node of the current node
+        :param isValue: bool, tells if the array contains an actual value or a variable
+        """
         self.value = value
         self.pos = pos
         self.type = valueType
@@ -1132,11 +1305,19 @@ class Array(AST_node):
             return "\"array: " + str(self.value) + "\nposition: " + str(self.pos) + "\""
 
     def getVariables(self):
+        """
+        returns the variable contained within the node
+        :return:
+        """
         if self.init:
             return [[], True]
         return [[(str(self.pos) + str(self.value), self.line)], True]
 
     def replaceVariables(self, values):
+        """
+        replaces the variables in the node with the actual values contained in values
+        :param values: dictionary containing the variable names as keys and the corresponding values as values
+        """
         name = str(self.pos) + str(self.value)
         if values[name][3]:
             self.type = values[name][1]

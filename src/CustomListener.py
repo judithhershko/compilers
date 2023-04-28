@@ -873,7 +873,7 @@ class CustomListener(ExpressionListener):
             sblock = self.scope_stack.pop()
             sblock.trees.append(self.loop.f_dec)
             wloop = While(self.loop.line, self.loop.parent)
-            wloop.Condition = self.loop.Condition
+            wloop.Condition = self.loop.Condition.root # TODO: check if this is right -> AST changed to node
             self.c_scope.block.trees.append(self.loop.f_incr)
             wloop.c_block = self.c_scope.block
             ast = create_tree()

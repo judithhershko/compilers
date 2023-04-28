@@ -99,7 +99,7 @@ class SymbolTable:
                     if self.parent is None:
                         raise NotDeclared(name, line)
                     else:
-                        self.parent.findSymbol(root, isGlobal, fill)
+                        self.parent.addSymbol(root, isGlobal, fill)
                 if ref is None:
                     self.table.loc[name] = [value, symType, const, level, isGlobal, fill]
                     return "placed"
