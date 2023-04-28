@@ -10,6 +10,7 @@ line:NLINE;
 //(',' print_param)*
 
 print : PRINT '(' format_string (',' pri)* ')';
+scan  : SCAN '(' format_string (',' pri)* ')';
 format_string: STRING_LITERAL (',' STRING_LITERAL)*;
 
 comments: ML_COMMENT | SL_COMMENT;
@@ -75,6 +76,7 @@ BOOL    : 'bool'    ;
 CONST   : 'const'   ;
 REF     : '&'       ;
 PRINT   : 'printf'  ;
+SCAN    : 'scanf'   ;
 VOID    : 'void'    ;
 RETURN  : 'return'  ;
 INCLUDE : '#include <stdio.h>' ;
