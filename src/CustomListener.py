@@ -101,7 +101,6 @@ class CustomListener(ExpressionListener):
 
     def has_children(self, ctx: ParserRuleContext):
         return ctx.getChildCount() > 1
-
     def set_print(self, ctx: ParserRuleContext, type_):
         if type_ == LiteralType.INT:
 
