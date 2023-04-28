@@ -634,13 +634,14 @@ class CustomListener(ExpressionListener):
             self.parent = None
         """
         # (isinstance(self.loop, While) and self.loop.c_block is None and self.expr_layer==2)
-        if self.declaration is False and isinstance(self.loop,
-                                                    For) and self.expr_layer == 0 and self.loop.Condition is None and self.loop.f_dec is not None:
-            self.asT = create_tree()
-            self.asT.setRoot(self.parent)
-            self.loop.Condition = self.asT
-        elif not self.declaration and isinstance(self.loop,
-                                                 For) and self.expr_layer == 0 and self.loop.Condition is not None and self.loop.f_dec is not None and self.loop.f_incr is None:
+        if self.declaration is False and isinstance(self.loop, For) and \
+                self.expr_layer == 0 and self.loop.Condition is None and self.loop.f_dec is not None:
+            # self.asT = create_tree()
+            # self.asT.setRoot(self.parent)
+            # self.loop.Condition = self.asT
+            self.loop.Condition = self.parent # TODO: check if this still works: set Condition to node instead of ast
+        elif not self.declaration and isinstance(self.loop, For) and self.expr_layer == 0 and \
+                self.loop.Condition is not None and self.loop.f_dec is not None and self.loop.f_incr is None:
             self.loop.f_incr = self.parent
         elif not self.declaration and self.expr_layer == 0:
             if isinstance(self.current.parent, BinaryOperator) and self.current.parent.operator == "":
@@ -649,9 +650,11 @@ class CustomListener(ExpressionListener):
                     self.parent = None
                 elif isinstance(self.parent,BinaryOperator) or isinstance(self.parent,LogicalOperator):
                     self.current.parent=self.parent
-                    if self.parent.leftChild is not None and isinstance(self.parent.leftChild,BinaryOperator) and self.parent.leftChild.operator=="":
+                    if self.parent.leftChild is not None and isinstance(self.parent.leftChild,BinaryOperator) and \
+                            self.parent.leftChild.operator=="":
                         self.parent.leftChild=self.current
-                    if self.parent.rightChild is not None and isinstance(self.parent.rightChild,BinaryOperator) and self.parent.rightChild.operator=="":
+                    if self.parent.rightChild is not None and isinstance(self.parent.rightChild,BinaryOperator) and \
+                            self.parent.rightChild.operator=="":
                         self.parent.rightChild=self.current
             self.set_bracket()
             while self.current.parent is not None:
@@ -660,7 +663,7 @@ class CustomListener(ExpressionListener):
                 self.current = self.current.leftChild
             self.asT.setRoot(self.current)
             if self.is_loop and self.loop.Condition is None:
-                self.loop.Condition = self.asT
+                self.loop.Condition = self.asT.root # TODO: check if this still works: set Condition to node instead of ast
                 # print("fill condition")
             else:
                 # self.c_block.trees.append(self.asT)
@@ -987,8 +990,8 @@ class CustomListener(ExpressionListener):
         if self.declaration:
             self.current.parent = self.parent
             if self.parent is not None:
-                if isinstance(self.parent, UnaryOperator) or isinstance(self.parent,
-                                                                        Declaration) or self.parent.rightChild is not None:
+                if isinstance(self.parent, UnaryOperator) or isinstance(self.parent, Declaration) or \
+                        self.parent.rightChild is not None:
                     self.parent.rightChild = self.current
                 else:
                     self.parent.leftChild = self.current

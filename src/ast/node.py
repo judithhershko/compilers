@@ -89,6 +89,12 @@ class Comment(AST_node):
     def getVariables(self):
         return [[], True]
 
+    def replaceVariables(self, values):
+        pass
+
+    def fold(self, to_llvm=None):
+        return self, True
+
 
 class Print(AST_node):
     def __init__(self, lit):
@@ -1049,7 +1055,7 @@ class If(AST_node):
         """
         res = None
         if self.operator != ConditionType.ELSE:
-            res = self.Condition.fold(to_llvm)
+            res = self.Condition.fold(to_llvm) # TODO: if condition seems to hold an AST instead of a node
             self.Condition = res[0]
             return self, res[1]
         # self.c_block = self.c_block.fold(to_llvm)
@@ -1207,6 +1213,7 @@ class Function(AST_node):
     def addParameter(self, var, scope, line):
         # TODO: check type of input parameter and amount of added input parameters
         # TODO: dit moet anders --> als value/pointer/ref wordt doorgegeven
+        # TODO: add parameters to the symbol table of the body
         # var= &x, *x, 21,
         # ]\\\\\\\
         # TODO: check --> verwachte parameter ?
