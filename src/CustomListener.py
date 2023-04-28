@@ -101,20 +101,26 @@ class CustomListener(ExpressionListener):
 
     def has_children(self, ctx: ParserRuleContext):
         return ctx.getChildCount() > 1
-    def set_print(self, ctx: ParserRuleContext, type_):
-        if type_ == LiteralType.INT:
 
+    def set_print(self, ctx: ParserRuleContext, type_):
+        """
+        if type_ == LiteralType.INT:
             self.current = Print(Value(ctx.getText(), LiteralType.INT, ctx.start.line, None))
         elif type_ == LiteralType.FLOAT:
             self.current = Print(Value(ctx.getText(), LiteralType.FLOAT, ctx.start.line, None))
         elif type_ == LiteralType.STR:
             self.current = Print(Value(ctx.getText(), LiteralType.CHAR, ctx.start.line, None))
         else:
-            self.current = Print(Value(ctx.getText(),LiteralType.VAR, ctx.start.line, None))
+            self.current = Print(Value(ctx.getText(), LiteralType.VAR, ctx.start.line, None))
+
         self.asT.root = self.current
         self.c_scope.block.trees.append(self.asT)
         self.current = None
         self.asT = create_tree()
+        """
+        i = Value(ctx.getText(), type_, ctx.start.line)
+        if isinstance(self.current, Print):
+            self.current.addParam(i)
         return
 
     def set_pointer(self, ctx: ParserRuleContext, type_):
@@ -289,10 +295,25 @@ class CustomListener(ExpressionListener):
     # Enter a parse tree produced by ExpressionParser#print.
     def enterPrint(self, ctx: ParserRuleContext):
         self.print = True
+        self.current = Print("")
 
     # Exit a parse tree produced by ExpressionParser#print.
     def exitPrint(self, ctx: ParserRuleContext):
         self.print = False
+        self.asT=create_tree()
+        self.asT.root=self.current
+        self.c_scope.block.trees.append(self.asT)
+        self.asT=create_tree()
+        self.current=None
+
+    # Enter a parse tree produced by ExpressionParser#format_string.
+    def enterFormat_string(self, ctx: ParserRuleContext):
+        if isinstance(self.current, Print):
+            self.current.setParamString(ctx.getText())
+
+    # Exit a parse tree produced by ExpressionParser#format_string.
+    def exitFormat_string(self, ctx: ParserRuleContext):
+        pass
 
     # Enter a parse tree produced by ExpressionParser#typed_var.
     def enterTyped_var(self, ctx: ParserRuleContext):
@@ -822,7 +843,7 @@ class CustomListener(ExpressionListener):
         #    self.c_block.parent.trees.append(self.c_scope)
         if self.scope_stack.__len__() > 0:
             n_scope = self.scope_stack.pop()
-            self.c_scope.parent=n_scope
+            self.c_scope.parent = n_scope
             ast = create_tree()
             ast.root = self.c_scope
             n_scope.block.trees.append(ast)

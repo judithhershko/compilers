@@ -1,5 +1,5 @@
 declare i32 @printf(ptr noundef, ...) #1
-@.str = private unnamed_addr constant [3x i8] c"z\0A\00", align 1
+@.str = private unnamed_addr constant [2x i8] c"\0A\00", align 1
 ; Function Attrs: noinline nounwind optnone ssp uwtable(sync)
 define i32 @f() #0 { 
 ;  int a[20];
@@ -10,7 +10,7 @@ define i32 @f() #0 {
 ;//q=z > z + 1 + 3 || z < z - 1 ;
 
 
-; printf (z)
+; printf ()
 %3 = call i32 (ptr, ...) @printf(ptr noundef @.str)
 br label %4
 4 :
