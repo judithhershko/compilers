@@ -159,7 +159,6 @@ class Print(AST_node):
 
     def setValue(self, val):
         self.value = val
-
     def getLabel(self):
         return "\"Scan: " + self.value + "\""
 
