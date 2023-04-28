@@ -8,7 +8,7 @@ int f(bool q)
 
     if (z>=10)
     {
-        printf("a text with %i ok!",z);
+        printf("a text with %i ok!");
         z=z+1;
     }
     else {

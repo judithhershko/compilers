@@ -95,11 +95,25 @@ class Print(AST_node):
         self.parent = None
         self.value = lit
         self.name = "print"
+        self.input_string = ""
+        self.param = []
+        self.paramString = []
 
     def __eq__(self, other):
         if not isinstance(other, Print):
             return False
         return self.value == other.value
+
+    def setString(self, input: str):
+        self.input_string = input
+        self.setParamString(input)
+
+    def addParam(self, param):
+        self.param.append(param)
+
+    # TODO: set %d,i,s,c type in paramStirg[]
+    def setParamString(self, input: str):
+        pass
 
     def getValue(self):
         return self.value
@@ -112,6 +126,42 @@ class Print(AST_node):
 
     def getLabel(self):
         return "\"Print: " + self.value + "\""
+class Print(AST_node):
+    def __init__(self, lit):
+        self.parent = None
+        self.value = lit
+        self.name = "scan"
+        self.input_string = ""
+        self.param = []
+        self.paramString = []
+
+    def __eq__(self, other):
+        if not isinstance(other, Print):
+            return False
+        return self.value == other.value
+
+    def setString(self, input: str):
+        self.input_string = input
+        self.setParamString(input)
+
+    def addParam(self, param):
+        self.param.append(param)
+
+    # TODO: set %d,i,s,c type in paramStirg[]
+    def setParamString(self, input: str):
+        pass
+
+    def getValue(self):
+        return self.value
+
+    def getVariables(self):
+        return self.value.getVariables()
+
+    def setValue(self, val):
+        self.value = val
+
+    def getLabel(self):
+        return "\"Scan: " + self.value + "\""
 
 
 class Value(AST_node):
@@ -245,9 +295,9 @@ class BinaryOperator(AST_node):
         if not isinstance(other, BinaryOperator):
             return False
         return self.operator == other.operator and self.leftChild == other.leftChild and \
-               self.rightChild == other.rightChild and self.parent == other.parent and \
-               self.variable == other.variable and self.level == other.level and \
-               self.number == other.number and self.line == other.line
+            self.rightChild == other.rightChild and self.parent == other.parent and \
+            self.variable == other.variable and self.level == other.level and \
+            self.number == other.number and self.line == other.line
 
     def getValue(self):
         return self.operator
@@ -358,8 +408,8 @@ class UnaryOperator(AST_node):
         if not isinstance(other, UnaryOperator):
             return False
         return self.operator == other.operator and self.rightChild == other.rightChild and self.parent == other.parent \
-               and self.variable == other.variable and self.level == other.level and \
-               self.number == other.number and self.line == other.line
+            and self.variable == other.variable and self.level == other.level and \
+            self.number == other.number and self.line == other.line
 
     def getValue(self):
         return self.operator
@@ -443,9 +493,9 @@ class LogicalOperator(AST_node):
         if not isinstance(other, LogicalOperator):
             return False
         return self.operator == other.operator and self.leftChild == other.leftChild and \
-               self.rightChild == other.rightChild and self.parent == other.parent and \
-               self.variable == other.variable and self.level == other.level and \
-               self.number == other.number and self.line == other.line
+            self.rightChild == other.rightChild and self.parent == other.parent and \
+            self.variable == other.variable and self.level == other.level and \
+            self.number == other.number and self.line == other.line
 
     def getValue(self):
         return self.operator
@@ -562,8 +612,8 @@ class Declaration(AST_node):
         if not isinstance(other, LogicalOperator):
             return False
         return self.leftChild == other.leftChild and self.rightChild == other.rightChild and \
-               self.parent == other.parent and self.variable == other.variable and self.level == other.level and \
-               self.number == other.number and self.line == other.line
+            self.parent == other.parent and self.variable == other.variable and self.level == other.level and \
+            self.number == other.number and self.line == other.line
 
     def getLabel(self):
         return "\"Declaration: " + self.operator + "\""
@@ -650,8 +700,8 @@ class Pointer(AST_node):
         if not isinstance(other, Pointer):
             return False
         return self.value == other.value and self.type == other.type and self.parent == other.parent and \
-               self.variable == other.variable and self.pointerLevel == other.pointerLevel and \
-               self.const == other.const and self.number == other.number and self.line == other.line
+            self.variable == other.variable and self.pointerLevel == other.pointerLevel and \
+            self.const == other.const and self.number == other.number and self.line == other.line
 
     def getValue(self):
         return self.value
@@ -791,6 +841,7 @@ class EmptyNode(AST_node):
 # unnamed scopes gebruik scope node
 class Scope(AST_node):  # TODO: let it hold a block instead of trees
     block = None
+
     # TODO: check if block in Scope is cleaned -> same with while3
     def __init__(self, line: int, parent: AST_node = None):
         self.parent = parent
@@ -810,8 +861,8 @@ class Scope(AST_node):  # TODO: let it hold a block instead of trees
         if self.block is not None:
             same = self.block == other.block
         return self.parent == other.parent and self.line == other.line and same and self.f_name == other.f_name and \
-               self.f_return == other.f_return and self.return_type == other.return_type and \
-               self.parameters == other.parameters
+            self.f_return == other.f_return and self.return_type == other.return_type and \
+            self.parameters == other.parameters
 
     def setBlock(self, scope: block):
         self.block = scope
@@ -894,7 +945,7 @@ class If(AST_node):
         if not isinstance(other, If):
             return False
         return self.operator == other.operator and self.line == other.line and self.Condition == other.Condition and \
-               self.c_block == other.c_block
+            self.c_block == other.c_block
 
     def setCondition(self, con: AST_node):
         try:
@@ -985,7 +1036,7 @@ class While(AST_node):
         if not isinstance(other, If):
             return False
         return self.operator == other.operator and self.line == other.line and self.Condition == other.Condition and \
-               self.c_block == other.c_block
+            self.c_block == other.c_block
 
     def setCondition(self, con: AST_node):
         self.Condition = con
@@ -1026,20 +1077,20 @@ class Function(AST_node):
         self.f_name = f_name
         self.decl = decl
         self.name = "function"
-        self.counter = 0 #  TODO: use this to check which variable is being read
+        self.counter = 0  # TODO: use this to check which variable is being read
         self.expected = None
 
     def __eq__(self, other):
         if not isinstance(other, Function):
             return False
         return self.line == other.line and self.param == other.param and self.f_name == other.f_name and \
-               self.decl == other.decl
+            self.decl == other.decl
 
     def addParameter(self, var, scope, line):
         # TODO: dit moet anders --> als value/pointer/ref wordt doorgegeven
         # var= &x, *x, 21,
         # ]\\\\\\\
-        #TODO: check --> verwachte parameter ?
+        # TODO: check --> verwachte parameter ?
         # self.param.append(var) # TODO: variable comes in as string -> look up in Symbtable -> check type -> make Value/Pointer node
         # if self.expected is None:
         #     self.setExpected(scope.functions.findFunction(self.name))
@@ -1056,7 +1107,7 @@ class Function(AST_node):
         #     if exp == given:
         val = Value(var, None, line)
         self.param.append(val)
-                # self.counter += 1
+        # self.counter += 1
         #     else:
         #         raise TypeDeclaration(var, exp, given, line)
         #
@@ -1085,7 +1136,7 @@ class Function(AST_node):
 
 
 class Array(AST_node):
-    def __init__(self, value: str, pos: int, valueType: LiteralType, line: int, init: bool = False, parent = None):
+    def __init__(self, value: str, pos: int, valueType: LiteralType, line: int, init: bool = False, parent=None):
         self.value = value
         self.pos = pos
         self.type = valueType
@@ -1097,7 +1148,7 @@ class Array(AST_node):
 
     def __eq__(self, other):
         return self.value == other.value and self.pos == other.pos and self.type == other.type and \
-               self.line == other.line and self.init == other.init
+            self.line == other.line and self.init == other.init
 
     def getType(self):
         return self.type
@@ -1119,7 +1170,7 @@ class Array(AST_node):
     def getVariables(self):
         if self.init:
             return [[], True]
-        return [[(str(self.pos)+str(self.value), self.line)], True]
+        return [[(str(self.pos) + str(self.value), self.line)], True]
 
     def replaceVariables(self, values):
         name = str(self.pos) + str(self.value)
