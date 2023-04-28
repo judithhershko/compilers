@@ -11,10 +11,15 @@ import string
 # TODO :nieuwe block aanmaken--> parent block meegeven aan nieuwe block.             --> ok
 class CustomListener(ExpressionListener):
     def __init__(self, pathName):
+
         self.is_ref = False
         self.is_loop = False
         self.is_char = False
         self.is_parameter = False
+        self.is_print = False
+        self.is_scan = False
+        self.is_array = False
+
         self.stop_fold = False
         self.start_rule = None
         self.asT = create_tree()
@@ -26,8 +31,6 @@ class CustomListener(ExpressionListener):
         self.dec_op = None
         self.counter = 0
         self.program = program()
-        self.print = False
-        self.scan = False
         self.expr_layer = 0
         self.bracket_stack = stack()
         self.bracket_layer = stack()
@@ -136,7 +139,7 @@ class CustomListener(ExpressionListener):
         # print("set val:" + ctx.getText())
         type_ = find_value_type(ctx.getText())
         v = ctx.getText()
-        if self.print or self.scan:
+        if self.is_print or self.is_scan:
             return self.set_print(ctx, type_)
         if self.pointer:
             return self.set_pointer(ctx, type_)
@@ -155,7 +158,7 @@ class CustomListener(ExpressionListener):
             if len(ctx.getText()) > 3:
                 raise CharSize(ctx.getText(), ctx.start.line)
 
-        if self.print:
+        if self.is_print:
             val = self.current.getValue()
             if self.current.type == LiteralType.VAR:
                 val = self.c_scope.block.getSymbolTable().findSymbol(self.current.getValue())
@@ -282,6 +285,8 @@ class CustomListener(ExpressionListener):
         self.c_scope.global_ = True
         self.c_scope.block = block(None)
         self.c_scope.block.name = "program"
+        self.c_scope.block.setParent(self.program)
+
         self.program.tree = self.c_scope
 
     # Exit a parse tree produced by ExpressionParser#start_rule.
@@ -290,17 +295,19 @@ class CustomListener(ExpressionListener):
         if self.c_scope.global_:
             # self.c_scope.block = self.c_block
             self.program.tree = self.c_scope
+            self.program.tree.block.setParent(self.program)
+        return
         # self.program.blocks = self.c_block
         # self.c_block = block(None)
 
     # Enter a parse tree produced by ExpressionParser#print.
     def enterPrint(self, ctx: ParserRuleContext):
-        self.print = True
+        self.is_print = True
         self.current = Print("")
 
     # Exit a parse tree produced by ExpressionParser#print.
     def exitPrint(self, ctx: ParserRuleContext):
-        self.print = False
+        self.is_print = False
         self.asT = create_tree()
         self.asT.root = self.current
         self.c_scope.block.trees.append(self.asT)
@@ -318,12 +325,12 @@ class CustomListener(ExpressionListener):
 
     # Enter a parse tree produced by ExpressionParser#scan.
     def enterScan(self, ctx: ParserRuleContext):
-        self.scan = True
+        self.is_scan = True
         self.current = Scan("")
 
     # Exit a parse tree produced by ExpressionParser#scan.
     def exitScan(self, ctx: ParserRuleContext):
-        self.scan = False
+        self.is_scan = False
 
     # Enter a parse tree produced by ExpressionParser#typed_var.
     def enterTyped_var(self, ctx: ParserRuleContext):
@@ -838,7 +845,9 @@ class CustomListener(ExpressionListener):
         # self.c_scope.block = self.c_block
         self.scope_stack.push(self.c_scope)
         self.c_scope = Scope(ctx.start.line, self.scope_stack.peek())
-        self.c_scope.block = block(self.scope_stack.peek().block)
+        self.c_scope.block = block(None)
+        self.c_scope.block.setParent(self.scope_stack.peek().block)
+
         self.asT = create_tree()
 
     # Exit a parse tree produced by ExpressionParser#scope.
@@ -854,6 +863,7 @@ class CustomListener(ExpressionListener):
         if self.scope_stack.__len__() > 0:
             n_scope = self.scope_stack.pop()
             self.c_scope.parent = n_scope
+            self.c_scope.block.setParent(n_scope.block)
             ast = create_tree()
             ast.root = self.c_scope
             n_scope.block.trees.append(ast)
@@ -875,6 +885,7 @@ class CustomListener(ExpressionListener):
         self.stop_fold = True
         self.scope_stack.push(self.c_scope.block)
         self.c_scope.block = block(self.scope_stack.peek())
+        self.c_scope.block.setParent(self.scope_stack.peek())
 
     # Exit a parse tree produced by ExpressionParser#lscope.
     def exitLscope(self, ctx: ParserRuleContext):
@@ -971,7 +982,7 @@ class CustomListener(ExpressionListener):
         self.stop_fold = False
         if self.c_scope.f_name == "main":
             return
-        self.c_scope.block.parent = None
+#        self.c_scope.block.setParent(self.c_scope.parent.block)
         # self.program.getFunctionTable().addFunction(self.c_scope)
         if self.scope_stack.__len__() > 0:
             self.c_scope = self.scope_stack.pop()
@@ -1073,6 +1084,34 @@ class CustomListener(ExpressionListener):
         self.exitDec(ctx)
         self.is_parameter = False
         #
+
+    # Enter a parse tree produced by ExpressionParser#array.
+    def enterArray(self, ctx: ParserRuleContext):
+        self.is_array = True
+
+        if self.declaration:
+            a = Array(getArrayName(ctx.getText()), line=ctx.start.line, pos=getArraySize(ctx.getText()),
+                      parent=self.parent, valueType=self.dec_op.leftChild.getType(),
+                      init=self.dec_op.leftChild.declaration)
+            a.parent = self.dec_op
+            self.dec_op.leftChild = a
+        else:
+            a = Array(getArrayName(ctx.getText()), line=ctx.start.line, pos=getArraySize(ctx.getText()),
+                      parent=self.parent, valueType=LiteralType.VAR, init=False)
+            self.current = a
+        return
+
+    # Exit a parse tree produced by ExpressionParser#array.
+    def exitArray(self, ctx: ParserRuleContext):
+        self.is_array = False
+
+    # Enter a parse tree produced by ExpressionParser#array_content.
+    def enterArray_content(self, ctx: ParserRuleContext):
+        pass
+
+    # Exit a parse tree produced by ExpressionParser#array_content.
+    def exitArray_content(self, ctx: ParserRuleContext):
+        pass
 
     def get_program(self):
         self.program.ast.root = self.program.tree

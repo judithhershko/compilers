@@ -126,6 +126,8 @@ class Print(AST_node):
 
     def getLabel(self):
         return "\"Print: " + self.value + "\""
+
+
 class Scan(AST_node):
     def __init__(self, lit):
         self.parent = None
@@ -159,6 +161,7 @@ class Scan(AST_node):
 
     def setValue(self, val):
         self.value = val
+
     def getLabel(self):
         return "\"Scan: " + self.value + "\""
 
@@ -1135,8 +1138,11 @@ class Function(AST_node):
 
 
 class Array(AST_node):
-    def __init__(self, value: str, pos: int, valueType: LiteralType, line: int, init: bool = False, parent=None):
+    def __init__(self, value: str, pos: int, valueType: LiteralType, line: int, init: bool = False, parent=None,
+                 declaration: bool = False):
         self.value = value
+        # DEZE WORD IN DE LISTENER GESEt
+        self.declaration = declaration
         self.pos = pos
         self.type = valueType
         self.line = line

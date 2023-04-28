@@ -42,7 +42,7 @@ pointer_val: (pointer)+ ID;
 
 array : ID '[' num ']' ;
 array_content : '{' pri (',' pri)* '}';
-dec:(const)? typed_var (pointer)* (ID|array) EQ (pointer_val|ref_ref|char_expr|expr|array_content) |(pointer)* (ID|array) EQ (pointer_val|ref_ref|char_expr|expr)
+dec:(const)? typed_var (pointer)* (ID|array) EQ (pointer_val|ref_ref|char_expr|expr|array_content|array) |(pointer)* (ID|array) EQ (pointer_val|ref_ref|char_expr|expr|array)
 | (const)? typed_var (pointer)* (ID|array);
 
 binop:MIN | PLUS ;
@@ -56,7 +56,7 @@ suffix_op: PP | MM ;
 expr: expr suffix_op | prefix_op expr | expr binop_md expr | expr binop expr | expr comparator expr |  expr equality expr | expr or_and expr  | fac;
 fac : brackets|pri ;
 brackets: LBRAK expr RBRAK;
-pri: function_dec | ID | ('-')?num+ '.' num* | '.' num+ | ('-')?num ;
+pri: function_dec | array |ID | ('-')?num+ '.' num* | '.' num+ | ('-')?num ;
 fnum: num | num+ '.' num* | '.' num+ ;
 num: NUM;
 

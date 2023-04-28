@@ -53,6 +53,7 @@ class SymbolTable:
                                    "Level": pd.Series(dtype=int),
                                    "Global": pd.Series(dtype=bool),
                                    "Fillable": pd.Series(dtype=bool)})
+        self.parent = None
 
     def __eq__(self, other):
         if not isinstance(other, SymbolTable):
@@ -235,3 +236,6 @@ class SymbolTable:
 
     def makeUnfillable(self):
         self.table = self.table.assign(Fillable=False)
+
+    def setParent(self, parent):
+        self.parent = parent

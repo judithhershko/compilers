@@ -28,12 +28,12 @@ def main():
         walker = ParseTreeWalker()
         walker.walk(printer, tree)
         #printer.get_program()
-        to_llvm=ToLLVM()
 
-        #to_llvm.transverse_block(printer.c_block)
+
+        """to_llvm=ToLLVM()
         to_llvm.transverse_program(printer.program)
-        to_llvm.write_to_file("generated/output/llvm_output.ll")
-
+        to_llvm.write_to_file("generated/output/llvm_output.ll")"""
+        return
     except SystemExit:
         sys.exit()
 

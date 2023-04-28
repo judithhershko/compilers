@@ -35,31 +35,37 @@ def getType(txt):
         return LiteralType.CHAR
     else:
         return False
-def remove_type(ptype:LiteralType,v:str):
-    if ptype==LiteralType.INT:
-        v=v[3:]
-    elif ptype==LiteralType.FLOAT:
-        v=v[5:]
-    elif ptype==LiteralType.BOOL:
-        v=v[4:]
-    elif ptype==LiteralType.CHAR:
-        v=v[4:]
-    return v
-def getIftype(var:str):
 
-    if var.__len__()>=6 and var[0:6]=="elseif":
+
+def remove_type(ptype: LiteralType, v: str):
+    if ptype == LiteralType.INT:
+        v = v[3:]
+    elif ptype == LiteralType.FLOAT:
+        v = v[5:]
+    elif ptype == LiteralType.BOOL:
+        v = v[4:]
+    elif ptype == LiteralType.CHAR:
+        v = v[4:]
+    return v
+
+
+def getIftype(var: str):
+    if var.__len__() >= 6 and var[0:6] == "elseif":
         return ConditionType.ELIF
-    elif var.__len__()>=4 and var[0:4]=="else":
+    elif var.__len__() >= 4 and var[0:4] == "else":
         return ConditionType.ELSE
     else:
         return ConditionType.IF
 
-def getFunction(name:str):
+
+def getFunction(name: str):
     result_string = name.split('(')[0]
     return result_string
 
+
 def separate_type_variable(old, type_):
     return old.replace(type_, '')
+
 
 def is_variable(v: str):
     for i in v:
@@ -85,6 +91,18 @@ def find_value_type(v: str):
         return node.LiteralType.INT
     else:
         return node.LiteralType.VAR
+
+
+def getArrayName(text: str):
+    x = text.split("[")
+    return x[0]
+
+
+def getArraySize(text: str):
+    x = text.split("[")
+    x = x[1].split("]")
+    #if x[0]=="+" or x[0]=="-" or
+    return int(x[0])
 
 
 def isFloat(v: str):

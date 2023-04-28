@@ -2,7 +2,6 @@
 
 int f(bool q)
 {
-    int a[20]=90;
     int z=0;
     printf("%c",z);
 
