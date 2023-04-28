@@ -1,18 +1,24 @@
-from .SymbolTable import SymbolTable
+from .SymbolTable import SymbolTable, FunctionTable
 from src.ErrorHandeling.GenerateError import *
 from .block import block
 from .AST import AST
+from .node import Scope
 
 
 class program:
     # TODO: add functions for fold and fill literals as in block
     def __init__(self):
         self.symbols = SymbolTable()
+        self.functions = FunctionTable()
         self.ast = AST()
         self.blocks = []
+        self.block = block(None)
         self.trees = []
+        self.tree = Scope(0)
+        self.tree.global_ = True
         self.level = None
         self.number = None
+        self.name = "program"
 
     def getAst(self):
         return self.ast
@@ -20,8 +26,12 @@ class program:
     def getSymbolTable(self):
         return self.symbols
 
-    def addBlock(self, block: block):
-        self.blocks.append(block)
+    def getFunctionTable(self):
+        return self.functions
+
+    #
+    # def addBlock(self, block: block):
+    #     self.blocks.append(block)
 
     def addTree(self, tree: AST):
         self.trees.append(tree)
@@ -42,7 +52,8 @@ class program:
         """
          This function will try to replace the variables in the AST with the actual values.
          """
-        variables = tree.getVariables()
+        res = tree.getVariables()
+        variables = res[0]
         notFound = []
         values = dict()
         if not variables:
@@ -58,24 +69,36 @@ class program:
                 raise Undeclared(notFound)
             else:
                 tree.replaceVariables(values)
-                return "filled"
+                # return "filled"
 
         except Undeclared:
             raise
 
+        return res[1]
+
     def fold(self):
+        folded = True
         if self.ast.root is not None:
-            self.ast = self.ast.foldTree()
+            temp = self.ast.foldTree()
+            self.ast = temp[0]
+            if not temp[1]:
+                folded = False
         foldedBlocks = []
         foldedTrees = []
         for block in self.blocks:
-            foldedBlocks.append(block.fold())
+            temp = block.fold()
+            foldedBlocks.append(temp[0])
+            if not temp[1]:
+                folded = False
         for tree in self.trees:
-            foldedTrees.append(tree.foldTree())  # TODO: double check if a tree or a node in put in here
+            temp = tree.foldTree()
+            foldedTrees.append(temp[0])  # TODO: double check if a tree or a node in put in here
+            if not temp[1]:
+                folded = False
         self.blocks = foldedBlocks
         self.trees = foldedTrees
 
-        return self
+        return self, folded
 
     def fillBlock(self):  # TODO make more efficient
         if self.ast.root is not None:
@@ -89,11 +112,11 @@ class program:
         nodes = self.getId() + " [label=" + self.getLabel() + "]"
         edges = ""
 
-        for tree in self.trees:
-            edges = edges + "\n" + self.getId() + "--" + tree.root.getId()
-            res = tree.toDot(tree.root)
-            nodes = nodes + res[0]
-            edges = edges + res[1]
+        tree = self.ast
+        edges = edges + "\n" + self.getId() + "--" + tree.root.getId()
+        res = tree.toDot(tree.root)
+        nodes = nodes + res[0]
+        edges = edges + res[1]
 
         output = "graph ast {\n" + nodes + "\n\n" + edges + "\n}"
         file = open(fileName, "w")
@@ -124,3 +147,21 @@ class program:
             number = localBlock.setNodeIds(level + 1, number + 1)
 
         return number
+
+    def makeUnfillable(self):
+        self.symbols.makeUnfillable()
+
+    def cleanProgram(self):
+        if self.ast.root is not None:
+            tree = self.ast
+            all = self.fillLiterals(tree.root)
+            if not all:
+                self.makeUnfillable()
+            fold = tree.foldTree()
+            if fold[1] and (tree.root.name == "declaration" or tree.root.name == "array"):
+                self.symbols.addSymbol(tree.root, True)
+            elif tree.root.name == "declaration" or tree.root.name == "array":
+                none = tree.createUnfilledDeclaration(tree.root)
+                self.symbols.addSymbol(none, True, False)
+            tree.setNodeIds(tree.root)
+            self.generateDot("./generated/output/programAST.dot")

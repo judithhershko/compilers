@@ -21,29 +21,42 @@ def getVariable(ctx):
 
 
 def getType(txt):
-    if len(txt) >= 3 and txt[0:4] == 'int':
+    if len(txt) >= 3 and txt[0:3] == 'int':
         return LiteralType.INT
     elif len(txt) >= 4 and txt[0:5] == 'float':
         return LiteralType.FLOAT
-    elif len(txt) >= 6 and txt[0:7] == 'double':
+    elif len(txt) >= 6 and txt[0:6] == 'double':
         return LiteralType.DOUBLE
-    elif len(txt) >= 6 and txt[0:7] == 'string':
+    elif len(txt) >= 6 and txt[0:6] == 'string':
         return LiteralType.STR
-    elif len(txt) >= 4 and txt[0:5] == 'bool':
+    elif len(txt) >= 4 and txt[0:4] == 'bool':
         return LiteralType.BOOL
-    elif len(txt) >= 4 and txt[0:5] == 'char':
+    elif len(txt) >= 4 and txt[0:4] == 'char':
         return LiteralType.CHAR
     else:
         return False
+def remove_type(ptype:LiteralType,v:str):
+    if ptype==LiteralType.INT:
+        v=v[3:]
+    elif ptype==LiteralType.FLOAT:
+        v=v[5:]
+    elif ptype==LiteralType.BOOL:
+        v=v[4:]
+    elif ptype==LiteralType.CHAR:
+        v=v[4:]
+    return v
 def getIftype(var:str):
 
     if var.__len__()>=6 and var[0:6]=="elseif":
-        return "elseif"
+        return ConditionType.ELIF
     elif var.__len__()>=4 and var[0:4]=="else":
-        return "else"
+        return ConditionType.ELSE
     else:
-        return "if"
+        return ConditionType.IF
 
+def getFunction(name:str):
+    result_string = name.split('(')[0]
+    return result_string
 
 def separate_type_variable(old, type_):
     return old.replace(type_, '')

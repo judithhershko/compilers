@@ -1,14 +1,14 @@
 grammar Expression;
 
-start_rule: ( function_dec |print ';'|expr ';'|dec ';'|comments|line|loop|scope (';')?| function_definition | function_dec)*;
+start_rule: (print ';'|expr ';'|dec ';'|comments|line|loop|scope (';')?| function_definition | function_dec)*;
 
 line:NLINE;
 print   : PRINT LBRAK (char_pri | pri) RBRAK ;
 comments: ML_COMMENT | SL_COMMENT;
 typed_var: INT| DOUBLE | FLOAT |CHAR | BOOL;
 
-scope : '{' rule (return)? '}' (';')?;
-rule  : (print ';'|expr ';'|dec ';'|comments|line|loop|scope| function_dec )*;
+scope : '{' rule (return)? rule'}' (';')?;
+rule  : (print ';'|expr ';'|dec ';'|comments|line|loop|scope | function_dec)*;
 lrules: (print ';' |expr ';' |dec ';' |comments |line |loop |break |continue | lscope | function_dec )*;
 lscope: '{' lrules '}' ;
 loop  : while | for | if;
@@ -18,7 +18,7 @@ if    : IF LBRAK expr RBRAK lscope |  ELSE  lscope | ELSE IF  LBRAK expr RBRAK l
 break : BREAK ';';
 continue: CONTINUE ';';
 
-function_dec: function_name '(' f_variables  (',' f_variables )* ')'';';
+function_dec: function_name '(' f_variables  (',' f_variables )* ')';
 return_type: (CONST)? (INT| DOUBLE | FLOAT |CHAR | BOOL | VOID);
 parameters: (const)? typed_var (pointer)* (ref)? ID ;
 f_variables: ID;
@@ -46,9 +46,9 @@ prefix_op: NOT | PP | MM ;
 suffix_op: PP | MM ;
 
 expr: expr suffix_op | prefix_op expr | expr binop_md expr | expr binop expr | expr comparator expr |  expr equality expr | expr or_and expr  | fac;
-fac : brackets|pri;
+fac : brackets|pri ;
 brackets: LBRAK expr RBRAK;
-pri: ID | ('-' | '+') ? num+ '.' num* |('-' | '+') ? '.' num+ | ('-' | '+') ? num;
+pri: function_dec | ID | ('-' | '+') ? num+ '.' num* |('-' | '+') ? '.' num+ | ('-' | '+') ? num;
 fnum: num | num+ '.' num* | '.' num+ ;
 num: NUM;
 

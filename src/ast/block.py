@@ -7,18 +7,22 @@ class program:
     pass
 
 
+class Declaration:
+    pass
+
+
 class block:
-    def __init__(self, parent, name=""):
+    def __init__(self, parent):
         self.symbols = SymbolTable()
         self.ast = AST()
         self.parent = parent
         self.blocks = []
         self.trees = []
-        self.freturn=AST()
-        self.fname = name
+        self.line = None
         self.id = ''
         self.level = None
         self.number = None
+        self.name = "block"
 
     def __eq__(self, other):
         if not isinstance(other, block):
@@ -31,7 +35,7 @@ class block:
         for j in range(len(self.trees)):
             if self.trees[j] != other.trees[j]:
                 treesTrue = False
-        return self.symbols == other.symbols and self.ast == other.ast and self.fname == other.fname and \
+        return self.symbols == other.symbols and self.ast == other.ast and \
                self.id == other.id and blocksTrue and treesTrue
 
     def getId(self):
@@ -59,14 +63,21 @@ class block:
         return self.ast
 
     def getLabel(self):
-        return "\"new scope: \""
+        return "\"new scope\""
 
-    def fillLiterals(self, tree: AST):
+    def getVariables(self):
+        result = []
+        for tree in self.trees:
+            result.append(tree.getVariables()[0])
+        return result
+
+    def fillLiterals(self, tree: AST, onlyLocal: bool = False):
         """
         This function will try to replace the variables in the AST with the actual values. If it can not find the
         variables in its own symbol table, it will look at the symbol tables of its parents
         """
-        variables = tree.getVariables()
+        res = tree.getVariables()
+        variables = res[0]
         notFound = []
         values = dict()
         for elem in variables:
@@ -77,7 +88,10 @@ class block:
                 notFound.append(elem)
 
         current = self
-        while not isinstance(current, program) and notFound:
+        if onlyLocal:
+            tree.replaceVariables(values)
+            return res[1]
+        while not current.name == "program" and notFound:
             current = current.getParent()
             variables = notFound
             notFound = []
@@ -96,19 +110,31 @@ class block:
         except Undeclared:
             raise
 
-    def fold(self):
+        return res[1]
+
+    def fold(self, llvm=None):
+        folded = True
         if self.ast.root is not None:
-            self.ast = self.ast.foldTree()
+            temp = self.ast.foldTree()
+            self.ast = temp[0]
+            if not temp[1]:
+                folded = False
         foldedBlocks = []
         foldedTrees = []
         for block in self.blocks:
-            foldedBlocks.append(block.fold())
+            temp = block.fold()
+            foldedBlocks.append(temp[0])
+            if not temp[1]:
+                folded = False
         for tree in self.trees:
-            foldedTrees.append(tree.foldTree())  # TODO: double check if a tree or a node in put in here
+            temp = tree.foldTree()
+            foldedTrees.append(temp[0])  # TODO: double check if a tree or a node in put in here
+            if not temp[1]:
+                folded = False
         self.blocks = foldedBlocks
         self.trees = foldedTrees
 
-        return self
+        return self, folded
 
     def fillBlock(self):  # TODO make more efficient
         if self.ast.root is not None:
@@ -135,7 +161,7 @@ class block:
         return output
 
     def toDot(self):  # TODO: check what to do with blocks -> get them in right order with the trees
-        nodes = self.getId() + " [label=" + self.getLabel() + "]"
+        nodes = "\n" + self.getId() + " [label=" + self.getLabel() + "]"
         edges = ""
 
         for tree in self.trees:
@@ -157,3 +183,20 @@ class block:
             number = localBlock.setNodeIds(level + 1, number + 1)
 
         return number
+
+    def makeUnfillable(self):
+        self.symbols.makeUnfillable()
+        if self.parent is not None:
+            self.parent.symbols.makeUnfillable()
+
+    def cleanBlock(self, glob: bool = False, onlyLocal: bool = False):
+        for tree in self.trees:
+            all = self.fillLiterals(tree.root, onlyLocal)
+            if not all:
+                self.makeUnfillable()
+            fold = tree.foldTree()
+            if fold[1] and (tree.root.name == "declaration" or tree.root.name == "array"):
+                self.symbols.addSymbol(tree.root, glob)
+            elif tree.root.name == "declaration" or tree.root.name == "array":
+                none = tree.createUnfilledDeclaration(tree.root)
+                self.symbols.addSymbol(none, glob, False)

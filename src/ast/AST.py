@@ -34,7 +34,12 @@ class AST:
         elif isinstance(nextNode, UnaryOperator):
             number = self.setNodeIds(nextNode.rightChild, level + 1, number + 1)
         elif isinstance(nextNode, Scope):
-            number = nextNode.block.setNodeIds(level, number)
+            if nextNode.f_name != "":
+                for tree in nextNode.parameters:
+                    number = self.setNodeIds(nextNode.parameters[tree], level + 1, number + 1)
+                number = nextNode.block.setNodeIds(level + 1, number + 1)
+            else:
+                number = nextNode.block.setNodeIds(level, number)
         elif isinstance(nextNode, If):
             if nextNode.operator != ConditionType.ELSE:
                 number = self.setNodeIds(nextNode.Condition, level + 1, number + 1)
@@ -43,6 +48,9 @@ class AST:
         elif isinstance(nextNode, While):
             number = self.setNodeIds(nextNode.Condition, level + 1, number + 1)
             number = nextNode.c_block.setNodeIds(level + 1, number + 1)
+        elif isinstance(nextNode, Function):
+            for value in nextNode.param:
+                number = self.setNodeIds(value, level + 1, number + 1)
         # elif isinstance(nextNode, block):
         # number = self.setNodeIds(nextNode.getAst().root, level + 1, number + 1)
         # for tree in nextNode.trees:
@@ -92,6 +100,13 @@ class AST:
             nodes = nodes + res[0]
             edges = edges + res[1]
         elif isinstance(self.root, Scope):
+            # if self.root.f_name != "":
+            #     params = self.root.parameters
+            #     for param in self.root.parameters:
+            #         edges = edges + "\n" + self.getId() + "--" + tree.root.getId()
+            #         res = tree.toDot(tree.root)
+            #         nodes = nodes + res[0]
+            #         edges = edges + res[1]
             res = self.root.block.toDot()
             nodes = nodes + res[0]
             edges = "\n" + edges + res[1]
@@ -117,6 +132,10 @@ class AST:
             res = self.root.c_block.toDot()
             nodes = nodes + res[0]
             edges = edges + res[1]
+        elif isinstance(self.root, Function):
+            for value in self.root.param:
+                edges = edges + "\n" + self.root.getId() + "--" + value.getId()
+                nodes = nodes + "\n" + value.getId() + " [label=" + value.getLabel() + "]"
 
         output = "graph ast {\n" + nodes + "\n\n" + edges + "\n}"
         file = open(fileName, "w")
@@ -164,8 +183,15 @@ class AST:
             nodes = nodes + res[0]
             edges = edges + res[1]
         elif isinstance(root, Scope):
-            # edges = edges + "\n" + self.getId() + "--" + tree.root.getId()
-            nodes = "\n"
+            if root.f_name != "":
+                for param in root.parameters:
+                    edges = edges + "\n" + root.getId() + "--" + root.parameters[param].getId()
+                    res = self.toDot(root.parameters[param])
+                    nodes = nodes + res[0]
+                    edges = edges + res[1]
+                edges = edges + "\n" + root.getId() + "--" + root.block.getId()
+            else:
+                nodes = "\n"
             res = root.block.toDot()
             nodes = nodes + res[0]
             edges = edges + res[1]
@@ -191,19 +217,35 @@ class AST:
             res = root.c_block.toDot()
             nodes = nodes + res[0]
             edges = edges + res[1]
+        elif isinstance(self.root, Function):
+            for value in self.root.param:
+                edges = edges + "\n" + self.root.getId() + "--" + value.getId()
+                nodes = nodes + "\n" + value.getId() + " [label=" + value.getLabel() + "]"
 
         return nodes, edges
 
-    def foldTree(self):
+    def foldTree(self, to_llvm=None):
         """
         This function tries to reduce the size of the tree as much as possible
+         tree, self.g_assignment
         """
-        if not isinstance(self.root, Value):
-            self.root = self.root.fold()
-        return self
+        temp = None
+        if not (isinstance(self.root, Value) or isinstance(self.root, Array)):
+            temp = self.root.fold(to_llvm)
+            self.root = temp[0]
+            return self, temp[1]
+        return self, True
 
     def getVariables(self):
         return self.root.getVariables()
 
     def replaceVariables(self, values):
         self.root.replaceVariables(values)
+
+    def createUnfilledDeclaration(self, root: AST_node):
+        left = root.leftChild
+        var = Value(left.value, left.type, left.line, None, left.variable, left.const, left.declaration)
+        val = EmptyNode(left.line, None, left.type)
+        dec = Declaration(var, root.line, None)
+        dec.setRightChild(val)
+        return dec

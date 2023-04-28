@@ -1,5 +1,68 @@
 graph ast {
-0.0 [label="Literal: 6.0"]
+0.0 [label="Logical operator: ||"]
+1.1 [label="Logical operator: >"]
+2.2 [label="Binary operator: +"]
+3.3 [label="Binary operator: /"]
+4.4 [label="Binary operator: *"]
+5.5 [label="Binary operator: *"]
+6.6 [label="Literal: 6"]
+6.7 [label="Literal: 1.2"]
+5.8 [label="Literal: 2"]
+4.9 [label="Binary operator: +"]
+5.10 [label="Binary operator: +"]
+6.11 [label="Literal: 2"]
+6.12 [label="Binary operator: /"]
+7.13 [label="Binary operator: *"]
+8.14 [label="Literal: 1"]
+8.15 [label="Literal: 2"]
+7.16 [label="Literal: 3"]
+5.17 [label="Literal: 6"]
+3.18 [label="Binary operator: *"]
+4.19 [label="Literal: 8"]
+4.20 [label="Binary operator: /"]
+5.21 [label="Literal: 8"]
+5.22 [label="Literal: 4"]
+2.23 [label="Literal: 4"]
+1.24 [label="Logical operator: <"]
+2.25 [label="Binary operator: *"]
+3.26 [label="Binary operator: +"]
+4.27 [label="Literal: 2"]
+4.28 [label="Literal: 5"]
+3.29 [label="Literal: 8"]
+2.30 [label="Binary operator: *"]
+3.31 [label="Literal: 8"]
+3.32 [label="Literal: 9"]
 
-
+0.0--1.1
+0.0--1.24
+1.1--2.2
+1.1--2.23
+2.2--3.3
+2.2--3.18
+3.3--4.4
+3.3--4.9
+4.4--5.5
+4.4--5.8
+5.5--6.6
+5.5--6.7
+4.9--5.10
+4.9--5.17
+5.10--6.11
+5.10--6.12
+6.12--7.13
+6.12--7.16
+7.13--8.14
+7.13--8.15
+3.18--4.19
+3.18--4.20
+4.20--5.21
+4.20--5.22
+1.24--2.25
+1.24--2.30
+2.25--3.26
+2.25--3.29
+3.26--4.27
+3.26--4.28
+2.30--3.31
+2.30--3.32
 }
