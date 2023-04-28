@@ -27,6 +27,7 @@ class CustomListener(ExpressionListener):
         self.counter = 0
         self.program = program()
         self.print = False
+        self.scan = False
         self.expr_layer = 0
         self.bracket_stack = stack()
         self.bracket_layer = stack()
@@ -119,7 +120,7 @@ class CustomListener(ExpressionListener):
         self.asT = create_tree()
         """
         i = Value(ctx.getText(), type_, ctx.start.line)
-        if isinstance(self.current, Print):
+        if isinstance(self.current, Print) or isinstance(self.current, Scan):
             self.current.addParam(i)
         return
 
@@ -135,7 +136,7 @@ class CustomListener(ExpressionListener):
         # print("set val:" + ctx.getText())
         type_ = find_value_type(ctx.getText())
         v = ctx.getText()
-        if self.print:
+        if self.print or self.scan:
             return self.set_print(ctx, type_)
         if self.pointer:
             return self.set_pointer(ctx, type_)
@@ -300,11 +301,11 @@ class CustomListener(ExpressionListener):
     # Exit a parse tree produced by ExpressionParser#print.
     def exitPrint(self, ctx: ParserRuleContext):
         self.print = False
-        self.asT=create_tree()
-        self.asT.root=self.current
+        self.asT = create_tree()
+        self.asT.root = self.current
         self.c_scope.block.trees.append(self.asT)
-        self.asT=create_tree()
-        self.current=None
+        self.asT = create_tree()
+        self.current = None
 
     # Enter a parse tree produced by ExpressionParser#format_string.
     def enterFormat_string(self, ctx: ParserRuleContext):
@@ -314,6 +315,15 @@ class CustomListener(ExpressionListener):
     # Exit a parse tree produced by ExpressionParser#format_string.
     def exitFormat_string(self, ctx: ParserRuleContext):
         pass
+
+    # Enter a parse tree produced by ExpressionParser#scan.
+    def enterScan(self, ctx: ParserRuleContext):
+        self.scan = True
+        self.current = Scan("")
+
+    # Exit a parse tree produced by ExpressionParser#scan.
+    def exitScan(self, ctx: ParserRuleContext):
+        self.scan = False
 
     # Enter a parse tree produced by ExpressionParser#typed_var.
     def enterTyped_var(self, ctx: ParserRuleContext):

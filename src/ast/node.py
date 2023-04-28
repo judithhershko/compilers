@@ -126,7 +126,7 @@ class Print(AST_node):
 
     def getLabel(self):
         return "\"Print: " + self.value + "\""
-class Print(AST_node):
+class Scan(AST_node):
     def __init__(self, lit):
         self.parent = None
         self.value = lit

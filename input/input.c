@@ -9,6 +9,7 @@ int f(bool q)
     if (z>=10)
     {
         scanf("a text with %i ok!",z);
+        printf("a text with %i ok!",z);
         z=z+1;
     }
 
