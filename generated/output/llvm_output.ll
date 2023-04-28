@@ -8,7 +8,6 @@ define i32 @f() #0 {
 
 ;//q=z > z + 1 + 3 || z < z - 1 ;
 
-
 ; printf (z)
 %2 = call i32 (ptr, ...) @printf(ptr noundef @.str)
 br label %3

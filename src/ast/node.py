@@ -116,7 +116,7 @@ class Print(AST_node):
 
 class Value(AST_node):
     def __init__(self, lit: str, valueType, line: int, parent: AST_node = None, variable: bool = False,
-                 const: bool = False, decl: bool = False):
+                 const: bool = False, decl: bool = False, deref: bool = False):
         """
         :param lit: string containing the value (int, string, variable, ...) of the node
         :param valueType: LiteralType containing the type of element saved in the node
@@ -133,6 +133,7 @@ class Value(AST_node):
         self.const = const
         self.declaration = decl
         self.line = line
+        self.deref = deref
         self.name = "val"
 
     def __eq__(self, other):
@@ -166,6 +167,9 @@ class Value(AST_node):
             return [[(self.value, self.line)], True]
         else:
             return [[], True]
+
+    def getDeref(self):
+        return self.deref
 
     def replaceVariables(self, values):
         if len(values) == 0:
@@ -481,6 +485,10 @@ class LogicalOperator(AST_node):
             if not (isinstance(self.leftChild, Value) or isinstance(self.leftChild, Pointer)) or \
                     not (isinstance(self.rightChild, Value) or isinstance(self.rightChild, Pointer)):
                 return self, False
+            # TODO: check if this is necessary
+            # elif leftType not in (LiteralType.FLOAT, LiteralType.INT, LiteralType.BOOL, LiteralType.DOUBLE) \
+            #         or rightType not in (LiteralType.FLOAT, LiteralType.INT, LiteralType.BOOL, LiteralType.DOUBLE):
+            #     raise LogicalOp(self.leftChild.getType(), self.rightChild.getType(), self.operator, self.line)
             elif self.leftChild.variable or self.rightChild.variable:
                 if to_llvm is not None:
                     set_llvm_binary_operators(self.leftChild, self.rightChild, self.operator, to_llvm)
@@ -496,7 +504,6 @@ class LogicalOperator(AST_node):
                 raise LogicalOp(self.leftChild.getType(), self.rightChild.getType(), self.operator, self.line)
             elif self.leftChild.variable or self.rightChild.variable:
                 return self, False
-
             else:
                 self.leftChild.setValueToType()
                 self.rightChild.setValueToType()
@@ -520,7 +527,8 @@ class LogicalOperator(AST_node):
                 else:
                     raise NotSupported("logical operator", self.operator, self.line)
 
-                newNode = Value(res, LiteralType.BOOL, self.line, self.parent)
+                resBool = bool(res)
+                newNode = Value(resBool, LiteralType.BOOL, self.line, self.parent)
                 return newNode, True
 
         except LogicalOp:
@@ -791,6 +799,7 @@ class EmptyNode(AST_node):
 # unnamed scopes gebruik scope node
 class Scope(AST_node):  # TODO: let it hold a block instead of trees
     block = None
+
     # TODO: check if block in Scope is cleaned -> same with while3
     def __init__(self, line: int, parent: AST_node = None):
         self.parent = parent
@@ -1026,7 +1035,7 @@ class Function(AST_node):
         self.f_name = f_name
         self.decl = decl
         self.name = "function"
-        self.counter = 0 #  TODO: use this to check which variable is being read
+        self.counter = 0  # TODO: use this to check which variable is being read
         self.expected = None
 
     def __eq__(self, other):
@@ -1039,7 +1048,7 @@ class Function(AST_node):
         # TODO: dit moet anders --> als value/pointer/ref wordt doorgegeven
         # var= &x, *x, 21,
         # ]\\\\\\\
-        #TODO: check --> verwachte parameter ?
+        # TODO: check --> verwachte parameter ?
         # self.param.append(var) # TODO: variable comes in as string -> look up in Symbtable -> check type -> make Value/Pointer node
         # if self.expected is None:
         #     self.setExpected(scope.functions.findFunction(self.name))
@@ -1056,7 +1065,7 @@ class Function(AST_node):
         #     if exp == given:
         val = Value(var, None, line)
         self.param.append(val)
-                # self.counter += 1
+        # self.counter += 1
         #     else:
         #         raise TypeDeclaration(var, exp, given, line)
         #
@@ -1085,7 +1094,7 @@ class Function(AST_node):
 
 
 class Array(AST_node):
-    def __init__(self, value: str, pos: int, valueType: LiteralType, line: int, init: bool = False, parent = None):
+    def __init__(self, value: str, pos: int, valueType: LiteralType, line: int, init: bool = False, parent=None):
         self.value = value
         self.pos = pos
         self.type = valueType
@@ -1119,7 +1128,7 @@ class Array(AST_node):
     def getVariables(self):
         if self.init:
             return [[], True]
-        return [[(str(self.pos)+str(self.value), self.line)], True]
+        return [[(str(self.pos) + str(self.value), self.line)], True]
 
     def replaceVariables(self, values):
         name = str(self.pos) + str(self.value)
