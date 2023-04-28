@@ -95,8 +95,8 @@ class AST:
             nodes = nodes + res[0]
             edges = edges + res[1]
         elif isinstance(self.root, UnaryOperator):
-            edges = self.root.getId() + "--" + self.root.value.getId()
-            res = self.toDot(self.root.value)
+            edges = self.root.getId() + "--" + self.root.rightChild.getId()
+            res = self.toDot(self.root.rightChild)
             nodes = nodes + res[0]
             edges = edges + res[1]
         elif isinstance(self.root, Scope):

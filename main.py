@@ -11,7 +11,7 @@ from src.CustomErrorListener import *
 
 def main():
     try:
-        argv = "input/input.c"
+        argv = "input/projecten_123_zonder_main/proj3_man_syntaxErr_commentSingleLine2.c"
         input_stream = FileStream(argv)
         lexer = ExpressionLexer(input_stream)
         MyError = CustomError()

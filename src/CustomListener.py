@@ -643,6 +643,16 @@ class CustomListener(ExpressionListener):
                                                  For) and self.expr_layer == 0 and self.loop.Condition is not None and self.loop.f_dec is not None and self.loop.f_incr is None:
             self.loop.f_incr = self.parent
         elif not self.declaration and self.expr_layer == 0:
+            if isinstance(self.current.parent, BinaryOperator) and self.current.parent.operator == "":
+                self.current.parent = None
+                if isinstance(self.parent,BinaryOperator) and self.parent.operator=="":
+                    self.parent = None
+                elif isinstance(self.parent,BinaryOperator) or isinstance(self.parent,LogicalOperator):
+                    self.current.parent=self.parent
+                    if self.parent.leftChild is not None and isinstance(self.parent.leftChild,BinaryOperator) and self.parent.leftChild.operator=="":
+                        self.parent.leftChild=self.current
+                    if self.parent.rightChild is not None and isinstance(self.parent.rightChild,BinaryOperator) and self.parent.rightChild.operator=="":
+                        self.parent.rightChild=self.current
             self.set_bracket()
             while self.current.parent is not None:
                 self.current = self.current.parent
@@ -657,6 +667,11 @@ class CustomListener(ExpressionListener):
                 # self.c_block.trees.append(self.asT)
                 self.asT.setNodeIds(self.asT.root)
                 self.asT.generateDot(self.pathName + str(self.counter) + ".dot")
+                self.c_block.fillLiterals(self.asT)
+                self.asT.foldTree()
+                self.asT.setNodeIds(self.asT.root)
+                self.asT.generateDot(self.pathName + str(self.counter) + "-noFold.dot")
+
                 if self.return_function:
                     self.c_scope.f_return = self.asT
                 elif self.c_scope.f_name != "" and self.c_scope.f_return is not None:
@@ -673,7 +688,6 @@ class CustomListener(ExpressionListener):
             self.parent = None
             self.current = None
             self.asT = create_tree()
-
     # Enter a parse tree produced by ExpressionParser#pri.
     def enterPri(self, ctx: ParserRuleContext):
         # print("pri is" + ctx.getText())

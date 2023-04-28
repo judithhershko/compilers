@@ -9,7 +9,6 @@ define i32 @f() #0 {
 
 ;//q=z > z + 1 + 3 || z < z - 1 ;
 
-
 br label %3
 3 :
 %4 = load i32, ptr %1, align 4
