@@ -9,7 +9,7 @@ typed_var: INT| DOUBLE | FLOAT |CHAR | BOOL;
 
 scope : '{' rule (return)? rule'}' (';')?;
 rule  : (print ';'|expr ';'|dec ';'|comments|line|loop|scope | function_dec)*;
-lrules: (print ';' |expr ';' |dec ';' |comments |line |loop |break |continue | lscope | function_dec )*;
+lrules: (print ';' |expr ';' |dec ';' |comments |line |loop (';')? |break |continue | lscope | function_dec )*;
 lscope: '{' lrules '}' ;
 loop  : while | for | if;
 while : WHILE '(' expr ')' lscope;
@@ -34,8 +34,10 @@ pointers: (pointer)+ ID (EQ ref_ref)? |  REF (EQ ref_ref)?;
 suf_dec: pointers | ID EQ (char_expr|expr);
 pointer_val: (pointer)+ ID;
 
-dec:(const)? typed_var (pointer)* ID EQ (pointer_val|ref_ref|char_expr|expr) |(pointer)* ID EQ (pointer_val|ref_ref|char_expr|expr)
-| (const)? typed_var (pointer)* ID;
+array : ID '[' num ']' ;
+array_content : '{' pri (',' pri)* '}';
+dec:(const)? typed_var (pointer)* (ID|array) EQ (pointer_val|ref_ref|char_expr|expr|array_content) |(pointer)* (ID|array) EQ (pointer_val|ref_ref|char_expr|expr)
+| (const)? typed_var (pointer)* (ID|array);
 
 binop:MIN | PLUS ;
 binop_md: MULT| DIV | MOD;
