@@ -1128,6 +1128,18 @@ class CustomListener(ExpressionListener):
     def exitArray_content(self, ctx: ParserRuleContext):
         pass
 
+    # Enter a parse tree produced by ExpressionParser#includes.
+    def enterIncludes(self, ctx: ParserRuleContext):
+        self.current = Include(ctx.getText(), ctx.start.line, None, None)
+        self.asT=create_tree()
+        self.asT.root=self.current
+        self.c_scope.block.trees.append(self.asT)
+        self.current = None
+        self.asT=create_tree()
+    # Exit a parse tree produced by ExpressionParser#includes.
+    def exitIncludes(self, ctx: ParserRuleContext):
+        pass
+
     def get_program(self):
         self.program.ast.root = self.program.tree
         self.program.tree = None
