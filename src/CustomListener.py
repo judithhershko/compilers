@@ -21,6 +21,7 @@ class CustomListener(ExpressionListener):
         self.is_array = False
 
         self.a_dec = False
+        self.a_val = None
         self.stop_fold = False
         self.start_rule = None
         self.asT = create_tree()
@@ -471,6 +472,7 @@ class CustomListener(ExpressionListener):
 
         type = getType(var)
         self.a_dec = not (type is False)
+        self.a_val = var
         if type is False:
             # print("val is :" + var)
             if self.c_scope.block.getSymbolTable().findSymbol(var) is not None:
@@ -518,7 +520,7 @@ class CustomListener(ExpressionListener):
                 self.dec_op.rightChild = EmptyNode(ctx.start.line, self.dec_op, self.dec_op.leftChild.getType())
         elif self.current is None:
             if isinstance(self.dec_op.rightChild, Array):
-                self.dec_op.rightChild=EmptyNode(ctx.start.line,self.dec_op,self.dec_op.leftChild.getType())
+                self.dec_op.rightChild = EmptyNode(ctx.start.line, self.dec_op, self.dec_op.leftChild.getType())
             else:
                 self.dec_op.rightChild = Value(0, self.dec_op.leftChild.getType(), self.dec_op, ctx.start.line, False)
 
@@ -529,10 +531,10 @@ class CustomListener(ExpressionListener):
                 self.current = self.current.leftChild
             if isinstance(self.current, Declaration):
                 if self.current.rightChild is None:
-                    self.current.leftChild.parent=self.dec_op
-                    self.dec_op.leftChild=self.current.leftChild
+                    self.current.leftChild.parent = self.dec_op
+                    self.dec_op.leftChild = self.current.leftChild
                     if self.dec_op.rightChild is None:
-                        self.dec_op.rightChild=EmptyNode(ctx.start.line,self.dec_op,self.dec_op.leftChild.getType())
+                        self.dec_op.rightChild = EmptyNode(ctx.start.line, self.dec_op, self.dec_op.leftChild.getType())
                 else:
                     self.current.rightChild.parent = self.dec_op
                     self.dec_op.rightChild = self.current.rightChild
@@ -1103,10 +1105,15 @@ class CustomListener(ExpressionListener):
         self.current = Array(getArrayName(ctx.getText()), line=ctx.start.line, pos=getArraySize(ctx.getText()),
                              parent=self.parent, valueType=self.dec_op.leftChild.getType(),
                              init=self.a_dec)
-        if self.a_dec:
-            self.current.parent=self.dec_op
-            self.dec_op.leftChild=self.current
-            self.current=None
+        if self.a_dec and getArrayName(self.a_val) == self.current.getValue():
+            self.current.parent = self.dec_op
+            self.dec_op.leftChild = self.current
+            self.current = None
+        else:
+            if self.parent.rightChild is not None:
+                self.parent.rightChild = self.current
+            elif self.parent.leftChild is not None:
+                self.parent.leftChild = self.current
         self.a_dec = False
 
     # Exit a parse tree produced by ExpressionParser#array.
