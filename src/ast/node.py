@@ -1158,6 +1158,9 @@ class Array(AST_node):
     def getType(self):
         return self.type
 
+    def setType(self, type_):
+        self.type = type_
+
     def getValue(self):
         if self.init:
             return str(self.value)

@@ -2,6 +2,10 @@
 
 int f(bool q)
 {
+    int a;
+    int a[20];
+    //a[3]=89;
+    //int z=a[3]+90;
     int z=0;
     printf("%c",z);
 
