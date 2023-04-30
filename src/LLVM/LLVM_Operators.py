@@ -515,6 +515,8 @@ class ToLLVM():
         self.store += "; printf ({})\n".format(str(to_print))
         self.store += "%{} = call i32 (ptr, ...) @printf(ptr noundef @.str{})\n".format(s, var)
 
+    def to_scan(self,tree:AST):
+        pass
     def to_expression(self, param):
         pass
 
@@ -583,7 +585,7 @@ class ToLLVM():
                 self.to_print(t)
                 self.function_load += self.store
                 self.store = ""
-            elif isinstance(t.root, While) or isinstance(t.root, If):
+            elif isinstance(t.root, While):
                 print("while loop")
                 self.set_while_loop(t)
             elif isinstance(t.root, If):
@@ -614,21 +616,27 @@ class ToLLVM():
         self.function_load += "br label %{}, !llvm.loop !5\n".format(counter0)
         self.function_load += str(self.increase_counter()) + " :\n"
 
-    def set_if_loop(self, t: AST):
+    def set_if_loop(self, t: AST, keep=False):
         if isinstance(t.root, If):
+            if self.if_stack.__len__()>0 and not keep:
+                self.if_stack.pop()
             if t.root.operator == ConditionType.IF:
                 self.set_condition(t)
                 counter0 = self.get_counter()
                 self.increase_counter()
                 tijdelijk = self.function_load
                 self.function_load = "{} :\n".format(self.get_counter())
+                ifs = [self.get_counter()]
                 self.transverse_tree(t.root.c_block)
-                tijdelijk += "br i1 %{}, label %{}, label %{}\n".format(counter0 - 1, counter0, self.increase_counter())
+                tijdelijk += "br i1 %{}, label %{}, label %{}\n".format(counter0, counter0+1, self.increase_counter())
+                ifs.append(self.get_counter())
+                self.if_stack.push(ifs)
                 self.function_load = tijdelijk + self.function_load
 
             elif t.root.operator == ConditionType.ELSE:
+                if self.if_stack.__len__()>0 and not keep:
+                    self.if_stack.pop()
                 # rm label :
-
                 self.function_load = remove_last_line_from_string(self.function_load)
                 # rm br
                 counter0 = self.get_counter()
@@ -642,10 +650,15 @@ class ToLLVM():
                 self.function_load = tijdelijk + self.function_load
                 self.function_load += "br label %{}\n".format(self.get_counter())
             elif t.root.operator == ConditionType.ELIF:
-                # rm label :
-                self.function_load = remove_last_line_from_string(self.function_load)
-                # rm br
-                counter0 = self.get_counter()
+                t.root.operator=ConditionType.ELSE
+                tijdelijk=self.function_load
+
+                self.set_if_loop(t,True)
+                # alle if of else-if in de stack moeten worden aangepast
+                # deze moet nu ook mee op de stack komen.
+                #stack: val : en branch val
+                pass
+
 
     def add_output_fold(self, out: str):
         self.g_assignment += out

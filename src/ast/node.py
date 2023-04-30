@@ -839,6 +839,39 @@ class EmptyNode(AST_node):
     def getVariables(self):
         return [[], True]
 
+class Include(AST_node):
+    def __init__(self,value:str,line: int, parent: AST_node = None, type_=None):
+        self.value = value
+        self.type = type_
+        self.parent = parent
+        self.variable = False
+        self.const = False
+        self.declaration = False
+        self.line = line
+        self.name = "include"
+
+    def getLabel(self):
+        return "\"Include Node: " + str(self.value) + "\""
+
+    def getType(self):
+        return self.type
+
+    def getValue(self):
+        return self.value
+
+    def setValue(self, val):
+        self.value = val
+
+    def setType(self, type):
+        self.type = type
+
+    def getType(self):
+        return self.type
+
+    def getVariables(self):
+        return [self.value, True]
+
+
 
 # unnamed scopes gebruik scope node
 class Scope(AST_node):  # TODO: let it hold a block instead of trees
