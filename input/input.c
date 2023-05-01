@@ -8,7 +8,7 @@ int f(bool q)
         z=z+1;
     }
 
-    else if(z<50)
+    else
     {
         z=z+2;
     }

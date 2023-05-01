@@ -63,7 +63,7 @@ num: NUM;
 char_op: PLUS | MIN;
 char_expr: char_pri| char_expr char_op char_expr;
 
-char_pri:CHAR_ID (ID | NUM)* CHAR_ID ;
+char_pri:CHAR_ID (ID | NUM | '\n' )* CHAR_ID ;
 
 INT     : 'int'     ;
 DOUBLE  : 'double'  ;

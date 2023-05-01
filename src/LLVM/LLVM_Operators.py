@@ -16,6 +16,8 @@ from src.ast.node_types.node_type import ConditionType
 # TODO   counter in return
 # TODO   function calls
 # TODO   arrays
+
+
 class ToLLVM():
     def __init__(self):
         print("------------------START LLVM-----------------")
@@ -515,8 +517,9 @@ class ToLLVM():
         self.store += "; printf ({})\n".format(str(to_print))
         self.store += "%{} = call i32 (ptr, ...) @printf(ptr noundef @.str{})\n".format(s, var)
 
-    def to_scan(self,tree:AST):
+    def to_scan(self, tree: AST):
         pass
+
     def to_expression(self, param):
         pass
 
@@ -618,9 +621,10 @@ class ToLLVM():
 
     def set_if_loop(self, t: AST, keep=False):
         if isinstance(t.root, If):
-            if self.if_stack.__len__()>0 and not keep:
-                self.if_stack.pop()
+
             if t.root.operator == ConditionType.IF:
+                if self.if_stack.__len__() > 0 and not keep:
+                    self.if_stack.pop()
                 self.set_condition(t)
                 counter0 = self.get_counter()
                 self.increase_counter()
@@ -628,37 +632,29 @@ class ToLLVM():
                 self.function_load = "{} :\n".format(self.get_counter())
                 ifs = [self.get_counter()]
                 self.transverse_tree(t.root.c_block)
-                tijdelijk += "br i1 %{}, label %{}, label %{}\n".format(counter0, counter0+1, self.increase_counter())
-                ifs.append(self.get_counter())
-                self.if_stack.push(ifs)
-                self.function_load = tijdelijk + self.function_load
+                branch=[]
+                branch .append("br i1 %{}, label %{}, label %{}".format(counter0, counter0 + 1, self.increase_counter()))
+                tijdelijk += branch[0] + "\n"
 
+                self.function_load = tijdelijk + self.function_load
+                branch.append("br label %{}\n".format(self.get_counter()))
+                self.function_load += branch[1]
+                self.function_load += "{} :\n".format(self.get_counter())
+                self.if_stack.push(branch)
             elif t.root.operator == ConditionType.ELSE:
-                if self.if_stack.__len__()>0 and not keep:
-                    self.if_stack.pop()
-                # rm label :
-                self.function_load = remove_last_line_from_string(self.function_load)
-                # rm br
-                counter0 = self.get_counter()
-                self.function_load = remove_last_line_from_string(self.function_load)
-                tijdelijk = self.function_load
-                self.function_load = "{} :\n".format(self.get_counter())
+                old_branch = self.if_stack.pop()
                 self.transverse_tree(t.root.c_block)
                 self.increase_counter()
-                tijdelijk += "br label %{}\n".format(self.get_counter())
-                tijdelijk += "{} :\n".format(counter0)
-                self.function_load = tijdelijk + self.function_load
+                print(old_branch[1])
+                self.function_load = self.function_load.replace(old_branch[1],"br label %{}\n".format(self.get_counter()))
                 self.function_load += "br label %{}\n".format(self.get_counter())
+                self.function_load += "{} :\n".format(self.get_counter())
+
             elif t.root.operator == ConditionType.ELIF:
-                t.root.operator=ConditionType.ELSE
-                tijdelijk=self.function_load
-
-                self.set_if_loop(t,True)
-                # alle if of else-if in de stack moeten worden aangepast
-                # deze moet nu ook mee op de stack komen.
-                #stack: val : en branch val
+                t.root.operator = ConditionType.IF
+                tijdelijk = self.function_load
+                self.set_if_loop(t, True)
                 pass
-
 
     def add_output_fold(self, out: str):
         self.g_assignment += out
@@ -668,3 +664,13 @@ class ToLLVM():
         b = block(None)
         b.trees.append(t.root.Condition)
         self.transverse_tree(b)
+
+
+def replace_last_digits(s, param):
+    k = 0
+    for i in reversed(s):
+        if i.isdigit():
+            continue
+        k += 1
+    s= s[0:k+1] + " %"+ str(param)
+    return s
