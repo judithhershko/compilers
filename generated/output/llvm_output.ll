@@ -6,7 +6,6 @@ define i32 @f() #0 {
 %1 = alloca i32, align 4
 
 
-; printf ()
 %2 = call i32 (ptr, ...) @printf(ptr noundef @.str)
 br label %3
 3 :

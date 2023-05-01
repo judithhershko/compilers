@@ -53,6 +53,10 @@ class block:
     def getParent(self):
         return self.parent
 
+    def setParent(self, parent):
+        self.parent = parent
+        self.symbols.setParent(parent.symbols)
+
     def addBlock(self, newBlock):
         self.blocks.append(newBlock)
 

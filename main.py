@@ -28,7 +28,8 @@ def main():
         # result = EvalVisitor().visit(tree)
         walker = ParseTreeWalker()
         walker.walk(printer, tree)
-        # printer.get_program()
+        printer.get_program()
+        to_llvm=ToLLVM()
 
         to_llvm = ToLLVM()
         to_llvm.transverse_program(printer.program)
