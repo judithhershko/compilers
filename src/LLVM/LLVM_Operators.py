@@ -642,12 +642,12 @@ class ToLLVM():
                 self.function_load += "{} :\n".format(self.get_counter())
                 self.if_stack.push(branch)
             elif t.root.operator == ConditionType.ELSE:
-                old_branch = self.if_stack.pop()
                 self.transverse_tree(t.root.c_block)
                 self.increase_counter()
-                print(old_branch[1])
-                self.function_load = self.function_load.replace(old_branch[1],
-                                                                "br label %{}\n".format(self.get_counter()))
+                while self.if_stack.__len__()>0:
+                    self.function_load = self.function_load.replace(self.if_stack.pop()[1],
+                                                                    "br label %{}\n".format(self.get_counter()))
+
                 self.function_load += "br label %{}\n".format(self.get_counter())
                 self.function_load += "{} :\n".format(self.get_counter())
 
