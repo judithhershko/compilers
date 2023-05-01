@@ -1,6 +1,6 @@
 grammar Expression;
 
-start_rule : (includes)? s_rule ;
+start_rule : (includes (';')* )? s_rule ;
 s_rule: (print ';'|scan ';'|expr ';'|dec ';'|comments|line|loop|scope (';')?| function_definition | function_dec| includes)*;
 
 includes: INCLUDE|INCLUDEH (';')?;
