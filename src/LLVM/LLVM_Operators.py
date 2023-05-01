@@ -632,10 +632,8 @@ class ToLLVM():
                 self.function_load = "{} :\n".format(self.get_counter())
                 ifs = [self.get_counter()]
                 self.transverse_tree(t.root.c_block)
-                branch = []
-                branch.append("br i1 %{}, label %{}, label %{}".format(counter0, counter0 + 1, self.increase_counter()))
+                branch = ["br i1 %{}, label %{}, label %{}".format(counter0, counter0 + 1, self.increase_counter())]
                 tijdelijk += branch[0] + "\n"
-
                 self.function_load = tijdelijk + self.function_load
                 branch.append("br label %{}\n".format(self.get_counter()))
                 self.function_load += branch[1]
@@ -644,7 +642,7 @@ class ToLLVM():
             elif t.root.operator == ConditionType.ELSE:
                 self.transverse_tree(t.root.c_block)
                 self.increase_counter()
-                while self.if_stack.__len__()>0:
+                while self.if_stack.__len__() > 0 and len(self.if_stack.peek()) == 2:
                     self.function_load = self.function_load.replace(self.if_stack.pop()[1],
                                                                     "br label %{}\n".format(self.get_counter()))
 
@@ -653,12 +651,10 @@ class ToLLVM():
 
             elif t.root.operator == ConditionType.ELIF:
                 t.root.operator = ConditionType.IF
-                tijdelijk = self.function_load
                 self.set_if_loop(t, True)
-
                 last_entry = self.if_stack.pop()
                 st_entries = self.if_stack
-                while st_entries.__len__() > 0:
+                while st_entries.__len__() > 0 and len(self.if_stack.peek()) == 2:
                     self.function_load = self.function_load.replace(st_entries.pop()[1], last_entry[1])
                 self.if_stack.push(last_entry)
 
