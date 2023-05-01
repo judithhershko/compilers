@@ -26,7 +26,7 @@ int function(int x)
     x=x-z+90*x+90;
 return x;
 }
-int main()
+int main2()
 {
 int z=0;
 int x=z+5;
@@ -34,7 +34,12 @@ z=90+x;
 return z;
 }
 
-int f(int x,int y){
+int f2(int x,int y){
     int z = x+y;
     return z;
 }
+
+int a = 5;
+int b = 6;
+
+f2(a, b);

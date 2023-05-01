@@ -1001,13 +1001,13 @@ class CustomListener(ExpressionListener):
     def exitFunction_dec(self, ctx: ParserRuleContext):
         if self.declaration:
             return
-        self.c_scope.block.trees.append(self.current)
+        # self.c_scope.block.trees.append(self.current)
         self.call_function = False
 
     # Enter a parse tree produced by ExpressionParser#f_variables.
     def enterF_variables(self, ctx: ParserRuleContext):
         if isinstance(self.current, Function):
-            self.current.addParameter(ctx.getText())
+            self.current.addParameter(ctx.getText(), scope=self.c_scope, line=ctx.start.line)
 
     # Exit a parse tree produced by ExpressionParser#f_variables.
     def exitF_variables(self, ctx: ParserRuleContext):
@@ -1054,8 +1054,8 @@ class CustomListener(ExpressionListener):
         self.c_scope.addParameter(val)
         symbol = Declaration(var=val, line=ctx.start.line, parent=None)
         symbol.leftChild = val
-        symbol.rightChild = None
-        # self.c_scope.block.getSymbolTable().addSymbol(symbol, self.c_scope.global_)
+        symbol.rightChild = EmptyNode(line=ctx.start.line)
+        self.c_scope.block.getSymbolTable().addSymbol(symbol, self.c_scope.global_)
         self.is_parameter = True
         self.enterDec(ctx)
 

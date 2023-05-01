@@ -117,7 +117,7 @@ class Print(AST_node):
         self.value = val
 
     def getLabel(self):
-        return "\"Print: " + self.value + "\""
+        return "\"Print: " + str(self.value) + "\""
 
     def fold(self, to_llvm=None):
         return self, True # TODO: redo this when the print function is adapted to the final form
@@ -167,10 +167,10 @@ class Value(AST_node):
         self.type = type
 
     def getLabel(self):
-        if isinstance(self.value, int) or isinstance(self.value, float):
-            return "\"Literal: " + str(self.value) + "\""
-        elif isinstance(self.value, str):
-            return "\"Literal: " + self.value + "\""
+        # if isinstance(self.value, int) or isinstance(self.value, float):
+        return "\"Literal: " + str(self.value) + "\""
+        # elif isinstance(self.value, str):
+        #     return "\"Literal: " + self.value + "\""
 
     def getType(self):
         return self.type
@@ -853,6 +853,7 @@ class EmptyNode(AST_node):
         self.declaration = False
         self.line = line
         self.name = "empty"
+        self.deref = False
 
     def getLabel(self):
         return "\"Empty Node: " + str(self.value) + "\""
@@ -976,7 +977,7 @@ class Scope(AST_node):  # TODO: let it hold a block instead of trees
             self.block.cleanBlock(onlyLocal=True)
             res = []
             for elem in self.block.getVariables():
-                if len(elem) != 0 and elem[0][0] not in self.parameters:
+                if len(elem) != 0 and elem[0][0] not in self.parameters and not self.block.symbols.findSymbol(elem[0][0]):
                     res.append(elem[0])
             return [res, True]
 
@@ -1219,6 +1220,9 @@ class Function(AST_node):
         # TODO: check --> verwachte parameter ?
         # self.param.append(var) # TODO: variable comes in as string -> look up in Symbtable -> check type -> make Value/Pointer node
         # if self.expected is None:
+        #     parent = scope.block
+        #     while parent.name != "program":
+        #         parent = parent.parent
         #     self.setExpected(scope.functions.findFunction(self.name))
         # try:
         #     if self.counter >= len(self.expected):
@@ -1233,7 +1237,7 @@ class Function(AST_node):
         #     if exp == given:
         val = Value(var, None, line)
         self.param.append(val)
-        # self.counter += 1
+        #         self.counter += 1
         #     else:
         #         raise TypeDeclaration(var, exp, given, line)
         #

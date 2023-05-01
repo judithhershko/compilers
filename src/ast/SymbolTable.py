@@ -92,6 +92,8 @@ class SymbolTable:
                         ref = None
                 else:
                     raise LeftSideDeclaration(line)
+            if value is None:
+                fill = False
             if level == 0 and ref is not None:
                 raise WrongPointer(line)
             elif name not in self.table.index:
