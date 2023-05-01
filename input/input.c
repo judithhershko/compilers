@@ -8,7 +8,7 @@ int f(bool q)
         z=z+1;
     }
 
-    else
+    else if (z<89)
     {
         z=z+2;
     }

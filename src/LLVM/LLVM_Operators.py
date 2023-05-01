@@ -632,8 +632,8 @@ class ToLLVM():
                 self.function_load = "{} :\n".format(self.get_counter())
                 ifs = [self.get_counter()]
                 self.transverse_tree(t.root.c_block)
-                branch=[]
-                branch .append("br i1 %{}, label %{}, label %{}".format(counter0, counter0 + 1, self.increase_counter()))
+                branch = []
+                branch.append("br i1 %{}, label %{}, label %{}".format(counter0, counter0 + 1, self.increase_counter()))
                 tijdelijk += branch[0] + "\n"
 
                 self.function_load = tijdelijk + self.function_load
@@ -646,7 +646,8 @@ class ToLLVM():
                 self.transverse_tree(t.root.c_block)
                 self.increase_counter()
                 print(old_branch[1])
-                self.function_load = self.function_load.replace(old_branch[1],"br label %{}\n".format(self.get_counter()))
+                self.function_load = self.function_load.replace(old_branch[1],
+                                                                "br label %{}\n".format(self.get_counter()))
                 self.function_load += "br label %{}\n".format(self.get_counter())
                 self.function_load += "{} :\n".format(self.get_counter())
 
@@ -654,7 +655,12 @@ class ToLLVM():
                 t.root.operator = ConditionType.IF
                 tijdelijk = self.function_load
                 self.set_if_loop(t, True)
-                pass
+
+                last_entry = self.if_stack.pop()
+                st_entries = self.if_stack
+                while st_entries.__len__() > 0:
+                    self.function_load = self.function_load.replace(st_entries.pop()[1], last_entry[1])
+                self.if_stack.push(last_entry)
 
     def add_output_fold(self, out: str):
         self.g_assignment += out
@@ -672,5 +678,5 @@ def replace_last_digits(s, param):
         if i.isdigit():
             continue
         k += 1
-    s= s[0:k+1] + " %"+ str(param)
+    s = s[0:k + 1] + " %" + str(param)
     return s

@@ -12,12 +12,17 @@ br i1 %3, label %4, label %7
 %5 = load i32, ptr %3, align 4
 %6 = add nsw i32 %5, 1
 
-br label %10
+br label %13
 7 :
 %8 = load i32, ptr %6, align 4
-%9 = add nsw i32 %8, 2
+%9 = icmp slt i32 %8, 89
 
-br label %10
+br i1 %9, label %10, label %13
 10 :
- %12 = load ptr, ptr %11, align 4
-ret i32 %12}
+%11 = load i32, ptr %9, align 4
+%12 = add nsw i32 %11, 2
+
+br label %13
+13 :
+ %15 = load ptr, ptr %14, align 4
+ret i32 %15}
