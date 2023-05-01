@@ -11,10 +11,17 @@ import string
 # TODO :nieuwe block aanmaken--> parent block meegeven aan nieuwe block.             --> ok
 class CustomListener(ExpressionListener):
     def __init__(self, pathName):
+
         self.is_ref = False
         self.is_loop = False
         self.is_char = False
         self.is_parameter = False
+        self.is_print = False
+        self.is_scan = False
+        self.is_array = False
+
+        self.a_dec = False
+        self.a_val = None
         self.stop_fold = False
         self.start_rule = None
         self.asT = create_tree()
@@ -26,7 +33,6 @@ class CustomListener(ExpressionListener):
         self.dec_op = None
         self.counter = 0
         self.program = program()
-        self.print = False
         self.expr_layer = 0
         self.bracket_stack = stack()
         self.bracket_layer = stack()
@@ -103,19 +109,24 @@ class CustomListener(ExpressionListener):
         return ctx.getChildCount() > 1
 
     def set_print(self, ctx: ParserRuleContext, type_):
+        """
         if type_ == LiteralType.INT:
-
             self.current = Print(Value(ctx.getText(), LiteralType.INT, ctx.start.line, None))
         elif type_ == LiteralType.FLOAT:
             self.current = Print(Value(ctx.getText(), LiteralType.FLOAT, ctx.start.line, None))
         elif type_ == LiteralType.STR:
             self.current = Print(Value(ctx.getText(), LiteralType.CHAR, ctx.start.line, None))
         else:
-            self.current = Print(Value(ctx.getText(),LiteralType.VAR, ctx.start.line, None))
+            self.current = Print(Value(ctx.getText(), LiteralType.VAR, ctx.start.line, None))
+
         self.asT.root = self.current
         self.c_scope.block.trees.append(self.asT)
         self.current = None
         self.asT = create_tree()
+        """
+        i = Value(ctx.getText(), type_, ctx.start.line)
+        if isinstance(self.current, Print) or isinstance(self.current, Scan):
+            self.current.addParam(i)
         return
 
     def set_pointer(self, ctx: ParserRuleContext, type_):
@@ -130,7 +141,7 @@ class CustomListener(ExpressionListener):
         # print("set val:" + ctx.getText())
         type_ = find_value_type(ctx.getText())
         v = ctx.getText()
-        if self.print:
+        if self.is_print or self.is_scan:
             return self.set_print(ctx, type_)
         if self.pointer:
             return self.set_pointer(ctx, type_)
@@ -149,7 +160,7 @@ class CustomListener(ExpressionListener):
             if len(ctx.getText()) > 3:
                 raise CharSize(ctx.getText(), ctx.start.line)
 
-        if self.print:
+        if self.is_print:
             val = self.current.getValue()
             if self.current.type == LiteralType.VAR:
                 val = self.c_scope.block.getSymbolTable().findSymbol(self.current.getValue())
@@ -208,7 +219,6 @@ class CustomListener(ExpressionListener):
             self.end_bracket = False
             self.right = True
             self.left = False
-
         else:
             while order_prec[operator.operator] >= order_prec[self.parent.operator] and self.parent.parent is not None:
                 self.parent = self.parent.parent
@@ -278,6 +288,8 @@ class CustomListener(ExpressionListener):
         self.c_scope.block = block(None)
         self.c_scope.block.setParent(self.program)
         self.c_scope.block.name = "program"
+        self.c_scope.block.setParent(self.program)
+
         self.program.tree = self.c_scope
 
     # Exit a parse tree produced by ExpressionParser#start_rule.
@@ -286,16 +298,46 @@ class CustomListener(ExpressionListener):
         if self.c_scope.global_:
             # self.c_scope.block = self.c_block
             self.program.tree = self.c_scope
+            self.program.tree.block.setParent(self.program)
+        return
         # self.program.blocks = self.c_block
         # self.c_block = block(None)
 
     # Enter a parse tree produced by ExpressionParser#print.
     def enterPrint(self, ctx: ParserRuleContext):
-        self.print = True
+        self.is_print = True
+        if not self.program.include_added:
+            raise NotDeclared("printf", ctx.start.line)
+        self.current = Print("")
 
     # Exit a parse tree produced by ExpressionParser#print.
     def exitPrint(self, ctx: ParserRuleContext):
-        self.print = False
+        self.is_print = False
+        self.asT = create_tree()
+        self.asT.root = self.current
+        self.c_scope.block.trees.append(self.asT)
+        self.asT = create_tree()
+        self.current = None
+
+    # Enter a parse tree produced by ExpressionParser#format_string.
+    def enterFormat_string(self, ctx: ParserRuleContext):
+        if isinstance(self.current, Print):
+            self.current.setParamString(ctx.getText())
+
+    # Exit a parse tree produced by ExpressionParser#format_string.
+    def exitFormat_string(self, ctx: ParserRuleContext):
+        pass
+
+    # Enter a parse tree produced by ExpressionParser#scan.
+    def enterScan(self, ctx: ParserRuleContext):
+        self.is_scan = True
+        self.current = Scan("")
+        if not self.program.include_added:
+            raise NotDeclared("scanf", ctx.start.line)
+
+    # Exit a parse tree produced by ExpressionParser#scan.
+    def exitScan(self, ctx: ParserRuleContext):
+        self.is_scan = False
 
     # Enter a parse tree produced by ExpressionParser#typed_var.
     def enterTyped_var(self, ctx: ParserRuleContext):
@@ -434,6 +476,8 @@ class CustomListener(ExpressionListener):
             pass
 
         type = getType(var)
+        self.a_dec = not (type is False)
+        self.a_val = var
         if type is False:
             # print("val is :" + var)
             if self.c_scope.block.getSymbolTable().findSymbol(var) is not None:
@@ -480,7 +524,11 @@ class CustomListener(ExpressionListener):
             if self.dec_op.rightChild is None:
                 self.dec_op.rightChild = EmptyNode(ctx.start.line, self.dec_op, self.dec_op.leftChild.getType())
         elif self.current is None:
-            self.dec_op.rightChild = Value(0, self.dec_op.leftChild.getType(), self.dec_op, ctx.start.line, False)
+            if isinstance(self.dec_op.leftChild, Array):
+                self.dec_op=self.dec_op.leftChild
+                #self.dec_op.rightChild = EmptyNode(ctx.start.line, self.dec_op, self.dec_op.leftChild.getType())
+            else:
+                self.dec_op.rightChild = Value(0, self.dec_op.leftChild.getType(), self.dec_op, ctx.start.line, False)
 
         else:
             while self.current.parent is not None:
@@ -488,13 +536,30 @@ class CustomListener(ExpressionListener):
             if isinstance(self.current, BinaryOperator) and self.current.operator == "":
                 self.current = self.current.leftChild
             if isinstance(self.current, Declaration):
-                self.dec_op.rightChild = self.current.rightChild
+                if self.current.rightChild is None:
+                    self.current.leftChild.parent = self.dec_op
+                    self.dec_op.leftChild = self.current.leftChild
+                    if self.dec_op.rightChild is None:
+                        if isinstance(self.dec_op.leftChild, Array):
+                            self.dec_op=self.dec_op.leftChild
+                        else:
+                            self.dec_op.rightChild = EmptyNode(ctx.start.line, self.dec_op, self.dec_op.leftChild.getType())
+                else:
+                    self.current.rightChild.parent = self.dec_op
+                    self.dec_op.rightChild = self.current.rightChild
             else:
                 self.dec_op.rightChild = self.current
         self.current = self.dec_op
         """
         get the correct type from table if redeclaration
         """
+        if isinstance(self.dec_op,Array) and self.dec_op.declaration:
+            self.c_scope.block.getSymbolTable().addSymbol(self.dec_op, self.c_scope.global_)
+            self.parent = None
+            self.current = None
+            self.declaration = False
+            self.asT = create_tree()
+            return
         if self.c_scope.block.getSymbolTable().findSymbol(self.current.leftChild.getValue()) is not None:
             self.current.leftChild.setType(
                 self.c_scope.block.getSymbolTable().findSymbol(self.current.leftChild.getValue())[1])
@@ -826,7 +891,9 @@ class CustomListener(ExpressionListener):
         # self.c_scope.block = self.c_block
         self.scope_stack.push(self.c_scope)
         self.c_scope = Scope(ctx.start.line, self.scope_stack.peek())
-        self.c_scope.block = block(self.scope_stack.peek().block)
+        self.c_scope.block = block(None)
+        self.c_scope.block.setParent(self.scope_stack.peek().block)
+
         self.asT = create_tree()
 
     # Exit a parse tree produced by ExpressionParser#scope.
@@ -963,6 +1030,7 @@ class CustomListener(ExpressionListener):
         self.stop_fold = False
         if self.c_scope.f_name == "main":
             return
+        #        self.c_scope.block.setParent(self.c_scope.parent.block)
         # self.c_scope.block.parent = None
         # self.program.getFunctionTable().addFunction(self.c_scope)
         if self.scope_stack.__len__() > 0:
@@ -1007,7 +1075,8 @@ class CustomListener(ExpressionListener):
     # Enter a parse tree produced by ExpressionParser#f_variables.
     def enterF_variables(self, ctx: ParserRuleContext):
         if isinstance(self.current, Function):
-            self.current.addParameter(ctx.getText())
+            self.current.addParameter(ctx.getText(), scope=self.c_scope, line=ctx.start.line)
+        return
 
     # Exit a parse tree produced by ExpressionParser#f_variables.
     def exitF_variables(self, ctx: ParserRuleContext):
@@ -1065,6 +1134,51 @@ class CustomListener(ExpressionListener):
         self.exitDec(ctx)
         self.is_parameter = False
         #
+
+    # Enter a parse tree produced by ExpressionParser#array.
+    def enterArray(self, ctx: ParserRuleContext):
+        self.is_array = True
+        self.current = Array(getArrayName(ctx.getText()), line=ctx.start.line, pos=getArraySize(ctx.getText()),
+                             parent=self.parent, valueType=self.dec_op.leftChild.getType(),
+                             init=self.a_dec)
+        if self.a_dec and getArrayName(self.a_val, self.dec_op.leftChild.getType()) == self.current.getValue():
+            self.current.parent = self.dec_op
+            self.current.declaration = True
+            self.dec_op.leftChild = self.current
+            self.current = None
+        else:
+            self.current.init=False
+            if self.parent.rightChild is not None:
+                self.parent.rightChild = self.current
+            elif self.parent.leftChild is not None:
+                self.parent.leftChild = self.current
+        self.a_dec = False
+
+    # Exit a parse tree produced by ExpressionParser#array.
+    def exitArray(self, ctx: ParserRuleContext):
+        self.is_array = False
+
+    # Enter a parse tree produced by ExpressionParser#array_content.
+    def enterArray_content(self, ctx: ParserRuleContext):
+        pass
+
+    # Exit a parse tree produced by ExpressionParser#array_content.
+    def exitArray_content(self, ctx: ParserRuleContext):
+        pass
+
+    # Enter a parse tree produced by ExpressionParser#includes.
+    def enterIncludes(self, ctx: ParserRuleContext):
+        self.current = Include(ctx.getText(), ctx.start.line, None, None)
+        self.asT = create_tree()
+        self.asT.root = self.current
+        self.c_scope.block.trees.append(self.asT)
+        self.current = None
+        self.asT = create_tree()
+        self.program.include_added = True
+
+    # Exit a parse tree produced by ExpressionParser#includes.
+    def exitIncludes(self, ctx: ParserRuleContext):
+        pass
 
     def get_program(self):
         self.program.ast.root = self.program.tree

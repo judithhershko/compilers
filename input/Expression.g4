@@ -1,15 +1,21 @@
 grammar Expression;
 
-start_rule: (print ';'|expr ';'|dec ';'|comments|line|loop|scope (';')?| function_definition | function_dec)*;
+start_rule : (includes (';')* )? s_rule ;
+s_rule: (print ';'|scan ';'|expr ';'|dec ';'|comments|line|loop|scope (';')?| function_definition | function_dec| includes)*;
 
+includes: INCLUDE|INCLUDEH (';')?;
 line:NLINE;
-print   : PRINT LBRAK (char_pri | pri) RBRAK ;
+
+print : PRINT '(' format_string (',' ('*')* pri)* ')';
+scan  : SCAN '(' format_string (',' pri)* ')';
+format_string: STRING_LITERAL (',' STRING_LITERAL)*;
+
 comments: ML_COMMENT | SL_COMMENT;
 typed_var: INT| DOUBLE | FLOAT |CHAR | BOOL;
 
 scope : '{' rule (return)? rule'}' (';')?;
-rule  : (print ';'|expr ';'|dec ';'|comments|line|loop|scope | function_dec)*;
-lrules: (print ';' |expr ';' |dec ';' |comments |line |loop (';')? |break |continue | lscope | function_dec )*;
+rule  : (print ';'|scan ';' |expr ';'|dec ';'|comments|line|loop|scope | function_dec)*;
+lrules: (print ';' |scan ';' |expr ';' |dec ';' |comments |line |loop (';')? |break |continue | lscope | function_dec )*;
 lscope: '{' lrules '}' ;
 loop  : while | for | if;
 while : WHILE '(' expr ')' lscope;
@@ -36,7 +42,7 @@ pointer_val: (pointer)+ ID;
 
 array : ID '[' num ']' ;
 array_content : '{' pri (',' pri)* '}';
-dec:(const)? typed_var (pointer)* (ID|array) EQ (pointer_val|ref_ref|char_expr|expr|array_content) |(pointer)* (ID|array) EQ (pointer_val|ref_ref|char_expr|expr)
+dec:(const)? typed_var (pointer)* (ID|array) EQ (pointer_val|ref_ref|char_expr|expr|array_content|array) |(pointer)* (ID|array) EQ (pointer_val|ref_ref|char_expr|expr|array)
 | (const)? typed_var (pointer)* (ID|array);
 
 binop:MIN | PLUS ;
@@ -50,14 +56,14 @@ suffix_op: PP | MM ;
 expr: expr suffix_op | prefix_op expr | expr binop_md expr | expr binop expr | expr comparator expr |  expr equality expr | expr or_and expr  | fac;
 fac : brackets|pri ;
 brackets: LBRAK expr RBRAK;
-pri: function_dec | ID | ('-' | '+') ? num+ '.' num* |('-' | '+') ? '.' num+ | ('-' | '+') ? num;
+pri: function_dec | array | ID | ('-' | '+') ? num+ '.' num* |('-' | '+') ? '.' num+ | ('-' | '+') ? num;
 fnum: num | num+ '.' num* | '.' num+ ;
 num: NUM;
 
 char_op: PLUS | MIN;
 char_expr: char_pri| char_expr char_op char_expr;
 
-char_pri:CHAR_ID (ID | NUM)* CHAR_ID ;
+char_pri:CHAR_ID (ID | NUM | '\n' )* CHAR_ID ;
 
 INT     : 'int'     ;
 DOUBLE  : 'double'  ;
@@ -67,8 +73,11 @@ BOOL    : 'bool'    ;
 CONST   : 'const'   ;
 REF     : '&'       ;
 PRINT   : 'printf'  ;
+SCAN    : 'scanf'   ;
 VOID    : 'void'    ;
 RETURN  : 'return'  ;
+INCLUDE : '#include <stdio.h>' ;
+INCLUDEH: '#include "stdio.h"' ;
 
 PT   : '.' ;
 WHILE:'while';
@@ -106,6 +115,8 @@ END_COMMENT:'**/' ;
 ML_COMMENT:  '/*' .* '*/';
 SL_COMMENT:  '//' ~('\r' | '\n')*;
 
+STRING_LITERAL: '"' (ESC_SEQ |~('%'|'"'|'\n'|'\r'))* '"';
+fragment ESC_SEQ: '%' ('d'|'i'|'s'|'c');
 NLINE: '\n';
 //NLINE:';' .*? '\n' ;
 //NLINE:';' .*? '\n' -> skip;

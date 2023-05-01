@@ -1,17 +1,17 @@
+#include <stdio.h>
 int f(bool q)
 {
-    int z=0;
-    printf(z);
-
-    if (z>=10)
+    int z;
+    printf("a %d", *z);
+    int a[2];
+    a[0]=90;
+    while (z<10)
     {
-        printf('a');
         z=z+1;
+        break;
     }
-    else {
-        z=z+2;
-    }
-    //q=z > z + 1 + 3 || z < z - 1 ;
+
+   z=90+0-89*z;
     return 1;
 }
 

@@ -12,6 +12,7 @@ class program:
         self.functions = FunctionTable()
         self.ast = AST()
         self.blocks = []
+        self.include_added = False
         self.block = block(None)
         self.trees = []
         self.tree = Scope(0)

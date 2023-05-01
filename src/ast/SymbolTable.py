@@ -247,3 +247,6 @@ class SymbolTable:
 
     def makeUnfillable(self):
         self.table = self.table.assign(Fillable=False)
+
+    def setParent(self, parent):
+        self.parent = parent

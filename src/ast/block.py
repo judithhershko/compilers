@@ -204,3 +204,7 @@ class block:
             elif tree.root.name == "declaration" or tree.root.name == "array":
                 none = tree.createUnfilledDeclaration(tree.root)
                 self.symbols.addSymbol(none, glob, False)
+
+    def setParent(self, parent):
+        self.parent = parent
+        self.symbols.setParent(parent.symbols)
