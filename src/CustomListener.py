@@ -501,6 +501,8 @@ class CustomListener(ExpressionListener):
 
     # Exit a parse tree produced by ExpressionParser#dec.
     def exitDec(self, ctx: ParserRuleContext):
+        self.a_dec = False
+        self.a_val = None
         if self.is_parameter:
             self.current = None
             self.dec_op = None
@@ -524,8 +526,8 @@ class CustomListener(ExpressionListener):
                 self.dec_op.rightChild = EmptyNode(ctx.start.line, self.dec_op, self.dec_op.leftChild.getType())
         elif self.current is None:
             if isinstance(self.dec_op.leftChild, Array):
-                self.dec_op=self.dec_op.leftChild
-                #self.dec_op.rightChild = EmptyNode(ctx.start.line, self.dec_op, self.dec_op.leftChild.getType())
+                self.dec_op = self.dec_op.leftChild
+                # self.dec_op.rightChild = EmptyNode(ctx.start.line, self.dec_op, self.dec_op.leftChild.getType())
             else:
                 self.dec_op.rightChild = Value(0, self.dec_op.leftChild.getType(), self.dec_op, ctx.start.line, False)
 
@@ -540,9 +542,10 @@ class CustomListener(ExpressionListener):
                     self.dec_op.leftChild = self.current.leftChild
                     if self.dec_op.rightChild is None:
                         if isinstance(self.dec_op.leftChild, Array):
-                            self.dec_op=self.dec_op.leftChild
+                            self.dec_op = self.dec_op.leftChild
                         else:
-                            self.dec_op.rightChild = EmptyNode(ctx.start.line, self.dec_op, self.dec_op.leftChild.getType())
+                            self.dec_op.rightChild = EmptyNode(ctx.start.line, self.dec_op,
+                                                               self.dec_op.leftChild.getType())
                 else:
                     self.current.rightChild.parent = self.dec_op
                     self.dec_op.rightChild = self.current.rightChild
@@ -552,7 +555,7 @@ class CustomListener(ExpressionListener):
         """
         get the correct type from table if redeclaration
         """
-        if isinstance(self.dec_op,Array) and self.dec_op.declaration:
+        if isinstance(self.dec_op, Array) and self.dec_op.declaration:
             self.c_scope.block.getSymbolTable().addSymbol(self.dec_op, self.c_scope.global_)
             self.parent = None
             self.current = None
@@ -689,16 +692,6 @@ class CustomListener(ExpressionListener):
     # Exit a parse tree produced by ExpressionParser#expr.
     def exitExpr(self, ctx: ParserRuleContext):
         self.expr_layer -= 1
-        # print("exit expression:" + ctx.getText() + "with layer " + str(self.expr_layer))
-        """
-        if (isinstance(self.loop, While) or isinstance(self.loop,For)) and self.loop.Condition is None and self.expr_layer == 0:
-            while self.current.parent is not None:
-                self.current = self.current.parent
-            self.loop.Condition = self.current
-            self.current = None
-            self.parent = None
-        """
-        # (isinstance(self.loop, While) and self.loop.c_block is None and self.expr_layer==2)
         if self.declaration is False and isinstance(self.loop,
                                                     For) and self.expr_layer == 0 and self.loop.Condition is None and self.loop.f_dec is not None:
             self.asT = create_tree()
@@ -732,7 +725,12 @@ class CustomListener(ExpressionListener):
                     self.asT.setNodeIds(self.asT.root)
                     self.asT.generateDot(self.pathName + str(self.counter) + ".dot")
                     self.c_scope.block.trees.append(self.asT)
-        elif self.return_function:
+
+        elif self.return_function and self.expr_layer == 0:
+            while self.current.parent is not None:
+                self.current = self.current.parent
+            self.asT = create_tree()
+            self.asT.root = self.current
             self.c_scope.f_return = self.asT
             self.counter += 1
             self.parent = None
@@ -1127,7 +1125,7 @@ class CustomListener(ExpressionListener):
             self.dec_op.leftChild = self.current
             self.current = None
         else:
-            self.current.init=False
+            self.current.init = False
             if self.parent.rightChild is not None:
                 self.parent.rightChild = self.current
             elif self.parent.leftChild is not None:

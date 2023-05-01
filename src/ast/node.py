@@ -1124,6 +1124,7 @@ class Function(AST_node):
             self.decl == other.decl
 
     def addParameter(self, var, scope, line):
+
         # TODO: dit moet anders --> als value/pointer/ref wordt doorgegeven
         # var= &x, *x, 21,
         # ]\\\\\\\
