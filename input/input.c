@@ -1,10 +1,10 @@
 #include <stdio.h>
 int f(bool q)
 {
-    int z=0;
+    int z;
     printf("a %d", *z);
-    z=z+main(z);
-
+    int a[2];
+    a[0]=90;
     while (z<10)
     {
         z=z+1;

@@ -523,8 +523,9 @@ class CustomListener(ExpressionListener):
             if self.dec_op.rightChild is None:
                 self.dec_op.rightChild = EmptyNode(ctx.start.line, self.dec_op, self.dec_op.leftChild.getType())
         elif self.current is None:
-            if isinstance(self.dec_op.rightChild, Array):
-                self.dec_op.rightChild = EmptyNode(ctx.start.line, self.dec_op, self.dec_op.leftChild.getType())
+            if isinstance(self.dec_op.leftChild, Array):
+                self.dec_op=self.dec_op.leftChild
+                #self.dec_op.rightChild = EmptyNode(ctx.start.line, self.dec_op, self.dec_op.leftChild.getType())
             else:
                 self.dec_op.rightChild = Value(0, self.dec_op.leftChild.getType(), self.dec_op, ctx.start.line, False)
 
@@ -538,7 +539,10 @@ class CustomListener(ExpressionListener):
                     self.current.leftChild.parent = self.dec_op
                     self.dec_op.leftChild = self.current.leftChild
                     if self.dec_op.rightChild is None:
-                        self.dec_op.rightChild = EmptyNode(ctx.start.line, self.dec_op, self.dec_op.leftChild.getType())
+                        if isinstance(self.dec_op.leftChild, Array):
+                            self.dec_op=self.dec_op.leftChild
+                        else:
+                            self.dec_op.rightChild = EmptyNode(ctx.start.line, self.dec_op, self.dec_op.leftChild.getType())
                 else:
                     self.current.rightChild.parent = self.dec_op
                     self.dec_op.rightChild = self.current.rightChild
@@ -548,6 +552,13 @@ class CustomListener(ExpressionListener):
         """
         get the correct type from table if redeclaration
         """
+        if isinstance(self.dec_op,Array) and self.dec_op.declaration:
+            self.c_scope.block.getSymbolTable().addSymbol(self.dec_op, self.c_scope.global_)
+            self.parent = None
+            self.current = None
+            self.declaration = False
+            self.asT = create_tree()
+            return
         if self.c_scope.block.getSymbolTable().findSymbol(self.current.leftChild.getValue()) is not None:
             self.current.leftChild.setType(
                 self.c_scope.block.getSymbolTable().findSymbol(self.current.leftChild.getValue())[1])
@@ -1110,11 +1121,13 @@ class CustomListener(ExpressionListener):
         self.current = Array(getArrayName(ctx.getText()), line=ctx.start.line, pos=getArraySize(ctx.getText()),
                              parent=self.parent, valueType=self.dec_op.leftChild.getType(),
                              init=self.a_dec)
-        if self.a_dec and getArrayName(self.a_val) == self.current.getValue():
+        if self.a_dec and getArrayName(self.a_val, self.dec_op.leftChild.getType()) == self.current.getValue():
             self.current.parent = self.dec_op
+            self.current.declaration = True
             self.dec_op.leftChild = self.current
             self.current = None
         else:
+            self.current.init=False
             if self.parent.rightChild is not None:
                 self.parent.rightChild = self.current
             elif self.parent.leftChild is not None:

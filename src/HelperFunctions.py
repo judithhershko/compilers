@@ -38,13 +38,13 @@ def getType(txt):
 
 
 def remove_type(ptype: LiteralType, v: str):
-    if ptype == LiteralType.INT:
+    if ptype == LiteralType.INT and len(v)>=3:
         v = v[3:]
-    elif ptype == LiteralType.FLOAT:
+    elif ptype == LiteralType.FLOAT and len(v)>=5:
         v = v[5:]
-    elif ptype == LiteralType.BOOL:
+    elif ptype == LiteralType.BOOL and len(v)>=4:
         v = v[4:]
-    elif ptype == LiteralType.CHAR:
+    elif ptype == LiteralType.CHAR and len(v)>=4:
         v = v[4:]
     return v
 
@@ -93,8 +93,9 @@ def find_value_type(v: str):
         return node.LiteralType.VAR
 
 
-def getArrayName(text: str):
+def getArrayName(text: str, type_=LiteralType.INT):
     x = text.split("[")
+    x[0]=remove_type(type_,x[0])
     return x[0]
 
 

@@ -1186,12 +1186,18 @@ class Array(AST_node):
         self.isValue = False
         self.name = "array"
 
+        self.arrayContent = []
+
     def __eq__(self, other):
         return self.value == other.value and self.pos == other.pos and self.type == other.type and \
             self.line == other.line and self.init == other.init
 
     def getType(self):
         return self.type
+
+    # TODO: content kan var, value, pointer, function zijn
+    def setArrayContent(self, content):
+        self.arrayContent = content
 
     def setType(self, type_):
         self.type = type_
