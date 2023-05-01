@@ -108,10 +108,12 @@ class Print(AST_node):
         self.input_string = input
         self.setParamString(input)
 
+    # TODO : let op param kan *z zijn als een string,
+    # TODO: check dat dit een digit niet ervoor staat ipv letter
     def addParam(self, param):
         self.param.append(param)
 
-    # TODO: set %d,i,s,c type in paramStirg[]
+    # TODO: set %d,i,s,c type in paramString[]
     def setParamString(self, input: str):
         pass
 
@@ -839,8 +841,9 @@ class EmptyNode(AST_node):
     def getVariables(self):
         return [[], True]
 
+
 class Include(AST_node):
-    def __init__(self,value:str,line: int, parent: AST_node = None, type_=None):
+    def __init__(self, value: str, line: int, parent: AST_node = None, type_=None):
         self.value = value
         self.type = type_
         self.parent = parent
@@ -870,7 +873,6 @@ class Include(AST_node):
 
     def getVariables(self):
         return [self.value, True]
-
 
 
 # unnamed scopes gebruik scope node

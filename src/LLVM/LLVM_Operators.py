@@ -14,6 +14,7 @@ from src.ast.node_types.node_type import ConditionType
 # TODO   break/continue while   v
 # TODO   break/continue if      v
 # TODO   if                     v
+# TODO   expr met pointers
 # TODO   scopes
 # TODO   counter in return
 # TODO   function calls
@@ -488,20 +489,20 @@ class ToLLVM():
         else:
             self.store += "\n"
 
-    def to_print(self, tree: AST):
-        var = ""
-        # to_print = ""
-        """if type(tree.root.value) is tuple:
-            to_print = tree.root.value[0]
-        else:
-            to_print = tree.root.value
-        if len(to_print) >= 7 and to_print[1] == "\"":
-            v = ""
-            for i in to_print:
-                if i == "\"":
-                    pass
-                else:
-                    v += i"""
+    def to_print(self, tree: AST, f_="printf"):
+        """
+            printf("hi %d dit\n", z);
+            printf("hi %i dit\n", z);
+            printf("hi %s dit\n", "z");
+            printf("hi %c dit\n", 'c');
+
+            %9 = load float, ptr %3, align 4
+            %10 = fpext float %9 to double
+            %11 = call i32 (ptr, ...) @printf(ptr noundef @.str.1, double noundef %10)
+            %12 = call i32 (ptr, ...) @printf(ptr noundef @.str.2, ptr noundef @.str.3)
+            %13 = call i32 (ptr, ...) @printf(ptr noundef @.str.4, i32 noundef 99)
+        """
+
         to_print = tree.root.getValue()
         if isinstance(to_print, Value):
             to_print = to_print.value
@@ -509,24 +510,31 @@ class ToLLVM():
                 to_print = self.c_scope.block.getSymbolTable().findSymbol(to_print)[0]
             elif self.c_scope.f_name != "":
                 to_print = self.c_scope.parameters[to_print]
-        if self.g_count > 0:
-            var = "."
-            var += str(self.g_count)
+        var = self.addGlobalString(tree.root)
+        s = self.add_variable(f_ + str(self.g_count))
+        self.store += "; {} ({})\n".format(f_,str(to_print))
+        if isinstance(tree.root, Print) and tree.root.param.__len__() == 0 or tree.root.paramString.__len__() == 0:
+            self.store += "%{} = call i32 (ptr, ...) @{}(ptr noundef @.str{})\n".format(s, f_, var)
         else:
-            if "print" not in self.g_def:
-                self.f_count += 1
-                self.f_declerations += "declare i32 @printf(ptr noundef, ...) #{}\n".format(self.f_count)
-                self.g_def["print"] = True
-        self.g_count += 1
-        self.f_declerations += "@.str{} = private unnamed_addr constant [{}x i8] c\"{}\\0A\\00\", align 1\n".format(
-            var, len(str(to_print)) + 2, to_print)
-        s = self.add_variable("printf" + str(self.g_count))
-        self.store += "; printf ({})\n".format(str(to_print))
-        self.store += "%{} = call i32 (ptr, ...) @printf(ptr noundef @.str{})\n".format(s, var)
+            for p in tree.root.param:
+                if p.getType == LiteralType.FLOAT:
+                    old = self.get_variable(p.getValue())
+                    self.store += "%{} = load float, ptr %{}, align 4\n".format(self.add_variable(p.getValue()), old)
+                    old = self.get_variable(p.getValue())
+                    self.store += "%{} = fpext float %{} to double\n".format(self.add_variable(p.getValue()), old)
+
+            self.store += "%{} = call i32 (ptr, ...) @{}(ptr noundef @.str{} ".format(s, f_, var)
+            i = 0
+            for p in tree.root.param:
+                self.store += ", "
+                type_ = self.getPrintType(tree.root.paramString[i])
+                print_ = self.getPrintValue(tree.root.paramString[i], type_, p)
+                self.store += "{}noundef {}".format(type_, print_)
+                i += 1
+            self.store += ")\n"
 
     def to_scan(self, tree: AST):
-        pass
-
+        return self.to_print(tree, "scanf")
     def to_expression(self, param):
         pass
 
@@ -628,9 +636,9 @@ class ToLLVM():
         self.function_load += str(self.get_counter()) + " :\n"
         self.transverse_tree(t.root.c_block, self.branch_stack.peek(), counter0)
         if self.stop_loop:
-            count=self.get_counter()
+            count = self.get_counter()
         else:
-            count=self.increase_counter()
+            count = self.increase_counter()
         tijdelijk += "br i1 %{}, label %{}, label %{}\n".format(counter1, counter2, count)
         self.function_load = tijdelijk + self.function_load
         if not self.stop_loop:
@@ -692,7 +700,7 @@ class ToLLVM():
         self.transverse_tree(b)
 
     def to_continue(self, t: AST, counter=0, start_loop=0):
-        self.function_load+="br label %{}, !llvm.loop !5\n".format(start_loop)
+        self.function_load += "br label %{}, !llvm.loop !5\n".format(start_loop)
         if self.branch_stack.peek() == counter:
             self.stop_loop = True
 
@@ -708,3 +716,52 @@ class ToLLVM():
     def exit_branch(self):
         self.branch_stack.pop()
 
+    def getPrintType(self, param: str, val: Value):
+        if param == "%d" and val.type == LiteralType.FLOAT:
+            return " double "
+        if param == "%d" and val.type == LiteralType.INT:
+            return " i32 "
+        if param == "%s":
+            return " ptr "
+        if param == "%i" and val.type == LiteralType.FLOAT:
+            return " double "
+        if param == "%i" and val.type == LiteralType.INT:
+            return " i32 "
+        if param == "%c":
+            return " i32"
+
+    def getPrintValue(self, param: str, type_: str, p: Value):
+        if param == "%c":
+            return str(ord(str(p.getValue())))
+        if param == "%d":
+            if p.getValue().isdigit():
+                if p.getType() == LiteralType.INT:
+                    return str(p.getValue())
+                if p.getType() == LiteralType.FLOAT:
+                    return self.float_to_64bit_hex(p.getValue())
+            return self.get_variable(p.getValue())
+        if param == "%s":
+            return "@.str{}" + self.addGlobalString(p)
+        if param == "%i":
+            if p.getValue().isdigit():
+                if p.getType() == LiteralType.INT:
+                    return str(p.getValue())
+                if p.getType() == LiteralType.FLOAT:
+                    return self.float_to_64bit_hex(p.getValue())
+            return self.get_variable(p.getValue())
+
+    def addGlobalString(self, v: Value):
+        # adds the string and return string name
+        var = ""
+        if self.g_count > 0:
+            var = "."
+            var += str(self.g_count)
+        else:
+            if "print" not in self.g_def:
+                self.f_count += 1
+                self.f_declerations += "declare i32 @printf(ptr noundef, ...) #{}\n".format(self.f_count)
+                self.g_def["print"] = True
+        self.g_count += 1
+        self.f_declerations += "@.str{} = private unnamed_addr constant [{}x i8] c\"{}\\0A\\00\", align 1\n".format(
+            var, len(str(v.getValue())) + 2, str(v.getValue()))
+        return var

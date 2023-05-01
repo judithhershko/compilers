@@ -2,7 +2,7 @@
 int f(bool q)
 {
     int z=0;
-    printf("a");
+    printf("a %d", *z);
     z=z+main(z);
 
     while (z<10)
