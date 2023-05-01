@@ -4,25 +4,17 @@ define i32 @f() #0 {
 %1 = alloca i32, align 4
 
 
-%2 = load i32, ptr %1, align 4
-%3 = icmp sge i32 %2, 10
+br label %2
+2 :
+%3 = load i32, ptr %1, align 4
+%4 = icmp slt i32 %3, 10
 
-br i1 %3, label %4, label %7
-4 :
-%5 = load i32, ptr %3, align 4
-%6 = add nsw i32 %5, 1
+br i1 %4, label %5, label %8
+5 :
+%6 = load i32, ptr %4, align 4
+%7 = add nsw i32 %6, 1
 
-br label %13
-7 :
-%8 = load i32, ptr %6, align 4
-%9 = icmp slt i32 %8, 89
-
-br i1 %9, label %10, label %13
-10 :
-%11 = load i32, ptr %9, align 4
-%12 = add nsw i32 %11, 2
-
-br label %13
-13 :
- %15 = load ptr, ptr %14, align 4
-ret i32 %15}
+br label %8
+8 :
+ %10 = load ptr, ptr %9, align 4
+ret i32 %10}

@@ -4,24 +4,30 @@ import struct
 from src.LLVM.helper_functions import stack, remove_last_line_from_string
 from src.ast import AST
 from src.ast.SymbolTable import SymbolTable
-from src.ast.node import Declaration, Value, LiteralType, Comment, CommentType, Print, Pointer, Scope, If, While
+from src.ast.node import Declaration, Value, LiteralType, Comment, CommentType, Print, Pointer, Scope, If, While, Scan, \
+    Continue, Break
 from src.ast.block import block
 from src.ast.Program import program
 from src.ast.node_types.node_type import ConditionType
 
 
-# TODO   break/continue
-# TODO   if
+# TODO   break/continue while   v
+# TODO   break/continue if
+# TODO   if                     v
 # TODO   scopes
 # TODO   counter in return
 # TODO   function calls
 # TODO   arrays
+# TODO   return expression
+# TODO   print/scan
+# TODO   include
 
 
 class ToLLVM():
     def __init__(self):
         print("------------------START LLVM-----------------")
         self.c_function = None
+        self.stop_loop = False
         self.g_def = dict()
         self.parameters = None
         self.c_scope = None
@@ -49,6 +55,7 @@ class ToLLVM():
         self.if_prev = None
         # keeps branch label of last if
         self.if_stack = stack()
+        self.branch_stack = stack()
 
     def STable_to_LLVM(self, table: SymbolTable):
         for entry in table:
@@ -568,7 +575,7 @@ class ToLLVM():
         self.is_global = prev_global
         self.var_dic = dict()
 
-    def transverse_tree(self, cblock: block):
+    def transverse_tree(self, cblock: block, branch_count=0, start_loop=0):
         # declarations
         for tree in cblock.trees:
             if isinstance(tree.root, Declaration) and tree.root.leftChild.declaration:
@@ -588,6 +595,12 @@ class ToLLVM():
                 self.to_print(t)
                 self.function_load += self.store
                 self.store = ""
+            elif isinstance(t.root, Scan):
+                pass
+            elif isinstance(t.root, Continue):
+                self.to_continue(t, branch_count, start_loop)
+            elif isinstance(t.root, Break):
+                self.to_break(t, branch_count)
             elif isinstance(t.root, While):
                 print("while loop")
                 self.set_while_loop(t)
@@ -600,38 +613,47 @@ class ToLLVM():
                 t.root.fold(self)
 
     def set_while_loop(self, t: AST):
+        self.enter_branch()
         self.function_load += "br label %{}\n".format(self.increase_counter())
         counter0 = self.get_counter()
         self.function_load += str(self.get_counter()) + " :\n"
         if isinstance(t.root, While):
             b = block(None)
             b.trees.append(t.root.Condition)
-            self.transverse_tree(b)
+            self.transverse_tree(b, self.branch_stack.peek(), counter0)
         tijdelijk = self.function_load
         self.function_load = ""
         counter1 = self.get_counter()
         counter2 = self.increase_counter()
-        # self.function_load += "br i1 %{}, label %{}, label %$\n".format(self.get_counter(), self.increase_counter())
         self.function_load += str(self.get_counter()) + " :\n"
-        self.transverse_tree(t.root.c_block)
-        tijdelijk += "br i1 %{}, label %{}, label %{}\n".format(counter1, counter2, self.get_counter())
+        self.transverse_tree(t.root.c_block, self.branch_stack.peek(), counter0)
+        if self.stop_loop:
+            count=self.get_counter()
+        else:
+            count=self.increase_counter()
+        tijdelijk += "br i1 %{}, label %{}, label %{}\n".format(counter1, counter2, count)
         self.function_load = tijdelijk + self.function_load
-        self.function_load += "br label %{}, !llvm.loop !5\n".format(counter0)
-        self.function_load += str(self.increase_counter()) + " :\n"
+        if not self.stop_loop:
+            self.function_load += "br label %{}, !llvm.loop !5\n".format(counter0)
+            self.function_load += str(self.get_counter()) + " :\n"
+        self.exit_branch()
+        self.stop_loop = False
 
     def set_if_loop(self, t: AST, keep=False):
         if isinstance(t.root, If):
 
             if t.root.operator == ConditionType.IF:
+
                 if self.if_stack.__len__() > 0 and not keep:
                     self.if_stack.pop()
+                self.enter_branch()
                 self.set_condition(t)
                 counter0 = self.get_counter()
                 self.increase_counter()
                 tijdelijk = self.function_load
                 self.function_load = "{} :\n".format(self.get_counter())
                 ifs = [self.get_counter()]
-                self.transverse_tree(t.root.c_block)
+                self.transverse_tree(t.root.c_block, self.branch_stack.peek())
                 branch = ["br i1 %{}, label %{}, label %{}".format(counter0, counter0 + 1, self.increase_counter())]
                 tijdelijk += branch[0] + "\n"
                 self.function_load = tijdelijk + self.function_load
@@ -640,7 +662,8 @@ class ToLLVM():
                 self.function_load += "{} :\n".format(self.get_counter())
                 self.if_stack.push(branch)
             elif t.root.operator == ConditionType.ELSE:
-                self.transverse_tree(t.root.c_block)
+                self.enter_branch()
+                self.transverse_tree(t.root.c_block, self.branch_stack.peek())
                 self.increase_counter()
                 while self.if_stack.__len__() > 0 and len(self.if_stack.peek()) == 2:
                     self.function_load = self.function_load.replace(self.if_stack.pop()[1],
@@ -657,6 +680,7 @@ class ToLLVM():
                 while st_entries.__len__() > 0 and len(self.if_stack.peek()) == 2:
                     self.function_load = self.function_load.replace(st_entries.pop()[1], last_entry[1])
                 self.if_stack.push(last_entry)
+            self.exit_branch()
 
     def add_output_fold(self, out: str):
         self.g_assignment += out
@@ -667,12 +691,20 @@ class ToLLVM():
         b.trees.append(t.root.Condition)
         self.transverse_tree(b)
 
+    def to_continue(self, t: AST, counter=0, start_loop=0):
+        self.function_load+="br label %{}, !llvm.loop !5\n".format(start_loop)
+        if self.branch_stack.peek() == counter:
+            self.stop_loop = True
 
-def replace_last_digits(s, param):
-    k = 0
-    for i in reversed(s):
-        if i.isdigit():
-            continue
-        k += 1
-    s = s[0:k + 1] + " %" + str(param)
-    return s
+    def to_break(self, t: AST, counter=0):
+        self.function_load += "br label %{}\n".format(self.increase_counter())
+        self.function_load += "{} :\n".format(self.get_counter())
+        if self.branch_stack.peek() == counter:
+            self.stop_loop = True
+
+    def enter_branch(self):
+        self.branch_stack.push(self.get_counter())
+
+    def exit_branch(self):
+        self.branch_stack.pop()
+

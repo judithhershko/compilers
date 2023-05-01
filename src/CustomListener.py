@@ -1040,7 +1040,8 @@ class CustomListener(ExpressionListener):
     # Enter a parse tree produced by ExpressionParser#f_variables.
     def enterF_variables(self, ctx: ParserRuleContext):
         if isinstance(self.current, Function):
-            self.current.addParameter(ctx.getText())
+            self.current.addParameter(ctx.getText(),scope=self.c_scope, line=ctx.start.line)
+        return
 
     # Exit a parse tree produced by ExpressionParser#f_variables.
     def exitF_variables(self, ctx: ParserRuleContext):
