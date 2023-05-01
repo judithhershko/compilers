@@ -305,6 +305,8 @@ class CustomListener(ExpressionListener):
     # Enter a parse tree produced by ExpressionParser#print.
     def enterPrint(self, ctx: ParserRuleContext):
         self.is_print = True
+        if not self.program.include_added:
+            raise NotDeclared("printf", ctx.start.line)
         self.current = Print("")
 
     # Exit a parse tree produced by ExpressionParser#print.
@@ -329,6 +331,8 @@ class CustomListener(ExpressionListener):
     def enterScan(self, ctx: ParserRuleContext):
         self.is_scan = True
         self.current = Scan("")
+        if not self.program.include_added:
+            raise NotDeclared("scanf", ctx.start.line)
 
     # Exit a parse tree produced by ExpressionParser#scan.
     def exitScan(self, ctx: ParserRuleContext):
@@ -1040,7 +1044,7 @@ class CustomListener(ExpressionListener):
     # Enter a parse tree produced by ExpressionParser#f_variables.
     def enterF_variables(self, ctx: ParserRuleContext):
         if isinstance(self.current, Function):
-            self.current.addParameter(ctx.getText(),scope=self.c_scope, line=ctx.start.line)
+            self.current.addParameter(ctx.getText(), scope=self.c_scope, line=ctx.start.line)
         return
 
     # Exit a parse tree produced by ExpressionParser#f_variables.
@@ -1132,11 +1136,13 @@ class CustomListener(ExpressionListener):
     # Enter a parse tree produced by ExpressionParser#includes.
     def enterIncludes(self, ctx: ParserRuleContext):
         self.current = Include(ctx.getText(), ctx.start.line, None, None)
-        self.asT=create_tree()
-        self.asT.root=self.current
+        self.asT = create_tree()
+        self.asT.root = self.current
         self.c_scope.block.trees.append(self.asT)
         self.current = None
-        self.asT=create_tree()
+        self.asT = create_tree()
+        self.program.include_added = True
+
     # Exit a parse tree produced by ExpressionParser#includes.
     def exitIncludes(self, ctx: ParserRuleContext):
         pass

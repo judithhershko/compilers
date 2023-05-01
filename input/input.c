@@ -1,8 +1,9 @@
-#include <stdio.h>
+
 
 int f(bool q)
 {
     int z=0;
+    scanf("a");
     z=z+main(z);
 
     while (z<10)

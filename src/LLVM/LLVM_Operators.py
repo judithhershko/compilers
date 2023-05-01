@@ -12,7 +12,7 @@ from src.ast.node_types.node_type import ConditionType
 
 
 # TODO   break/continue while   v
-# TODO   break/continue if
+# TODO   break/continue if      v
 # TODO   if                     v
 # TODO   scopes
 # TODO   counter in return
@@ -20,7 +20,7 @@ from src.ast.node_types.node_type import ConditionType
 # TODO   arrays
 # TODO   return expression
 # TODO   print/scan
-# TODO   include
+# TODO   include                v (niks toe te voegen)
 
 
 class ToLLVM():
