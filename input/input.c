@@ -2,5 +2,7 @@
 int f(bool q)
 {
     int z=0;
-    return 1+z*89+90;
+    z=78;
+
+return 1;
 }
