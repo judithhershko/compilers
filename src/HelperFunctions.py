@@ -1,4 +1,4 @@
-from src.ast import node
+from .ast import node
 from src.ast.node import *
 from .ast.Program import *
 

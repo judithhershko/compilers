@@ -2,7 +2,7 @@ from .SymbolTable import SymbolTable, FunctionTable
 from src.ErrorHandeling.GenerateError import *
 from .block import block
 from .AST import AST
-from .node import Scope
+from src.ast.node import Scope
 
 
 class program:
