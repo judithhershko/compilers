@@ -206,3 +206,8 @@ class block:
                 self.symbols.addSymbol(none, glob, False)
             elif tree.root.name == "scope" and tree.root.f_name != "":
                 self.parent.functions.addFunction(tree.root)
+
+
+    def setParent(self, parent):
+        self.parent = parent
+        self.symbols.setParent(parent.symbols)

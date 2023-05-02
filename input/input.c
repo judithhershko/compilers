@@ -1,30 +1,8 @@
-int f(bool q)
+#include <stdio.h>
+int f()
 {
-    int z=0;
-    printf(z);
-
-    if (z>=10)
-    {
-        printf('a');
-        z=z+1;
-    }
-    else {
-        z=z+2;
-    }
-    //q=z > z + 1 + 3 || z < z - 1 ;
-    return 1;
-}
-
-int main(int x, int y)
-{
-int z=0;
-return 0;
-}
-int function(int x)
-{
-    int z=0;
-    x=x-z+90*x+90;
-return x;
+//this is function f
+return 1;
 }
 int main2()
 {
@@ -33,13 +11,3 @@ int x=z+5;
 z=90+x;
 return z;
 }
-
-int f2(int x,int y){
-    int z = x+y;
-    return z;
-}
-
-int a = 5;
-int b = 6;
-
-f2(a, b);
