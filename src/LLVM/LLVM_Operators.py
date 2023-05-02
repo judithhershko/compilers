@@ -26,7 +26,9 @@ from src.ast.node_types.node_type import ConditionType
 
 class ToLLVM():
     def __init__(self):
+
         print("------------------START LLVM-----------------")
+        self.program = None
         self.c_function = None
         self.stop_loop = False
         self.g_def = dict()
@@ -247,6 +249,7 @@ class ToLLVM():
             return self.function_scope(tree)
 
     def transverse_program(self, _program: program):
+        self.program=_program
         _block = _program.block
         self.is_global = _program.tree.global_
         # set global functions
@@ -751,15 +754,17 @@ class ToLLVM():
     def get_llvm_type(self, v=None):
         if isinstance(v, Pointer):
             return "ptr"
+
         if isinstance(v, Value):
-            if v.getType() == LiteralType.INT:
-                return "i32"
-            if v.getType() == LiteralType.FLOAT:
-                return "float"
-            if v.getType() == LiteralType.CHAR:
-                return "i8"
-            if v.getType() == LiteralType.BOOL:
-                return "i1"
+            v=v.getType()
+        if v == LiteralType.INT:
+            return "i32"
+        if v == LiteralType.FLOAT:
+            return "float"
+        if v == LiteralType.CHAR:
+            return "i8"
+        if v == LiteralType.BOOL:
+            return "i1"
         return None
 
     def getPrintValue(self, param: str, type_: str, p: Value):

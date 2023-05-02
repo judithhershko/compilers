@@ -10,6 +10,10 @@ class Pointer:
     pass
 
 
+class Function:
+    pass
+
+
 class HelperLLVM:
     def __init__(self):
         self.g_assigment = ""
@@ -151,6 +155,8 @@ def stor_binary_operation(op, left, right, rtype, llvm, load_left, load_right):
 
 
 def set_llvm_binary_operators(left: Value, right: Value, op: str, llvm):
+    if isinstance(left, Function) or isinstance(right, Function):
+        return function_in_operation(left, right, op, llvm)
     print("binary operator called")
     # get all types
     # move higher type if necessary
@@ -201,7 +207,49 @@ def set_llvm_binary_operators(left: Value, right: Value, op: str, llvm):
 
     if op == "*" or op == "/" or op == "+" or op == "-" or op == "%" or op == ">=" or op == "<=" or op == ">" or op == "<" or op == "==":
         llvm.function_load += stor_binary_operation(op, left, right, rtype, llvm, load_left, load_right)
-        llvm.function_load +="\n"
+        llvm.function_load += "\n"
     else:
         raise NotSupported("operator", op, left.line)
     return ltype
+
+
+def function_in_operation(left: Value, right: Value, op: str, llvm):
+    """
+    f(z)
+    %4 = call i32 @function(i32 noundef %3)
+    f(0)
+    %3 = call i32 @function(i32 noundef 0)
+
+    idee: save function call in register,
+    maak nieuwe value node aan voor register met de functie naam
+    """
+    if isinstance(left, Function):
+        left=load_function(left,llvm)
+    else:
+        right=load_function(right,llvm)
+    return set_llvm_binary_operators(left,right,op,llvm)
+
+def load_function(p, llvm):
+    inhoud = llvm.program.functions[p.f_name]
+    llvm.add_variable(p.f_name)
+    llvm.function_load += "%{} = call {} @{}".format(llvm.get_variable(p.f_name),
+                                                     llvm.get_llvm_type(inhoud["return"]), p.f_name)
+    llvm.function_load += "("
+    for key in inhoud:
+        if key == "return":
+            continue
+        llvm.function_load += llvm.get_llvm_type(inhoud[key])
+        val = inhoud[key].getValue()
+        is_var = True
+        if str(inhoud[key].getValue()[0]).isdigit():
+            is_var = False
+            if inhoud[key].getType() == LiteralType.FLOAT:
+                val = llvm.float_to_64bit_hex(inhoud[key].getValue())
+        if is_var:
+            llvm.function_load += "{} noundef %{}".format(llvm.get_llvm_type(inhoud[key].getType()),
+                                                          llvm.get_variable(val))
+        else:
+            llvm.function_load += "{} noundef {}".format(llvm.get_llvm_type(inhoud[key].getType()), val)
+
+    llvm.function_load += ")\n"
+    return Value(lit=p.f_name,valueType=inhoud["return"].getType(),line=p.line)

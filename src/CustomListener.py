@@ -1041,8 +1041,10 @@ class CustomListener(ExpressionListener):
         # print("exit function definition:" + ctx.getText())
         self.function_scope = False
         self.stop_fold = False
+        #self.program.getFunctionTable().addFunction(self.c_scope)
         if self.c_scope.f_name == "main":
             return
+
         # self.c_scope.block.parent = None
 
         #        self.c_scope.block.setParent(self.c_scope.parent.block)
