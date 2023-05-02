@@ -50,7 +50,7 @@ class AST:
             number = nextNode.c_block.setNodeIds(level + 1, number + 1)
         elif isinstance(nextNode, Function):
             for value in nextNode.param:
-                number = self.setNodeIds(value, level+1, number+1)
+                number = self.setNodeIds(value, level + 1, number + 1)
         # elif isinstance(nextNode, block):
         # number = self.setNodeIds(nextNode.getAst().root, level + 1, number + 1)
         # for tree in nextNode.trees:
@@ -95,8 +95,8 @@ class AST:
             nodes = nodes + res[0]
             edges = edges + res[1]
         elif isinstance(self.root, UnaryOperator):
-            edges = self.root.getId() + "--" + self.root.value.getId()
-            res = self.toDot(self.root.value)
+            edges = self.root.getId() + "--" + self.root.rightChild.getId()
+            res = self.toDot(self.root.rightChild)
             nodes = nodes + res[0]
             edges = edges + res[1]
         elif isinstance(self.root, Scope):

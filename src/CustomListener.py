@@ -287,6 +287,7 @@ class CustomListener(ExpressionListener):
         self.c_scope = Scope(ctx.start.line)
         self.c_scope.global_ = True
         self.c_scope.block = block(None)
+        self.c_scope.block.setParent(self.program)
         self.c_scope.block.name = "program"
         self.c_scope.block.setParent(self.program)
 
@@ -602,7 +603,7 @@ class CustomListener(ExpressionListener):
                     self.current.leftChild.getValue()) is None and self.current.leftChild.declaration:
                 """if self.current.rightChild is not Value:
                     self.asT.root.rightChild = EmptyNode(self.current.leftChild.line, self.current)"""
-                self.c_scope.block.getSymbolTable().addSymbol(self.asT.root, self.c_scope.global_)
+                # self.c_scope.block.getSymbolTable().addSymbol(self.asT.root, self.c_scope.global_)
             self.counter += 1
             self.parent = None
             self.current = None
@@ -610,21 +611,20 @@ class CustomListener(ExpressionListener):
             self.asT = create_tree()
             return
 
-        if not isinstance(self.asT.root.leftChild, Pointer):
-            self.c_scope.block.fillLiterals(self.asT)
-        self.asT.foldTree()
-        self.asT.setNodeIds(self.asT.root)
-        self.asT.generateDot(self.pathName + str(self.counter) + ".dot")
-        # self.c_block.trees.append(self.asT)
-        self.asT.foldTree()
-        self.asT.setNodeIds(self.asT.root)
-        self.asT.generateDot(self.pathName + str(self.counter) + ".dot")
+        # if not isinstance(self.asT.root.leftChild, Pointer):
+        #     self.c_scope.block.fillLiterals(self.asT)
+        # self.asT.foldTree()
+        # self.asT.setNodeIds(self.asT.root)
+        # self.asT.generateDot(self.pathName + str(self.counter) + ".dot")
+        # # self.c_block.trees.append(self.asT)
+        # self.asT.foldTree()
+        # self.asT.setNodeIds(self.asT.root)
+        # self.asT.generateDot(self.pathName + str(self.counter) + ".dot")
         pointer = ""
         level = 0
         self.c_scope.block.trees.append(self.asT)
         # if self.current.leftChild.declaration:
-        self.c_scope.block.getSymbolTable().addSymbol(self.asT.root,
-                                                      self.c_scope.global_)  # TODO: make bool depend on current scope
+        # self.c_scope.block.getSymbolTable().addSymbol(self.asT.root, self.c_scope.global_)  # TODO: make bool depend on current scope
         # else:
         #    #TODO: replace value
         #    pass
@@ -693,6 +693,16 @@ class CustomListener(ExpressionListener):
     # Exit a parse tree produced by ExpressionParser#expr.
     def exitExpr(self, ctx: ParserRuleContext):
         self.expr_layer -= 1
+        # print("exit expression:" + ctx.getText() + "with layer " + str(self.expr_layer))
+        """
+        if (isinstance(self.loop, While) or isinstance(self.loop,For)) and self.loop.Condition is None and self.expr_layer == 0:
+            while self.current.parent is not None:
+                self.current = self.current.parent
+            self.loop.Condition = self.current
+            self.current = None
+            self.parent = None
+        """
+
         if self.declaration is False and isinstance(self.loop,
                                                     For) and self.expr_layer == 0 and self.loop.Condition is None and self.loop.f_dec is not None:
             self.asT = create_tree()
@@ -700,20 +710,21 @@ class CustomListener(ExpressionListener):
             self.loop.Condition = self.asT
         elif not self.declaration and isinstance(self.loop,
                                                  For) and self.expr_layer == 0 and self.loop.Condition is not None and self.loop.f_dec is not None and self.loop.f_incr is None:
+
             self.loop.f_incr = self.parent
         elif not self.declaration and self.expr_layer == 0:
             if isinstance(self.current.parent, BinaryOperator) and self.current.parent.operator == "":
                 self.current.parent = None
-                if isinstance(self.parent, BinaryOperator) and self.parent.operator == "":
+                if isinstance(self.parent,BinaryOperator) and self.parent.operator=="":
                     self.parent = None
-                elif isinstance(self.parent, BinaryOperator) or isinstance(self.parent, LogicalOperator):
-                    self.current.parent = self.parent
-                    if self.parent.leftChild is not None and isinstance(self.parent.leftChild, BinaryOperator) and \
-                            self.parent.leftChild.operator == "":
-                        self.parent.leftChild = self.current
-                    if self.parent.rightChild is not None and isinstance(self.parent.rightChild, BinaryOperator) and \
-                            self.parent.rightChild.operator == "":
-                        self.parent.rightChild = self.current
+                elif isinstance(self.parent,BinaryOperator) or isinstance(self.parent,LogicalOperator):
+                    self.current.parent=self.parent
+                    if self.parent.leftChild is not None and isinstance(self.parent.leftChild,BinaryOperator) and \
+                            self.parent.leftChild.operator=="":
+                        self.parent.leftChild=self.current
+                    if self.parent.rightChild is not None and isinstance(self.parent.rightChild,BinaryOperator) and \
+                            self.parent.rightChild.operator=="":
+                        self.parent.rightChild=self.current
             self.set_bracket()
             while self.current.parent is not None:
                 self.current = self.current.parent
@@ -721,22 +732,27 @@ class CustomListener(ExpressionListener):
                 self.current = self.current.leftChild
             self.asT.setRoot(self.current)
             if self.is_loop and self.loop.Condition is None:
-                self.loop.Condition = self.asT
+                self.loop.Condition = self.asT.root # TODO: check if this still works: set Condition to node instead of ast
                 # print("fill condition")
             else:
                 # self.c_block.trees.append(self.asT)
                 # self.c_block.trees.append(self.asT)
-                self.asT.setNodeIds(self.asT.root)
-                self.asT.generateDot(self.pathName + str(self.counter) + ".dot")
+                # self.asT.setNodeIds(self.asT.root)
+                # self.asT.generateDot(self.pathName + str(self.counter) + ".dot")
+                # self.c_block.fillLiterals(self.asT)
+                # self.asT.foldTree()
+                # self.asT.setNodeIds(self.asT.root)
+                # self.asT.generateDot(self.pathName + str(self.counter) + "-noFold.dot")
+
                 if self.return_function:
                     self.c_scope.f_return = self.asT
                 elif self.c_scope.f_name != "" and self.c_scope.f_return is not None:
                     return
                 else:
-                    self.c_scope.block.fillLiterals(self.asT)
-                    self.asT.foldTree()
-                    self.asT.setNodeIds(self.asT.root)
-                    self.asT.generateDot(self.pathName + str(self.counter) + ".dot")
+                    # self.c_scope.block.fillLiterals(self.asT)
+                    # self.asT.foldTree()
+                    # self.asT.setNodeIds(self.asT.root)
+                    # self.asT.generateDot(self.pathName + str(self.counter) + ".dot")
                     self.c_scope.block.trees.append(self.asT)
 
         elif self.return_function and self.expr_layer == 0:
@@ -749,7 +765,6 @@ class CustomListener(ExpressionListener):
             self.parent = None
             self.current = None
             self.asT = create_tree()
-
     # Enter a parse tree produced by ExpressionParser#pri.
     def enterPri(self, ctx: ParserRuleContext):
         # print("pri is" + ctx.getText())
@@ -905,8 +920,11 @@ class CustomListener(ExpressionListener):
         #    self.c_block.parent.trees.append(self.c_scope)
         if self.scope_stack.__len__() > 0:
             n_scope = self.scope_stack.pop()
-            self.c_scope.parent = n_scope
-            self.c_scope.block.setParent(n_scope.block)
+
+            self.asT=create_tree()
+            self.asT.root=n_scope
+            self.c_scope.parent = self.asT
+            self.c_scope.block.setParent(self.asT.root.block)
             ast = create_tree()
             ast.root = self.c_scope
             n_scope.block.trees.append(ast)
@@ -938,7 +956,7 @@ class CustomListener(ExpressionListener):
             sblock = self.scope_stack.pop()
             sblock.trees.append(self.loop.f_dec)
             wloop = While(self.loop.line, self.loop.parent)
-            wloop.Condition = self.loop.Condition
+            wloop.Condition = self.loop.Condition.root # TODO: check if this is right -> AST changed to node
             self.c_scope.block.trees.append(self.loop.f_incr)
             wloop.c_block = self.c_scope.block
             ast = create_tree()
@@ -1025,7 +1043,10 @@ class CustomListener(ExpressionListener):
         self.stop_fold = False
         if self.c_scope.f_name == "main":
             return
+        # self.c_scope.block.parent = None
+
         #        self.c_scope.block.setParent(self.c_scope.parent.block)
+
         # self.program.getFunctionTable().addFunction(self.c_scope)
         if self.scope_stack.__len__() > 0:
             self.c_scope = self.scope_stack.pop()
@@ -1052,8 +1073,8 @@ class CustomListener(ExpressionListener):
         if self.declaration:
             self.current.parent = self.parent
             if self.parent is not None:
-                if isinstance(self.parent, UnaryOperator) or isinstance(self.parent,
-                                                                        Declaration) or self.parent.rightChild is not None:
+                if isinstance(self.parent, UnaryOperator) or isinstance(self.parent, Declaration) or \
+                        self.parent.rightChild is not None:
                     self.parent.rightChild = self.current
                 else:
                     self.parent.leftChild = self.current
@@ -1063,7 +1084,7 @@ class CustomListener(ExpressionListener):
     def exitFunction_dec(self, ctx: ParserRuleContext):
         if self.declaration:
             return
-        self.c_scope.block.trees.append(self.current)
+        # self.c_scope.block.trees.append(self.current)
         self.call_function = False
 
     # Enter a parse tree produced by ExpressionParser#f_variables.
@@ -1128,7 +1149,7 @@ class CustomListener(ExpressionListener):
         self.c_scope.addParameter(val)
         symbol = Declaration(var=val, line=ctx.start.line, parent=None)
         symbol.leftChild = val
-        symbol.rightChild = None
+        symbol.rightChild = EmptyNode(line=ctx.start.line)
         self.c_scope.block.getSymbolTable().addSymbol(symbol, self.c_scope.global_)
         self.is_parameter = True
         self.enterDec(ctx)

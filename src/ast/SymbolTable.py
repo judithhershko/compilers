@@ -20,7 +20,7 @@ class FunctionTable:
         return self.functions.equals(other.functions)
 
     def addFunction(self, func: Scope):
-        function = dict() # TODO: use ordered dict
+        function = dict()  # TODO: use ordered dict
         for param in func.parameters:
             function[param] = func.parameters[param].type
         function["return"] = func.return_type
@@ -60,6 +60,9 @@ class SymbolTable:
             return False
         return self.table.equals(other.table)
 
+    def setParent(self, parent):
+        self.parent = parent
+
     def addSymbol(self, root: AST_node, isGlobal: bool, fill: bool = True):
         # TODO: check if x is in upper scope, x = 5 replaces upper scope
         if isinstance(root, Array) or isinstance(root.getLeftChild(), Array):
@@ -77,6 +80,7 @@ class SymbolTable:
                 symType = root.getLeftChild().getType()
                 const = root.getLeftChild().const
                 decl = root.getLeftChild().declaration
+                deref = root.getRightChild().deref
                 if isinstance(root.getLeftChild(), Value) and root.getLeftChild().isVariable():
                     ref = None
                     level = 0
@@ -88,18 +92,25 @@ class SymbolTable:
                         ref = None
                 else:
                     raise LeftSideDeclaration(line)
+            if value is None:
+                fill = False
             if level == 0 and ref is not None:
                 raise WrongPointer(line)
             elif name not in self.table.index:
                 if not decl:
-                    raise NotDeclared(name, line)
+                    if self.parent is None:
+                        raise NotDeclared(name, line)
+                    else:
+                        self.parent.addSymbol(root, isGlobal, fill)
                 if ref is None:
                     self.table.loc[name] = [value, symType, const, level, isGlobal, fill]
                     return "placed"
                 elif ref not in self.table.index:
                     raise ImpossibleRef(ref, line)
                 refValue = self.table.loc[ref]
-                if level - 1 != refValue["Level"]:
+                if not deref and level - 1 != refValue["Level"]:
+                    raise RefPointerLevel(name, refValue["Level"], level, line)
+                elif deref and level != refValue["Level"]:
                     raise RefPointerLevel(name, refValue["Level"], level, line)
                 elif symType != refValue["Type"]:
                     raise PointerType(name, refValue["Type"], symType, line)
@@ -174,7 +185,7 @@ class SymbolTable:
         except NotReference:
             raise
 
-    def addArray(self,  root: AST_node, isGlobal: bool, fill: bool):
+    def addArray(self, root: AST_node, isGlobal: bool, fill: bool):
         try:
             if isinstance(root, Array):
                 if not root.init:
@@ -182,7 +193,8 @@ class SymbolTable:
                 elif root.name in self.table.index:
                     raise Redeclaration(root.name, root.line)
                 elif root.name not in self.table.index:
-                    self.table.loc[root.name] = [root.pos, root.type, True, 0, isGlobal, fill]  # TODO: check if arrays are indeed always const
+                    self.table.loc[root.name] = [root.pos, root.type, True, 0, isGlobal,
+                                                 fill]  # TODO: check if arrays are indeed always const
                     for pos in range(root.pos):
                         name = str(pos) + root.name
                         self.table.loc[name] = [None, root.type, False, 0, isGlobal, fill]
@@ -213,7 +225,8 @@ class SymbolTable:
         except ArrayOutOfBounds:
             raise
 
-    def findSymbol(self, name: str, onlyNext: bool = False, pos: int = None, line: int = None):  # TODO: tell adition of pos and line for arrayCall
+    def findSymbol(self, name: str, onlyNext: bool = False, pos: int = None,
+                   line: int = None):  # TODO: tell adition of pos and line for arrayCall
         if name not in self.table.index:
             return None
         if pos is not None:

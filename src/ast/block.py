@@ -53,6 +53,10 @@ class block:
     def getParent(self):
         return self.parent
 
+    def setParent(self, parent):
+        self.parent = parent
+        self.symbols.setParent(parent.symbols)
+
     def addBlock(self, newBlock):
         self.blocks.append(newBlock)
 
@@ -200,6 +204,9 @@ class block:
             elif tree.root.name == "declaration" or tree.root.name == "array":
                 none = tree.createUnfilledDeclaration(tree.root)
                 self.symbols.addSymbol(none, glob, False)
+            elif tree.root.name == "scope" and tree.root.f_name != "":
+                self.parent.functions.addFunction(tree.root)
+
 
     def setParent(self, parent):
         self.parent = parent
