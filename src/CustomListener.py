@@ -303,6 +303,7 @@ class CustomListener(ExpressionListener):
 
     # Enter a parse tree produced by ExpressionParser#print.
     def enterPrint(self, ctx: ParserRuleContext):
+        self.addComment(ctx)
         self.is_print = True
         if not self.program.include_added:
             raise NotDeclared("printf", ctx.start.line)
@@ -328,6 +329,7 @@ class CustomListener(ExpressionListener):
 
     # Enter a parse tree produced by ExpressionParser#scan.
     def enterScan(self, ctx: ParserRuleContext):
+        self.addComment(ctx)
         self.is_scan = True
         self.current = Scan("")
         if not self.program.include_added:
@@ -461,6 +463,7 @@ class CustomListener(ExpressionListener):
     def enterDec(self, ctx: ParserRuleContext):  # TODO: declaration needs to get right type
         # print("ente dec:" + ctx.getText())
         # print("new dec:" + ctx.getText())
+        self.addComment(ctx)
         self.start_rule = self.start_rule[len(ctx.getText()) + 1:]
         self.asT = create_tree()
         # self.parent = Declaration()
@@ -769,6 +772,7 @@ class CustomListener(ExpressionListener):
         if self.f_var:
             return
         self.set_val(ctx)
+
     # Exit a parse tree produced by ExpressionParser#pri.
     def exitPri(self, ctx: ParserRuleContext):
         pass
@@ -977,6 +981,7 @@ class CustomListener(ExpressionListener):
 
     # Enter a parse tree produced by ExpressionParser#while.
     def enterWhile(self, ctx: ParserRuleContext):
+        self.addComment(ctx)
         self.loop = While(line=ctx.start.line, parent=None)
         self.current = self.loop.Condition
 
@@ -986,6 +991,7 @@ class CustomListener(ExpressionListener):
 
     # Enter a parse tree produced by ExpressionParser#for.
     def enterFor(self, ctx: ParserRuleContext):
+        self.addComment(ctx)
         self.loop = For(line=ctx.start.line)
         self.current = self.loop.f_dec
 
@@ -995,6 +1001,7 @@ class CustomListener(ExpressionListener):
 
     # Enter a parse tree produced by ExpressionParser#if.
     def enterIf(self, ctx: ParserRuleContext):
+        self.addComment(ctx)
         self.loop = If(line=ctx.start.line, operator=getIftype(ctx.getText()))
         self.current = self.loop.Condition
 
@@ -1024,9 +1031,16 @@ class CustomListener(ExpressionListener):
     def exitContinue(self, ctx: ParserRuleContext):
         pass
 
+    def addComment(self, ctx):
+        self.asT = create_tree()
+        self.asT.root = Comment("//"+ctx.getText(),CommentType.SL, ctx.start.line)
+        self.c_scope.block.trees.append(self.asT)
+        self.asT = create_tree()
+
     # Enter a parse tree produced by ExpressionParser#function_definition.
     def enterFunction_definition(self, ctx: ParserRuleContext):
         # print("enter function definition:" + ctx.getText())
+        self.addComment(ctx)
         self.enterScope(ctx)
         self.function_scope = True
         self.stop_fold = True
@@ -1084,7 +1098,6 @@ class CustomListener(ExpressionListener):
             return
         # self.c_scope.block.trees.append(self.current)
         self.call_function = False
-
 
     # Enter a parse tree produced by ExpressionParser#f_variables.
     def enterF_variables(self, ctx: ParserRuleContext):
@@ -1197,7 +1210,7 @@ class CustomListener(ExpressionListener):
 
     # Exit a parse tree produced by ExpressionParser#array_ci.
     def exitArray_ci(self, ctx: ParserRuleContext):
-        if self.current is not None and isinstance(self.dec_op.leftChild,Array):
+        if self.current is not None and isinstance(self.dec_op.leftChild, Array):
             self.dec_op.leftChild.arrayContent.append(self.current)
             self.current = None
         self.array_content = False
