@@ -2,7 +2,7 @@ import ast
 import struct
 
 from src.LLVM.helper_functions import stack, remove_last_line_from_string
-from src.ast import AST
+from src.ast.AST import AST
 from src.ast.SymbolTable import SymbolTable
 from src.ast.node import Declaration, Value, LiteralType, Comment, CommentType, Print, Pointer, Scope, If, While, Scan, \
     Continue, Break
@@ -19,8 +19,8 @@ from src.ast.node_types.node_type import ConditionType
 # TODO   counter in return
 # TODO   function calls
 # TODO   arrays
-# TODO   return expression
-# TODO   print/scan
+# TODO   return expression      v
+# TODO   print/scan             v
 # TODO   include                v (niks toe te voegen)
 
 
@@ -154,6 +154,10 @@ class ToLLVM():
         self.g_assignment += "("
         self.counter = -1
         i = 1
+        # add return val to parameters if value or expression
+        if isinstance(self.c_function.root, Scope) and (isinstance(self.c_function.root.f_return,
+                                                                   Value) and not self.c_function.root.f_return.getType() == LiteralType.VAR):
+            self.parameters.append(self.c_function.root.f_return.getValue())
         for pi in parameters:
             p = parameters[pi]
             if isinstance(p, Value) and p.getType() == LiteralType.INT:
@@ -204,23 +208,28 @@ class ToLLVM():
         self.store += "ret i32 0\n"
         self.store += "}\n"
 
-    def end_function(self, type_, var_name=None):
+    def end_function(self):
         print("end function aangeroepen")
-        if var_name is not None:
-            old_variable = self.get_variable(var_name)
-            self.g_assignment += " %{} = load ptr, ptr %{}, align 4\n".format(self.add_variable(var_name), old_variable)
-        if type_ == LiteralType.INT:
-            self.g_assignment += "ret i32 %{}".format(self.get_variable(var_name))
-        elif type_ == LiteralType.FLOAT:
-            self.g_assignment += "ret float %{}".format(self.get_variable(var_name))
-        elif type_ == LiteralType.CHAR:
-            self.g_assignment += "ret i8 %{}".format(self.get_variable(var_name))
-        elif type_ == LiteralType.BOOL:
-            self.g_assignment += "ret float %{}".format(self.get_variable(var_name))
-        else:
-            self.g_assignment += "ret void"
-        self.g_assignment += "}\n"
-        self.counter = 0
+        v = self.c_function.root.f_return.root
+        if isinstance(v, Value):
+            var_name = v.getValue()
+            type_ = v.getType()
+            if var_name is not None:
+                old_variable = self.get_variable(var_name)
+                self.g_assignment += " %{} = load ptr, ptr %{}, align 4\n".format(self.add_variable(var_name),
+                                                                                  old_variable)
+            if type_ == LiteralType.INT:
+                self.g_assignment += "ret i32 %{}".format(self.get_variable(var_name))
+            elif type_ == LiteralType.FLOAT:
+                self.g_assignment += "ret float %{}".format(self.get_variable(var_name))
+            elif type_ == LiteralType.CHAR:
+                self.g_assignment += "ret i8 %{}".format(self.get_variable(var_name))
+            elif type_ == LiteralType.BOOL:
+                self.g_assignment += "ret float %{}".format(self.get_variable(var_name))
+            else:
+                self.g_assignment += "ret void"
+            self.g_assignment += "}\n"
+            self.counter = 0
 
     def scope_tree(self, tree: AST):
         if isinstance(tree.root, Scope) and tree.root.f_name == "":
@@ -309,7 +318,7 @@ class ToLLVM():
             return '1'
 
     def switch_Literals(self, v: Value, input: Value, one_side=False):
-    # comment above with original code:
+        # comment above with original code:
         const = ""
         type = ""
         if v.const:
@@ -505,7 +514,7 @@ class ToLLVM():
                 to_print = self.c_scope.parameters[to_print]
         var = self.addGlobalString(tree.root)
         s = self.add_variable(f_ + str(self.g_count))
-        self.store += "; {} ({})\n".format(f_,str(to_print))
+        self.store += "; {} ({})\n".format(f_, str(to_print))
         if isinstance(tree.root, Print) and tree.root.param.__len__() == 0 or tree.root.paramString.__len__() == 0:
             self.store += "%{} = call i32 (ptr, ...) @{}(ptr noundef @.str{})\n".format(s, f_, var)
         else:
@@ -528,6 +537,7 @@ class ToLLVM():
 
     def to_scan(self, tree: AST):
         return self.to_print(tree, "scanf")
+
     def to_expression(self, param):
         pass
 
@@ -563,7 +573,8 @@ class ToLLVM():
         self.g_assignment += self.function_load
 
         if isinstance(tree.root.f_return.root, Value):
-            self.end_function(tree.root.f_return.root.getType(), tree.root.f_return.root.getValue())
+            self.end_function()
+
         self.output += self.g_assignment
         self.output = self.f_declerations + self.output
 
@@ -612,9 +623,9 @@ class ToLLVM():
                 pass
             else:
                 t.root.fold(self)
-                #folded declaration, wont load in function_load
-                if isinstance(t.root,Declaration) and isinstance(t.root.leftChild,Value):
-                    t.root.leftChild.declaration=False
+                # folded declaration, wont load in function_load
+                if isinstance(t.root, Declaration) and isinstance(t.root.leftChild, Value):
+                    t.root.leftChild.declaration = False
                     self.to_declaration(t)
                     self.function_load += self.store
                     self.store = ""

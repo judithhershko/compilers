@@ -6,5 +6,5 @@ define i32 @f() #0 {
 
 store i32 0, i32* %1, align 4
 store i32 78, i32* %1, align 4
-%2 = load i32, ptr %1, align 4
-ret i32 %2}
+ %3 = load ptr, ptr %2, align 4
+ret i32 %3}
