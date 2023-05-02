@@ -230,7 +230,12 @@ class ToLLVM():
                 old_variable = self.get_variable(var_name)
                 self.g_assignment += " %{} = load ptr, ptr %{}, align 4\n".format(self.add_variable(var_name),
                                                                                   old_variable)
-            self.g_assignment += "ret {} %{}".format(self.get_llvm_type(v),self.get_variable(var_name))
+            type_=None
+            if self.c_function.root.block.getSymbolTable().findSymbol(var_name) is not None:
+                type_=self.c_function.root.block.getSymbolTable().findSymbol(var_name)[1]
+            elif var_name in self.c_function.root.param.keys:
+                type_=self.c_function.root.param[var_name].getType()
+            self.g_assignment += "ret {} %{}".format(self.get_llvm_type(Value(0,type_,0)),self.get_variable(var_name))
             self.g_assignment += "}\n"
             self.counter = 0
 

@@ -21,4 +21,4 @@ store i32 0, i32* %1, align 4
 store i32 5, i32* %2, align 4
 store i32 95, i32* %1, align 4
  %3 = load ptr, ptr %1, align 4
-ret None %3}
+ret i32 %3}
