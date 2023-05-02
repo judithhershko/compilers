@@ -10,5 +10,6 @@ int z=0;
 int x=0;
 z=z+f();
 z=90+x;
+int a[3];
 return z;
 }

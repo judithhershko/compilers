@@ -17,7 +17,7 @@ from src.ast.node_types.node_type import ConditionType
 # TODO   expr met pointers
 # TODO   scopes
 # TODO   counter in return      v
-# TODO   function calls
+# TODO   function calls         v
 # TODO   arrays
 # TODO   return expression      v
 # TODO   print/scan             v

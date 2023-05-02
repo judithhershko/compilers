@@ -41,7 +41,8 @@ suf_dec: pointers | ID EQ (char_expr|expr);
 pointer_val: (pointer)+ ID;
 
 array : ID '[' num ']' ;
-array_content : '{' pri (',' pri)* '}';
+array_content : '{' array_ci (',' array_ci)* '}';
+array_ci      : pri | (pointer)* (ID|array) ;
 dec:(const)? typed_var (pointer)* (ID|array) EQ (function_dec|pointer_val|ref_ref|char_expr|expr|array_content|array) |(pointer)* (ID|array) EQ (function_dec|pointer_val|ref_ref|char_expr|expr|array)
 | (const)? typed_var (pointer)* (ID|array);
 
