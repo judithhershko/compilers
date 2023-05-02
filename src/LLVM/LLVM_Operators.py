@@ -219,23 +219,24 @@ class ToLLVM():
             var_name = v.getValue()
             type_ = v.getType()
             if type_ != LiteralType.VAR:
-                if type_==LiteralType.CHAR:
-                    v.setValue(v.getValue().replace("\'",""))
+                if type_ == LiteralType.CHAR:
+                    v.setValue(v.getValue().replace("\'", ""))
                     v.setValue(ord(v.getValue()))
                 self.g_assignment += "ret {} {}\n".format(self.get_llvm_type(v), v.getValue())
                 self.g_assignment += "}\n"
-                self.counter=0
+                self.counter = 0
                 return
             if var_name is not None:
                 old_variable = self.get_variable(var_name)
                 self.g_assignment += " %{} = load ptr, ptr %{}, align 4\n".format(self.add_variable(var_name),
                                                                                   old_variable)
-            type_=None
+            type_ = None
             if self.c_function.root.block.getSymbolTable().findSymbol(var_name) is not None:
-                type_=self.c_function.root.block.getSymbolTable().findSymbol(var_name)[1]
+                type_ = self.c_function.root.block.getSymbolTable().findSymbol(var_name)[1]
             elif var_name in self.c_function.root.param.keys:
-                type_=self.c_function.root.param[var_name].getType()
-            self.g_assignment += "ret {} %{}".format(self.get_llvm_type(Value(0,type_,0)),self.get_variable(var_name))
+                type_ = self.c_function.root.param[var_name].getType()
+            self.g_assignment += "ret {} %{}".format(self.get_llvm_type(Value(0, type_, 0)),
+                                                     self.get_variable(var_name))
             self.g_assignment += "}\n"
             self.counter = 0
 

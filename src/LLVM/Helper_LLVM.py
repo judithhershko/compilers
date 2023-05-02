@@ -144,7 +144,7 @@ def stor_binary_operation(op, left, right, rtype, llvm, load_left, load_right):
         load += "%{} = ".format(llvm.add_variable(right))
         load += op
         old_right = llvm.get_variable(right)
-        load += "{}, %{}\n".format(llvm.get_variable("$" + str(right.value)), old_right)
+        load += "{}, %{}\n".format(llvm.get_variable("$" + str(left.value)), old_right)
     if not (load_right and load_left):
         pass
     return load

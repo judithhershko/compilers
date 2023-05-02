@@ -1,13 +1,13 @@
 //#include <stdio.h>
 int f()
 {
-int x=0;
+//this is function f
 return 1;
 }
 int main2()
 {
 int z=0;
-int x=z+5;
+int x=z+f();
 z=90+x;
 return z;
 }
