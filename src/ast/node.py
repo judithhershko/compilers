@@ -1065,6 +1065,7 @@ class Scope(AST_node):  # TODO: let it hold a block instead of trees
         else:
             self.block.cleanBlock(onlyLocal=True)
             res = []
+            temp = self.block.getVariables()
             for elem in self.block.getVariables():
                 if len(elem) != 0 and elem[0][0] not in self.parameters and not self.block.symbols.findSymbol(elem[0][0]):
                     res.append(elem[0])
@@ -1300,7 +1301,7 @@ class Function(AST_node):
         return self.line == other.line and self.param == other.param and self.f_name == other.f_name and \
             self.decl == other.decl
 
-    def addParameter(self, var, scope, line):
+    def addParameter(self, var: str, scope, line: int):
         # TODO: check type of input parameter and amount of added input parameters
 
         # TODO: dit moet anders --> als value/pointer/ref wordt doorgegeven
@@ -1325,7 +1326,10 @@ class Function(AST_node):
         # given = scope.symbols.findSymbol(var)[1]
         # try:
         #     if exp == given:
-        val = Value(var, None, line)
+        if var.isdigit():
+            val = Value(var, None, line)
+        else:
+            val = Value(var, None, line, None, True)
         self.param.append(val)
         # self.counter += 1
         #     else:
@@ -1350,7 +1354,8 @@ class Function(AST_node):
         """
         params = []
         for param in self.param:
-            params.append(param.value)
+            if param.variable:
+                params.append(param.value)
         return [params, True]
 
     def replaceVariables(self, values):  # TODO: possible to get from listener if it is a variable or not???
@@ -1359,8 +1364,9 @@ class Function(AST_node):
         :param values: dictionary containing the variable names as keys and the corresponding values as values
         """
         for var in self.param:
-            var.variable = True
-            var.replaceVariables(values)
+            if var.variable:
+                var.variable = False # TODO: check if this is right bool
+                var.replaceVariables(values)
 
 
 # Used to set initialisation or call of arrays

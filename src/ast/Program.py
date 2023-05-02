@@ -165,4 +165,4 @@ class program:
                 none = tree.createUnfilledDeclaration(tree.root)
                 self.symbols.addSymbol(none, True, False)
             tree.setNodeIds(tree.root)
-            self.generateDot("./generated/output/programAST.dot")
+            # self.generateDot("./generated/output/programAST.dot")
