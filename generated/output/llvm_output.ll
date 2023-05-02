@@ -22,7 +22,7 @@ store i32 0, i32* %1, align 4
 store i32 0, i32* %2, align 4
 %3 = call i32 @f(i32 noundef %2)
 %4 = load i32, ptr %3, align 4
-%5 = add nsw i32 0, %5
+%5 = add nsw i32 0, %4
 
 store i32 90, i32* %1, align 4
  %6 = load ptr, ptr %1, align 4

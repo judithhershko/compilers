@@ -8,6 +8,8 @@ class Pointer:
 
 class Function:
     pass
+
+
 class Value:
     pass
 
@@ -143,9 +145,9 @@ def stor_binary_operation(op, left, right, rtype, llvm, load_left, load_right):
         load += "%{}, {}\n".format(old_left, llvm.get_variable("$" + str(right.value)))
     elif load_right:
         llvm.counter -= 1
+        old_right = llvm.get_variable(right)
         load += "%{} = ".format(llvm.add_variable(right))
         load += op
-        old_right = llvm.get_variable(right)
         load += "{}, %{}\n".format(llvm.get_variable("$" + str(left.value)), old_right)
     if not (load_right and load_left):
         pass
@@ -153,7 +155,7 @@ def stor_binary_operation(op, left, right, rtype, llvm, load_left, load_right):
 
 
 def set_llvm_binary_operators(left: Value, right: Value, op: str, llvm):
-    if left.name=='function' or right.name=="function":
+    if left.name == 'function' or right.name == "function":
         return function_in_operation(left, right, op, llvm)
     print("binary operator called")
     # get all types
@@ -182,7 +184,7 @@ def set_llvm_binary_operators(left: Value, right: Value, op: str, llvm):
             else:
                 ltype = llvm.c_function.root.block.getSymbolTable().findSymbol(left.value)[1]
         else:
-            ltype=left.type
+            ltype = left.type
         llvm.function_load += load_type(old_var, llvm.get_variable(left.value), ltype, isinstance(left, Pointer))
     else:
         ltype = left.getType()
@@ -190,13 +192,13 @@ def set_llvm_binary_operators(left: Value, right: Value, op: str, llvm):
     if load_right:
         old_var = llvm.get_variable(right.value)
         llvm.add_variable(right.value)
-        if right.type ==LiteralType.VAR:
+        if right.type == LiteralType.VAR:
             if llvm.c_function.root.block.getSymbolTable().findSymbol(right.value) is None:
                 rtype = llvm.parameters[right.value].getType()
             else:
                 rtype = llvm.c_function.root.block.getSymbolTable().findSymbol(right.value)[1]
         else:
-            rtype=right.type
+            rtype = right.type
         llvm.function_load += load_type(old_var, llvm.get_variable(right.value), rtype, isinstance(right, Pointer))
     else:
         rtype = right.getType()
@@ -238,7 +240,7 @@ def function_in_operation(left, right, op: str, llvm):
 
 
 def load_function(p, llvm):
-    inhoud = llvm.program.functions.findFunction(p.f_name,p.line)
+    inhoud = llvm.program.functions.findFunction(p.f_name, p.line)
     llvm.add_variable(p.f_name)
     llvm.function_load += "%{} = call {} @{}".format(llvm.get_variable(p.f_name),
                                                      llvm.get_llvm_type(inhoud["return"]), p.f_name)
@@ -260,6 +262,8 @@ def load_function(p, llvm):
 
     llvm.function_load += ")\n"
     return llvm.make_value(lit=p.f_name, valueType=inhoud["return"], line=p.line)
+
+
 def isfloat(num):
     try:
         float(num)
