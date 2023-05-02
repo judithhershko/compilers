@@ -24,10 +24,10 @@ if    : IF LBRAK expr RBRAK lscope |  ELSE  lscope | ELSE IF  LBRAK expr RBRAK l
 break : BREAK ';';
 continue: CONTINUE ';';
 
-function_dec: function_name '(' f_variables  (',' f_variables )* ')';
+function_dec: function_name '(' (f_variables)?  (',' f_variables )* ')';
 return_type: (CONST)? (INT| DOUBLE | FLOAT |CHAR | BOOL | VOID);
 parameters: (const)? typed_var (pointer)* (ref)? ID ;
-f_variables: ID;
+f_variables: pri;
 ref: REF;
 function_definition: return_type function_name LBRAK (parameters)? (',' parameters )* RBRAK scope ;
 function_name: ID;
@@ -42,7 +42,7 @@ pointer_val: (pointer)+ ID;
 
 array : ID '[' num ']' ;
 array_content : '{' pri (',' pri)* '}';
-dec:(const)? typed_var (pointer)* (ID|array) EQ (pointer_val|ref_ref|char_expr|expr|array_content|array) |(pointer)* (ID|array) EQ (pointer_val|ref_ref|char_expr|expr|array)
+dec:(const)? typed_var (pointer)* (ID|array) EQ (function_dec|pointer_val|ref_ref|char_expr|expr|array_content|array) |(pointer)* (ID|array) EQ (function_dec|pointer_val|ref_ref|char_expr|expr|array)
 | (const)? typed_var (pointer)* (ID|array);
 
 binop:MIN | PLUS ;

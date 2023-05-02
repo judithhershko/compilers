@@ -1,4 +1,12 @@
 ; Function Attrs: noinline nounwind optnone ssp uwtable(sync)
+define i32 @f() #0 { 
+
+;//this is function f
+
+
+ret i32 1
+}
+; Function Attrs: noinline nounwind optnone ssp uwtable(sync)
 define i32 @main() #0 { 
 ;  int z = 0
 %1 = alloca i32, align 4

@@ -12,6 +12,7 @@ import string
 class CustomListener(ExpressionListener):
     def __init__(self, pathName):
 
+        self.f_var = False
         self.is_ref = False
         self.is_loop = False
         self.is_char = False
@@ -752,7 +753,10 @@ class CustomListener(ExpressionListener):
     # Enter a parse tree produced by ExpressionParser#pri.
     def enterPri(self, ctx: ParserRuleContext):
         # print("pri is" + ctx.getText())
+        if self.f_var:
+            return
         self.set_val(ctx)
+        return
 
     # Exit a parse tree produced by ExpressionParser#pri.
     def exitPri(self, ctx: ParserRuleContext):
@@ -1064,13 +1068,14 @@ class CustomListener(ExpressionListener):
 
     # Enter a parse tree produced by ExpressionParser#f_variables.
     def enterF_variables(self, ctx: ParserRuleContext):
+        self.f_var=True
         if isinstance(self.current, Function):
             self.current.addParameter(ctx.getText(), scope=self.c_scope, line=ctx.start.line)
         return
 
     # Exit a parse tree produced by ExpressionParser#f_variables.
     def exitF_variables(self, ctx: ParserRuleContext):
-        pass
+        self.f_var=False
 
     # Enter a parse tree produced by ExpressionParser#return_type.
     def enterReturn_type(self, ctx: ParserRuleContext):
