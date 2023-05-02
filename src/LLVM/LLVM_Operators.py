@@ -16,7 +16,7 @@ from src.ast.node_types.node_type import ConditionType
 # TODO   if                     v
 # TODO   expr met pointers
 # TODO   scopes
-# TODO   counter in return
+# TODO   counter in return      v
 # TODO   function calls
 # TODO   arrays
 # TODO   return expression      v
@@ -154,10 +154,6 @@ class ToLLVM():
         self.g_assignment += "("
         self.counter = -1
         i = 1
-        # add return val to parameters if value or expression
-        if isinstance(self.c_function.root, Scope) and (isinstance(self.c_function.root.f_return,
-                                                                   Value) and not self.c_function.root.f_return.getType() == LiteralType.VAR):
-            self.parameters.append(self.c_function.root.f_return.getValue())
         for pi in parameters:
             p = parameters[pi]
             if isinstance(p, Value) and p.getType() == LiteralType.INT:
@@ -175,7 +171,10 @@ class ToLLVM():
             i += 1
         self.g_assignment += ") #0 { \n"
 
-    def store_alloc_function_parameters(self, parameters):
+    def store_alloc_function_parameters(self, parameters=None):
+        # add return val to parameters if value or expression
+        if parameters is None:
+            parameters = dict()
         for pi in parameters:
             p = parameters[pi]
             if isinstance(p, Value) and p.getType() == LiteralType.INT:
@@ -210,24 +209,25 @@ class ToLLVM():
 
     def end_function(self):
         print("end function aangeroepen")
+        if self.c_function.root.f_return is None:
+            self.g_assignment += "ret void"
+            self.g_assignment += "}\n"
+            self.counter = 0
+            return
         v = self.c_function.root.f_return.root
         if isinstance(v, Value):
             var_name = v.getValue()
             type_ = v.getType()
+            if type_ != LiteralType.VAR:
+                self.g_assignment += "ret {} {}\n".format(self.get_llvm_type(v), v.getValue())
+                self.g_assignment += "}\n"
+                self.counter=0
+                return
             if var_name is not None:
                 old_variable = self.get_variable(var_name)
                 self.g_assignment += " %{} = load ptr, ptr %{}, align 4\n".format(self.add_variable(var_name),
                                                                                   old_variable)
-            if type_ == LiteralType.INT:
-                self.g_assignment += "ret i32 %{}".format(self.get_variable(var_name))
-            elif type_ == LiteralType.FLOAT:
-                self.g_assignment += "ret float %{}".format(self.get_variable(var_name))
-            elif type_ == LiteralType.CHAR:
-                self.g_assignment += "ret i8 %{}".format(self.get_variable(var_name))
-            elif type_ == LiteralType.BOOL:
-                self.g_assignment += "ret float %{}".format(self.get_variable(var_name))
-            else:
-                self.g_assignment += "ret void"
+            self.g_assignment += "ret {} %{}".format(self.get_llvm_type(v),self.get_variable(var_name))
             self.g_assignment += "}\n"
             self.counter = 0
 
@@ -555,6 +555,7 @@ class ToLLVM():
         # TODO: add parameter list to start function
         self.skip_count = len(tree.root.parameters)
         self.start_function(tree.root.f_name, tree.root.parameters, tree.root.return_type)
+
         if self.counter == -1:
             self.counter = 0
         self.skip_count = -2
@@ -571,9 +572,7 @@ class ToLLVM():
         self.g_assignment += self.function_store
         self.g_assignment += "\n"
         self.g_assignment += self.function_load
-
-        if isinstance(tree.root.f_return.root, Value):
-            self.end_function()
+        self.end_function()
 
         self.output += self.g_assignment
         self.output = self.f_declerations + self.output
@@ -739,6 +738,20 @@ class ToLLVM():
             return " i32 "
         if param == "%c":
             return " i32"
+
+    def get_llvm_type(self, v=None):
+        if isinstance(v, Pointer):
+            return "ptr"
+        if isinstance(v, Value):
+            if v.getType() == LiteralType.INT:
+                return "i32"
+            if v.getType() == LiteralType.FLOAT:
+                return "float"
+            if v.getType() == LiteralType.CHAR:
+                return "i8"
+            if v.getType() == LiteralType.BOOL:
+                return "i1"
+        return None
 
     def getPrintValue(self, param: str, type_: str, p: Value):
         if param == "%c":
