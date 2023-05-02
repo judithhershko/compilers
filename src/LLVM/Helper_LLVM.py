@@ -213,7 +213,7 @@ def set_llvm_binary_operators(left: Value, right: Value, op: str, llvm):
     return ltype
 
 
-def function_in_operation(left: Value, right: Value, op: str, llvm):
+def function_in_operation(left, right, op: str, llvm):
     """
     f(z)
     %4 = call i32 @function(i32 noundef %3)
@@ -224,10 +224,14 @@ def function_in_operation(left: Value, right: Value, op: str, llvm):
     maak nieuwe value node aan voor register met de functie naam
     """
     if isinstance(left, Function):
-        left=load_function(left,llvm)
+        left = load_function(left, llvm)
     else:
-        right=load_function(right,llvm)
-    return set_llvm_binary_operators(left,right,op,llvm)
+        right = load_function(right, llvm)
+    # if declaration with function x=function() en geen verder operatoes
+    if left is None or right is None:
+        return
+    return set_llvm_binary_operators(left, right, op, llvm)
+
 
 def load_function(p, llvm):
     inhoud = llvm.program.functions[p.f_name]
@@ -252,4 +256,4 @@ def load_function(p, llvm):
             llvm.function_load += "{} noundef {}".format(llvm.get_llvm_type(inhoud[key].getType()), val)
 
     llvm.function_load += ")\n"
-    return Value(lit=p.f_name,valueType=inhoud["return"].getType(),line=p.line)
+    return Value(lit=p.f_name, valueType=inhoud["return"].getType(), line=p.line)
