@@ -1212,3 +1212,4 @@ class CustomListener(ExpressionListener):
         self.program.cleanProgram()
         self.program.setNodeIds()
         self.program.generateDot("generated/output/result.dot")
+        self.program.tree=self.program.ast.root

@@ -329,7 +329,7 @@ class ToLLVM():
 
         if v.type == LiteralType.INT:
             if v.declaration:
-                self.allocate += "; {} {} {} = {}\n".format(const, "int", v.value, input.value)
+                self.allocate += "; {} {} {};\n".format(const, "int", v.value)
                 self.allocate += "%{} = alloca i32, align 4\n".format(self.add_variable(str(v.value)))
             if one_side:
                 return
@@ -338,7 +338,7 @@ class ToLLVM():
         elif v.type == LiteralType.FLOAT:
             val = self.float_to_64bit_hex(input.value)
             if v.declaration:
-                self.allocate += "; {} {} {} = {}\n".format(const, "float", v.value, input.value)
+                self.allocate += "; {} {} {};\n".format(const, "float", v.value)
                 self.allocate += "%{} = alloca float, align 4\n".format(self.add_variable(v.value))
             if one_side:
                 return
@@ -347,7 +347,7 @@ class ToLLVM():
         elif v.type == LiteralType.CHAR:
             size = len(input.value)
             if v.declaration:
-                self.allocate += "; {} {} {} = {}\n".format(const, "char", v.value, input.value)
+                self.allocate += "; {} {} {};\n".format(const, "char", v.value)
                 self.allocate += "%{} = alloca i8, align 1\n".format(self.add_variable(v.value))
             if one_side:
                 return
@@ -359,7 +359,7 @@ class ToLLVM():
             if input.value == "True":
                 bval = 1
             if v.declaration:
-                self.allocate += "; {}{}{}={}\n".format(const, "_Bool", v.value, input.value)
+                self.allocate += "; {}{}{};\n".format(const, "_Bool", v.value)
                 self.allocate += "%{} = alloca i8, align 1\n".format(self.add_variable(v.value))
             if one_side:
                 return
@@ -626,7 +626,7 @@ class ToLLVM():
             else:
                 t.root.fold(self)
                 # folded declaration, wont load in function_load
-                if isinstance(t.root, Declaration) and isinstance(t.root.leftChild, Value):
+                if isinstance(t.root, Declaration) and isinstance(t.root.rightChild, Value):
                     t.root.leftChild.declaration = False
                     self.to_declaration(t)
                     self.function_load += self.store

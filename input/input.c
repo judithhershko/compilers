@@ -1,7 +1,7 @@
-#include <stdio.h>
+//#include <stdio.h>
 int f()
 {
-//this is function f
+int x=0;
 return 1;
 }
 int main2()
