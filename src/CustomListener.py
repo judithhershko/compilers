@@ -703,16 +703,16 @@ class CustomListener(ExpressionListener):
         elif not self.declaration and self.expr_layer == 0:
             if isinstance(self.current.parent, BinaryOperator) and self.current.parent.operator == "":
                 self.current.parent = None
-                if isinstance(self.parent,BinaryOperator) and self.parent.operator=="":
+                if isinstance(self.parent, BinaryOperator) and self.parent.operator == "":
                     self.parent = None
-                elif isinstance(self.parent,BinaryOperator) or isinstance(self.parent,LogicalOperator):
-                    self.current.parent=self.parent
-                    if self.parent.leftChild is not None and isinstance(self.parent.leftChild,BinaryOperator) and \
-                            self.parent.leftChild.operator=="":
-                        self.parent.leftChild=self.current
-                    if self.parent.rightChild is not None and isinstance(self.parent.rightChild,BinaryOperator) and \
-                            self.parent.rightChild.operator=="":
-                        self.parent.rightChild=self.current
+                elif isinstance(self.parent, BinaryOperator) or isinstance(self.parent, LogicalOperator):
+                    self.current.parent = self.parent
+                    if self.parent.leftChild is not None and isinstance(self.parent.leftChild, BinaryOperator) and \
+                            self.parent.leftChild.operator == "":
+                        self.parent.leftChild = self.current
+                    if self.parent.rightChild is not None and isinstance(self.parent.rightChild, BinaryOperator) and \
+                            self.parent.rightChild.operator == "":
+                        self.parent.rightChild = self.current
             self.set_bracket()
             while self.current.parent is not None:
                 self.current = self.current.parent
@@ -1088,6 +1088,16 @@ class CustomListener(ExpressionListener):
     # Exit a parse tree produced by ExpressionParser#return.
     def exitReturn(self, ctx: ParserRuleContext):
         self.return_function = False
+        if self.current is not None and self.c_scope.f_return is None:
+            while self.current.parent is not None:
+                self.current = self.current.parent
+            if isinstance(self.current, BinaryOperator) and self.current.operator=="":
+                self.current=self.current.leftChild
+            self.asT = create_tree()
+            self.asT.root = self.current
+            self.c_scope.f_return = self.asT
+            self.asT = create_tree()
+            self.current = None
         return
 
     # Enter a parse tree produced by ExpressionParser#parameters.

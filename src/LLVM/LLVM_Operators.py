@@ -219,6 +219,9 @@ class ToLLVM():
             var_name = v.getValue()
             type_ = v.getType()
             if type_ != LiteralType.VAR:
+                if type_==LiteralType.CHAR:
+                    v.setValue(v.getValue().replace("\'",""))
+                    v.setValue(ord(v.getValue()))
                 self.g_assignment += "ret {} {}\n".format(self.get_llvm_type(v), v.getValue())
                 self.g_assignment += "}\n"
                 self.counter=0

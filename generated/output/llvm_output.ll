@@ -6,4 +6,5 @@ define i32 @main() #0 {
 
 store i32 0, i32* %1, align 4
 store i32 78, i32* %1, align 4
-ret void}
+ret i8 99
+}
