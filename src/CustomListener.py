@@ -168,6 +168,8 @@ class CustomListener(ExpressionListener):
             self.c_scope.block.trees.append(self.asT)
             self.asT = create_tree()
             return
+        if self.array_content:
+            return
         if self.right or (self.parent.rightChild is None and self.parent.leftChild is not None):
             self.parent.setRightChild(self.current)
             self.right = False

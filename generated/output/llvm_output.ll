@@ -12,7 +12,7 @@ store i32 %0, ptr %2, align 4
 ;//this is function f
 
 
-;//intmain2(){intz=0;intx=0;z=z+f();z=90+x;inta[3];returnz;}
+;//intmain2(){intz=0;intx=0;z=z+f();z=90+x;inta[3]={0,1,2};//z=a[0]+90;returnz;}
 
 ; Function Attrs: noinline nounwind optnone ssp uwtable(sync)
 define i32 @main2() #0 { 
@@ -29,12 +29,14 @@ define i32 @main2() #0 {
 
 ;//z=90+x
 
-;//inta[3]
+;//inta[3]={0,1,2}
+
+;//z=a[0]+90;
 
 
 store i32 0, i32* %1, align 4
 store i32 0, i32* %2, align 4
-%3 = call i32 @f(i32 noundef %2)
+%3 = call i32 @f()
 %4 = load i32, ptr %3, align 4
 %5 = add nsw i32 0, %4
 

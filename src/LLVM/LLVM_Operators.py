@@ -4,7 +4,7 @@ from src.LLVM.helper_functions import stack
 from src.ast.AST import AST
 from src.ast.SymbolTable import SymbolTable
 from src.ast.node import Declaration, Value, LiteralType, Comment, CommentType, Print, Pointer, Scope, If, While, Scan, \
-    Continue, Break
+    Continue, Break, Array
 from src.ast.block import block
 from src.ast.Program import program
 from src.ast.node_types.node_type import ConditionType
@@ -328,10 +328,27 @@ class ToLLVM():
         elif type == 'i8':
             return '1'
 
-    def switch_Literals(self, v: Value, input: Value, one_side=False):
+    def LiteralArray(self, v: Array):
+        self.allocate += "%{} = alloca [ {} x {}], align 4\n".format(self.add_variable(str(v.value)),
+                                                                     len(v.arrayContent), self.get_llvm_type(v))
+        if len(v.arrayContent) > 0:
+            if self.global_:
+                self.store += "@{} = global [".format(v.value)
+            else:
+                self.store += "@__const.{}.{} = private unnamed_addr constant [{} x {}] [".format(
+                    self.c_scope.f_name, v.value, len(v.arrayContent), self.get_llvm_type(v))
+
+            for i in v.arrayContent:
+                self.store += "{} {}".format(self.get_llvm_type(v), i.value)
+            self.store = self.g_assignment[:-1]
+            self.store += "] , align 4 \n"
+
+    def switch_Literals(self, v, input, one_side=False):
         # comment above with original code:
         const = ""
         type = ""
+        if isinstance(v, Array):
+            return self.LiteralArray(v)
         if v.const:
             const = "const"
 
@@ -373,32 +390,34 @@ class ToLLVM():
                 return
             self.store += "store i8 {}, i8* %{}, align 1\n".format(bval, self.get_variable(v.value))
 
-    def switch_global_Literals(self, v: Value, input: Value, one_side=False):
+    def switch_global_Literals(self, v, input_, one_side=False):
         # comment above with original code:
+        if isinstance(v,Array):
+            return self.LiteralArray(v)
         if v.declaration:
             const = ""
             type = ""
             if v.const:
                 const = "const"
             if v.type == LiteralType.INT:
-                self.allocate += "; {} {} {} = {}\n".format(const, "int", v.value, input.value)
-                self.allocate += "@{} = global i32 {}, align 4\n".format(v.value, input.value)
+                self.allocate += "; {} {} {} = {}\n".format(const, "int", v.value, input_.value)
+                self.allocate += "@{} = global i32 {}, align 4\n".format(v.value, input_.value)
 
             elif v.type == LiteralType.FLOAT:
-                self.allocate += "; {} {} {} = {}\n".format(const, "float", v.value, input.value)
+                self.allocate += "; {} {} {} = {}\n".format(const, "float", v.value, input_.value)
                 self.allocate += "@{} = global float {}, align 4\n".format(v.value,
-                                                                           self.float_to_64bit_hex(input.value))
+                                                                           self.float_to_64bit_hex(input_.value))
 
             elif v.type == LiteralType.CHAR:
-                num = ord(input.value[1])
-                self.allocate += "; {} {} {} = {}\n".format(const, "char", v.value, input.value)
+                num = ord(input_.value[1])
+                self.allocate += "; {} {} {} = {}\n".format(const, "char", v.value, input_.value)
                 self.allocate += "@{} = global i8 {}, align 1\n".format(v.value, num)
 
             elif v.type == LiteralType.BOOL:
                 bval = 0
-                if input.value == "True":
+                if input_.value == "True":
                     bval = 1
-                self.allocate += "; {}{}{}={}\n".format(const, "_Bool", v.value, input.value)
+                self.allocate += "; {}{}{}={}\n".format(const, "_Bool", v.value, input_.value)
                 self.allocate += "@{} = global i8 {}, align 1\n".format(v.value, bval)
         else:
             raise "invalid input switch global literals"
