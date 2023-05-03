@@ -445,18 +445,10 @@ class CustomListener(ExpressionListener):
         if isinstance(self.dec_op.leftChild,
                       Pointer) and not self.is_ref and self.nr_pointers == 0 and not self.dec_op.leftChild.declaration:
             raise PointerError(self.dec_op.leftChild.getValue(), ctx.start.line)
-        try:
-            if not ref:
-                raise NotDeclared(var, ctx.start.line)
-            else:
-                # self.parent.rightChild=Value(var,self.c_block.getSymbolTable().findSymbol(var)[1],self.line,self.parent,variable=True)
-                self.parent.rightChild = Value(var, ref[1], ctx.start.line, self.parent, variable=True)
-                self.current = self.parent.rightChild
-                return
 
-        except NotDeclared:
-            raise
-
+        self.parent.rightChild = Value(var, LiteralType.VAR, ctx.start.line, self.parent, variable=True)
+        self.current = self.parent.rightChild
+        return
     # Exit a parse tree produced by ExpressionParser#ref_ref.
     def exitRef_ref(self, ctx: ParserRuleContext):
         self.is_ref = False
@@ -764,6 +756,8 @@ class CustomListener(ExpressionListener):
         elif self.return_function and self.expr_layer == 0:
             while self.current.parent is not None:
                 self.current = self.current.parent
+            if isinstance(self.current, BinaryOperator) and self.current.operator == "":
+                self.current = self.current.leftChild
             self.asT = create_tree()
             self.asT.root = self.current
             self.c_scope.f_return = self.asT
