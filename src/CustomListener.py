@@ -560,7 +560,7 @@ class CustomListener(ExpressionListener):
         get the correct type from table if redeclaration
         """
         if isinstance(self.dec_op, Array) and self.dec_op.declaration:
-            self.c_scope.block.getSymbolTable().addSymbol(self.dec_op, self.c_scope.global_)
+            # self.c_scope.block.getSymbolTable().addSymbol(self.dec_op, self.c_scope.global_)
             self.asT=create_tree()
             self.asT.root=self.dec_op
             self.c_scope.block.trees.append(self.asT)
@@ -569,6 +569,7 @@ class CustomListener(ExpressionListener):
             self.declaration = False
             self.asT = create_tree()
             return
+        if isinstance(self.dec_op.leftChild, Array)
         if self.c_scope.block.getSymbolTable().findSymbol(self.current.leftChild.getValue()) is not None:
             self.current.leftChild.setType(
                 self.c_scope.block.getSymbolTable().findSymbol(self.current.leftChild.getValue())[1])

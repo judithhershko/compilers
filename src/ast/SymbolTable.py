@@ -188,15 +188,21 @@ class SymbolTable:
         try:
             if isinstance(root, Array):
                 if not root.init:
-                    raise NotDeclared(root.name, root.line)
-                elif root.name in self.table.index:
-                    raise Redeclaration(root.name, root.line)
-                elif root.name not in self.table.index:
-                    self.table.loc[root.name] = [root.pos, root.type, True, 0, isGlobal,
+                    raise NotDeclared(root.value, root.line)
+                elif root.value in self.table.index:
+                    raise Redeclaration(root.value, root.line)
+                elif len(root.arrayContent) != 0 and len(root.arrayContent) != root.pos:
+                    raise ArraySize(root.value, root.pos, root.line)
+                elif root.value not in self.table.index:
+                    self.table.loc[root.value] = [root.pos, root.type, True, 0, isGlobal,
                                                  fill]  # TODO: check if arrays are indeed always const
                     for pos in range(root.pos):
-                        name = str(pos) + root.name
-                        self.table.loc[name] = [None, root.type, False, 0, isGlobal, fill]
+                        name = str(pos) + root.value
+                        if len(root.arrayContent) != 0:
+                            arrayValue = root.arrayContent[pos].value
+                        else:
+                            arrayValue = None
+                        self.table.loc[name] = [arrayValue, root.type, False, 0, isGlobal, fill]
                     return "placed"
             elif isinstance(root, Declaration):
                 if root.getLeftChild().init:
@@ -222,6 +228,8 @@ class SymbolTable:
         except TypeDeclaration:
             raise
         except ArrayOutOfBounds:
+            raise
+        except ArraySize:
             raise
 
     def findSymbol(self, name: str, onlyNext: bool = False, pos: int = None,

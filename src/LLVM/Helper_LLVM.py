@@ -151,7 +151,8 @@ def stor_binary_operation(op, left, right, rtype, llvm, load_left, load_right):
 
 def set_llvm_binary_operators(left: Value, right: Value, op: str, llvm):
     if left.name == 'function' or right.name == "function":
-        return function_in_operation(left, right, op, llvm)
+        # return function_in_operation(left, right, op, llvm)
+        return
     if left.name == "array" or right.name == "array":
         return array_in_operation(left, right, op, llvm)
     print("binary operator called")

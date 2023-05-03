@@ -1425,7 +1425,7 @@ class Array(AST_node):
         self.type = type_
 
     def getValue(self):
-        return str(self.value)
+        return str(self.pos)
 
     def getLabel(self):
         if self.init:
@@ -1450,7 +1450,7 @@ class Array(AST_node):
         :param values: dictionary containing the variable names as keys and the corresponding values as values
         """
         name = str(self.pos) + str(self.value)
-        if values[name][3]:
+        if values and values[name][3]:
             self.type = values[name][1]
             self.value = values[name][0]
             self.isValue = True

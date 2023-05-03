@@ -336,3 +336,14 @@ class FunctionParam(Exception):
     def __str__(self):
         return "\n\tError in line " + str(self.line) + ": the function " + self.name + " should hold exactly " + \
                str(self.size) + " parameters"
+
+
+class ArraySize(Exception):
+    def __init__(self, name, pos, line):
+        self.name = name
+        self.size = pos
+        self.line = line
+
+    def __str__(self):
+        return "\n\tError in line " + str(self.line) + ": the array " + self.name + " should hold exactly " + \
+               str(self.size) + " parameters"

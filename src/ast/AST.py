@@ -51,6 +51,9 @@ class AST:
         elif isinstance(nextNode, Function):
             for value in nextNode.param:
                 number = self.setNodeIds(nextNode.param[value], level + 1, number + 1)
+        elif isinstance(nextNode, Array):
+            for node in nextNode.arrayContent:
+                number = self.setNodeIds(node, level + 1, number + 1)
         # elif isinstance(nextNode, block):
         # number = self.setNodeIds(nextNode.getAst().root, level + 1, number + 1)
         # for tree in nextNode.trees:
@@ -142,6 +145,10 @@ class AST:
             for value in self.root.param:
                 edges = edges + "\n" + self.root.getId() + "--" + value.getId()
                 nodes = nodes + "\n" + value.getId() + " [label=" + value.getLabel() + "]"
+        elif isinstance(self.root, Array):
+            for node in self.root.arrayContent:
+                edges = edges + "\n" + self.root.getId() + "--" + node.getId()
+                nodes = nodes + "\n" + node.getId() + " [label=" + node.getLabel() + "]"
 
         output = "graph ast {\n" + nodes + "\n\n" + edges + "\n}"
         file = open(fileName, "w")
@@ -233,6 +240,10 @@ class AST:
             for value in self.root.param:
                 edges = edges + "\n" + self.root.getId() + "--" + value.getId()
                 nodes = nodes + "\n" + value.getId() + " [label=" + value.getLabel() + "]"
+        elif isinstance(self.root, Array):
+            for node in self.root.arrayContent:
+                edges = edges + "\n" + self.root.getId() + "--" + node.getId()
+                nodes = nodes + "\n" + node.getId() + " [label=" + node.getLabel() + "]"
 
         return nodes, edges
 
