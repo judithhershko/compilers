@@ -50,7 +50,10 @@ class AST:
             number = nextNode.c_block.setNodeIds(level + 1, number + 1)
         elif isinstance(nextNode, Function):
             for value in nextNode.param:
-                number = self.setNodeIds(value, level + 1, number + 1)
+                number = self.setNodeIds(nextNode.param[value], level + 1, number + 1)
+        elif isinstance(nextNode, Array):
+            for node in nextNode.arrayContent:
+                number = self.setNodeIds(node, level + 1, number + 1)
         # elif isinstance(nextNode, block):
         # number = self.setNodeIds(nextNode.getAst().root, level + 1, number + 1)
         # for tree in nextNode.trees:
@@ -99,6 +102,12 @@ class AST:
             res = self.toDot(self.root.rightChild)
             nodes = nodes + res[0]
             edges = edges + res[1]
+        elif isinstance(self.root, Function):
+            for param in self.root.param:
+                edges = edges + "\n" + self.root.getId() + "--" + self.root.param[param].getId()
+                res = self.toDot(self.root.param[param])
+                nodes = nodes + res[0]
+                edges = edges + res[1]
         elif isinstance(self.root, Scope):
             # if self.root.f_name != "":
             #     params = self.root.parameters
@@ -136,6 +145,10 @@ class AST:
             for value in self.root.param:
                 edges = edges + "\n" + self.root.getId() + "--" + value.getId()
                 nodes = nodes + "\n" + value.getId() + " [label=" + value.getLabel() + "]"
+        elif isinstance(self.root, Array):
+            for node in self.root.arrayContent:
+                edges = edges + "\n" + self.root.getId() + "--" + node.getId()
+                nodes = nodes + "\n" + node.getId() + " [label=" + node.getLabel() + "]"
 
         output = "graph ast {\n" + nodes + "\n\n" + edges + "\n}"
         file = open(fileName, "w")
@@ -182,6 +195,12 @@ class AST:
             res = self.toDot(root.rightChild)
             nodes = nodes + res[0]
             edges = edges + res[1]
+        elif isinstance(root, Function):
+            for param in root.param:
+                edges = edges + "\n" + root.getId() + "--" + root.param[param].getId()
+                res = self.toDot(root.param[param])
+                nodes = nodes + res[0]
+                edges = edges + res[1]
         elif isinstance(root, Scope):
             if root.f_name != "":
                 for param in root.parameters:
@@ -221,6 +240,10 @@ class AST:
             for value in self.root.param:
                 edges = edges + "\n" + self.root.getId() + "--" + value.getId()
                 nodes = nodes + "\n" + value.getId() + " [label=" + value.getLabel() + "]"
+        elif isinstance(self.root, Array):
+            for node in self.root.arrayContent:
+                edges = edges + "\n" + self.root.getId() + "--" + node.getId()
+                nodes = nodes + "\n" + node.getId() + " [label=" + node.getLabel() + "]"
 
         return nodes, edges
 
