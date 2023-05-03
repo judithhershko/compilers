@@ -372,6 +372,8 @@ class BinaryOperator(AST_node):
                     isinstance(self.leftChild, Array)) or \
                     not (isinstance(self.rightChild, Value) or isinstance(self.rightChild, Pointer) or
                          isinstance(self.rightChild, Array)):
+                if to_llvm is not None:
+                    set_llvm_binary_operators(self.leftChild, self.rightChild, self.operator, to_llvm)
                 return self, False
             elif self.leftChild.variable or self.rightChild.variable:
                 if to_llvm is not None:

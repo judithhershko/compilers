@@ -1,6 +1,5 @@
 import pandas as pd
-from src.ErrorHandeling.GenerateError import *
-from .node import *
+from src.ast.node import *
 from collections import OrderedDict
 
 

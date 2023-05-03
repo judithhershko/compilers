@@ -2,15 +2,15 @@ from src.ErrorHandeling.GenerateError import NotSupported
 from src.ast.node_types.node_type import LiteralType
 
 
-class Value:
-    pass
-
-
 class Pointer:
     pass
 
 
 class Function:
+    pass
+
+
+class Value:
     pass
 
 
@@ -145,9 +145,9 @@ def stor_binary_operation(op, left, right, rtype, llvm, load_left, load_right):
         load += "%{}, {}\n".format(old_left, llvm.get_variable("$" + str(right.value)))
     elif load_right:
         llvm.counter -= 1
+        old_right = llvm.get_variable(right)
         load += "%{} = ".format(llvm.add_variable(right))
         load += op
-        old_right = llvm.get_variable(right)
         load += "{}, %{}\n".format(llvm.get_variable("$" + str(left.value)), old_right)
     if not (load_right and load_left):
         pass
@@ -155,33 +155,36 @@ def stor_binary_operation(op, left, right, rtype, llvm, load_left, load_right):
 
 
 def set_llvm_binary_operators(left: Value, right: Value, op: str, llvm):
-    if isinstance(left, Function) or isinstance(right, Function):
+    if left.name == 'function' or right.name == "function":
         return function_in_operation(left, right, op, llvm)
     print("binary operator called")
     # get all types
     # move higher type if necessary
     load_left = True
     load_right = True
-    if isinstance(right.value, int):
+    if isinstance(right.value, int) or str(right.value).isdigit():
         llvm.var_dic["$" + str(right.value)] = right.value
         load_right = False
-    elif isinstance(right.value, float):
+    elif isinstance(right.value, float) or isfloat(str(right.value)):
         llvm.var_dict["$" + str(right.value)] = llvm.float_to_64bit_hex(right.value)
         load_right = False
-    elif isinstance(left.value, int):
+    elif isinstance(left.value, int) or str(left.value).isdigit():
         llvm.var_dic["$" + str(left.value)] = left.value
         load_left = False
-    elif isinstance(right.value, float):
+    elif isinstance(right.value, float) or isfloat(str(left.value)):
         llvm.var_dict["$" + str(left.value)] = llvm.float_to_64bit_hex(left.value)
         load_left = False
 
     if load_left:
         old_var = llvm.get_variable(left.value)
         llvm.add_variable(left.value)
-        if llvm.c_function.root.block.getSymbolTable().findSymbol(left.value) is None:
-            ltype = llvm.parameters[left.value].getType()
+        if left.type is LiteralType.VAR:
+            if llvm.c_function.root.block.getSymbolTable().findSymbol(left.value) is None:
+                ltype = llvm.parameters[left.value].getType()
+            else:
+                ltype = llvm.c_function.root.block.getSymbolTable().findSymbol(left.value)[1]
         else:
-            ltype = llvm.c_function.root.block.getSymbolTable().findSymbol(left.value)[1]
+            ltype = left.type
         llvm.function_load += load_type(old_var, llvm.get_variable(left.value), ltype, isinstance(left, Pointer))
     else:
         ltype = left.getType()
@@ -189,10 +192,13 @@ def set_llvm_binary_operators(left: Value, right: Value, op: str, llvm):
     if load_right:
         old_var = llvm.get_variable(right.value)
         llvm.add_variable(right.value)
-        if llvm.c_function.root.block.getSymbolTable().findSymbol(right.value) is None:
-            rtype = llvm.parameters[right.value].getType()
+        if right.type == LiteralType.VAR:
+            if llvm.c_function.root.block.getSymbolTable().findSymbol(right.value) is None:
+                rtype = llvm.parameters[right.value].getType()
+            else:
+                rtype = llvm.c_function.root.block.getSymbolTable().findSymbol(right.value)[1]
         else:
-            rtype = llvm.c_function.root.block.getSymbolTable().findSymbol(right.value)[1]
+            rtype = right.type
         llvm.function_load += load_type(old_var, llvm.get_variable(right.value), rtype, isinstance(right, Pointer))
     else:
         rtype = right.getType()
@@ -234,7 +240,7 @@ def function_in_operation(left, right, op: str, llvm):
 
 
 def load_function(p, llvm):
-    inhoud = llvm.program.functions[p.f_name]
+    inhoud = llvm.program.functions.findFunction(p.f_name, p.line)
     llvm.add_variable(p.f_name)
     llvm.function_load += "%{} = call {} @{}".format(llvm.get_variable(p.f_name),
                                                      llvm.get_llvm_type(inhoud["return"]), p.f_name)
@@ -243,17 +249,24 @@ def load_function(p, llvm):
         if key == "return":
             continue
         llvm.function_load += llvm.get_llvm_type(inhoud[key])
-        val = inhoud[key].getValue()
+        val = key
         is_var = True
-        if str(inhoud[key].getValue()[0]).isdigit():
+        if str(key[0]).isdigit():
             is_var = False
-            if inhoud[key].getType() == LiteralType.FLOAT:
-                val = llvm.float_to_64bit_hex(inhoud[key].getValue())
+            if inhoud[key] == LiteralType.FLOAT:
+                val = llvm.float_to_64bit_hex(key)
         if is_var:
-            llvm.function_load += "{} noundef %{}".format(llvm.get_llvm_type(inhoud[key].getType()),
-                                                          llvm.get_variable(val))
+            llvm.function_load += " noundef %{}".format(llvm.get_variable(val))
         else:
-            llvm.function_load += "{} noundef {}".format(llvm.get_llvm_type(inhoud[key].getType()), val)
+            llvm.function_load += "noundef {}".format(val)
 
     llvm.function_load += ")\n"
-    return Value(lit=p.f_name, valueType=inhoud["return"].getType(), line=p.line)
+    return llvm.make_value(lit=p.f_name, valueType=inhoud["return"], line=p.line)
+
+
+def isfloat(num):
+    try:
+        float(num)
+        return True
+    except ValueError:
+        return False

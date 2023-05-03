@@ -1,4 +1,4 @@
-from .node import *
+from src.ast.node import *
 
 
 # class block:

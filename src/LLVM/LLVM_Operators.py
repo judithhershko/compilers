@@ -1,7 +1,6 @@
-import ast
 import struct
 
-from src.LLVM.helper_functions import stack, remove_last_line_from_string
+from src.LLVM.helper_functions import stack
 from src.ast.AST import AST
 from src.ast.SymbolTable import SymbolTable
 from src.ast.node import Declaration, Value, LiteralType, Comment, CommentType, Print, Pointer, Scope, If, While, Scan, \
@@ -249,7 +248,7 @@ class ToLLVM():
             return self.function_scope(tree)
 
     def transverse_program(self, _program: program):
-        self.program=_program
+        self.program = _program
         _block = _program.block
         self.is_global = _program.tree.global_
         # set global functions
@@ -756,7 +755,7 @@ class ToLLVM():
             return "ptr"
 
         if isinstance(v, Value):
-            v=v.getType()
+            v = v.getType()
         if v == LiteralType.INT:
             return "i32"
         if v == LiteralType.FLOAT:
@@ -802,3 +801,6 @@ class ToLLVM():
         self.f_declerations += "@.str{} = private unnamed_addr constant [{}x i8] c\"{}\\0A\\00\", align 1\n".format(
             var, len(str(v.getValue())) + 2, str(v.getValue()))
         return var
+
+    def make_value(self, lit, valueType, line):
+        return Value(lit=lit, valueType=valueType, line=line)
