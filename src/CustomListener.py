@@ -287,7 +287,7 @@ class CustomListener(ExpressionListener):
         self.c_scope.global_ = True
         self.c_scope.block = block(None)
         self.c_scope.block.setParent(self.program)
-        self.c_scope.block.name = "program"
+        # self.c_scope.block.name = "program" # TODO: why is this done???
         self.c_scope.block.setParent(self.program)
 
         self.program.tree = self.c_scope
@@ -552,7 +552,7 @@ class CustomListener(ExpressionListener):
         get the correct type from table if redeclaration
         """
         if isinstance(self.dec_op, Array) and self.dec_op.declaration:
-            self.c_scope.block.getSymbolTable().addSymbol(self.dec_op, self.c_scope.global_)
+            # self.c_scope.block.getSymbolTable().addSymbol(self.dec_op, self.c_scope.global_)
             self.asT=create_tree()
             self.asT.root=self.dec_op
             self.c_scope.block.trees.append(self.asT)
@@ -561,6 +561,7 @@ class CustomListener(ExpressionListener):
             self.declaration = False
             self.asT = create_tree()
             return
+        # if isinstance(self.dec_op.leftChild, Array)
         if self.c_scope.block.getSymbolTable().findSymbol(self.current.leftChild.getValue()) is not None:
             self.current.leftChild.setType(
                 self.c_scope.block.getSymbolTable().findSymbol(self.current.leftChild.getValue())[1])
@@ -1177,7 +1178,7 @@ class CustomListener(ExpressionListener):
         self.is_array = True
         self.current = Array(getArrayName(ctx.getText()), line=ctx.start.line, pos=getArraySize(ctx.getText()),
                              parent=self.parent, valueType=self.dec_op.leftChild.getType(),
-                             init=self.a_dec)
+                             init=self.a_dec, declaration=self.a_dec)
         if self.a_dec and getArrayName(self.a_val, self.dec_op.leftChild.getType()) == self.current.getValue():
             self.current.parent = self.dec_op
             self.current.declaration = True
