@@ -1289,7 +1289,7 @@ class Function(AST_node):
         """
         self.line = line
         self.parent = parent
-        self.param = []
+        self.param = dict()
         self.f_name = f_name
         self.decl = decl
         self.name = "function"
@@ -1328,7 +1328,8 @@ class Function(AST_node):
         # try:
         #     if exp == given:
         val = Value(var, None, line)
-        self.param.append(val)
+        # self.param.append(val)
+        self.param[var] = val
         # self.counter += 1
         #     else:
         #         raise TypeDeclaration(var, exp, given, line)
@@ -1352,7 +1353,8 @@ class Function(AST_node):
         """
         params = []
         for param in self.param:
-            params.append(param.value)
+            if self.param[param].variable:
+                params.append((self.param[param].value, self.param[param].line))
         return [params, True]
 
     def replaceVariables(self, values):  # TODO: possible to get from listener if it is a variable or not???
@@ -1361,8 +1363,8 @@ class Function(AST_node):
         :param values: dictionary containing the variable names as keys and the corresponding values as values
         """
         for var in self.param:
-            var.variable = True
-            var.replaceVariables(values)
+            self.param[var].variable = True
+            self.param[var].replaceVariables(values)
 
 
 # Used to set initialisation or call of arrays
