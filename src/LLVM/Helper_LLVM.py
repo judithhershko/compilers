@@ -226,15 +226,6 @@ def set_llvm_binary_operators(left: Value, right: Value, op: str, llvm):
 
 
 def function_in_operation(left, right, op: str, llvm):
-    """
-    f(z)
-    %4 = call i32 @function(i32 noundef %3)
-    f(0)
-    %3 = call i32 @function(i32 noundef 0)
-
-    idee: save function call in register,
-    maak nieuwe value node aan voor register met de functie naam
-    """
     if llvm.is_function(left):
         left = load_function(left, llvm)
     if llvm.is_function(right):

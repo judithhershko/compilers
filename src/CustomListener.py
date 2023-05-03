@@ -755,6 +755,8 @@ class CustomListener(ExpressionListener):
         elif self.return_function and self.expr_layer == 0:
             while self.current.parent is not None:
                 self.current = self.current.parent
+            if isinstance(self.current, BinaryOperator) and self.current.operator == "":
+                self.current = self.current.leftChild
             self.asT = create_tree()
             self.asT.root = self.current
             self.c_scope.f_return = self.asT
