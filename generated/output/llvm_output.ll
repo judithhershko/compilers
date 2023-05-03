@@ -1,4 +1,18 @@
-;//intmain2(){intz=0;intx=0;z=z+f(z,x);z=90+x;inta[3];z=a[0]+90;returnz;}
+;//#include <stdio.h>
+
+;//intf(intx){//this is function freturn1;}
+
+; Function Attrs: noinline nounwind optnone ssp uwtable(sync)
+define i32 @f(i32 noundef %0) #0 { 
+%2 = alloca i32, align 4
+
+store i32 %0, ptr %2, align 4
+;//intx
+
+;//this is function f
+
+
+;//intmain2(){intz=0;intx=0;z=z+f(z);z=90+x;inta[3]={0,1,2};z=a[0]+90;returnz;}
 
 ; Function Attrs: noinline nounwind optnone ssp uwtable(sync)
 define i32 @main2() #0 { 
@@ -11,12 +25,16 @@ define i32 @main2() #0 {
 
 ;//intx=0
 
-;//z=z+f(z,x)
+;//z=z+f(z)
 
 ;//z=90+x
 
-;//inta[3]
+;//inta[3]={0,1,2}
 
+;//intmain2(){intz=0;intx=0;z=z+f(z);z=90+x;inta[3]={0,1,2};z=a[0]+90;returnz;}
+
+; Function Attrs: noinline nounwind optnone ssp uwtable(sync)
+define i32 @main2() #0 { ] , align 4 
 ;//z=a[0]+90
 
 
