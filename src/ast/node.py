@@ -1067,6 +1067,7 @@ class Scope(AST_node):  # TODO: let it hold a block instead of trees
         else:
             self.block.cleanBlock(onlyLocal=True)
             res = []
+            temp = self.block.getVariables()
             for elem in self.block.getVariables():
                 if len(elem) != 0 and elem[0][0] not in self.parameters and not self.block.symbols.findSymbol(elem[0][0]):
                     res.append(elem[0])
@@ -1302,7 +1303,7 @@ class Function(AST_node):
         return self.line == other.line and self.param == other.param and self.f_name == other.f_name and \
             self.decl == other.decl
 
-    def addParameter(self, var, scope, line):
+    def addParameter(self, var: str, scope, line: int):
         # TODO: check type of input parameter and amount of added input parameters
 
         # TODO: dit moet anders --> als value/pointer/ref wordt doorgegeven
@@ -1311,11 +1312,11 @@ class Function(AST_node):
         # ]\\\\\\\
         # TODO: check --> verwachte parameter ?
         # self.param.append(var) # TODO: variable comes in as string -> look up in Symbtable -> check type -> make Value/Pointer node
-        # if self.expected is None:
-        #     parent = scope.block
-        #     while parent.name != "program":
-        #         parent = parent.parent
-        #     self.setExpected(scope.functions.findFunction(self.name))
+        if self.expected is None:
+            parent = scope.block
+            while parent.name != "program":
+                parent = parent.parent
+            self.setExpected(parent.functions.findFunction(self.name))
         # try:
         #     if self.counter >= len(self.expected):
         #         raise FunctionParam(var, self.expected, line)
@@ -1327,10 +1328,17 @@ class Function(AST_node):
         # given = scope.symbols.findSymbol(var)[1]
         # try:
         #     if exp == given:
-        val = Value(var, None, line)
-        # self.param.append(val)
+        if var.isdigit():
+            val = Value(var, None, line)
+        else:
+            val = Value(var, None, line, None, True)
         self.param[var] = val
-        # self.counter += 1
+        try:
+            if len(self.param) > len(self.expected):
+                raise FunctionParam(self.f_name, len(self.expected), self.line)
+
+        except FunctionParam:
+            raise
         #     else:
         #         raise TypeDeclaration(var, exp, given, line)
         #
@@ -1351,6 +1359,11 @@ class Function(AST_node):
         returns the variable contained within the node
         :return:
         """
+        try:
+            if len(self.param) < len(self.expected):
+                raise FunctionParam(self.f_name, len(self.expected), self.line)
+        except FunctionParam:
+            raise
         params = []
         for param in self.param:
             if self.param[param].variable:
@@ -1363,8 +1376,9 @@ class Function(AST_node):
         :param values: dictionary containing the variable names as keys and the corresponding values as values
         """
         for var in self.param:
-            self.param[var].variable = True
-            self.param[var].replaceVariables(values)
+            if self.param[var].variable:
+              self.param[var].variable = False # TODO: check if this is right bool
+              self.param[var].replaceVariables(values)            
 
 
 # Used to set initialisation or call of arrays

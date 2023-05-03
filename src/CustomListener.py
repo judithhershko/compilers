@@ -285,7 +285,7 @@ class CustomListener(ExpressionListener):
         self.c_scope.global_ = True
         self.c_scope.block = block(None)
         self.c_scope.block.setParent(self.program)
-        self.c_scope.block.name = "program"
+        # self.c_scope.block.name = "program" # TODO: why is this done???
         self.c_scope.block.setParent(self.program)
 
         self.program.tree = self.c_scope
