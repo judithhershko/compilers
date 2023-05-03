@@ -205,15 +205,17 @@ class SymbolTable:
                         self.table.loc[name] = [arrayValue, root.type, False, 0, isGlobal, fill]
                     return "placed"
             elif isinstance(root, Declaration):
+                name = str(root.getLeftChild().pos) + str(root.getLeftChild().value)
                 if root.getLeftChild().declaration:
-                    raise Redeclaration(root.name, root.line)
-                elif root.getLeftChild().name not in self.table.index:
-                    raise NotDeclared(root.getLeftChild().name, root.getLeftChild().line)
-                elif root.getLeftChild().pos >= self.table.loc[root.getLeftChild().name]["Value"] or \
+                    raise Redeclaration(name, root.line)
+                elif name not in self.table.index:
+                    raise NotDeclared(str(root.getLeftChild().pos)+str(root.getLeftChild().value),
+                                      root.getLeftChild().line)
+                elif root.getLeftChild().pos >= self.table.loc[root.getLeftChild().value]["Value"] or \
                         root.getLeftChild().pos < 0:
-                    raise ArrayOutOfBounds(root.getLeftChild().name, root.getLeftChild().line, root.getLeftChild().pos)
-                elif root.getLeftChild().name in self.table.index:
-                    name = str(root.getLeftChild().pos) + root.getLeftChild().name
+                    raise ArrayOutOfBounds(name, root.getLeftChild().line, root.getLeftChild().pos)
+                elif name in self.table.index:
+                    # name = str(root.getLeftChild().pos) + root.getLeftChild().name
                     row = self.table.loc[name]
                     if row["Type"] != root.getRightChild().type:
                         raise TypeDeclaration
