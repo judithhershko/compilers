@@ -59,6 +59,7 @@ class ToLLVM():
         # keeps branch label of last if
         self.if_stack = stack()
         self.branch_stack = stack()
+        self.old_counter = stack()
 
     def STable_to_LLVM(self, table: SymbolTable):
         for entry in table:
@@ -275,10 +276,6 @@ class ToLLVM():
             for tree in self.c_scope.block.trees:
                 if isinstance(tree.root, Scope):
                     self.scope_tree(tree)
-                elif isinstance(tree.root, If):
-                    pass
-                elif isinstance(tree, While):
-                    pass
                 elif isinstance(tree.root, Declaration):
                     self.to_declaration(tree)
                 elif isinstance(tree.root, Print):
@@ -590,7 +587,9 @@ class ToLLVM():
         pass
 
     def unnamed_scope(self, tree):
-        pass
+        self.c_function = tree
+        print("unnamed scope")
+        prev_global = self.is_global
 
     def function_scope(self, tree):
         self.c_function = tree
@@ -651,13 +650,16 @@ class ToLLVM():
                 self.to_declaration(t)
                 self.function_load += self.store
                 self.store = ""
+            elif isinstance(t.root, Scope):
+                print("new scope")
+                self.set_new_scope(t)
 
             elif isinstance(t.root, Array):
                 self.LiteralArray(t.root)
 
             elif isinstance(t.root, Comment):
                 self.to_comment(t)
-                self.function_store += self.store
+                self.function_load += self.store
                 self.store = ""
 
             elif isinstance(t.root, Print):
@@ -862,3 +864,8 @@ class ToLLVM():
 
     def is_pointer(self, p_):
         return isinstance(p_, Pointer)
+
+    def set_new_scope(self, t):
+        self.old_counter.push(self.var_dic)
+        self.transverse_tree(t.root.block)
+        self.var_dic = self.old_counter.pop()
