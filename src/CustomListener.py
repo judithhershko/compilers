@@ -107,21 +107,6 @@ class CustomListener(ExpressionListener):
         return ctx.getChildCount() > 1
 
     def set_print(self, ctx: ParserRuleContext, type_):
-        """
-        if type_ == LiteralType.INT:
-            self.current = Print(Value(ctx.getText(), LiteralType.INT, ctx.start.line, None))
-        elif type_ == LiteralType.FLOAT:
-            self.current = Print(Value(ctx.getText(), LiteralType.FLOAT, ctx.start.line, None))
-        elif type_ == LiteralType.STR:
-            self.current = Print(Value(ctx.getText(), LiteralType.CHAR, ctx.start.line, None))
-        else:
-            self.current = Print(Value(ctx.getText(), LiteralType.VAR, ctx.start.line, None))
-
-        self.asT.root = self.current
-        self.c_scope.block.trees.append(self.asT)
-        self.current = None
-        self.asT = create_tree()
-        """
         i = Value(ctx.getText(), type_, ctx.start.line)
         if isinstance(self.current, Print) or isinstance(self.current, Scan):
             self.current.addParam(i)
@@ -505,15 +490,7 @@ class CustomListener(ExpressionListener):
             self.parent = None
             self.asT = create_tree()
             return
-        # print("exit dec:"+ctx.getText())
-        """
-        TODO:
-        eerst fill literals
-        fold
-        add to symboltable
-        :param ctx:
-        :return:
-        """
+
         if self.bracket_stack.__len__() > 0:
             self.set_bracket()
         if not isinstance(self.parent, UnaryOperator) and isinstance(self.parent.leftChild, Pointer):
@@ -733,24 +710,11 @@ class CustomListener(ExpressionListener):
                 self.loop.Condition = self.asT.root  # TODO: check if this still works: set Condition to node instead of ast
                 # print("fill condition")
             else:
-                # self.c_block.trees.append(self.asT)
-                # self.c_block.trees.append(self.asT)
-                # self.asT.setNodeIds(self.asT.root)
-                # self.asT.generateDot(self.pathName + str(self.counter) + ".dot")
-                # self.c_block.fillLiterals(self.asT)
-                # self.asT.foldTree()
-                # self.asT.setNodeIds(self.asT.root)
-                # self.asT.generateDot(self.pathName + str(self.counter) + "-noFold.dot")
-
                 if self.return_function:
                     self.c_scope.f_return = self.asT
                 elif self.c_scope.f_name != "" and self.c_scope.f_return is not None:
                     return
                 else:
-                    # self.c_scope.block.fillLiterals(self.asT)
-                    # self.asT.foldTree()
-                    # self.asT.setNodeIds(self.asT.root)
-                    # self.asT.generateDot(self.pathName + str(self.counter) + ".dot")
                     self.c_scope.block.trees.append(self.asT)
 
         elif self.return_function and self.expr_layer == 0:
