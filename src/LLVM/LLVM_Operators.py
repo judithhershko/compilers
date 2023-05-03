@@ -13,11 +13,11 @@ from src.ast.node_types.node_type import ConditionType
 # TODO   break/continue while   v
 # TODO   break/continue if      v
 # TODO   if                     v
-# TODO   expr met pointers
+# TODO   expr met pointers      v
 # TODO   scopes
 # TODO   counter in return      v
 # TODO   function calls         v
-# TODO   arrays
+# TODO   arrays                 v
 # TODO   return expression      v
 # TODO   print/scan             v
 # TODO   include                v (niks toe te voegen)
@@ -216,7 +216,7 @@ class ToLLVM():
             self.counter = 0
             return
         v = self.c_function.root.f_return.root
-        if isinstance(v, Value):
+        if isinstance(v, Value) or isinstance(v,Pointer):
             var_name = v.getValue()
             type_ = v.getType()
             if type_ != LiteralType.VAR:
@@ -236,10 +236,16 @@ class ToLLVM():
                 type_ = self.c_function.root.block.getSymbolTable().findSymbol(var_name)[1]
             elif var_name in self.c_function.root.param.keys:
                 type_ = self.c_function.root.param[var_name].getType()
-            self.g_assignment += "ret {} %{}".format(self.get_llvm_type(Value(0, type_, 0)),
+            if isinstance(v,Pointer):
+                self.g_assignment += "ret ptr %{}".format(self.get_variable(var_name))
+            else:
+                self.g_assignment += "ret {} %{}".format(self.get_llvm_type(Value(0, type_, 0)),
                                                      self.get_variable(var_name))
             self.g_assignment += "}\n"
             self.counter = 0
+        else:
+            pass #TODO moet gefold worden!!!
+
 
     def scope_tree(self, tree: AST):
         if isinstance(tree.root, Scope) and tree.root.f_name == "":
@@ -631,17 +637,25 @@ class ToLLVM():
         for tree in cblock.trees:
             # don't change tree function permanently
             t = tree
-            if isinstance(t.root,Array):
+            if isinstance(t.root, Declaration) and isinstance(t.root.rightChild, Value):
+                t.root.leftChild.declaration = False
+                self.to_declaration(t)
+                self.function_load += self.store
+                self.store = ""
+
+            elif isinstance(t.root,Array):
                 self.LiteralArray(t.root)
 
             elif isinstance(t.root, Comment):
                 self.to_comment(t)
                 self.function_store += self.store
                 self.store = ""
+
             elif isinstance(t.root, Print):
                 self.to_print(t)
                 self.function_load += self.store
                 self.store = ""
+
             elif isinstance(t.root, Scan):
                 pass
             elif isinstance(t.root, Continue):
@@ -659,11 +673,7 @@ class ToLLVM():
             else:
                 t.root.fold(self)
                 # folded declaration, wont load in function_load
-                if isinstance(t.root, Declaration) and isinstance(t.root.rightChild, Value):
-                    t.root.leftChild.declaration = False
-                    self.to_declaration(t)
-                    self.function_load += self.store
-                    self.store = ""
+
 
     def set_while_loop(self, t: AST):
         self.enter_branch()
@@ -833,4 +843,6 @@ class ToLLVM():
         return isinstance(f_,Function)
     def is_array(self, a_):
         return isinstance(a_,Array)
+    def is_pointer(self, p_):
+        return isinstance(p_,Pointer)
 

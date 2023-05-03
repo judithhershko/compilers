@@ -5,6 +5,7 @@ from src.ast.node_types.node_type import LiteralType
 class Pointer:
     pass
 
+
 class Value:
     pass
 
@@ -154,6 +155,14 @@ def set_llvm_binary_operators(left: Value, right: Value, op: str, llvm):
         return function_in_operation(left, right, op, llvm)
     if left.name == "array" or right.name == "array":
         return array_in_operation(left, right, op, llvm)
+    left_pointer=False
+    right_pointer=False
+    if left.name == "pointer":
+        left_pointer=True
+    if right.name == "pointer":
+        right_pointer=True
+    if left.name == "pointer" or right.name == "pointer":
+        return pointer_in_operation(left, right, op, llvm)
     print("binary operator called")
     # get all types
     # move higher type if necessary
@@ -182,7 +191,7 @@ def set_llvm_binary_operators(left: Value, right: Value, op: str, llvm):
                 ltype = llvm.c_function.root.block.getSymbolTable().findSymbol(left.value)[1]
         else:
             ltype = left.type
-        llvm.function_load += load_type(old_var, llvm.get_variable(left.value), ltype, isinstance(left, Pointer))
+        llvm.function_load += load_type(old_var, llvm.get_variable(left.value), ltype,left_pointer)
     else:
         ltype = left.getType()
 
@@ -196,7 +205,7 @@ def set_llvm_binary_operators(left: Value, right: Value, op: str, llvm):
                 rtype = llvm.c_function.root.block.getSymbolTable().findSymbol(right.value)[1]
         else:
             rtype = right.type
-        llvm.function_load += load_type(old_var, llvm.get_variable(right.value), rtype, isinstance(right, Pointer))
+        llvm.function_load += load_type(old_var, llvm.get_variable(right.value), rtype, right_pointer)
     else:
         rtype = right.getType()
     # fix different types
@@ -262,24 +271,14 @@ def load_function(p, llvm):
 
 
 def load_array(left, llvm):
-    """
-    int a
-    call void @llvm.memcpy.p0.p0.i64(ptr align 4 %6, ptr align 4 @__const.main.a, i64 12, i1 false)
-    %8 = getelementptr inbounds [3 x i32], ptr %6, i64 0, i64 1
+    llvm.function_load += "call void @llvm.memcpy.p0.p0.i64(ptr align 4 %{}, ptr align 4 @__const.{}.{}, i64 12, i1 false)\n".format(
+        llvm.get_variable(left.getValue()), llvm.c_function.f_name, left.getValue())
+    llvm.add_variable(str(left.getPosition) + str(left.getValue()))
+    size = llvm.c_function.block.getSymbolTable.findSymbol(left.value)[0]
+    llvm.function_load += "%{} = getelementptr inbounds [{} x {}], ptr %6, i64 0, i64 1\n".format(
+        llvm.get_variable(str(left.getPosition) + str(left.getValue())), size, llvm.get_llvm_type(left.getType()))
+    return llvm.make_value(lit=str(left.getPosition) + str(left.getValue()), valueType=left.getType(), line=left.line)
 
-    float a
-    call void @llvm.memcpy.p0.p0.i64(ptr align 4 %6, ptr align 4 @__const.main.a, i64 12, i1 false)
-    %8 = getelementptr inbounds [3 x float], ptr %6, i64 0, i64 1
-
-    char
-    call void @llvm.memcpy.p0.p0.i64(ptr align 1 %6, ptr align 1 @__const.main.a, i64 3, i1 false)
-    %8 = getelementptr inbounds [3 x i8], ptr %6, i64 0, i64 1
-    """
-    llvm.function_load += "call void @llvm.memcpy.p0.p0.i64(ptr align 4 %{}, ptr align 4 @__const.{}.{}, i64 12, i1 false)\n".format(llvm.get_variable(left.getValue()),llvm.c_function.f_name,left.getValue())
-    llvm.add_variable(str(left.getPosition)+str(left.getValue()))
-    size=llvm.c_function.block.getSymbolTable.findSymbol(left.value)[0]
-    llvm.function_load += "%{} = getelementptr inbounds [{} x {}], ptr %6, i64 0, i64 1\n".format(llvm.get_variable(str(left.getPosition)+str(left.getValue())),size,llvm.get_llvm_type(left.getType()))
-    return llvm.make_value(lit=str(left.getPosition)+str(left.getValue()), valueType=left.getType(), line=left.line)
 
 def array_in_operation(left, right, op, llvm):
     if llvm.is_array(left):
@@ -289,8 +288,24 @@ def array_in_operation(left, right, op, llvm):
     # if declaration with function x=function() en geen verder operatoes
     if left is None or right is None:
         return
-    #return set_llvm_binary_operators(left, right, op, llvm)
-    return
+    return set_llvm_binary_operators(left, right, op, llvm)
+
+def load_pointer(left, llvm):
+    for i in range(1,left.getPointerLevel()):
+        old_val=llvm.get_variable(left.getValue())
+        new_val=llvm.add_variable(left.getValue())
+        llvm.function_load += "%{} = load ptr, ptr %{}, align 8\n".format(new_val,old_val)
+    return llvm.make_value(lit=new_val, valueType=left.getType(), line=left.line)
+
+
+def pointer_in_operation(left, right, op, llvm):
+    if llvm.is_pointer(left):
+        left = load_pointer(left, llvm)
+    if llvm.is_pointer(right):
+        right = load_pointer(right, llvm)
+    if left is None or right is None:
+        return
+    return set_llvm_binary_operators(left, right, op, llvm)
 
 
 def isfloat(num):
