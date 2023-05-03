@@ -1,6 +1,6 @@
 from enum import Enum
 from src.ErrorHandeling.GenerateError import *
-from src.LLVM.Helper_LLVM import set_llvm_binary_operators
+from src.LLVM.Helper_LLVM import set_llvm_binary_operators, set_llvm_unary_operators
 from src.ast.node_types.node_type import LiteralType, ConditionType
 from itertools import islice
 
@@ -165,7 +165,7 @@ class Scan(AST_node):
     def addParam(self, param):
         self.param.append(param)
 
-    # TODO: set %d,i,s,c type in paramStirg[]
+    # TODO: set %d,i,s,c type in paramString[]
     def setParamString(self, input: str):
         pass
 
@@ -373,10 +373,8 @@ class BinaryOperator(AST_node):
                     not (isinstance(self.rightChild, Value) or isinstance(self.rightChild, Pointer) or
                          isinstance(self.rightChild, Array)):
                 if to_llvm is not None:
-                    set_llvm_binary_operators(self.leftChild, self.rightChild, self.operator, to_llvm)
-                return self, False
-            elif self.leftChild.variable or self.rightChild.variable:
-                if to_llvm is not None:
+                    if isinstance(self.leftChild,UnaryOperator) or isinstance(self.rightChild,UnaryOperator):
+                        return self, False
                     set_llvm_binary_operators(self.leftChild, self.rightChild, self.operator, to_llvm)
                 return self, False
 
@@ -483,6 +481,8 @@ class UnaryOperator(AST_node):
                     LiteralType.BOOL, LiteralType.INT, LiteralType.FLOAT) and self.operator == "!":
                 raise ChildType("unary operator", self.rightChild.getType(), None, self.line)
             elif self.rightChild.variable:
+                if to_llvm is not None:
+                    set_llvm_unary_operators(self.rightChild, self.operator, to_llvm)
                 return self, False
             else:
                 if self.rightChild.getType() == LiteralType.FLOAT:
