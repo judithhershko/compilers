@@ -753,7 +753,11 @@ class Declaration(AST_node):
         :param values: dictionary containing the variable names as keys and the corresponding values as values
         """
         if not self.leftChild.declaration:
-            self.leftChild.type = values[self.leftChild.value][1]
+            if self.leftChild.name == "array":
+                name = str(self.leftChild.pos) + str(self.leftChild.value)
+            else:
+                name = self.leftChild.value
+            self.leftChild.type = values[name][1]
         self.rightChild.replaceVariables(values)
 
 
