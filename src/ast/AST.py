@@ -99,6 +99,12 @@ class AST:
             res = self.toDot(self.root.rightChild)
             nodes = nodes + res[0]
             edges = edges + res[1]
+        elif isinstance(self.root, Function):
+            for param in self.root.param:
+                edges = edges + "\n" + self.root.getId() + "--" + self.root.param[param].getId()
+                res = self.toDot(self.root.param[param])
+                nodes = nodes + res[0]
+                edges = edges + res[1]
         elif isinstance(self.root, Scope):
             # if self.root.f_name != "":
             #     params = self.root.parameters
@@ -184,8 +190,8 @@ class AST:
             edges = edges + res[1]
         elif isinstance(root, Function):
             for param in root.param:
-                edges = edges + "\n" + root.getId() + "--" + param.getId()
-                res = self.toDot(param)
+                edges = edges + "\n" + root.getId() + "--" + root.param[param].getId()
+                res = self.toDot(root.param[param])
                 nodes = nodes + res[0]
                 edges = edges + res[1]
         elif isinstance(root, Scope):

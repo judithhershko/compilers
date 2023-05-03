@@ -164,5 +164,7 @@ class program:
             elif tree.root.name == "declaration" or tree.root.name == "array":
                 none = tree.createUnfilledDeclaration(tree.root)
                 self.symbols.addSymbol(none, True, False)
+            elif tree.root.name == "scope" and tree.root.f_name != "":
+                self.parent.functions.addFunction(tree.root)
             tree.setNodeIds(tree.root)
             # self.generateDot("./generated/output/programAST.dot")
