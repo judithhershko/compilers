@@ -334,5 +334,5 @@ class FunctionParam(Exception):
         self.line = line
 
     def __str__(self):
-        return "\n\tError in line " + str(self.line) + ": the function " + self.name + " can only hold " + \
+        return "\n\tError in line " + str(self.line) + ": the function " + self.name + " should hold exactly " + \
                str(self.size) + " parameters"

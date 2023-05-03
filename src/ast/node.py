@@ -1312,11 +1312,11 @@ class Function(AST_node):
         # ]\\\\\\\
         # TODO: check --> verwachte parameter ?
         # self.param.append(var) # TODO: variable comes in as string -> look up in Symbtable -> check type -> make Value/Pointer node
-        # if self.expected is None:
-        #     parent = scope.block
-        #     while parent.name != "program":
-        #         parent = parent.parent
-        #     self.setExpected(scope.functions.findFunction(self.name))
+        if self.expected is None:
+            parent = scope.block
+            while parent.name != "program":
+                parent = parent.parent
+            self.setExpected(parent.functions.findFunction(self.name))
         # try:
         #     if self.counter >= len(self.expected):
         #         raise FunctionParam(var, self.expected, line)
@@ -1333,7 +1333,12 @@ class Function(AST_node):
         else:
             val = Value(var, None, line, None, True)
         self.param.append(val)
-        # self.counter += 1
+        try:
+            if len(self.param) > len(self.expected):
+                raise FunctionParam(self.f_name, len(self.expected), self.line)
+
+        except FunctionParam:
+            raise
         #     else:
         #         raise TypeDeclaration(var, exp, given, line)
         #
@@ -1354,6 +1359,11 @@ class Function(AST_node):
         returns the variable contained within the node
         :return:
         """
+        try:
+            if len(self.param) < len(self.expected):
+                raise FunctionParam(self.f_name, len(self.expected), self.line)
+        except FunctionParam:
+            raise
         params = []
         for param in self.param:
             if param.variable:
