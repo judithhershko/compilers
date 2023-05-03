@@ -259,8 +259,8 @@ class AST:
             return self, temp[1]
         return self, True
 
-    def getVariables(self):
-        return self.root.getVariables()
+    def getVariables(self, fill: bool = True):
+        return self.root.getVariables(fill)
 
     def replaceVariables(self, values):
         self.root.replaceVariables(values)

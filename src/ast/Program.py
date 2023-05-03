@@ -75,7 +75,7 @@ class program:
         except Undeclared:
             raise
 
-        return res[1]
+        return res
 
     def fold(self):
         folded = True
@@ -155,7 +155,8 @@ class program:
     def cleanProgram(self):
         if self.ast.root is not None:
             tree = self.ast
-            all = self.fillLiterals(tree.root)
+            res = self.fillLiterals(tree.root)
+            all = res[1]
             if not all:
                 self.makeUnfillable()
             fold = tree.foldTree()
@@ -168,3 +169,4 @@ class program:
                 self.parent.functions.addFunction(tree.root)
             tree.setNodeIds(tree.root)
             # self.generateDot("./generated/output/programAST.dot")
+            return res[0]

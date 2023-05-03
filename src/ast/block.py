@@ -69,10 +69,10 @@ class block:
     def getLabel(self):
         return "\"new scope\""
 
-    def getVariables(self):
+    def getVariables(self, fill: bool = True):
         result = []
         for tree in self.trees:
-            result.append(tree.getVariables()[0])
+            result.append(tree.getVariables(fill)[0])
         return result
 
     def fillLiterals(self, tree: AST, onlyLocal: bool = False):
@@ -85,6 +85,8 @@ class block:
         notFound = []
         values = dict()
         for elem in variables:
+            if len(elem) == 0:
+                continue
             temp = self.symbols.findSymbol(elem[0])
             if temp:
                 values[elem[0]] = temp
@@ -94,7 +96,7 @@ class block:
         current = self
         if onlyLocal:
             tree.replaceVariables(values)
-            return res[1]
+            return res
         while not current.name == "program" and notFound:
             current = current.getParent()
             variables = notFound
@@ -114,7 +116,7 @@ class block:
         except Undeclared:
             raise
 
-        return res[1]
+        return res
 
     def fold(self, llvm=None):
         folded = True
@@ -193,19 +195,25 @@ class block:
         if self.parent is not None:
             self.parent.symbols.makeUnfillable()
 
-    def cleanBlock(self, glob: bool = False, onlyLocal: bool = False):
+    def cleanBlock(self, glob: bool = False, onlyLocal: bool = False, fill: bool = True):
+        allVar = []
         for tree in self.trees:
-            all = self.fillLiterals(tree.root, onlyLocal)
+            res = self.fillLiterals(tree.root, onlyLocal)
+            all = res[1]
             if not all:
                 self.makeUnfillable()
             fold = tree.foldTree()
-            if fold[1] and (tree.root.name == "declaration" or tree.root.name == "array"):
+            if fill and fold[1] and (tree.root.name == "declaration" or tree.root.name == "array"):
                 self.symbols.addSymbol(tree.root, glob)
-            elif tree.root.name == "declaration" or tree.root.name == "array":
+            elif fill and tree.root.name == "declaration" or tree.root.name == "array":
                 none = tree.createUnfilledDeclaration(tree.root)
                 self.symbols.addSymbol(none, glob, False)
-            elif tree.root.name == "scope" and tree.root.f_name != "":
+            elif fill and tree.root.name == "scope" and tree.root.f_name != "":
                 self.parent.functions.addFunction(tree.root)
+            for elem in res[0]:
+                allVar.append(elem)
+        return allVar
+
 
 
     def setParent(self, parent):
