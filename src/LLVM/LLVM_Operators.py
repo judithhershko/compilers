@@ -687,7 +687,7 @@ class ToLLVM():
                     old_var = self.get_variable(t.root.leftChild.getValue())
                     self.counter -= 1
                     self.function_load += " store {} %{}, ptr %{}, align 4\n".format(
-                        self.get_llvm_type(t.root.leftChild.getType()), self.add_variable(t.root.leftChild.getValue()),
+                        self.get_llvm_type(t.root.leftChild.getType()), self.get_counter(),
                         old_var)
                 # folded declaration, wont load in function_load
 

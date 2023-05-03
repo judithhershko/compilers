@@ -40,15 +40,15 @@ store i32 0, i32* %2, align 4
 
 ;//z=z+f()
 
- store i32 %3, ptr %1, align 4
+ store i32 %2, ptr %1, align 4
 ;//z=90+x
 
-store i32 90, i32* %3, align 4
+store i32 90, i32* %1, align 4
 ;//z=a[0]+90;
 
 ;//todo:
 
 ;//z=90
 
-store i32 90, i32* %3, align 4
-ret ptr %3}
+store i32 90, i32* %1, align 4
+ret ptr %2}
