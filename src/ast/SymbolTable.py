@@ -187,7 +187,7 @@ class SymbolTable:
     def addArray(self, root: AST_node, isGlobal: bool, fill: bool):
         try:
             if isinstance(root, Array):
-                if not root.init:
+                if not root.declaration:
                     raise NotDeclared(root.value, root.line)
                 elif root.value in self.table.index:
                     raise Redeclaration(root.value, root.line)
@@ -205,7 +205,7 @@ class SymbolTable:
                         self.table.loc[name] = [arrayValue, root.type, False, 0, isGlobal, fill]
                     return "placed"
             elif isinstance(root, Declaration):
-                if root.getLeftChild().init:
+                if root.getLeftChild().declaration:
                     raise Redeclaration(root.name, root.line)
                 elif root.getLeftChild().name not in self.table.index:
                     raise NotDeclared(root.getLeftChild().name, root.getLeftChild().line)

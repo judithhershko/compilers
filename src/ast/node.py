@@ -1440,7 +1440,7 @@ class Array(AST_node):
         returns the variable contained within the node
         :return:
         """
-        if self.init:
+        if self.declaration:
             return [[], True]
         return [[(str(self.pos) + str(self.value), self.line)], True]
 

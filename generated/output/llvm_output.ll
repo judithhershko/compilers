@@ -1,4 +1,4 @@
-;//intmain2(){intz=0;intx=0;z=z+f(z,x);z=90+x;inta[3]={0,1,2};z=a[0]+90;returnz;}
+;//intmain2(){intz=0;intx=0;z=z+f(z,x);z=90+x;inta[3];z=a[0]+90;returnz;}
 
 ; Function Attrs: noinline nounwind optnone ssp uwtable(sync)
 define i32 @main2() #0 { 
@@ -15,12 +15,8 @@ define i32 @main2() #0 {
 
 ;//z=90+x
 
-;//inta[3]={0,1,2}
+;//inta[3]
 
-;//intmain2(){intz=0;intx=0;z=z+f(z,x);z=90+x;inta[3]={0,1,2};z=a[0]+90;returnz;}
-
-; Function Attrs: noinline nounwind optnone ssp uwtable(sync)
-define i32 @main2() #0 { ] , align 4 
 ;//z=a[0]+90
 
 

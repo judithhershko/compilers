@@ -569,7 +569,7 @@ class CustomListener(ExpressionListener):
             self.declaration = False
             self.asT = create_tree()
             return
-        if isinstance(self.dec_op.leftChild, Array)
+        # if isinstance(self.dec_op.leftChild, Array)
         if self.c_scope.block.getSymbolTable().findSymbol(self.current.leftChild.getValue()) is not None:
             self.current.leftChild.setType(
                 self.c_scope.block.getSymbolTable().findSymbol(self.current.leftChild.getValue())[1])
@@ -1184,7 +1184,7 @@ class CustomListener(ExpressionListener):
         self.is_array = True
         self.current = Array(getArrayName(ctx.getText()), line=ctx.start.line, pos=getArraySize(ctx.getText()),
                              parent=self.parent, valueType=self.dec_op.leftChild.getType(),
-                             init=self.a_dec)
+                             init=self.a_dec, declaration=self.a_dec)
         if self.a_dec and getArrayName(self.a_val, self.dec_op.leftChild.getType()) == self.current.getValue():
             self.current.parent = self.dec_op
             self.current.declaration = True
