@@ -971,7 +971,10 @@ class Include(AST_node):
         return self.type
 
     def getVariables(self):
-        return [self.value, True]
+        return [[], True]
+
+    def fold(self, to_llvm):
+        return self
 
 
 # unnamed scopes gebruik scope node
