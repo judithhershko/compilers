@@ -9,6 +9,7 @@ from src.ast.block import block
 from src.ast.Program import program
 from src.ast.node_types.node_type import ConditionType
 
+
 # TODO vraag said folden return end_function()-> not folding    x
 # TODO   break/continue while                                   v
 # TODO   break/continue if                                      v
@@ -637,7 +638,7 @@ class ToLLVM():
         # declarations
         for tree in cblock.trees:
             if isinstance(tree.root, Declaration) and tree.root.leftChild.declaration:
-                print("entered for dec" + tree.root.leftChild.getValue())
+                print("entered for dec " + tree.root.leftChild.getValue())
                 self.to_declaration(tree, True)
                 self.function_alloc += self.allocate
                 self.allocate = ""
@@ -680,6 +681,12 @@ class ToLLVM():
                 pass
             else:
                 t.root.fold(self)
+                if isinstance(t.root, Declaration):
+                    old_var = self.get_variable(t.root.leftChild.getValue())
+                    self.counter -= 1
+                    self.function_load += " store {} %{}, ptr %{}, align 4\n".format(
+                        self.get_llvm_type(t.root.leftChild.getType()), self.add_variable(t.root.leftChild.getValue()),
+                        old_var)
                 # folded declaration, wont load in function_load
 
     def set_while_loop(self, t: AST):

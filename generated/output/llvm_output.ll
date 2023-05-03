@@ -48,5 +48,6 @@ store i32 0, i32* %2, align 4
 %4 = load i32, ptr %3, align 4
 %5 = add nsw i32 0, %4
 
-store i32 90, i32* %1, align 4
+ store i32 %5, ptr %1, align 4
+store i32 90, i32* %5, align 4
 ret ptr %5}
