@@ -1,3 +1,5 @@
+#include <stdio.h>
+
 //#include <stdio.h>
 int f(int x)
 {

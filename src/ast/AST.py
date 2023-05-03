@@ -253,7 +253,7 @@ class AST:
          tree, self.g_assignment
         """
         temp = None
-        if not (isinstance(self.root, Value) or isinstance(self.root, Array)):
+        if not (isinstance(self.root, Value) or isinstance(self.root, Array) or isinstance(self.root, Include)):
             temp = self.root.fold(to_llvm)
             self.root = temp[0]
             return self, temp[1]

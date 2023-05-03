@@ -44,6 +44,4 @@ define i32 @main2() #0 {
 
 store i32 0, i32* %1, align 4
 store i32 0, i32* %2, align 4
- store i32 %2, ptr %1, align 4
-store i32 90, i32* %2, align 4
 ret ptr %2}
