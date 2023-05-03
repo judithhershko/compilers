@@ -50,7 +50,7 @@ class AST:
             number = nextNode.c_block.setNodeIds(level + 1, number + 1)
         elif isinstance(nextNode, Function):
             for value in nextNode.param:
-                number = self.setNodeIds(value, level + 1, number + 1)
+                number = self.setNodeIds(nextNode.param[value], level + 1, number + 1)
         # elif isinstance(nextNode, block):
         # number = self.setNodeIds(nextNode.getAst().root, level + 1, number + 1)
         # for tree in nextNode.trees:
