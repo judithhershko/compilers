@@ -1407,6 +1407,9 @@ class Array(AST_node):
 
         self.arrayContent = []
 
+    def getPosition(self):
+        return self.pos
+
     def __eq__(self, other):
         return self.value == other.value and self.pos == other.pos and self.type == other.type and \
             self.line == other.line and self.init == other.init
@@ -1422,10 +1425,7 @@ class Array(AST_node):
         self.type = type_
 
     def getValue(self):
-        if self.init:
-            return str(self.value)
-        else:
-            return str(self.value)
+        return str(self.value)
 
     def getLabel(self):
         if self.init:

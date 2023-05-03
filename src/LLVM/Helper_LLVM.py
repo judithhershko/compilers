@@ -5,11 +5,6 @@ from src.ast.node_types.node_type import LiteralType
 class Pointer:
     pass
 
-
-class Function:
-    pass
-
-
 class Value:
     pass
 
@@ -157,6 +152,8 @@ def stor_binary_operation(op, left, right, rtype, llvm, load_left, load_right):
 def set_llvm_binary_operators(left: Value, right: Value, op: str, llvm):
     if left.name == 'function' or right.name == "function":
         return function_in_operation(left, right, op, llvm)
+    if left.name == "array" or right.name == "array":
+        return array_in_operation(left, right, op, llvm)
     print("binary operator called")
     # get all types
     # move higher type if necessary
@@ -229,9 +226,9 @@ def function_in_operation(left, right, op: str, llvm):
     idee: save function call in register,
     maak nieuwe value node aan voor register met de functie naam
     """
-    if isinstance(left, Function):
+    if llvm.is_function(left):
         left = load_function(left, llvm)
-    else:
+    if llvm.is_function(right):
         right = load_function(right, llvm)
     # if declaration with function x=function() en geen verder operatoes
     if left is None or right is None:
@@ -241,13 +238,13 @@ def function_in_operation(left, right, op: str, llvm):
 
 def load_function(p, llvm):
     inhoud = llvm.program.functions.findFunction(p.f_name, p.line)
+    return_ = llvm.program.functions.findFunction(p.f_name, p.line)
+    inhoud = p.param
     llvm.add_variable(p.f_name)
     llvm.function_load += "%{} = call {} @{}".format(llvm.get_variable(p.f_name),
-                                                     llvm.get_llvm_type(inhoud["return"]), p.f_name)
+                                                     llvm.get_llvm_type(return_["return"]), p.f_name)
     llvm.function_load += "("
     for key in inhoud:
-        if key == "return":
-            continue
         llvm.function_load += llvm.get_llvm_type(inhoud[key])
         val = key
         is_var = True
@@ -261,7 +258,39 @@ def load_function(p, llvm):
             llvm.function_load += "noundef {}".format(val)
 
     llvm.function_load += ")\n"
-    return llvm.make_value(lit=p.f_name, valueType=inhoud["return"], line=p.line)
+    return llvm.make_value(lit=p.f_name, valueType=return_["return"], line=p.line)
+
+
+def load_array(left, llvm):
+    """
+    int a
+    call void @llvm.memcpy.p0.p0.i64(ptr align 4 %6, ptr align 4 @__const.main.a, i64 12, i1 false)
+    %8 = getelementptr inbounds [3 x i32], ptr %6, i64 0, i64 1
+
+    float a
+    call void @llvm.memcpy.p0.p0.i64(ptr align 4 %6, ptr align 4 @__const.main.a, i64 12, i1 false)
+    %8 = getelementptr inbounds [3 x float], ptr %6, i64 0, i64 1
+
+    char
+    call void @llvm.memcpy.p0.p0.i64(ptr align 1 %6, ptr align 1 @__const.main.a, i64 3, i1 false)
+    %8 = getelementptr inbounds [3 x i8], ptr %6, i64 0, i64 1
+    """
+    llvm.function_load += "call void @llvm.memcpy.p0.p0.i64(ptr align 4 %{}, ptr align 4 @__const.{}.{}, i64 12, i1 false)\n".format(llvm.get_variable(left.getValue()),llvm.c_function.f_name,left.getValue())
+    llvm.add_variable(str(left.getPosition)+str(left.getValue()))
+    size=llvm.c_function.block.getSymbolTable.findSymbol(left.value)[0]
+    llvm.function_load += "%{} = getelementptr inbounds [{} x {}], ptr %6, i64 0, i64 1\n".format(llvm.get_variable(str(left.getPosition)+str(left.getValue())),size,llvm.get_llvm_type(left.getType()))
+    return llvm.make_value(lit=str(left.getPosition)+str(left.getValue()), valueType=left.getType(), line=left.line)
+
+def array_in_operation(left, right, op, llvm):
+    if llvm.is_array(left):
+        left = load_array(left, llvm)
+    if llvm.is_array(right):
+        right = load_array(right, llvm)
+    # if declaration with function x=function() en geen verder operatoes
+    if left is None or right is None:
+        return
+    #return set_llvm_binary_operators(left, right, op, llvm)
+    return
 
 
 def isfloat(num):
