@@ -4,7 +4,7 @@ from src.LLVM.helper_functions import stack
 from src.ast.AST import AST
 from src.ast.SymbolTable import SymbolTable
 from src.ast.node import Declaration, Value, LiteralType, Comment, CommentType, Print, Pointer, Scope, If, While, Scan, \
-    Continue, Break, Array
+    Continue, Break, Array, Function
 from src.ast.block import block
 from src.ast.Program import program
 from src.ast.node_types.node_type import ConditionType
@@ -339,6 +339,9 @@ class ToLLVM():
                     self.c_scope.f_name, v.value, len(v.arrayContent), self.get_llvm_type(v))
 
             for i in v.arrayContent:
+                val=i.value
+                if v.type==LiteralType.FLOAT:
+                    v=self.float_to_64bit_hex(v.getValue())
                 self.store += "{} {}".format(self.get_llvm_type(v), i.value)
             self.store = self.g_assignment[:-1]
             self.store += "] , align 4 \n"
@@ -628,7 +631,10 @@ class ToLLVM():
         for tree in cblock.trees:
             # don't change tree function permanently
             t = tree
-            if isinstance(t.root, Comment):
+            if isinstance(t.root,Array):
+                self.LiteralArray(t.root)
+
+            elif isinstance(t.root, Comment):
                 self.to_comment(t)
                 self.function_store += self.store
                 self.store = ""
@@ -823,3 +829,8 @@ class ToLLVM():
 
     def make_value(self, lit, valueType, line):
         return Value(lit=lit, valueType=valueType, line=line)
+    def is_function(self, f_):
+        return isinstance(f_,Function)
+    def is_array(self, a_):
+        return isinstance(a_,Array)
+

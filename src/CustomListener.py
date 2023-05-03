@@ -561,6 +561,9 @@ class CustomListener(ExpressionListener):
         """
         if isinstance(self.dec_op, Array) and self.dec_op.declaration:
             self.c_scope.block.getSymbolTable().addSymbol(self.dec_op, self.c_scope.global_)
+            self.asT=create_tree()
+            self.asT.root=self.dec_op
+            self.c_scope.block.trees.append(self.asT)
             self.parent = None
             self.current = None
             self.declaration = False
