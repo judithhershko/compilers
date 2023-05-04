@@ -376,10 +376,6 @@ class BinaryOperator(AST_node):
                 if to_llvm is not None:
                     if isinstance(self.leftChild,UnaryOperator) or isinstance(self.rightChild,UnaryOperator):
                         return self, False
-                    elif isinstance(self.leftChild, BinaryOperator) or isinstance(self.rightChild, BinaryOperator):
-                        return self, False
-                    elif isinstance(self.leftChild, LogicalOperator) or isinstance(self.rightChild, LogicalOperator):
-                        return self, False
                     set_llvm_binary_operators(self.leftChild, self.rightChild, self.operator, to_llvm)
                 return self, False
 
