@@ -57,7 +57,7 @@ class AST_node:
     def setVariable(self, var):
         self.variable = var
 
-    def printTables(self, filePath):
+    def printTables(self, filePath: str, to_llvm=None):
         pass
 
 
@@ -459,9 +459,9 @@ class BinaryOperator(AST_node):
         self.leftChild.replaceVariables(values)
         self.rightChild.replaceVariables(values)
 
-    def printTables(self, filePath):
-        self.leftChild.printTables(filePath)
-        self.rightChild.printTables(filePath)
+    def printTables(self, filePath: str, to_llvm=None):
+        self.leftChild.printTables(filePath, to_llvm)
+        self.rightChild.printTables(filePath, to_llvm)
 
 
 # Used to hold a unary operator with its operator and the operand in the right child
@@ -559,8 +559,8 @@ class UnaryOperator(AST_node):
         """
         self.rightChild.replaceVariables(values)
 
-    def printTables(self, filePath):
-        self.rightChild.printTables(filePath)
+    def printTables(self, filePath: str, to_llvm=None):
+        self.rightChild.printTables(filePath, to_llvm)
 
 
 # Used for logical operators with the corresponding operator and the children holding the operators
@@ -696,9 +696,9 @@ class LogicalOperator(AST_node):
         self.leftChild.replaceVariables(values)
         self.rightChild.replaceVariables(values)
 
-    def printTables(self, filePath):
-        self.leftChild.printTables(filePath)
-        self.rightChild.printTables(filePath)
+    def printTables(self, filePath: str, to_llvm=None):
+        self.leftChild.printTables(filePath, to_llvm)
+        self.rightChild.printTables(filePath, to_llvm)
 
 
 # Used to hold a (re)declaration of a variable, the left child holds the variable and the left child the value/operation
@@ -812,9 +812,9 @@ class Declaration(AST_node):
         except NotDeclared:
             raise
 
-    def printTables(self, filePath):
-        self.leftChild.printTables(filePath)
-        self.rightChild.printTables(filePath)
+    def printTables(self, filePath: str, to_llvm=None):
+        self.leftChild.printTables(filePath, to_llvm)
+        self.rightChild.printTables(filePath, to_llvm)
 
 # Used to hold pointeres
 class Pointer(AST_node):
@@ -1150,12 +1150,12 @@ class Scope(AST_node):  # TODO: let it hold a block instead of trees
         """
         pass
 
-    def printTables(self, filePath):
+    def printTables(self, filePath: str, to_llvm=None):
         for param in self.parameters:
-            param.printTables(filePath)
+            param.printTables(filePath, to_llvm)
         if self.f_return is not None:
-            self.f_return.printTables(filePath)
-        self.block.printTables(filePath)
+            self.f_return.printTables(filePath, to_llvm)
+        self.block.printTables(filePath, to_llvm)
 
 
 # Used to hold the for loops TODO: is this used?
@@ -1254,10 +1254,10 @@ class If(AST_node):
             self.Condition.replaceVariables(values)
             # self.c_block.fillBlock()
 
-    def printTables(self, filePath):
+    def printTables(self, filePath: str, to_llvm=None):
         if self.operator != ConditionType.ELSE:
-            self.Condition.printTables(filePath)
-        self.c_block.printTables(filePath)
+            self.Condition.printTables(filePath, to_llvm)
+        self.c_block.printTables(filePath, to_llvm)
 
 # Used to indicate a break TODO: stop generation of tree in the body
 class Break(AST_node):
@@ -1349,9 +1349,9 @@ class While(AST_node):
         """
         pass
 
-    def printTables(self, filePath):
-        self.Condition.printTables(filePath)
-        self.c_block.printTables(filePath)
+    def printTables(self, filePath: str, to_llvm=None):
+        self.Condition.printTables(filePath, to_llvm)
+        self.c_block.printTables(filePath, to_llvm)
 
 """
 deze node is bij aanroepen van functies bv. 

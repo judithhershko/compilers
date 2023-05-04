@@ -28,7 +28,7 @@ def main():
         # result = EvalVisitor().visit(tree)
         walker = ParseTreeWalker()
         walker.walk(printer, tree)
-        printer.get_program()
+        printer.get_program("./src/ast/dotFiles/no_fold_expression_dot")
 
         to_llvm = ToLLVM()
         to_llvm.transverse_program(printer.program)
