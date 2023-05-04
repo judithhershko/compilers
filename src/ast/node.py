@@ -612,16 +612,20 @@ class LogicalOperator(AST_node):
             leftType = self.leftChild.getType()
             rightType = self.rightChild.getType()
 
-            if leftType != rightType:
-                raise LogicalOp(self.leftChild.getType(), self.rightChild.getType(), self.operator, self.line)
-            elif self.operator in ("&&", "||") and self.leftChild.getType() != LiteralType.BOOL and \
-                    self.rightChild.getType() != LiteralType.BOOL:
-                raise LogicalOp(self.leftChild.getType(), self.rightChild.getType(), self.operator, self.line)
-            elif self.leftChild.variable or self.rightChild.variable:
+            # if leftType != rightType:
+            #     raise LogicalOp(self.leftChild.getType(), self.rightChild.getType(), self.operator, self.line)
+            # elif self.operator in ("&&", "||") and self.leftChild.getType() != LiteralType.BOOL and \
+            #         self.rightChild.getType() != LiteralType.BOOL:
+            #     raise LogicalOp(self.leftChild.getType(), self.rightChild.getType(), self.operator, self.line)
+            if self.leftChild.variable or self.rightChild.variable:
                 return self, False
             else:
                 self.leftChild.setValueToType()
                 self.rightChild.setValueToType()
+
+                # if self.operator in ("&&", "||") and self.leftChild.getType() != LiteralType.BOOL and \
+                #         self.rightChild.getType() != LiteralType.BOOL:
+                #     raise LogicalOp(self.leftChild.getType(), self.rightChild.getType(), self.operator, self.line)
 
                 if self.operator == "&&":
                     res = self.leftChild.getValue() and self.rightChild.getValue()

@@ -682,7 +682,7 @@ class ToLLVM():
             elif t is None:
                 pass
             else:
-                t.root.fold(self)
+                t.foldTree() # TODO: check/tell this adaptation
                 if isinstance(t.root, Declaration):
                     old_var = self.get_variable(t.root.leftChild.getValue())
                     self.counter -= 1

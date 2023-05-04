@@ -1206,10 +1206,10 @@ class CustomListener(ExpressionListener):
     def exitIncludes(self, ctx: ParserRuleContext):
         pass
 
-    def get_program(self):
+    def get_program(self, fileName):
         self.program.ast.root = self.program.tree
         self.program.tree = None
         self.program.cleanProgram()
         self.program.setNodeIds()
-        self.program.generateDot("generated/output/result.dot")
+        self.program.generateDot(fileName)
         self.program.tree = self.program.ast.root
