@@ -57,6 +57,9 @@ class AST_node:
     def setVariable(self, var):
         self.variable = var
 
+    def printTables(self, filePath):
+        pass
+
 
 class Comment(AST_node):
     def __init__(self, lit, commentType, line=None):
@@ -244,14 +247,14 @@ class Value(AST_node):
     def getDeref(self):
         return self.deref
 
-    def replaceVariables(self, values):
+    def replaceVariables(self, values, rep: bool = True):
         """
         replaces the variables in the node with the actual values contained in values
         :param values: dictionary containing the variable names as keys and the corresponding values as values
         """
         if len(values) == 0:
             pass
-        elif self.variable and values[self.value][3]:
+        elif self.variable and values[self.value][3] and rep:
             self.type = values[self.value][1]
             self.value = values[self.value][0]
             self.variable = False
@@ -445,6 +448,10 @@ class BinaryOperator(AST_node):
         self.leftChild.replaceVariables(values)
         self.rightChild.replaceVariables(values)
 
+    def printTables(self, filePath):
+        self.leftChild.printTables(filePath)
+        self.rightChild.printTables(filePath)
+
 
 # Used to hold a unary operator with its operator and the operand in the right child
 class UnaryOperator(AST_node):
@@ -540,6 +547,9 @@ class UnaryOperator(AST_node):
         :param values: dictionary containing the variable names as keys and the corresponding values as values
         """
         self.rightChild.replaceVariables(values)
+
+    def printTables(self, filePath):
+        self.rightChild.printTables(filePath)
 
 
 # Used for logical operators with the corresponding operator and the children holding the operators
@@ -675,6 +685,10 @@ class LogicalOperator(AST_node):
         self.leftChild.replaceVariables(values)
         self.rightChild.replaceVariables(values)
 
+    def printTables(self, filePath):
+        self.leftChild.printTables(filePath)
+        self.rightChild.printTables(filePath)
+
 
 # Used to hold a (re)declaration of a variable, the left child holds the variable and the left child the value/operation
 # that needs to be placed in the variable
@@ -776,8 +790,14 @@ class Declaration(AST_node):
             else:
                 name = self.leftChild.value
             self.leftChild.type = values[name][1]
-        self.rightChild.replaceVariables(values)
+        if not isinstance(self.leftChild, Pointer):
+            self.rightChild.replaceVariables(values)
+        else:
+            self.rightChild.replaceVariables(values, False)
 
+    def printTables(self, filePath):
+        self.leftChild.printTables(filePath)
+        self.rightChild.printTables(filePath)
 
 # Used to hold pointeres
 class Pointer(AST_node):
@@ -1113,6 +1133,13 @@ class Scope(AST_node):  # TODO: let it hold a block instead of trees
         """
         pass
 
+    def printTables(self, filePath):
+        for param in self.parameters:
+            param.printTables(filePath)
+        if self.f_return is not None:
+            self.f_return.printTables(filePath)
+        self.block.printTables(filePath)
+
 
 # Used to hold the for loops TODO: is this used?
 class For(AST_node):
@@ -1210,6 +1237,10 @@ class If(AST_node):
             self.Condition.replaceVariables(values)
             # self.c_block.fillBlock()
 
+    def printTables(self, filePath):
+        if self.operator != ConditionType.ELSE:
+            self.Condition.printTables(filePath)
+        self.c_block.printTables(filePath)
 
 # Used to indicate a break TODO: stop generation of tree in the body
 class Break(AST_node):
@@ -1301,6 +1332,9 @@ class While(AST_node):
         """
         pass
 
+    def printTables(self, filePath):
+        self.Condition.printTables(filePath)
+        self.c_block.printTables(filePath)
 
 """
 deze node is bij aanroepen van functies bv. 

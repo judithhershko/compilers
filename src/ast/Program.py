@@ -1,3 +1,6 @@
+import json
+import os
+
 from .SymbolTable import SymbolTable, FunctionTable
 from src.ErrorHandeling.GenerateError import *
 from .block import block
@@ -170,3 +173,13 @@ class program:
             tree.setNodeIds(tree.root)
             # self.generateDot("./generated/output/programAST.dot")
             return res[0]
+
+    def printTables(self, filePath):
+        symbolPath = filePath + self.name + "_symbols_" + str(self.level) + "_" + str(self.number) + ".csv"
+        functionPath = filePath + self.name + "_functions_" + str(self.level) + "_" + str(self.number) + ".csv"
+        os.makedirs(os.path.dirname(filePath), exist_ok=True)
+        self.symbols.table.to_csv(symbolPath)
+        with open(functionPath, 'w') as file:
+            file.write(json.dumps(self.functions.functions))
+        if self.ast.root is not None:
+            self.ast.printTables(filePath)

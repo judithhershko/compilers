@@ -1,4 +1,5 @@
 from pandas._libs.lib import Enum
+import json
 
 
 class LiteralType(Enum):

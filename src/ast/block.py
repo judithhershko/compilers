@@ -205,6 +205,8 @@ class block:
             fold = tree.foldTree()
             if fill and fold[1] and (tree.root.name == "declaration" or tree.root.name == "array"):
                 self.symbols.addSymbol(tree.root, glob)
+            elif fill and not fold[1] and tree.root.name == "declaration" and tree.root.leftChild.name == "pointer": # TODO: also add to program if works
+                self.symbols.addSymbol(tree.root, glob)
             elif fill and tree.root.name == "declaration" or tree.root.name == "array":
                 none = tree.createUnfilledDeclaration(tree.root)
                 self.symbols.addSymbol(none, glob, False)
@@ -219,3 +221,9 @@ class block:
     def setParent(self, parent):
         self.parent = parent
         self.symbols.setParent(parent.symbols)
+
+    def printTables(self, filePath):
+        symbolPath = filePath + self.name + "_symbols_" + str(self.level) + "_" + str(self.number) + ".csv"
+        self.symbols.table.to_csv(symbolPath)
+        for tree in self.trees:
+            tree.printTables(filePath)

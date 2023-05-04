@@ -21,8 +21,8 @@ class FunctionTable:
     def addFunction(self, func: Scope):
         function = dict()  # TODO: use ordered dict
         for param in func.parameters:
-            function[param] = func.parameters[param].type
-        function["return"] = func.return_type
+            function[param] = str(func.parameters[param].type)
+        function["return"] = str(func.return_type)
         if not self.functions:
             self.functions[func.f_name] = function
         elif func.f_name in self.functions:
@@ -102,7 +102,10 @@ class SymbolTable:
                     else:
                         self.parent.addSymbol(root, isGlobal, fill)
                 if ref is None:
-                    self.table.loc[name] = [value, symType, const, level, isGlobal, fill]
+                    if isinstance(root.getLeftChild(), Pointer):
+                        self.table.loc[name] = [value, symType, const, level, isGlobal, False]
+                    else:
+                        self.table.loc[name] = [value, symType, const, level, isGlobal, fill]
                     return "placed"
                 elif ref not in self.table.index:
                     raise ImpossibleRef(ref, line)

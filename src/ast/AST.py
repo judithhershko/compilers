@@ -279,3 +279,6 @@ class AST:
         dec = Declaration(var, root.line, None)
         dec.setRightChild(val)
         return dec
+
+    def printTables(self, filePath):
+        self.root.printTables(filePath)
