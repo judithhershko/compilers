@@ -1,10 +1,14 @@
-;//intmain(intx,inty){x=x+1*x+89;while(x+90>90){x=x+1;}return1;}
+declare i32 @printf(ptr noundef, ...) #1
+@.str = private unnamed_addr constant [41x i8] c"<src.ast.AST.AST object at 0x118641550>\0A\00", align 1
+;//intmain(intx,inty){x=x+1*x+89;printf("%d",x+x*2,x+y);for(intk=0;k<5;k=k+1){x=x+1;}return1;}
 
 ; Function Attrs: noinline nounwind optnone ssp uwtable(sync)
 define i32 @main(i32 noundef %0,i32 noundef %1) #0 { 
 %3 = alloca i32, align 4
 %4 = alloca i32, align 4
  %5 = alloca i32, align 4
+;  int k;
+%6 = alloca i32, align 4
 
 store i32 %0, ptr %3, align 4
 store i32 %1, ptr %4, align 4
@@ -16,40 +20,50 @@ store i32 %1, ptr %5, align 4
 
 ;//x=x+1*x+89
 
-%6 = load i32, ptr %5, align 4
 %7 = load i32, ptr %5, align 4
-%8 = add nsw i32 %7, 89
+%8 = load i32, ptr %5, align 4
+%9 = add nsw i32 %8, 89
 
-%9 = add nsw i32 %7, %8
+%10 = add nsw i32 %8, %9
 
-%10 = mul nsw i32 1, %9
+%11 = mul nsw i32 1, %10
 
- store i32 %10, ptr %5, align 4
-;//while(x+90>90){x=x+1;}
+ store i32 %11, ptr %5, align 4
+;//printf("%d",x+x*2,x+y)
 
-br label %11
-11:
- %12 = load i32, ptr %5, align 4
-%13 = add nsw i32 %12, 90
+; printf (<src.ast.AST.AST object at 0x118641550>)
+%12 = call i32 (ptr, ...) @printf(ptr noundef @.str)
+;//for(intk=0;k<5;k=k+1){x=x+1;}
 
-%14 = icmp sgt i32 %13, 90
+;//intk=0
 
- %15 = load i32, ptr %5, align 4
-%16 = add nsw i32 %15, 90
+;//k=k+1
 
-%17 = icmp ne i32 %16, 0
-br i1 %17, label %18, label %24
-18:
- %19 = load i32, ptr %5, align 4
+store i32 0, i32* %6, align 4
+br label %13
+13:
+ %14 = load None, ptr %6, align 4
+%15 = icmp slt i32 %14, 5
+
+%16 = icmp ne i32 %15, 0
+br i1 %16, label %17, label %27
+17:
+ %18 = load i32, ptr %5, align 4
 ;//x=x+1
 
- %20 = load i32, ptr %5, align 4
+ %19 = load i32, ptr %5, align 4
+%20 = load i32, ptr %5, align 4
 %21 = load i32, ptr %5, align 4
-%22 = load i32, ptr %5, align 4
-%23 = add nsw i32 %22, 1
+%22 = add nsw i32 %21, 1
 
- store i32 %23, ptr %5, align 4
-br label %11
-24:
+ store i32 %22, ptr %5, align 4
+ %23 = load None, ptr %6, align 4
+%24 = load i32, ptr %6, align 4
+%25 = load i32, ptr %6, align 4
+%26 = add nsw i32 %25, 1
+
+ store i32 %26, ptr %6, align 4
+br label %13
+27:
 ret i32 1
 }

@@ -121,6 +121,7 @@ class Print(AST_node):
     # TODO: check dat dit een digit niet ervoor staat ipv letter
     def addParam(self, param):
         self.param.append(param)
+        self.value=param
 
     # TODO: set %d,i,s,c type in paramString[]
     def setParamString(self, input: str):

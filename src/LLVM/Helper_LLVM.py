@@ -142,9 +142,9 @@ def stor_unary_operation(op, right, rtype, llvm, load_right):
         load += get_unary_operation(op, rtype, 2)
         load += "%{}, true\n".format(llvm.get_variable(old_right))
         if rtype == LiteralType.INT:
-            load_higher_type_bool_to_int(llvm.get_variable(old_right), llvm.add_variable(old_right))
+            load_higher_type_bool_to_int(llvm.add_variable(old_right),llvm.get_variable(old_right))
         elif rtype == LiteralType.FLOAT:
-            load_higher_type_int_to_float(llvm.get_variable(old_right), llvm.add_variable(old_right))
+            load_higher_type_int_to_float(llvm.add_variable(old_right),llvm.get_variable(old_right))
     if not load_right:
         pass
     return load

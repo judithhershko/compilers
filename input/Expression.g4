@@ -6,7 +6,7 @@ s_rule: (print ';'|scan ';'|expr ';'|dec ';'|comments|line|loop|scope (';')?| fu
 includes: INCLUDE|INCLUDEH (';')?;
 line:NLINE;
 
-print : PRINT '(' format_string (',' ('*')* pri)* ')';
+print : PRINT '(' format_string (',' ('*')* expr)* ')';
 scan  : SCAN '(' format_string (',' pri)* ')';
 format_string: STRING_LITERAL (',' STRING_LITERAL)*;
 
