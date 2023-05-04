@@ -383,6 +383,14 @@ class BinaryOperator(AST_node):
                     not self.rightChild.getType() in (LiteralType.DOUBLE, LiteralType.FLOAT, LiteralType.INT):
                 raise BinaryOp(self.leftChild.getType(), self.rightChild.getType(), self.operator, self.line)
 
+            elif isinstance(self.leftChild, Value) and isinstance(self.rightChild, Value) and \
+                    (self.leftChild.variable or self.rightChild.variable):
+                if to_llvm is not None:
+                    if isinstance(self.leftChild,UnaryOperator) or isinstance(self.rightChild,UnaryOperator):
+                        return self, False
+                    set_llvm_binary_operators(self.leftChild, self.rightChild, self.operator, to_llvm)
+                return self, False
+
             else:
                 leftValue = float(self.leftChild.getValue())
                 rightValue = float(self.rightChild.getValue())
