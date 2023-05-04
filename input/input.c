@@ -1,11 +1,14 @@
 #include "stdio.h"
-int main(int x,int y)
+int f(int a) {
+	a = a +1;
+	return a;
+}
+
+int main()
 {
-x=x+1*x+89;
-int* z = &x;
-while(x>90+y)
-    {
-    x=x+1;
-    }
+int x=5+1;
+char z='a';
+
+char y = f(x);
 return 1;
 }

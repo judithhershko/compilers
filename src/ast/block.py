@@ -72,7 +72,7 @@ class block:
     def getVariables(self, fill: bool = True):
         result = []
         for tree in self.trees:
-            result.append(tree.getVariables(fill)[0])
+            result.append(tree.getVariables(fill, scope=self)[0])
         return result
 
     def fillLiterals(self, tree: AST, onlyLocal: bool = False):
@@ -80,7 +80,8 @@ class block:
         This function will try to replace the variables in the AST with the actual values. If it can not find the
         variables in its own symbol table, it will look at the symbol tables of its parents
         """
-        res = tree.getVariables()
+        test = self
+        res = tree.getVariables(scope=self)
         variables = res[0]
         notFound = []
         values = dict()

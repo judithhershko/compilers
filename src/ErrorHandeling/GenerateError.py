@@ -338,6 +338,19 @@ class FunctionParam(Exception):
                str(self.size) + " parameters"
 
 
+class FunctionParamType(Exception):
+    def __init__(self, name, param, givenType, expType, line):
+        self.name = name
+        self.param = param
+        self.given = givenType
+        self.exp = expType
+        self.line = line
+
+    def __str__(self):
+        return "\n\tError in line " + str(self.line) + ": the function " + self.name + " should have type " + \
+               str(self.exp) + " for the parameter " + str(self.param) + " instead of the given " + str(self.given[1])
+
+
 class ArraySize(Exception):
     def __init__(self, name, pos, line):
         self.name = name
