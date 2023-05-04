@@ -434,6 +434,7 @@ class CustomListener(ExpressionListener):
         self.parent.rightChild = Value(var, LiteralType.VAR, ctx.start.line, self.parent, variable=True)
         self.current = self.parent.rightChild
         return
+
     # Exit a parse tree produced by ExpressionParser#ref_ref.
     def exitRef_ref(self, ctx: ParserRuleContext):
         self.is_ref = False
@@ -488,6 +489,7 @@ class CustomListener(ExpressionListener):
             self.current = None
             self.dec_op = None
             self.parent = None
+            self.declaration = False
             self.asT = create_tree()
             return
 
@@ -530,8 +532,8 @@ class CustomListener(ExpressionListener):
         """
         if isinstance(self.dec_op, Array) and self.dec_op.declaration:
             # self.c_scope.block.getSymbolTable().addSymbol(self.dec_op, self.c_scope.global_)
-            self.asT=create_tree()
-            self.asT.root=self.dec_op
+            self.asT = create_tree()
+            self.asT.root = self.dec_op
             self.c_scope.block.trees.append(self.asT)
             self.parent = None
             self.current = None
@@ -669,14 +671,14 @@ class CustomListener(ExpressionListener):
     def exitExpr(self, ctx: ParserRuleContext):
         self.expr_layer -= 1
         # print("exit expression:" + ctx.getText() + "with layer " + str(self.expr_layer))
-        """
-        if (isinstance(self.loop, While) or isinstance(self.loop,For)) and self.loop.Condition is None and self.expr_layer == 0:
+
+        """if isinstance(self.loop, While) and self.loop.Condition is None and self.expr_layer == 0:
             while self.current.parent is not None:
                 self.current = self.current.parent
             self.loop.Condition = self.current
             self.current = None
             self.parent = None
-        """
+            return"""
 
         if self.declaration is False and isinstance(self.loop,
                                                     For) and self.expr_layer == 0 and self.loop.Condition is None and self.loop.f_dec is not None:
@@ -708,7 +710,7 @@ class CustomListener(ExpressionListener):
             self.asT.setRoot(self.current)
             if self.is_loop and self.loop.Condition is None:
                 self.loop.Condition = self.asT.root  # TODO: check if this still works: set Condition to node instead of ast
-                # print("fill condition")
+                print("fill condition")
             else:
                 if self.return_function:
                     self.c_scope.f_return = self.asT
@@ -907,6 +909,11 @@ class CustomListener(ExpressionListener):
     # Enter a parse tree produced by ExpressionParser#lscope.
     def enterLscope(self, ctx: ParserRuleContext):
         print("enter lscope:" + ctx.getText())
+        if isinstance(self.loop,While) and not isinstance(self.loop.Condition,AST):
+            self.asT=create_tree()
+            self.asT.root=self.loop.Condition
+            self.loop.Condition=self.asT
+            self.asT=create_tree()
         self.stop_fold = True
         self.scope_stack.push(self.c_scope.block)
         self.c_scope.block = block(self.scope_stack.peek())
@@ -951,6 +958,11 @@ class CustomListener(ExpressionListener):
 
     # Exit a parse tree produced by ExpressionParser#while.
     def exitWhile(self, ctx: ParserRuleContext):
+        if isinstance(self.loop, While) and self.loop.Condition is not None and not isinstance(self.loop, AST):
+            self.asT = create_tree()
+            self.asT.root = self.loop.Condition
+            self.loop.Condition = self.asT
+            self.asT = create_tree()
         pass
 
     # Enter a parse tree produced by ExpressionParser#for.
@@ -997,7 +1009,7 @@ class CustomListener(ExpressionListener):
 
     def addComment(self, ctx):
         self.asT = create_tree()
-        self.asT.root = Comment("//"+ctx.getText(),CommentType.SL, ctx.start.line)
+        self.asT.root = Comment("//" + ctx.getText(), CommentType.SL, ctx.start.line)
         self.c_scope.block.trees.append(self.asT)
         self.asT = create_tree()
 

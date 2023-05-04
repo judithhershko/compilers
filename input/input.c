@@ -1,19 +1,15 @@
 #include "stdio.h"
 int f(int x)
 {
+x=x+1;
 //this is function f
+while (x>0)
+{
+x=x+1;
+}
 return 1;
 }
 int main2(int k)
 {
-int a[3]={0,1,2};
-//a[0]=90;
-int z=0;
-int x=0;
-//int *xp=&x;
-z=!k+f();
-z=90+x;
-
-//z=a[0]+90;
-return 1+1;
+return 1;
 }
