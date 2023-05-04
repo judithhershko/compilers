@@ -765,7 +765,7 @@ class ToLLVM():
                     old_type=t.root.leftChild.getType()
 
                     self.enter_fold = True
-                t.root.fold(self)
+                t.root.fold(self) # TODO: t.foldTree() -> check if dit werkt
                 self.save_old_val = None
                 if isinstance(t.root, Declaration):
                     # self.counter -= 1
