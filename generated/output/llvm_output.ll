@@ -1,4 +1,4 @@
-;//intf(intx){x=x+1;}
+;//intf(intx){x=x+1*x+90;//this is function freturn1;}
 
 ; Function Attrs: noinline nounwind optnone ssp uwtable(sync)
 define i32 @f(i32 noundef %0) #0 { 
@@ -8,10 +8,13 @@ store i32 %0, ptr %2, align 4
 
 ;//intx
 
-;//x=x+1
+;//x=x+1*x+90
 
 %3 = load i32, ptr %2, align 4
-%4 = add nsw i32 %3, 1
+%4 = mult nsw i32 1, %3
 
  store i32 %3, ptr %4, align 4
-ret void}
+;//this is function f
+
+ret i32 1
+}
