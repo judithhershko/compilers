@@ -22,17 +22,23 @@ def to_type(ptype):
     pass
 
 
-def load_type(old, new, ptype_, pointer):
+def load_type(old, new, ptype_, pointer, op=None):
+    a = ""
     if pointer:
-        return "%{} = load ptr, ptr %{}, align 4\n".format(new, old)
+        a = "%{} = load ptr, ptr %{}, align 4\n".format(new, old)
+        return a
     if ptype_ == LiteralType.INT:
-        return "%{} = load i32, ptr %{}, align 4\n".format(new, old)
+        a = "%{} = load i32, ptr %{}, align 4\n".format(new, old)
+        return a
     if ptype_ == LiteralType.FLOAT:
-        return "%{} = load float, ptr %{}, align 4\n".format(new, old)
+        a = "%{} = load float, ptr %{}, align 4\n".format(new, old)
+        return a
     if ptype_ == LiteralType.CHAR:
-        return "%{} = load i8, ptr %{}, align 4\n".format(new, old)
+        a = "%{} = load i8, ptr %{}, align 4\n".format(new, old)
+        return a
     if ptype_ == LiteralType.BOOL:
-        return "%{} = load i1, ptr %{}, align 4\n".format(new, old)
+        a = "%{} = load i1, ptr %{}, align 4\n".format(new, old)
+        return a
 
 
 def load_higher_type_int_to_float(old, new):
@@ -48,16 +54,16 @@ def store_mult(left, right, rtype, llvm, load_left, load_right):
     old_left = llvm.get_variable(left.value)
     if rtype == LiteralType.INT:
         if load_left and load_right:
-            load += "% {} = mult nsw i32 %{}, %{}\n".format(llvm.add_variable(left.value), old_left,
-                                                            llvm.get_variable(right.value))
+            load += "% {} = mul nsw i32 %{}, %{}\n".format(llvm.add_variable(left.value), old_left,
+                                                           llvm.get_variable(right.value))
         elif load_left:
-            load += "% {} = mult nsw i32 %{}, {}\n".format(llvm.add_variable(left.value), old_left,
-                                                           llvm.get_variable("$" + str(right.value)))
+            load += "% {} = mul nsw i32 %{}, {}\n".format(llvm.add_variable(left.value), old_left,
+                                                          llvm.get_variable("$" + str(right.value)))
         elif load_right:
             old_right = llvm.get_variable(right.value)
-            load += "% {} = mult nsw i32 {}, %{}\n".format(llvm.add_variable(right.value),
-                                                           llvm.get_variable("$" + str(right.value)),
-                                                           old_right)
+            load += "% {} = mul nsw i32 {}, %{}\n".format(llvm.add_variable(right.value),
+                                                          llvm.get_variable("$" + str(right.value)),
+                                                          old_right)
     elif rtype == LiteralType.FLOAT:
         load += " %{} = call float @llvm.fmuladd.f32(float %{}, float %{}, float %{})\n".format(
             llvm.add_variable(left.value), old_left, llvm.get_variable(left.value), llvm.get_variable(right.value))
@@ -83,7 +89,7 @@ def get_operation(op: str, type):
     if op == "+" and type == LiteralType.FLOAT:
         return "fadd float "
     if op == "*" and type == LiteralType.INT:
-        return "mult nsw i32 "
+        return "mul nsw i32 "
     if op == "*" and type == LiteralType.FLOAT:
         return "call"
     if op == "/" and type == LiteralType.INT:
@@ -135,16 +141,18 @@ def stor_unary_operation(op, right, rtype, llvm, load_right):
         load += "%{} = ".format(llvm.add_variable(right))
         load += get_unary_operation(op, rtype, 2)
         load += "%{}, true\n".format(llvm.get_variable(old_right))
-        if rtype==LiteralType.INT:
-            load_higher_type_bool_to_int(llvm.get_variable(old_right),llvm.add_variable(old_right))
-        elif rtype==LiteralType.FLOAT:
-            load_higher_type_int_to_float(llvm.get_variable(old_right),llvm.add_variable(old_right))
+        if rtype == LiteralType.INT:
+            load_higher_type_bool_to_int(llvm.get_variable(old_right), llvm.add_variable(old_right))
+        elif rtype == LiteralType.FLOAT:
+            load_higher_type_int_to_float(llvm.get_variable(old_right), llvm.add_variable(old_right))
     if not load_right:
         pass
     return load
 
 
 def stor_binary_operation(op, left, right, rtype, llvm, load_left, load_right):
+    # save olf variable counter
+    llvm.save_old_val = left
     load = ""
     op = get_operation(op, rtype)
     old_left = llvm.get_variable(left)
@@ -192,6 +200,9 @@ def set_llvm_unary_operators(right, op: str, llvm):
         return function_in_operation(right, None, op, llvm)
     if right.name == "array":
         return array_in_operation(right, None, op, llvm)
+    if llvm.looping:
+        if isinstance(right, Value):
+            llvm.get_loop_param(right)
 
     right_pointer = False
     if right.name == "pointer":
@@ -208,6 +219,8 @@ def set_llvm_unary_operators(right, op: str, llvm):
         load_right = False
     if load_right:
         old_var = llvm.get_variable(right.value)
+        if right.value in llvm.allocated_var:
+            old_var=llvm.allocated_var[right.value]
         llvm.add_variable(right.value)
         if right.type == LiteralType.VAR:
             if llvm.c_function.root.block.getSymbolTable().findSymbol(right.value) is None:
@@ -216,6 +229,7 @@ def set_llvm_unary_operators(right, op: str, llvm):
                 rtype = llvm.c_function.root.block.getSymbolTable().findSymbol(right.value)[1]
         else:
             rtype = right.type
+
         llvm.function_load += load_type(old_var, llvm.get_variable(right.value), rtype, right_pointer)
     else:
         rtype = right.getType()
@@ -229,6 +243,21 @@ def set_llvm_unary_operators(right, op: str, llvm):
 
 
 def set_llvm_binary_operators(left, right, op: str, llvm):
+    if llvm.looping:
+        if llvm.is_value(left):
+            llvm.get_loop_param(left)
+        if llvm.is_value(right):
+            llvm.get_loop_param(right)
+    new_case = False
+    if llvm.enter_fold:
+        llvm.enter_fold = False
+        new_case = True
+    if not new_case:
+        llvm.counter -= 1
+    if left.name == "binary" or left.name == "logical" or left.name == "unary":
+        left = llvm.save_old_val
+    if right.name == "binary" or right.name == "logical" or right.name == "unary":
+        right = llvm.save_old_val
     if left.name == 'function' or right.name == "function":
         return function_in_operation(left, right, op, llvm)
     if left.name == "array" or right.name == "array":
@@ -261,6 +290,8 @@ def set_llvm_binary_operators(left, right, op: str, llvm):
 
     if load_left:
         old_var = llvm.get_variable(left.value)
+        if left.value in llvm.allocated_var:
+            old_var=llvm.allocated_var[left.value]
         llvm.add_variable(left.value)
         if left.type is LiteralType.VAR:
             if llvm.c_function.root.block.getSymbolTable().findSymbol(left.value) is None:
@@ -269,12 +300,18 @@ def set_llvm_binary_operators(left, right, op: str, llvm):
                 ltype = llvm.c_function.root.block.getSymbolTable().findSymbol(left.value)[1]
         else:
             ltype = left.type
-        llvm.function_load += load_type(old_var, llvm.get_variable(left.value), ltype, left_pointer)
+        if new_case:
+            llvm.function_load += load_type(old_var, llvm.get_variable(left.value), ltype, left_pointer)
+            llvm.function_load += load_type(old_var, llvm.add_variable(left.value), ltype, left_pointer)
+
+
     else:
         ltype = left.getType()
 
     if load_right:
         old_var = llvm.get_variable(right.value)
+        if right.value in llvm.allocated_var:
+            old_var=llvm.allocated_var[right.value]
         llvm.add_variable(right.value)
         if right.type == LiteralType.VAR:
             if llvm.c_function.root.block.getSymbolTable().findSymbol(right.value) is None:
@@ -283,7 +320,9 @@ def set_llvm_binary_operators(left, right, op: str, llvm):
                 rtype = llvm.c_function.root.block.getSymbolTable().findSymbol(right.value)[1]
         else:
             rtype = right.type
-        llvm.function_load += load_type(old_var, llvm.get_variable(right.value), rtype, right_pointer)
+        if new_case:
+            llvm.function_load += load_type(old_var, llvm.get_variable(right.value), rtype, right_pointer)
+            llvm.function_load += load_type(old_var, llvm.add_variable(right.value), rtype, right_pointer)
     else:
         rtype = right.getType()
     # fix different types
@@ -293,7 +332,7 @@ def set_llvm_binary_operators(left, right, op: str, llvm):
     if rtype == LiteralType.INT and ltype == LiteralType.FLOAT:
         llvm.function_load += load_higher_type_int_to_float(llvm.get_variable(right.value),
                                                             llvm.add_variable(right.value))
-        rtype = LiteralType.FLOAT
+        #rtype = LiteralType.FLOAT
 
     if op == "*" or op == "/" or op == "+" or op == "-" or op == "%" or op == ">=" or op == "<=" or op == ">" or op == "<" or op == "==" or op == "&&":
         llvm.function_load += stor_binary_operation(op, left, right, rtype, llvm, load_left, load_right)

@@ -383,26 +383,31 @@ class BinaryOperator(AST_node):
                     not (isinstance(self.rightChild, Value) or isinstance(self.rightChild, Pointer) or
                          isinstance(self.rightChild, Array)):
                 if to_llvm is not None:
-                    if isinstance(self.leftChild,UnaryOperator) or isinstance(self.rightChild,UnaryOperator):
+                    if isinstance(self.leftChild,UnaryOperator) and not isinstance(self.rightChild,UnaryOperator):
+                        set_llvm_unary_operators(self.leftChild,self.operator, to_llvm)
+                    if not isinstance(self.leftChild,UnaryOperator) and isinstance(self.rightChild,UnaryOperator):
+                        set_llvm_unary_operators(self.rightChild,self.operator, to_llvm)
+                    else:
+                        set_llvm_binary_operators(self.leftChild, self.rightChild, self.operator, to_llvm)
+                return self, False
+            elif isinstance(self.leftChild, Value) and isinstance(self.rightChild, Value) and \
+                    (self.leftChild.variable or self.rightChild.variable):
+                if to_llvm is not None:
+                    if isinstance(self.leftChild, UnaryOperator) or isinstance(self.rightChild, UnaryOperator):
+                        if isinstance(self.leftChild,UnaryOperator):
+                            set_llvm_unary_operators(self.leftChild, self.operator, to_llvm)
+                        if isinstance(self.rightChild,UnaryOperator):
+                            set_llvm_unary_operators(self.rightChild, self.operator, to_llvm)
                         return self, False
-                    elif isinstance(self.leftChild, BinaryOperator) or isinstance(self.rightChild, BinaryOperator):
-                        return self, False
-                    elif isinstance(self.leftChild, LogicalOperator) or isinstance(self.rightChild, LogicalOperator):
-                        return self, False
-                    set_llvm_binary_operators(self.leftChild, self.rightChild, self.operator, to_llvm)
+                    else:
+                        set_llvm_binary_operators(self.leftChild, self.rightChild, self.operator, to_llvm)
                 return self, False
 
             elif not self.leftChild.getType() in (LiteralType.DOUBLE, LiteralType.FLOAT, LiteralType.INT) or \
                     not self.rightChild.getType() in (LiteralType.DOUBLE, LiteralType.FLOAT, LiteralType.INT):
                 raise BinaryOp(self.leftChild.getType(), self.rightChild.getType(), self.operator, self.line)
 
-            elif isinstance(self.leftChild, Value) and isinstance(self.rightChild, Value) and \
-                    (self.leftChild.variable or self.rightChild.variable):
-                if to_llvm is not None:
-                    if isinstance(self.leftChild,UnaryOperator) or isinstance(self.rightChild,UnaryOperator):
-                        return self, False
-                    set_llvm_binary_operators(self.leftChild, self.rightChild, self.operator, to_llvm)
-                return self, False
+
 
             else:
                 leftValue = float(self.leftChild.getValue())
@@ -1331,7 +1336,7 @@ class While(AST_node):
         :return:
         """
         res = self.Condition.getVariables(fill)[0]
-        self.Condition.fold()
+        self.Condition.root.fold()
         for elem in self.c_block.getVariables(fill)[0]:
             res.append(elem)
         self.c_block.fold()

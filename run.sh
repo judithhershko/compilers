@@ -15,4 +15,4 @@ python3 main.py
 #tests
 python3 src/TestCases/CToLLVM_Tests.py
 
-dot -Tpng src/ast/dotFiles/no_fold_expression_dot0.dot -o src/ast/dotFiles/result.png
+dot -Tpng generated/output/result.dot -o generated/output/result.png
