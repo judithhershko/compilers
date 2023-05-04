@@ -284,5 +284,5 @@ class AST:
         dec.setRightChild(val)
         return dec
 
-    def printTables(self, filePath):
-        self.root.printTables(filePath)
+    def printTables(self, filePath: str, to_llvm=None):
+        self.root.printTables(filePath, to_llvm)

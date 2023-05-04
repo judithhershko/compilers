@@ -222,7 +222,7 @@ class block:
         self.parent = parent
         self.symbols.setParent(parent.symbols)
 
-    def printTables(self, filePath):
+    def printTables(self, filePath: str, to_llvm=None):
         symbolPath = filePath + self.name + "_symbols_" + str(self.level) + "_" + str(self.number) + ".csv"
         self.symbols.table.to_csv(symbolPath)
         for tree in self.trees:

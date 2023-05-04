@@ -174,7 +174,7 @@ class program:
             # self.generateDot("./generated/output/programAST.dot")
             return res[0]
 
-    def printTables(self, filePath):
+    def printTables(self, filePath: str, to_llvm=None):
         symbolPath = filePath + self.name + "_symbols_" + str(self.level) + "_" + str(self.number) + ".csv"
         functionPath = filePath + self.name + "_functions_" + str(self.level) + "_" + str(self.number) + ".csv"
         os.makedirs(os.path.dirname(filePath), exist_ok=True)
