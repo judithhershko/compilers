@@ -107,21 +107,6 @@ class CustomListener(ExpressionListener):
         return ctx.getChildCount() > 1
 
     def set_print(self, ctx: ParserRuleContext, type_):
-        """
-        if type_ == LiteralType.INT:
-            self.current = Print(Value(ctx.getText(), LiteralType.INT, ctx.start.line, None))
-        elif type_ == LiteralType.FLOAT:
-            self.current = Print(Value(ctx.getText(), LiteralType.FLOAT, ctx.start.line, None))
-        elif type_ == LiteralType.STR:
-            self.current = Print(Value(ctx.getText(), LiteralType.CHAR, ctx.start.line, None))
-        else:
-            self.current = Print(Value(ctx.getText(), LiteralType.VAR, ctx.start.line, None))
-
-        self.asT.root = self.current
-        self.c_scope.block.trees.append(self.asT)
-        self.current = None
-        self.asT = create_tree()
-        """
         i = Value(ctx.getText(), type_, ctx.start.line)
         if isinstance(self.current, Print) or isinstance(self.current, Scan):
             self.current.addParam(i)
@@ -449,6 +434,7 @@ class CustomListener(ExpressionListener):
         self.parent.rightChild = Value(var, LiteralType.VAR, ctx.start.line, self.parent, variable=True)
         self.current = self.parent.rightChild
         return
+
     # Exit a parse tree produced by ExpressionParser#ref_ref.
     def exitRef_ref(self, ctx: ParserRuleContext):
         self.is_ref = False
@@ -503,17 +489,10 @@ class CustomListener(ExpressionListener):
             self.current = None
             self.dec_op = None
             self.parent = None
+            self.declaration = False
             self.asT = create_tree()
             return
-        # print("exit dec:"+ctx.getText())
-        """
-        TODO:
-        eerst fill literals
-        fold
-        add to symboltable
-        :param ctx:
-        :return:
-        """
+
         if self.bracket_stack.__len__() > 0:
             self.set_bracket()
         if not isinstance(self.parent, UnaryOperator) and isinstance(self.parent.leftChild, Pointer):
@@ -553,8 +532,8 @@ class CustomListener(ExpressionListener):
         """
         if isinstance(self.dec_op, Array) and self.dec_op.declaration:
             # self.c_scope.block.getSymbolTable().addSymbol(self.dec_op, self.c_scope.global_)
-            self.asT=create_tree()
-            self.asT.root=self.dec_op
+            self.asT = create_tree()
+            self.asT.root = self.dec_op
             self.c_scope.block.trees.append(self.asT)
             self.parent = None
             self.current = None
@@ -692,14 +671,14 @@ class CustomListener(ExpressionListener):
     def exitExpr(self, ctx: ParserRuleContext):
         self.expr_layer -= 1
         # print("exit expression:" + ctx.getText() + "with layer " + str(self.expr_layer))
-        """
-        if (isinstance(self.loop, While) or isinstance(self.loop,For)) and self.loop.Condition is None and self.expr_layer == 0:
+
+        """if isinstance(self.loop, While) and self.loop.Condition is None and self.expr_layer == 0:
             while self.current.parent is not None:
                 self.current = self.current.parent
             self.loop.Condition = self.current
             self.current = None
             self.parent = None
-        """
+            return"""
 
         if self.declaration is False and isinstance(self.loop,
                                                     For) and self.expr_layer == 0 and self.loop.Condition is None and self.loop.f_dec is not None:
@@ -731,26 +710,13 @@ class CustomListener(ExpressionListener):
             self.asT.setRoot(self.current)
             if self.is_loop and self.loop.Condition is None:
                 self.loop.Condition = self.asT.root  # TODO: check if this still works: set Condition to node instead of ast
-                # print("fill condition")
+                print("fill condition")
             else:
-                # self.c_block.trees.append(self.asT)
-                # self.c_block.trees.append(self.asT)
-                # self.asT.setNodeIds(self.asT.root)
-                # self.asT.generateDot(self.pathName + str(self.counter) + ".dot")
-                # self.c_block.fillLiterals(self.asT)
-                # self.asT.foldTree()
-                # self.asT.setNodeIds(self.asT.root)
-                # self.asT.generateDot(self.pathName + str(self.counter) + "-noFold.dot")
-
                 if self.return_function:
                     self.c_scope.f_return = self.asT
                 elif self.c_scope.f_name != "" and self.c_scope.f_return is not None:
                     return
                 else:
-                    # self.c_scope.block.fillLiterals(self.asT)
-                    # self.asT.foldTree()
-                    # self.asT.setNodeIds(self.asT.root)
-                    # self.asT.generateDot(self.pathName + str(self.counter) + ".dot")
                     self.c_scope.block.trees.append(self.asT)
 
         elif self.return_function and self.expr_layer == 0:
@@ -943,6 +909,11 @@ class CustomListener(ExpressionListener):
     # Enter a parse tree produced by ExpressionParser#lscope.
     def enterLscope(self, ctx: ParserRuleContext):
         print("enter lscope:" + ctx.getText())
+        if isinstance(self.loop,While) and not isinstance(self.loop.Condition,AST):
+            self.asT=create_tree()
+            self.asT.root=self.loop.Condition
+            self.loop.Condition=self.asT
+            self.asT=create_tree()
         self.stop_fold = True
         self.scope_stack.push(self.c_scope.block)
         self.c_scope.block = block(self.scope_stack.peek())
@@ -987,6 +958,11 @@ class CustomListener(ExpressionListener):
 
     # Exit a parse tree produced by ExpressionParser#while.
     def exitWhile(self, ctx: ParserRuleContext):
+        if isinstance(self.loop, While) and self.loop.Condition is not None and not isinstance(self.loop, AST):
+            self.asT = create_tree()
+            self.asT.root = self.loop.Condition
+            self.loop.Condition = self.asT
+            self.asT = create_tree()
         pass
 
     # Enter a parse tree produced by ExpressionParser#for.
@@ -1033,7 +1009,7 @@ class CustomListener(ExpressionListener):
 
     def addComment(self, ctx):
         self.asT = create_tree()
-        self.asT.root = Comment("//"+ctx.getText(),CommentType.SL, ctx.start.line)
+        self.asT.root = Comment("//" + ctx.getText(), CommentType.SL, ctx.start.line)
         self.c_scope.block.trees.append(self.asT)
         self.asT = create_tree()
 

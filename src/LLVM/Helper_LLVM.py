@@ -39,6 +39,10 @@ def load_higher_type_int_to_float(old, new):
     return "%{} = sitofp i32 %{} to float\n".format(new, old)
 
 
+def load_higher_type_bool_to_int(old, new):
+    return "%{} = zext i1 %{} to i32\n".format(new, old)
+
+
 def store_mult(left, right, rtype, llvm, load_left, load_right):
     load = ""
     old_left = llvm.get_variable(left.value)
@@ -58,6 +62,15 @@ def store_mult(left, right, rtype, llvm, load_left, load_right):
         load += " %{} = call float @llvm.fmuladd.f32(float %{}, float %{}, float %{})\n".format(
             llvm.add_variable(left.value), old_left, llvm.get_variable(left.value), llvm.get_variable(right.value))
     return load
+
+
+def get_unary_operation(op: str, type, nr=0):
+    if op == "!" and type == LiteralType.INT and nr == 1:
+        return "icmp ne i32 "
+    if op == "!" and type == LiteralType.FLOAT and nr == 1:
+        return " icmp ne float "
+    if op == "!" and type == LiteralType.INT and nr == 2:
+        return "xor i1 "
 
 
 def get_operation(op: str, type):
@@ -101,10 +114,34 @@ def get_operation(op: str, type):
         return "icmp eq i32 "
     if op == "==" and type == LiteralType.FLOAT:
         return "fcmp oeq float "
+    if op == "&&" and type == LiteralType.INT:
+        return "add nsw i32 "
+    if op == "&&" and type == LiteralType.FLOAT:
+        return "add nsw float "
 
 
 def store_comparator_operation(op, left, right, rtype, llvm, load_left, load_right):
     pass
+
+
+def stor_unary_operation(op, right, rtype, llvm, load_right):
+    load = ""
+    if load_right:
+        llvm.counter -= 1
+        old_right = llvm.get_variable(right)
+        load += "%{} = ".format(llvm.add_variable(right))
+        load += get_unary_operation(op, rtype, 1)
+        load += "%{}, 0\n".format(llvm.get_variable(old_right))
+        load += "%{} = ".format(llvm.add_variable(right))
+        load += get_unary_operation(op, rtype, 2)
+        load += "%{}, true\n".format(llvm.get_variable(old_right))
+        if rtype==LiteralType.INT:
+            load_higher_type_bool_to_int(llvm.get_variable(old_right),llvm.add_variable(old_right))
+        elif rtype==LiteralType.FLOAT:
+            load_higher_type_int_to_float(llvm.get_variable(old_right),llvm.add_variable(old_right))
+    if not load_right:
+        pass
+    return load
 
 
 def stor_binary_operation(op, left, right, rtype, llvm, load_left, load_right):
@@ -150,18 +187,58 @@ def stor_binary_operation(op, left, right, rtype, llvm, load_left, load_right):
     return load
 
 
-def set_llvm_binary_operators(left: Value, right: Value, op: str, llvm):
+def set_llvm_unary_operators(right, op: str, llvm):
+    if right.name == "function":
+        return function_in_operation(right, None, op, llvm)
+    if right.name == "array":
+        return array_in_operation(right, None, op, llvm)
+
+    right_pointer = False
+    if right.name == "pointer":
+        right_pointer = True
+    if right.name == "pointer":
+        return pointer_in_operation(right, None, op, llvm)
+    print("unary operator called")
+    load_right = True
+    if isinstance(right.value, int) or str(right.value).isdigit():
+        llvm.var_dic["$" + str(right.value)] = right.value
+        load_right = False
+    elif isinstance(right.value, float) or isfloat(str(right.value)):
+        llvm.var_dict["$" + str(right.value)] = llvm.float_to_64bit_hex(right.value)
+        load_right = False
+    if load_right:
+        old_var = llvm.get_variable(right.value)
+        llvm.add_variable(right.value)
+        if right.type == LiteralType.VAR:
+            if llvm.c_function.root.block.getSymbolTable().findSymbol(right.value) is None:
+                rtype = llvm.parameters[right.value].getType()
+            else:
+                rtype = llvm.c_function.root.block.getSymbolTable().findSymbol(right.value)[1]
+        else:
+            rtype = right.type
+        llvm.function_load += load_type(old_var, llvm.get_variable(right.value), rtype, right_pointer)
+    else:
+        rtype = right.getType()
+
+    if op == "!" or op == "++" or op == "--":
+        llvm.function_load += stor_unary_operation(op, right, rtype, llvm, load_right)
+        llvm.function_load += "\n"
+    else:
+        raise NotSupported("operator", op, right.line)
+    return rtype
+
+
+def set_llvm_binary_operators(left, right, op: str, llvm):
     if left.name == 'function' or right.name == "function":
-        # return function_in_operation(left, right, op, llvm)
-        return
+        return function_in_operation(left, right, op, llvm)
     if left.name == "array" or right.name == "array":
         return array_in_operation(left, right, op, llvm)
-    left_pointer=False
-    right_pointer=False
+    left_pointer = False
+    right_pointer = False
     if left.name == "pointer":
-        left_pointer=True
+        left_pointer = True
     if right.name == "pointer":
-        right_pointer=True
+        right_pointer = True
     if left.name == "pointer" or right.name == "pointer":
         return pointer_in_operation(left, right, op, llvm)
     print("binary operator called")
@@ -192,7 +269,7 @@ def set_llvm_binary_operators(left: Value, right: Value, op: str, llvm):
                 ltype = llvm.c_function.root.block.getSymbolTable().findSymbol(left.value)[1]
         else:
             ltype = left.type
-        llvm.function_load += load_type(old_var, llvm.get_variable(left.value), ltype,left_pointer)
+        llvm.function_load += load_type(old_var, llvm.get_variable(left.value), ltype, left_pointer)
     else:
         ltype = left.getType()
 
@@ -218,7 +295,7 @@ def set_llvm_binary_operators(left: Value, right: Value, op: str, llvm):
                                                             llvm.add_variable(right.value))
         rtype = LiteralType.FLOAT
 
-    if op == "*" or op == "/" or op == "+" or op == "-" or op == "%" or op == ">=" or op == "<=" or op == ">" or op == "<" or op == "==":
+    if op == "*" or op == "/" or op == "+" or op == "-" or op == "%" or op == ">=" or op == "<=" or op == ">" or op == "<" or op == "==" or op == "&&":
         llvm.function_load += stor_binary_operation(op, left, right, rtype, llvm, load_left, load_right)
         llvm.function_load += "\n"
     else:
@@ -231,7 +308,9 @@ def function_in_operation(left, right, op: str, llvm):
         left = load_function(left, llvm)
     if llvm.is_function(right):
         right = load_function(right, llvm)
-    # if declaration with function x=function() en geen verder operatoes
+    if right is None:
+        return set_llvm_unary_operators(left, op, llvm)
+    # if declaration with function x=function() en geen verder operaties
     if left is None or right is None:
         return
     return set_llvm_binary_operators(left, right, op, llvm)
@@ -277,16 +356,19 @@ def array_in_operation(left, right, op, llvm):
         left = load_array(left, llvm)
     if llvm.is_array(right):
         right = load_array(right, llvm)
+    if right is None:
+        set_llvm_unary_operators(left, op, llvm)
     # if declaration with function x=function() en geen verder operatoes
     if left is None or right is None:
         return
     return set_llvm_binary_operators(left, right, op, llvm)
 
+
 def load_pointer(left, llvm):
-    for i in range(1,left.getPointerLevel()):
-        old_val=llvm.get_variable(left.getValue())
-        new_val=llvm.add_variable(left.getValue())
-        llvm.function_load += "%{} = load ptr, ptr %{}, align 8\n".format(new_val,old_val)
+    for i in range(1, left.getPointerLevel()):
+        old_val = llvm.get_variable(left.getValue())
+        new_val = llvm.add_variable(left.getValue())
+        llvm.function_load += "%{} = load ptr, ptr %{}, align 8\n".format(new_val, old_val)
     return llvm.make_value(lit=new_val, valueType=left.getType(), line=left.line)
 
 
@@ -295,6 +377,8 @@ def pointer_in_operation(left, right, op, llvm):
         left = load_pointer(left, llvm)
     if llvm.is_pointer(right):
         right = load_pointer(right, llvm)
+    if right is None:
+        set_llvm_unary_operators(left, op, llvm)
     if left is None or right is None:
         return
     return set_llvm_binary_operators(left, right, op, llvm)
