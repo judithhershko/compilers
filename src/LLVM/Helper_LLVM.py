@@ -177,9 +177,10 @@ def stor_binary_operation(op, left, right, rtype, llvm, load_left, load_right):
                 llvm.get_variable(right.value))
 
     if load_left and load_right:
+        llvm.counter-=1
         load += "%{} = ".format(llvm.add_variable(left))
         load += op
-        load += "%{}, %{}\n".format(old_left, llvm.get_variable(right))
+        load += "%{}, %{}\n".format(old_left-2, llvm.get_variable(right)-1)
     elif load_left:
         load += "%{} = ".format(llvm.add_variable(left))
         load += op
@@ -196,10 +197,21 @@ def stor_binary_operation(op, left, right, rtype, llvm, load_left, load_right):
 
 
 def set_llvm_unary_operators(right, op: str, llvm):
+    if llvm.is_binary(right) and llvm.save_old_val is None:
+        right.printTables("random",llvm)
+        #return llvm.to_retrans_u(right, op)
+    if llvm.is_unary(right) and llvm.save_old_val is None:
+        right.printTables("random",llvm)
+        #return llvm.to_retrans_u(right, op)
+    if llvm.is_logical(right) and llvm.save_old_val is None:
+        right.printTables("random",llvm)
+        #return llvm.to_retrans_u(right, op)
     if right.name == "function":
-        return function_in_operation(right, None, op, llvm)
+        function_in_operation(right, None, op, llvm)
+        #return llvm.to_retrans_u(right, op)
     if right.name == "array":
-        return array_in_operation(right, None, op, llvm)
+        array_in_operation(right, None, op, llvm)
+        #return llvm.to_retrans_u(right, op)
     if llvm.looping:
         if isinstance(right, Value):
             llvm.get_loop_param(right)
@@ -243,6 +255,31 @@ def set_llvm_unary_operators(right, op: str, llvm):
 
 
 def set_llvm_binary_operators(left, right, op: str, llvm):
+    if llvm.is_binary(left) and llvm.save_old_val is None:
+        left.printTables("random",llvm)
+        #return llvm.to_retrans(left,right,op)
+    if llvm.is_binary(right) and llvm.save_old_val is None:
+        right.printTables("random",llvm)
+        #return llvm.to_retrans(left, right, op)
+    if llvm.is_unary(left) and llvm.save_old_val is None:
+        left.printTable("random",llvm)
+        #return llvm.to_retrans(left, right, op)
+    if llvm.is_unary(right) and llvm.save_old_val is None:
+        right.printTables("random",llvm)
+        #return llvm.to_retrans(left, right, op)
+    if llvm.is_logical(left) and llvm.save_old_val is None:
+        left.printTables("random",llvm)
+        #return llvm.to_retrans(left, right, op)
+    if llvm.is_logical(right) and llvm.save_old_val is None:
+        right.printTables("random",llvm)
+        #return llvm.to_retrans(left, right, op)
+
+    print(left)
+    print(right)
+    if left is None:
+        return
+    if right is None:
+        return
     if llvm.looping:
         if llvm.is_value(left):
             llvm.get_loop_param(left)

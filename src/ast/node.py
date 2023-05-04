@@ -460,6 +460,11 @@ class BinaryOperator(AST_node):
         self.rightChild.replaceVariables(values)
 
     def printTables(self, filePath: str, to_llvm=None):
+        if to_llvm is not None:
+            if ((isinstance(self.rightChild,Value) or isinstance(self.rightChild,Function) or isinstance(self.rightChild,Array) or isinstance(self.rightChild,Pointer)) or
+            (isinstance(self.leftChild,Value) or isinstance(self.leftChild,Function) or isinstance(self.leftChild,Array)) or isinstance(self.leftChild,Pointer)):
+                if not (self.rightChild is None or self.leftChild is None):
+                     set_llvm_binary_operators(self.leftChild, self.rightChild, self.operator, to_llvm)
         self.leftChild.printTables(filePath, to_llvm)
         self.rightChild.printTables(filePath, to_llvm)
 
@@ -560,6 +565,10 @@ class UnaryOperator(AST_node):
         self.rightChild.replaceVariables(values)
 
     def printTables(self, filePath: str, to_llvm=None):
+        if to_llvm is not None:
+            if (isinstance(self.rightChild, Value) or isinstance(self.rightChild, Function) or isinstance(
+                    self.rightChild, Array) or isinstance(self.rightChild, Pointer)):
+                set_llvm_unary_operators(self.rightChild, self.operator, to_llvm)
         self.rightChild.printTables(filePath, to_llvm)
 
 
@@ -697,6 +706,12 @@ class LogicalOperator(AST_node):
         self.rightChild.replaceVariables(values)
 
     def printTables(self, filePath: str, to_llvm=None):
+        if to_llvm is not None:
+            if ((isinstance(self.rightChild, Value) or isinstance(self.rightChild, Function) or isinstance(
+                    self.rightChild, Array) or isinstance(self.rightChild, Pointer)) or
+                    (isinstance(self.leftChild, Value) or isinstance(self.leftChild, Function) or isinstance(
+                        self.leftChild, Array)) or isinstance(self.leftChild, Pointer)):
+                set_llvm_binary_operators(self.leftChild, self.rightChild, self.operator, to_llvm)
         self.leftChild.printTables(filePath, to_llvm)
         self.rightChild.printTables(filePath, to_llvm)
 
