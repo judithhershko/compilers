@@ -38,6 +38,7 @@ class AST:
                 for tree in nextNode.parameters:
                     number = self.setNodeIds(nextNode.parameters[tree], level + 1, number + 1)
                 number = nextNode.block.setNodeIds(level + 1, number + 1)
+                number = self.setNodeIds(nextNode.f_return.root, level + 1, number + 1)
             else:
                 number = nextNode.block.setNodeIds(level, number)
         elif isinstance(nextNode, If):
@@ -209,6 +210,10 @@ class AST:
                     nodes = nodes + res[0]
                     edges = edges + res[1]
                 edges = edges + "\n" + root.getId() + "--" + root.block.getId()
+                edges = edges + "\n" + root.getId() + "--" + root.f_return.root.getId()
+                res = self.toDot(root.f_return.root)
+                nodes = nodes + res[0]
+                edges = edges + res[1]
             else:
                 nodes = "\n"
             res = root.block.toDot()

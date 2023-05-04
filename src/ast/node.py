@@ -1083,6 +1083,10 @@ class Scope(AST_node):  # TODO: let it hold a block instead of trees
                 if len(elem) != 0 and elem[0][0] not in self.parameters and \
                         not self.block.symbols.findSymbol(elem[0][0]):
                     res.append(elem[0])
+            # for elem in self.f_return.getVariables(fill=False):
+            #     if len(elem) != 0 and elem[0][0] not in self.parameters and \
+            #             not self.block.symbols.findSymbol(elem[0][0]):
+            #         res.append(elem[0])
             return [res, True]
 
     def replaceVariables(self, values):
