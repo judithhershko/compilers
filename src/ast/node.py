@@ -376,12 +376,24 @@ class BinaryOperator(AST_node):
                 if to_llvm is not None:
                     if isinstance(self.leftChild,UnaryOperator) or isinstance(self.rightChild,UnaryOperator):
                         return self, False
+                    elif isinstance(self.leftChild, BinaryOperator) or isinstance(self.rightChild, BinaryOperator):
+                        return self, False
+                    elif isinstance(self.leftChild, LogicalOperator) or isinstance(self.rightChild, LogicalOperator):
+                        return self, False
                     set_llvm_binary_operators(self.leftChild, self.rightChild, self.operator, to_llvm)
                 return self, False
 
             elif not self.leftChild.getType() in (LiteralType.DOUBLE, LiteralType.FLOAT, LiteralType.INT) or \
                     not self.rightChild.getType() in (LiteralType.DOUBLE, LiteralType.FLOAT, LiteralType.INT):
                 raise BinaryOp(self.leftChild.getType(), self.rightChild.getType(), self.operator, self.line)
+
+            elif isinstance(self.leftChild, Value) and isinstance(self.rightChild, Value) and \
+                    (self.leftChild.variable or self.rightChild.variable):
+                if to_llvm is not None:
+                    if isinstance(self.leftChild,UnaryOperator) or isinstance(self.rightChild,UnaryOperator):
+                        return self, False
+                    set_llvm_binary_operators(self.leftChild, self.rightChild, self.operator, to_llvm)
+                return self, False
 
             else:
                 leftValue = float(self.leftChild.getValue())
@@ -1061,6 +1073,7 @@ class Scope(AST_node):  # TODO: let it hold a block instead of trees
         """
         'folds' the node and gives true with a nameless scope and false with a function
         """
+
         if self.f_name == "":
             return self, True
         else:
