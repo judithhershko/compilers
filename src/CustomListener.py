@@ -470,7 +470,7 @@ class CustomListener(ExpressionListener):
                                          self.parent,
                                          variable=True)
             else:
-                self.current = Value(var, LiteralType.FLOAT, ctx.start.line, self.parent, variable=True, decl=False)
+                self.current = Value(var, LiteralType.INT, ctx.start.line, self.parent, variable=True, decl=False)
 
 
         else:

@@ -9,6 +9,17 @@ from src.ast.block import block
 from src.ast.Program import program
 from src.ast.node_types.node_type import ConditionType
 
+# TODO: check
+""""
+normal op           v
+while 
+if 
+function calls
+array calls
+scopes in scopes
+pointers
+"""
+
 
 # TODO vraag said folden return end_function()-> not folding    x
 # TODO   break/continue while                                   v
@@ -22,7 +33,6 @@ from src.ast.node_types.node_type import ConditionType
 # TODO   return expression                                      v
 # TODO   print/scan                                             v
 # TODO   include                                                v (niks toe te voegen)
-
 
 class ToLLVM():
     def __init__(self):
@@ -60,9 +70,13 @@ class ToLLVM():
         self.if_stack = stack()
         self.branch_stack = stack()
         self.old_counter = stack()
-        self.save_old_val=None
-        self.enter_fold=False
-        self.save_old_counter=None
+        self.save_old_val = None
+        self.enter_fold = False
+        self.save_old_counter = None
+        self.added = []
+        self.stack_added = stack()
+        self.looping = False
+        self.allocated_var=dict()
 
     def STable_to_LLVM(self, table: SymbolTable):
         for entry in table:
@@ -188,24 +202,28 @@ class ToLLVM():
                 self.function_alloc += "%{} = alloca i32, align 4\n".format(self.add_variable(p.getValue()))
                 self.function_store += "store i32 %{}, ptr %{}, align 4\n".format(old_var,
                                                                                   self.get_variable(p.getValue()))
+                self.allocated_var[p.getValue()]=self.get_variable(p.getValue())
 
             elif isinstance(p, Value) and p.getType() == LiteralType.FLOAT:
                 old_var = self.get_variable(p.getValue())
                 self.function_alloc += "%{} = alloca float, align 4\n".format(self.add_variable(p.getValue()))
                 self.function_store += "store float %{}, ptr %{}, align 4\n".format(old_var,
                                                                                     self.get_variable(p.getValue()))
+                self.allocated_var[p.getValue()] = self.get_variable(p.getValue())
 
             elif isinstance(p, Value) and p.getType() == LiteralType.CHAR:
                 old_var = self.get_variable(p.getValue())
                 self.function_alloc += "%{} = alloca i8, align 4\n".format(self.add_variable(p.getValue()))
                 self.function_store += "store i8 %{}, ptr %{}, align 4\n".format(old_var,
                                                                                  self.get_variable(p.getValue()))
+                self.allocated_var[p.getValue()] = self.get_variable(p.getValue())
 
             elif isinstance(p, Pointer):
                 old_var = self.get_variable(p.getValue())
                 self.function_alloc += "%{} = alloca ptr, align 4\n".format(self.add_variable(p.getValue()))
                 self.function_store += "store ptr %{}, ptr %{}, align 4\n".format(old_var,
                                                                                   self.get_variable(p.getValue()))
+                self.allocated_var[p.getValue()] = self.get_variable(p.getValue())
 
     def end_main(self):
         self.g_assignment += "; Function Attrs: noinline nounwind optnone ssp uwtable(sync)\n"
@@ -259,6 +277,8 @@ class ToLLVM():
             self.g_assignment += "ret ptr %{}".format(self.get_counter())
         self.g_assignment += "}\n"
         self.counter = 0
+        self.added = []
+        self.allocated_var=dict()
 
     def scope_tree(self, tree: AST):
         if isinstance(tree.root, Scope) and tree.root.f_name == "":
@@ -346,6 +366,7 @@ class ToLLVM():
     def LiteralArray(self, v: Array):
         self.allocate += "%{} = alloca [ {} x {}], align 4\n".format(self.add_variable(str(v.value)),
                                                                      len(v.arrayContent), self.get_llvm_type(v))
+        self.allocated_var[str(v.value)] = self.get_variable(str(v.value))
         if len(v.arrayContent) > 0:
             if self.global_:
                 self.store += "@{} = global [".format(v.value)
@@ -374,6 +395,7 @@ class ToLLVM():
             if v.declaration:
                 self.allocate += "; {} {} {};\n".format(const, "int", v.value)
                 self.allocate += "%{} = alloca i32, align 4\n".format(self.add_variable(str(v.value)))
+                self.allocated_var[str(v.value)]=self.get_variable(str(v.value))
             if one_side:
                 return
             self.store += "store i32 {}, i32* %{}, align 4\n".format(input.value, self.get_variable(v.value))
@@ -383,6 +405,7 @@ class ToLLVM():
             if v.declaration:
                 self.allocate += "; {} {} {};\n".format(const, "float", v.value)
                 self.allocate += "%{} = alloca float, align 4\n".format(self.add_variable(v.value))
+                self.allocated_var[str(v.value)] = self.get_variable(str(v.value))
             if one_side:
                 return
             self.store += "store float {}, float* %{}, align 4\n".format(val, self.get_variable(v.value))
@@ -392,6 +415,7 @@ class ToLLVM():
             if v.declaration:
                 self.allocate += "; {} {} {};\n".format(const, "char", v.value)
                 self.allocate += "%{} = alloca i8, align 1\n".format(self.add_variable(v.value))
+                self.allocated_var[str(v.value)] = self.get_variable(str(v.value))
             if one_side:
                 return
             num = ord(input.value[1])
@@ -404,6 +428,7 @@ class ToLLVM():
             if v.declaration:
                 self.allocate += "; {}{}{};\n".format(const, "_Bool", v.value)
                 self.allocate += "%{} = alloca i8, align 1\n".format(self.add_variable(v.value))
+                self.allocated_var[str(v.value)] = self.get_variable(str(v.value))
             if one_side:
                 return
             self.store += "store i8 {}, i8* %{}, align 1\n".format(bval, self.get_variable(v.value))
@@ -438,23 +463,54 @@ class ToLLVM():
                 self.allocate += "; {}{}{}={}\n".format(const, "_Bool", v.value, input_.value)
                 self.allocate += "@{} = global i8 {}, align 1\n".format(v.value, bval)
         else:
-            raise "invalid input switch global literals"
+            raise "invalid input SwitchLiteralType global literals"
 
-    def to_bin_operator(self, operator, leftValue: Value, rightValue: Value, typeOfValue):
-        if operator == "/":
-            if typeOfValue == LiteralType.INT:
-                old_val = self.get_variable(leftValue.value)
-                self.g_assignment += "%{} = load i32, ptr %{}, align 4\n".format(old_val,
-                                                                                 self.add_variable(leftValue.value))
-                old_val = self.get_variable(rightValue.value)
-                self.g_assignment += "%{} = load i32, ptr %{}, align 4".format(self.add_variable(rightValue.value),
-                                                                               old_val)
-                self.g_assignment += "%{} = sdiv i32 %4, %5"
-                """
-                  %4 = load i32, ptr %2, align 4
-                  %5 = load i32, ptr %2, align 4
-                  %6 = sdiv i32 %4, %5
-                """
+    def get_loop_param(self, v):
+        if isinstance(v, Value) and not v.variable:
+            return
+        if v.getValue() in self.allocated_var:
+
+            old_var = self.allocated_var[v.getValue()]
+        # self.counter-=1
+            self.function_load += " %{} = load {}, ptr %{}, align 4\n".format(self.add_variable(v.getValue()),
+                                                                          self.get_llvm_type(v), old_var)
+        else:
+            # find counter of the param function
+            if v.getValue() in self.c_function.root.parameters:
+                ci = 0
+                for k in self.c_function.root.parameters:
+                    if k != v.getValue():
+                        ci += 1
+                    else:
+                        continue
+            # save it in the function
+            self.function_alloc += " %{} = alloca {}, align 4\n".format(self.add_variable(v.getValue()),
+                                                                        self.get_llvm_type(v))
+            self.allocated_var[v.getValue()] = self.get_variable(v.getValue())
+            self.function_store += "store {} %{}, ptr %{}, align 4\n".format(self.get_llvm_type(v), ci,
+                                                                             self.get_variable(v.getValue()))
+            self.added.append(v.getValue())
+
+    def get_param_dec(self, v):
+        if self.looping:
+            return self.get_loop_param(v)
+        # find counter of the param function
+        if v.getValue() in self.c_function.root.parameters:
+            ci = 0
+            for k in self.c_function.root.parameters:
+                if k != v.getValue():
+                    ci += 1
+                else:
+                    continue
+        # save it in the function
+        self.function_alloc += " %{} = alloca {}, align 4\n".format(self.add_variable(v.getValue()),
+                                                                    self.get_llvm_type(v))
+        self.allocated_var[v.getValue()] = self.get_variable(v.getValue())
+        self.function_store += "store {} %{}, ptr %{}, align 4\n".format(self.get_llvm_type(v), ci,
+                                                                         self.get_variable(v.getValue()))
+        self.added.append(v.getValue())
+
+    # save it to be used as input in declaration
 
     def to_declaration(self, ast: AST, one_side=False):
         if isinstance(ast.root.leftChild, Pointer):
@@ -472,6 +528,7 @@ class ToLLVM():
                 self.allocate += "; {} {} {} {} = & {}\n".format(const, t_type, points, ast.root.leftChild.getValue(),
                                                                  ast.root.rightChild.getValue())
                 self.allocate += "%{} = alloca ptr, align 8\n".format(self.add_variable(ast.root.leftChild.getValue()))
+                self.allocated_var[ast.root.leftChild.getValue()] = self.get_variable(ast.root.leftChild.getValue())
                 self.store += "store ptr %{}, ptr %{}, align 8\n".format(
                     self.get_variable(ast.root.rightChild.getValue()), self.get_variable(ast.root.leftChild.getValue()))
             elif ast.root.leftChild.getValue() in self.var_dic and str(ast.root.rightChild.getValue())[0].isdigit():
@@ -639,15 +696,29 @@ class ToLLVM():
     def transverse_tree(self, cblock: block, branch_count=0, start_loop=0):
         # declarations
         for tree in cblock.trees:
+            if not isinstance(tree, AST):
+                i = AST()
+                i.root = tree
+                tree = i
             if isinstance(tree.root, Declaration) and tree.root.leftChild.declaration:
                 print("entered for dec " + tree.root.leftChild.getValue())
                 self.to_declaration(tree, True)
                 self.function_alloc += self.allocate
                 self.allocate = ""
+            elif isinstance(tree.root,
+                            Declaration) and tree.root.leftChild.getValue() in self.c_function.root.parameters and tree.root.leftChild.getValue() not in self.added:
+                self.get_param_dec(tree.root.leftChild)
+            elif isinstance(tree.root,
+                            Declaration) and tree.root.leftChild.getValue() in self.c_function.root.parameters and self.looping:
+                self.get_param_dec(tree.root.leftChild)
         # operations
         for tree in cblock.trees:
             # don't change tree function permanently
             t = tree
+            if not isinstance(t, AST):
+                i = AST
+                i.root = t
+                t = i
             if isinstance(t.root, Declaration) and isinstance(t.root.rightChild, Value):
                 t.root.leftChild.declaration = False
                 self.to_declaration(t)
@@ -686,17 +757,20 @@ class ToLLVM():
                 pass
             else:
                 self.save_old_val = None
-                if isinstance(t.root,Declaration):
-                    self.save_old_val=t.root.leftChild
-                    self.save_old_counter=self.get_variable(t.root.leftChild.getValue())
-                    self.enter_fold=True
-                t.root.fold(self)
-                self.save_old_val=None
                 if isinstance(t.root, Declaration):
-                    old_var = self.get_variable(t.root.leftChild.getValue())
-                    #self.counter -= 1
+                    self.save_old_val = t.root.leftChild
+                    self.save_old_counter = self.get_variable(t.root.leftChild.getValue())
+                    if t.root.leftChild.getValue() in self.allocated_var:
+                        self.save_old_counter=self.allocated_var[t.root.leftChild.getValue()]
+                    old_type=t.root.leftChild.getType()
+
+                    self.enter_fold = True
+                t.root.fold(self)
+                self.save_old_val = None
+                if isinstance(t.root, Declaration):
+                    # self.counter -= 1
                     self.function_load += " store {} %{}, ptr %{}, align 4\n".format(
-                        self.get_llvm_type(t.root.leftChild.getType()), self.get_counter(),
+                        self.get_llvm_type(old_type), self.get_counter(),
                         self.save_old_counter)
                 # folded declaration, wont load in function_load
 
@@ -704,7 +778,10 @@ class ToLLVM():
         self.enter_branch()
         self.function_load += "br label %{}\n".format(self.increase_counter())
         counter0 = self.get_counter()
-        self.function_load += str(self.get_counter()) + " :\n"
+        self.function_load += str(self.get_counter()) + ":\n"
+        # self.stack_added.push(self.added)
+        # self.added = []
+        self.looping = True
         if isinstance(t.root, While):
             b = block(None)
             b.trees.append(t.root.Condition)
@@ -713,7 +790,7 @@ class ToLLVM():
         self.function_load = ""
         counter1 = self.get_counter()
         counter2 = self.increase_counter()
-        self.function_load += str(self.get_counter()) + " :\n"
+        self.function_load += str(self.get_counter()) + ":\n"
         self.transverse_tree(t.root.c_block, self.branch_stack.peek(), counter0)
         if self.stop_loop:
             count = self.get_counter()
@@ -722,10 +799,12 @@ class ToLLVM():
         tijdelijk += "br i1 %{}, label %{}, label %{}\n".format(counter1, counter2, count)
         self.function_load = tijdelijk + self.function_load
         if not self.stop_loop:
-            self.function_load += "br label %{}, !llvm.loop !5\n".format(counter0)
-            self.function_load += str(self.get_counter()) + " :\n"
+            self.function_load += "br label %{}\n".format(counter0)
+            self.function_load += str(self.get_counter()) + ":\n"
         self.exit_branch()
         self.stop_loop = False
+        # self.added = self.stack_added.pop()
+        self.looping = False
 
     def set_if_loop(self, t: AST, keep=False):
         if isinstance(t.root, If):
@@ -739,7 +818,7 @@ class ToLLVM():
                 counter0 = self.get_counter()
                 self.increase_counter()
                 tijdelijk = self.function_load
-                self.function_load = "{} :\n".format(self.get_counter())
+                self.function_load = "{}:\n".format(self.get_counter())
                 ifs = [self.get_counter()]
                 self.transverse_tree(t.root.c_block, self.branch_stack.peek())
                 branch = ["br i1 %{}, label %{}, label %{}".format(counter0, counter0 + 1, self.increase_counter())]
@@ -747,7 +826,7 @@ class ToLLVM():
                 self.function_load = tijdelijk + self.function_load
                 branch.append("br label %{}\n".format(self.get_counter()))
                 self.function_load += branch[1]
-                self.function_load += "{} :\n".format(self.get_counter())
+                self.function_load += "{}:\n".format(self.get_counter())
                 self.if_stack.push(branch)
             elif t.root.operator == ConditionType.ELSE:
                 self.enter_branch()
@@ -758,7 +837,7 @@ class ToLLVM():
                                                                     "br label %{}\n".format(self.get_counter()))
 
                 self.function_load += "br label %{}\n".format(self.get_counter())
-                self.function_load += "{} :\n".format(self.get_counter())
+                self.function_load += "{}:\n".format(self.get_counter())
 
             elif t.root.operator == ConditionType.ELIF:
                 t.root.operator = ConditionType.IF
@@ -813,7 +892,7 @@ class ToLLVM():
     def get_llvm_type(self, v=None):
         if isinstance(v, Pointer):
             return "ptr"
-
+        val = v
         if isinstance(v, Value):
             v = v.getType()
         if v == LiteralType.INT:
@@ -824,6 +903,12 @@ class ToLLVM():
             return "i8"
         if v == LiteralType.BOOL:
             return "i1"
+        if v == LiteralType.VAR:
+            if self.looping:
+                if val.getValue() in self.c_function.root.parameters:
+                    return self.get_llvm_type(self.c_function.root.parameters[val.getValue()])
+                else:
+                    return self.get_llvm_type(self.c_function.root.block.getSymbolTable().findSymbol(val.getValue())[0])
         return None
 
     def getPrintValue(self, param: str, type_: str, p: Value):
@@ -873,6 +958,9 @@ class ToLLVM():
 
     def is_pointer(self, p_):
         return isinstance(p_, Pointer)
+
+    def is_value(self, v_):
+        return isinstance(v_, Value)
 
     def set_new_scope(self, t):
         self.old_counter.push(self.var_dic)

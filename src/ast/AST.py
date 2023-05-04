@@ -25,6 +25,8 @@ class AST:
         :return: int the number of the current node so that it can be used to always increase the value in the previous
         node
         """
+        if isinstance(nextNode,AST):
+            nextNode=nextNode.root
         nextNode.setNumber(number)
         nextNode.setLevel(level)
         if isinstance(nextNode, BinaryOperator) or isinstance(nextNode, LogicalOperator) or \
@@ -235,6 +237,8 @@ class AST:
             nodes = nodes + res[0]
             edges = edges + res[1]
         elif isinstance(root, While):
+            if isinstance(root.Condition,AST):
+                root.Condition=root.Condition.root
             edges = edges + "\n" + root.getId() + "--" + root.Condition.getId() + "\n" + root.getId() + "--" + \
                     root.c_block.getId()
             temp = self.toDot(root.Condition)
