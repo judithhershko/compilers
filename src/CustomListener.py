@@ -422,7 +422,7 @@ class CustomListener(ExpressionListener):
         if var[0] == "&":
             var = var[1:]
             self.is_ref = True
-        ref = self.c_scope.block.getSymbolTable().findSymbol(var)
+        # ref = self.c_scope.block.getSymbolTable().findSymbol(var)
         # print(self.nr_pointers)
         if isinstance(self.dec_op.leftChild,
                       Pointer) and self.is_ref and self.nr_pointers > 0 and not self.dec_op.leftChild.declaration:
@@ -433,6 +433,8 @@ class CustomListener(ExpressionListener):
 
         self.parent.rightChild = Value(var, LiteralType.VAR, ctx.start.line, self.parent, variable=True)
         self.current = self.parent.rightChild
+        if isinstance(self.current, Value) and self.is_ref:
+            self.current.deref = True
         return
 
     # Exit a parse tree produced by ExpressionParser#ref_ref.
