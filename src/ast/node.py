@@ -252,14 +252,20 @@ class Value(AST_node):
         replaces the variables in the node with the actual values contained in values
         :param values: dictionary containing the variable names as keys and the corresponding values as values
         """
-        if len(values) == 0:
-            pass
-        elif self.variable and values[self.value][3] and rep:
-            self.type = values[self.value][1]
-            self.value = values[self.value][0]
-            self.variable = False
-        elif self.variable:
-            self.type = values[self.value][1]
+        try:
+            if len(values) == 0:
+                pass
+            elif self.variable and not self.value in values:
+                raise NotDeclared(self.value, self.line)
+            elif self.variable and values[self.value][3] and rep:
+                self.type = values[self.value][1]
+                self.value = values[self.value][0]
+                self.variable = False
+            elif self.variable:
+                self.type = values[self.value][1]
+
+        except NotDeclared:
+            raise
 
     def getHigherType(self, node2: AST_node):
         """
@@ -784,16 +790,22 @@ class Declaration(AST_node):
         replaces the variables in the node with the actual values contained in values
         :param values: dictionary containing the variable names as keys and the corresponding values as values
         """
-        if not self.leftChild.declaration:
-            if self.leftChild.name == "array":
-                name = str(self.leftChild.pos) + str(self.leftChild.value)
+        try:
+            if not self.leftChild.declaration:
+                if self.leftChild.name == "array":
+                    name = str(self.leftChild.pos) + str(self.leftChild.value)
+                else:
+                    name = self.leftChild.value
+                if not name in values:
+                    raise NotDeclared(name, self.leftChild.line)
+                self.leftChild.type = values[name][1]
+            if not isinstance(self.leftChild, Pointer):
+                self.rightChild.replaceVariables(values)
             else:
-                name = self.leftChild.value
-            self.leftChild.type = values[name][1]
-        if not isinstance(self.leftChild, Pointer):
-            self.rightChild.replaceVariables(values)
-        else:
-            self.rightChild.replaceVariables(values, False)
+                self.rightChild.replaceVariables(values, False)
+
+        except NotDeclared:
+            raise
 
     def printTables(self, filePath):
         self.leftChild.printTables(filePath)

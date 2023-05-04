@@ -105,7 +105,7 @@ class SymbolTable:
                     if isinstance(root.getLeftChild(), Pointer):
                         self.table.loc[name] = [value, symType, const, level, isGlobal, False]
                     else:
-                        self.table.loc[name] = [value, symType, const, level, isGlobal, fill]
+                        self.table.loc[name] = [value, symType, const, level, isGlobal, fill] # TODO: use deref to make sure a reference can not be placed in a normal variable once introduced
                     return "placed"
                 elif ref not in self.table.index:
                     raise ImpossibleRef(ref, line)
@@ -127,7 +127,7 @@ class SymbolTable:
                         raise PointerRedeclaration(name, line)
                 elif row["Global"]:
                     raise ResetGlobal(name, line)
-                elif row["Const"] and isinstance(root.getLeftChild(), Value):
+                elif row["Const"] and isinstance(root.getLeftChild(), Value): # TODO: check if deref can be used to let const pointer only not reset value of memorylocation, but reset memorylocation is possible
                     raise ResetConst(name, line)
                 elif row["Const"] and isinstance(root.getLeftChild(), Pointer) and not root.getRightChild().variable:
                     raise ResetConstPointer(name, line)
