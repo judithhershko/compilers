@@ -805,7 +805,10 @@ class Declaration(AST_node):
                     raise NotDeclared(name, self.leftChild.line)
                 self.leftChild.type = values[name][1]
             if not isinstance(self.leftChild, Pointer):
-                self.rightChild.replaceVariables(values)
+                if isinstance(self.rightChild, Value) and not self.rightChild.deref:
+                    self.rightChild.replaceVariables(values)
+                else:
+                    self.rightChild.replaceVariables(values, False)
             else:
                 self.rightChild.replaceVariables(values, False)
 

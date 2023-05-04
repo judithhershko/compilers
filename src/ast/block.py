@@ -208,8 +208,11 @@ class block:
             elif fill and not fold[1] and tree.root.name == "declaration" and tree.root.leftChild.name == "pointer": # TODO: also add to program if works
                 self.symbols.addSymbol(tree.root, glob)
             elif fill and tree.root.name == "declaration" or tree.root.name == "array":
-                none = tree.createUnfilledDeclaration(tree.root)
-                self.symbols.addSymbol(none, glob, False)
+                if tree.root.name == "declaration" and tree.root.rightChild.name == "val" and tree.root.rightChild.deref:
+                    self.symbols.addSymbol(tree.root, glob)
+                else:
+                    none = tree.createUnfilledDeclaration(tree.root)
+                    self.symbols.addSymbol(none, glob, False)
             elif fill and tree.root.name == "scope" and tree.root.f_name != "":
                 self.parent.functions.addFunction(tree.root)
             for elem in res[0]:
