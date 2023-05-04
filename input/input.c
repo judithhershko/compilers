@@ -2,15 +2,13 @@
 
 int f(int x)
 {
-x=x+1;
-//this is function f
-while (x>0)
-{
-x=x+1;
-}
+
+
+x=x+1*x+89;
+
 return 1;
 }
-int main2(int k)
+int main(int k)
 {
 return 1;
 }

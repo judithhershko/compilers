@@ -60,6 +60,9 @@ class ToLLVM():
         self.if_stack = stack()
         self.branch_stack = stack()
         self.old_counter = stack()
+        self.save_old_val=None
+        self.enter_fold=False
+        self.save_old_counter=None
 
     def STable_to_LLVM(self, table: SymbolTable):
         for entry in table:
@@ -682,13 +685,19 @@ class ToLLVM():
             elif t is None:
                 pass
             else:
+                self.save_old_val = None
+                if isinstance(t.root,Declaration):
+                    self.save_old_val=t.root.leftChild
+                    self.save_old_counter=self.get_variable(t.root.leftChild.getValue())
+                    self.enter_fold=True
                 t.root.fold(self)
+                self.save_old_val=None
                 if isinstance(t.root, Declaration):
                     old_var = self.get_variable(t.root.leftChild.getValue())
-                    self.counter -= 1
+                    #self.counter -= 1
                     self.function_load += " store {} %{}, ptr %{}, align 4\n".format(
                         self.get_llvm_type(t.root.leftChild.getType()), self.get_counter(),
-                        old_var)
+                        self.save_old_counter)
                 # folded declaration, wont load in function_load
 
     def set_while_loop(self, t: AST):
