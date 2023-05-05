@@ -158,7 +158,7 @@ class Print(AST_node):
     # TODO: check dat dit een digit niet ervoor staat ipv letter
     def addParam(self, param):
         self.param.append(param)
-        self.value = param
+        #self.value = param
 
     def find_and_select(self, input_string):
         regex = r'%[cdsi]'

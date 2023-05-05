@@ -269,9 +269,13 @@ def set_llvm_binary_operators(left, right, op: str, llvm):
         #return llvm.to_retrans(left, right, op)
     if llvm.is_logical(left) and llvm.save_old_val is None:
         left.printTables("random",llvm)
+        #print("call int to bool")
+        #load_higher_type_bool_to_int(llvm.allocated_var[left],left)
         #return llvm.to_retrans(left, right, op)
     if llvm.is_logical(right) and llvm.save_old_val is None:
         right.printTables("random",llvm)
+        #print("call int to bool")
+        #load_higher_type_bool_to_int(llvm.allocated_var[right], right)
         #return llvm.to_retrans(left, right, op)
 
     print(left)
@@ -375,6 +379,7 @@ def set_llvm_binary_operators(left, right, op: str, llvm):
         llvm.function_load += stor_binary_operation(op, left, right, rtype, llvm, load_left, load_right)
         llvm.function_load += "\n"
         if op == ">=" or op == "<=" or op == ">" or op == "<" or op == "==" or op == "&&":
+
             llvm.comparator_found=True
         else:
             llvm.comparator_found=False
