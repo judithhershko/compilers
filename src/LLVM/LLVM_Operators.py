@@ -1,10 +1,11 @@
 import struct
 
+from src.LLVM.Helper_LLVM import set_llvm_unary_operators, set_llvm_binary_operators
 from src.LLVM.helper_functions import stack
 from src.ast.AST import AST
 from src.ast.SymbolTable import SymbolTable
 from src.ast.node import Declaration, Value, LiteralType, Comment, CommentType, Print, Pointer, Scope, If, While, Scan, \
-    Continue, Break, Array, Function
+    Continue, Break, Array, Function, BinaryOperator, UnaryOperator, LogicalOperator
 from src.ast.block import block
 from src.ast.Program import program
 from src.ast.node_types.node_type import ConditionType
@@ -76,7 +77,9 @@ class ToLLVM():
         self.added = []
         self.stack_added = stack()
         self.looping = False
-        self.allocated_var=dict()
+        self.allocated_var = dict()
+        self.retransverse = []
+        self.comparator_found=False
 
     def STable_to_LLVM(self, table: SymbolTable):
         for entry in table:
@@ -202,7 +205,7 @@ class ToLLVM():
                 self.function_alloc += "%{} = alloca i32, align 4\n".format(self.add_variable(p.getValue()))
                 self.function_store += "store i32 %{}, ptr %{}, align 4\n".format(old_var,
                                                                                   self.get_variable(p.getValue()))
-                self.allocated_var[p.getValue()]=self.get_variable(p.getValue())
+                self.allocated_var[p.getValue()] = self.get_variable(p.getValue())
 
             elif isinstance(p, Value) and p.getType() == LiteralType.FLOAT:
                 old_var = self.get_variable(p.getValue())
@@ -240,7 +243,7 @@ class ToLLVM():
             return
         v = self.c_function.root.f_return.root
         if not isinstance(v, Value) or isinstance(v, Pointer):
-            self.c_function.root.f_return.root.fold()
+            self.c_function.root.f_return.root.printTables("random", self)
             v = self.c_function.root.f_return.root
         v = self.c_function.root.f_return.root
         if isinstance(v, Value) or isinstance(v, Pointer):
@@ -255,8 +258,8 @@ class ToLLVM():
                 self.counter = 0
                 return
             if var_name is not None:
-                old_variable = self.get_variable(var_name)
-                self.g_assignment += " %{} = load ptr, ptr %{}, align 4\n".format(self.add_variable(var_name),
+                old_variable = self.allocated_var[var_name]
+                self.g_assignment += " %{} = load {}, ptr %{}, align 4\n".format(self.add_variable(var_name),self.get_llvm_type(Value(var_name, type_, 0)),
                                                                                   old_variable)
             type_ = None
             if self.c_function.root.block.getSymbolTable().findSymbol(var_name) is not None:
@@ -271,14 +274,14 @@ class ToLLVM():
         else:
             print("fold return again")
             self.function_load = ""
-            self.c_function.root.f_return.root.fold(self)
+            self.c_function.root.f_return.root.printTables("random", self)
             self.g_assignment += self.function_load
             print(self.function_load)
             self.g_assignment += "ret ptr %{}".format(self.get_counter())
         self.g_assignment += "}\n"
         self.counter = 0
         self.added = []
-        self.allocated_var=dict()
+        self.allocated_var = dict()
 
     def scope_tree(self, tree: AST):
         if isinstance(tree.root, Scope) and tree.root.f_name == "":
@@ -365,20 +368,20 @@ class ToLLVM():
 
     def LiteralArray(self, v: Array):
         self.allocate += "%{} = alloca [ {} x {}], align 4\n".format(self.add_variable(str(v.value)),
-                                                                     len(v.arrayContent), self.get_llvm_type(v))
+                                                                     v.pos, self.get_llvm_type(v.getType()))
         self.allocated_var[str(v.value)] = self.get_variable(str(v.value))
-        if len(v.arrayContent) > 0:
+        if v.pos > 0 and v.arrayContent.__len__()>0:
             if self.global_:
                 self.store += "@{} = global [".format(v.value)
             else:
                 self.store += "@__const.{}.{} = private unnamed_addr constant [{} x {}] [".format(
-                    self.c_scope.f_name, v.value, len(v.arrayContent), self.get_llvm_type(v))
+                    self.c_scope.f_name, v.value, v.pos, self.get_llvm_type(v.getType()))
 
             for i in v.arrayContent:
                 val = i.value
                 if v.type == LiteralType.FLOAT:
                     v = self.float_to_64bit_hex(v.getValue())
-                self.store += "{} {}".format(self.get_llvm_type(v), i.value)
+                self.store += "{} {}".format(self.get_llvm_type(v.type), i.value)
             self.store = self.g_assignment[:-1]
             self.store += "] , align 4 \n"
 
@@ -395,7 +398,7 @@ class ToLLVM():
             if v.declaration:
                 self.allocate += "; {} {} {};\n".format(const, "int", v.value)
                 self.allocate += "%{} = alloca i32, align 4\n".format(self.add_variable(str(v.value)))
-                self.allocated_var[str(v.value)]=self.get_variable(str(v.value))
+                self.allocated_var[str(v.value)] = self.get_variable(str(v.value))
             if one_side:
                 return
             self.store += "store i32 {}, i32* %{}, align 4\n".format(input.value, self.get_variable(v.value))
@@ -471,9 +474,9 @@ class ToLLVM():
         if v.getValue() in self.allocated_var:
 
             old_var = self.allocated_var[v.getValue()]
-        # self.counter-=1
+            # self.counter-=1
             self.function_load += " %{} = load {}, ptr %{}, align 4\n".format(self.add_variable(v.getValue()),
-                                                                          self.get_llvm_type(v), old_var)
+                                                                              self.get_llvm_type(v), old_var)
         else:
             # find counter of the param function
             if v.getValue() in self.c_function.root.parameters:
@@ -597,6 +600,7 @@ class ToLLVM():
             self.store += "\n"
 
     def to_print(self, tree: AST, f_="printf"):
+        self.store += "; {} ({})\n".format(f_, tree.root.input_string)
         """
             printf("hi %d dit\n", z);
             printf("hi %i dit\n", z);
@@ -609,21 +613,29 @@ class ToLLVM():
             %12 = call i32 (ptr, ...) @printf(ptr noundef @.str.2, ptr noundef @.str.3)
             %13 = call i32 (ptr, ...) @printf(ptr noundef @.str.4, i32 noundef 99)
         """
-
-        to_print = tree.root.getValue()
-        if isinstance(to_print, Value):
-            to_print = to_print.value
-            if self.c_scope.block.getSymbolTable().findSymbol(to_print) is not None:
-                to_print = self.c_scope.block.getSymbolTable().findSymbol(to_print)[0]
-            elif self.c_scope.f_name != "":
-                to_print = self.c_scope.parameters[to_print]
-        var = self.addGlobalString(tree.root)
+        p_string=tree.root.input_string
+        for t in tree.root.param:
+            if not (isinstance(t.root,Value) or isinstance(t.root,Pointer) or isinstance(t.root,Array) ):
+                t.foldTree()
+                t.printTables("random",self)
+            elif isinstance(t.root, Value):
+                to_print = t.root.getValue()
+                if t.root.variable:
+                    if self.c_scope.block.getSymbolTable().findSymbol(to_print) is not None:
+                        to_print = self.c_scope.block.getSymbolTable().findSymbol(to_print)[0]
+                    else:
+                        if t.root.getValue() in self.c_scope.parameters:
+                            to_print = self.c_scope.parameters[t.root.getValue()].getValue()
+                        else:
+                            to_print = self.c_function.root.parameters[t.root.getValue()].getValue()
+        var = self.addGlobalString(p_string)
         s = self.add_variable(f_ + str(self.g_count))
-        self.store += "; {} ({})\n".format(f_, str(to_print))
-        if isinstance(tree.root, Print) and tree.root.param.__len__() == 0 or tree.root.paramString.__len__() == 0:
+
+        if tree.root.param.__len__() == 0:
             self.store += "%{} = call i32 (ptr, ...) @{}(ptr noundef @.str{})\n".format(s, f_, var)
         else:
             for p in tree.root.param:
+                p=p.root
                 if p.getType == LiteralType.FLOAT:
                     old = self.get_variable(p.getValue())
                     self.store += "%{} = load float, ptr %{}, align 4\n".format(self.add_variable(p.getValue()), old)
@@ -633,8 +645,9 @@ class ToLLVM():
             self.store += "%{} = call i32 (ptr, ...) @{}(ptr noundef @.str{} ".format(s, f_, var)
             i = 0
             for p in tree.root.param:
+                p=p.root
                 self.store += ", "
-                type_ = self.getPrintType(tree.root.paramString[i])
+                type_ = self.getPrintType(tree.root.paramString[i], p)
                 print_ = self.getPrintValue(tree.root.paramString[i], type_, p)
                 self.store += "{}noundef {}".format(type_, print_)
                 i += 1
@@ -761,11 +774,11 @@ class ToLLVM():
                     self.save_old_val = t.root.leftChild
                     self.save_old_counter = self.get_variable(t.root.leftChild.getValue())
                     if t.root.leftChild.getValue() in self.allocated_var:
-                        self.save_old_counter=self.allocated_var[t.root.leftChild.getValue()]
-                    old_type=t.root.leftChild.getType()
+                        self.save_old_counter = self.allocated_var[t.root.leftChild.getValue()]
+                    old_type = t.root.leftChild.getType()
 
                     self.enter_fold = True
-                t.root.fold(self) # TODO: t.foldTree() -> check if dit werkt
+                t.root.printTables("random", self)  # TODO: t.foldTree() -> check if dit werkt
                 self.save_old_val = None
                 if isinstance(t.root, Declaration):
                     # self.counter -= 1
@@ -773,6 +786,24 @@ class ToLLVM():
                         self.get_llvm_type(old_type), self.get_counter(),
                         self.save_old_counter)
                 # folded declaration, wont load in function_load
+        """while len(self.retransverse)!= 0:
+            t=self.retransverse
+            self.retransverse=[]
+            for ti in t:
+                if 2 not in ti:
+                    left=ti[0]
+                    op=ti[1]
+                    set_llvm_unary_operators(left,op,self)
+                else:
+                    left = ti[0]
+                    right = ti[1]
+                    op= ti[2]
+                    set_llvm_binary_operators(left,right,op,self)"""
+
+
+
+
+
 
     def set_while_loop(self, t: AST):
         self.enter_branch()
@@ -786,6 +817,20 @@ class ToLLVM():
             b = block(None)
             b.trees.append(t.root.Condition)
             self.transverse_tree(b, self.branch_stack.peek(), counter0)
+            #check what value was saved in dict
+            #look up in symboltable or parameters
+            val=self.find_val(self.get_counter())
+            type=None
+            if val is not None:
+                if val in self.c_function.root.parameters:
+                    type=self.c_function.root.parameters[val].getType()
+                elif self.c_function.root.block.getSymbolTable().findSymbol(val) is not None:
+                    type=self.c_function.root.block.getSymbolTable().findSymbol(val)[1]
+            if type is None:
+                type=LiteralType.INT
+            if not self.comparator_found:
+                self.function_load += "%{} = icmp ne {} %{}, 0\n".format(self.increase_counter(),self.get_llvm_type(type),self.get_variable(val))
+            self.comparator_found=False
         tijdelijk = self.function_load
         self.function_load = ""
         counter1 = self.get_counter()
@@ -814,7 +859,7 @@ class ToLLVM():
                 if self.if_stack.__len__() > 0 and not keep:
                     self.if_stack.pop()
                 self.enter_branch()
-                self.set_condition(t)
+                #self.set_condition(t)
                 counter0 = self.get_counter()
                 self.increase_counter()
                 tijdelijk = self.function_load
@@ -842,8 +887,12 @@ class ToLLVM():
             elif t.root.operator == ConditionType.ELIF:
                 t.root.operator = ConditionType.IF
                 self.set_if_loop(t, True)
-                last_entry = self.if_stack.pop()
-                st_entries = self.if_stack
+                if self.if_stack.__len__() > 0 :
+                    last_entry = self.if_stack
+                    st_entries = []
+                else:
+                    last_entry = self.if_stack.pop()
+                    st_entries = self.if_stack
                 while st_entries.__len__() > 0 and len(self.if_stack.peek()) == 2:
                     self.function_load = self.function_load.replace(st_entries.pop()[1], last_entry[1])
                 self.if_stack.push(last_entry)
@@ -859,7 +908,7 @@ class ToLLVM():
         self.transverse_tree(b)
 
     def to_continue(self, t: AST, counter=0, start_loop=0):
-        self.function_load += "br label %{}, !llvm.loop !5\n".format(start_loop)
+        self.function_load += "br label %{}\n".format(start_loop)
         if self.branch_stack.peek() == counter:
             self.stop_loop = True
 
@@ -873,7 +922,8 @@ class ToLLVM():
         self.branch_stack.push(self.get_counter())
 
     def exit_branch(self):
-        self.branch_stack.pop()
+        if self.branch_stack.__len__()>0:
+            self.branch_stack.pop()
 
     def getPrintType(self, param: str, val: Value):
         if param == "%d" and val.type == LiteralType.FLOAT:
@@ -893,6 +943,10 @@ class ToLLVM():
         if isinstance(v, Pointer):
             return "ptr"
         val = v
+        if isinstance(v,int):
+            v=LiteralType.INT
+        if isinstance(v,float):
+            v=LiteralType.FLOAT
         if isinstance(v, Value):
             v = v.getType()
         if v == LiteralType.INT:
@@ -909,7 +963,15 @@ class ToLLVM():
                     return self.get_llvm_type(self.c_function.root.parameters[val.getValue()])
                 else:
                     return self.get_llvm_type(self.c_function.root.block.getSymbolTable().findSymbol(val.getValue())[0])
+            if val.getValue() in self.c_function.root.parameters:
+                return self.get_llvm_type(self.c_function.root.parameters[val.getValue()])
+            elif self.c_function.root.block.getSymbolTable().findSymbol(val.getValue()) is not None:
+                self.get_llvm_type(self.c_function.root.block.getSymbolTable().findSymbol(val.getValue())[0])
+            else:
+                return None
         return None
+
+
 
     def getPrintValue(self, param: str, type_: str, p: Value):
         if param == "%c":
@@ -943,8 +1005,10 @@ class ToLLVM():
                 self.f_declerations += "declare i32 @printf(ptr noundef, ...) #{}\n".format(self.f_count)
                 self.g_def["print"] = True
         self.g_count += 1
+        if isinstance(v,Value):
+            v=v.getValue()
         self.f_declerations += "@.str{} = private unnamed_addr constant [{}x i8] c\"{}\\0A\\00\", align 1\n".format(
-            var, len(str(v.getValue())) + 2, str(v.getValue()))
+            var, len(v)+2, v)
         return var
 
     def make_value(self, lit, valueType, line):
@@ -962,7 +1026,37 @@ class ToLLVM():
     def is_value(self, v_):
         return isinstance(v_, Value)
 
+    def is_binary(self, bin):
+        return isinstance(bin, BinaryOperator)
+
+    def is_unary(self, un):
+        return isinstance(un, UnaryOperator)
+
+    def is_logical(self, logic):
+        return isinstance(logic, LogicalOperator)
+
+    def to_retrans(self, left, right, op):
+        re = dict()
+        re[0] = left
+        re[1] = right
+        re[2] = op
+        self.retransverse.append(re)
+        return
+
+    def to_retrans_u(self, left, op):
+        re = dict()
+        re[0] = left
+        re[1] = op
+        self.retransverse.append(re)
+        return
+
     def set_new_scope(self, t):
         self.old_counter.push(self.var_dic)
         self.transverse_tree(t.root.block)
         self.var_dic = self.old_counter.pop()
+
+    def find_val(self,ci):
+        for i in self.var_dic:
+            if self.var_dic[i]==ci:
+                return i
+        return None

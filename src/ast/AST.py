@@ -249,6 +249,7 @@ class AST:
             edges = edges + res[1]
         elif isinstance(self.root, Function):
             for value in self.root.param:
+                value=self.root.param[value]
                 edges = edges + "\n" + self.root.getId() + "--" + value.getId()
                 nodes = nodes + "\n" + value.getId() + " [label=" + value.getLabel() + "]"
         elif isinstance(self.root, Array):

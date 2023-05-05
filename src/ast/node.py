@@ -1,4 +1,6 @@
 from enum import Enum
+import re
+
 from src.ErrorHandeling.GenerateError import *
 from src.LLVM.Helper_LLVM import set_llvm_binary_operators, set_llvm_unary_operators
 from src.ast.node_types.node_type import LiteralType, ConditionType
@@ -155,10 +157,16 @@ class Print(AST_node):
     # TODO: check dat dit een digit niet ervoor staat ipv letter
     def addParam(self, param):
         self.param.append(param)
+        self.value=param
 
-    # TODO: set %d,i,s,c type in paramString[]
+    def find_and_select(self,input_string):
+        regex = r'%[cdsi]'
+        matches = re.findall(regex, input_string)
+        return matches
+
+    #
     def setParamString(self, input: str):
-        pass
+        self.paramString=self.find_and_select(input)
 
     def getValue(self):
         return self.value
@@ -501,6 +509,11 @@ class BinaryOperator(AST_node):
         self.rightChild.replaceVariables(values)
 
     def printTables(self, filePath: str, to_llvm=None):
+        if to_llvm is not None:
+            if ((isinstance(self.rightChild,Value) or isinstance(self.rightChild,Function) or isinstance(self.rightChild,Array) or isinstance(self.rightChild,Pointer)) or
+            (isinstance(self.leftChild,Value) or isinstance(self.leftChild,Function) or isinstance(self.leftChild,Array)) or isinstance(self.leftChild,Pointer)):
+                if not (self.rightChild is None or self.leftChild is None):
+                     set_llvm_binary_operators(self.leftChild, self.rightChild, self.operator, to_llvm)
         self.leftChild.printTables(filePath, to_llvm)
         self.rightChild.printTables(filePath, to_llvm)
 
@@ -607,6 +620,10 @@ class UnaryOperator(AST_node):
         self.rightChild.replaceVariables(values)
 
     def printTables(self, filePath: str, to_llvm=None):
+        if to_llvm is not None:
+            if (isinstance(self.rightChild, Value) or isinstance(self.rightChild, Function) or isinstance(
+                    self.rightChild, Array) or isinstance(self.rightChild, Pointer)):
+                set_llvm_unary_operators(self.rightChild, self.operator, to_llvm)
         self.rightChild.printTables(filePath, to_llvm)
 
     def getType(self):
@@ -747,6 +764,12 @@ class LogicalOperator(AST_node):
         self.rightChild.replaceVariables(values)
 
     def printTables(self, filePath: str, to_llvm=None):
+        if to_llvm is not None:
+            if ((isinstance(self.rightChild, Value) or isinstance(self.rightChild, Function) or isinstance(
+                    self.rightChild, Array) or isinstance(self.rightChild, Pointer)) or
+                    (isinstance(self.leftChild, Value) or isinstance(self.leftChild, Function) or isinstance(
+                        self.leftChild, Array)) or isinstance(self.leftChild, Pointer)):
+                set_llvm_binary_operators(self.leftChild, self.rightChild, self.operator, to_llvm)
         self.leftChild.printTables(filePath, to_llvm)
         self.rightChild.printTables(filePath, to_llvm)
 

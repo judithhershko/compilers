@@ -6,7 +6,7 @@ s_rule: (print ';'|scan ';'|expr ';'|dec ';'|comments|line|loop|scope (';')?| fu
 includes: INCLUDE|INCLUDEH (';')?;
 line:NLINE;
 
-print : PRINT '(' format_string (',' ('*')* pri)* ')';
+print : PRINT '(' format_string (',' ('*')* expr)* ')';
 scan  : SCAN '(' format_string (',' pri)* ')';
 format_string: STRING_LITERAL (',' STRING_LITERAL)*;
 
@@ -65,7 +65,10 @@ num: NUM;
 char_op: PLUS | MIN;
 char_expr: char_pri| char_expr char_op char_expr;
 
-char_pri:CHAR_ID (ID | NUM | '\n' )* CHAR_ID ;
+char_pri: CHAR_ID ( . )? CHAR_ID ;
+//'\\' 'n' | '\\' 'r' | '\\' 't' | '\\' '0'
+//CHAR_LITERAL : ( ESC | ~[\n\r"] ) ;
+
 
 INT     : 'int'     ;
 DOUBLE  : 'double'  ;
@@ -91,6 +94,7 @@ CONTINUE: 'continue';
 MULT : '*' ;
 NUM  : [0-9]+ ;
 ID   : [a-zA-Z_][a-zA-Z_0-9]*;
+ALPHANUM : [A-Za-z0-9] ;
 WS   : [ \t\n\r\f]+ -> skip ;
 NEQ  : '!=';
 PP   : '++';
@@ -119,6 +123,5 @@ SL_COMMENT:  '//' ~('\r' | '\n')*;
 
 STRING_LITERAL: '"' (ESC_SEQ |~('%'|'"'|'\n'|'\r'))* '"';
 fragment ESC_SEQ: '%' ('d'|'i'|'s'|'c');
+fragment ESC : '\\' [nrt\\"'] ;
 NLINE: '\n';
-//NLINE:';' .*? '\n' ;
-//NLINE:';' .*? '\n' -> skip;

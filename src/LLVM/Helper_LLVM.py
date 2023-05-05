@@ -142,9 +142,9 @@ def stor_unary_operation(op, right, rtype, llvm, load_right):
         load += get_unary_operation(op, rtype, 2)
         load += "%{}, true\n".format(llvm.get_variable(old_right))
         if rtype == LiteralType.INT:
-            load_higher_type_bool_to_int(llvm.get_variable(old_right), llvm.add_variable(old_right))
+            load_higher_type_bool_to_int(llvm.add_variable(old_right),llvm.get_variable(old_right))
         elif rtype == LiteralType.FLOAT:
-            load_higher_type_int_to_float(llvm.get_variable(old_right), llvm.add_variable(old_right))
+            load_higher_type_int_to_float(llvm.add_variable(old_right),llvm.get_variable(old_right))
     if not load_right:
         pass
     return load
@@ -177,9 +177,10 @@ def stor_binary_operation(op, left, right, rtype, llvm, load_left, load_right):
                 llvm.get_variable(right.value))
 
     if load_left and load_right:
+        llvm.counter-=1
         load += "%{} = ".format(llvm.add_variable(left))
         load += op
-        load += "%{}, %{}\n".format(old_left, llvm.get_variable(right))
+        load += "%{}, %{}\n".format(old_left-2, llvm.get_variable(right)-1)
     elif load_left:
         load += "%{} = ".format(llvm.add_variable(left))
         load += op
@@ -196,10 +197,21 @@ def stor_binary_operation(op, left, right, rtype, llvm, load_left, load_right):
 
 
 def set_llvm_unary_operators(right, op: str, llvm):
+    if llvm.is_binary(right) and llvm.save_old_val is None:
+        right.printTables("random",llvm)
+        #return llvm.to_retrans_u(right, op)
+    if llvm.is_unary(right) and llvm.save_old_val is None:
+        right.printTables("random",llvm)
+        #return llvm.to_retrans_u(right, op)
+    if llvm.is_logical(right) and llvm.save_old_val is None:
+        right.printTables("random",llvm)
+        #return llvm.to_retrans_u(right, op)
     if right.name == "function":
-        return function_in_operation(right, None, op, llvm)
+        function_in_operation(right, None, op, llvm)
+        #return llvm.to_retrans_u(right, op)
     if right.name == "array":
-        return array_in_operation(right, None, op, llvm)
+        array_in_operation(right, None, op, llvm)
+        #return llvm.to_retrans_u(right, op)
     if llvm.looping:
         if isinstance(right, Value):
             llvm.get_loop_param(right)
@@ -243,6 +255,31 @@ def set_llvm_unary_operators(right, op: str, llvm):
 
 
 def set_llvm_binary_operators(left, right, op: str, llvm):
+    if llvm.is_binary(left) and llvm.save_old_val is None:
+        left.printTables("random",llvm)
+        #return llvm.to_retrans(left,right,op)
+    if llvm.is_binary(right) and llvm.save_old_val is None:
+        right.printTables("random",llvm)
+        #return llvm.to_retrans(left, right, op)
+    if llvm.is_unary(left) and llvm.save_old_val is None:
+        left.printTable("random",llvm)
+        #return llvm.to_retrans(left, right, op)
+    if llvm.is_unary(right) and llvm.save_old_val is None:
+        right.printTables("random",llvm)
+        #return llvm.to_retrans(left, right, op)
+    if llvm.is_logical(left) and llvm.save_old_val is None:
+        left.printTables("random",llvm)
+        #return llvm.to_retrans(left, right, op)
+    if llvm.is_logical(right) and llvm.save_old_val is None:
+        right.printTables("random",llvm)
+        #return llvm.to_retrans(left, right, op)
+
+    print(left)
+    print(right)
+    if left is None:
+        return
+    if right is None:
+        return
     if llvm.looping:
         if llvm.is_value(left):
             llvm.get_loop_param(left)
@@ -337,6 +374,10 @@ def set_llvm_binary_operators(left, right, op: str, llvm):
     if op == "*" or op == "/" or op == "+" or op == "-" or op == "%" or op == ">=" or op == "<=" or op == ">" or op == "<" or op == "==" or op == "&&":
         llvm.function_load += stor_binary_operation(op, left, right, rtype, llvm, load_left, load_right)
         llvm.function_load += "\n"
+        if op == ">=" or op == "<=" or op == ">" or op == "<" or op == "==" or op == "&&":
+            llvm.comparator_found=True
+        else:
+            llvm.comparator_found=False
     else:
         raise NotSupported("operator", op, left.line)
     return ltype
