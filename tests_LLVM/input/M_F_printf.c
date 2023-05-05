@@ -1,4 +1,3 @@
-#include "stdio.h"
 
 int f(int x, float z,int k)
 {
@@ -8,10 +7,7 @@ int main(int x)
 {
     int k[2];
     int v[3]={1,2,3};
-    int f=10;
-    while (f<10)
-    {
-        f=f+1;
-    }
+    int z=0;
+    printf("%d is value",z);
     return 1;
 }

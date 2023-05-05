@@ -33,8 +33,128 @@ def testFile(fileName):
 
 
 class LLVM_TestCases_Working(unittest.TestCase):
-    def test_M_P(self):
-        file = "proj2_man_pass_pointerOperations2"
+    def test_M_while(self):
+        file = "M_P_while"
+        try:
+            testFile(file)
+        except SystemExit:
+            sys.exit()
+
+        self.assertTrue(filecmp.cmp("LLVM_output/" + file + ".ll", "LLVM_expected/" + file + ".ll"))
+    def test_M_if(self):
+        file = "M_P_if"
+        try:
+            testFile(file)
+        except SystemExit:
+            sys.exit()
+
+        self.assertTrue(filecmp.cmp("LLVM_output/" + file + ".ll", "LLVM_expected/" + file + ".ll"))
+    def test_P_anon_scope(self):
+        file = "M_P_anon_scope"
+        try:
+            testFile(file)
+        except SystemExit:
+            sys.exit()
+
+        self.assertTrue(filecmp.cmp("LLVM_output/" + file + ".ll", "LLVM_expected/" + file + ".ll"))
+    def test_P_array(self):
+        file = "M_P_array"
+        try:
+            testFile(file)
+        except SystemExit:
+            sys.exit()
+
+        self.assertTrue(filecmp.cmp("LLVM_output/" + file + ".ll", "LLVM_expected/" + file + ".ll"))
+    def test_P_break(self):
+        file = "M_P_break"
+        try:
+            testFile(file)
+        except SystemExit:
+            sys.exit()
+
+        self.assertTrue(filecmp.cmp("LLVM_output/" + file + ".ll", "LLVM_expected/" + file + ".ll"))
+    def test_P_continue(self):
+        file = "M_P_continue"
+        try:
+            testFile(file)
+        except SystemExit:
+            sys.exit()
+
+        self.assertTrue(filecmp.cmp("LLVM_output/" + file + ".ll", "LLVM_expected/" + file + ".ll"))
+    def test_P_dead_code(self):
+        file = "M_P_dead_code"
+        try:
+            testFile(file)
+        except SystemExit:
+            sys.exit()
+
+        self.assertTrue(filecmp.cmp("LLVM_output/" + file + ".ll", "LLVM_expected/" + file + ".ll"))
+    def test_P_for(self):
+        file = "M_P_for"
+        try:
+            testFile(file)
+        except SystemExit:
+            sys.exit()
+
+        self.assertTrue(filecmp.cmp("LLVM_output/" + file + ".ll", "LLVM_expected/" + file + ".ll"))
+    def test_P_function_call_assignment(self):
+        file = "M_P_function_call_assignment"
+        try:
+            testFile(file)
+        except SystemExit:
+            sys.exit()
+
+        self.assertTrue(filecmp.cmp("LLVM_output/" + file + ".ll", "LLVM_expected/" + file + ".ll"))
+    def test_P_function_pointer(self):
+        file = "M_P_function_pointer"
+        try:
+            testFile(file)
+        except SystemExit:
+            sys.exit()
+
+        self.assertTrue(filecmp.cmp("LLVM_output/" + file + ".ll", "LLVM_expected/" + file + ".ll"))
+    def test_P_functions(self):
+        file = "M_P_functions"
+        try:
+            testFile(file)
+        except SystemExit:
+            sys.exit()
+
+        self.assertTrue(filecmp.cmp("LLVM_output/" + file + ".ll", "LLVM_expected/" + file + ".ll"))
+    def test_P_if_else(self):
+        file = "M_P_if_else"
+        try:
+            testFile(file)
+        except SystemExit:
+            sys.exit()
+
+        self.assertTrue(filecmp.cmp("LLVM_output/" + file + ".ll", "LLVM_expected/" + file + ".ll"))
+    def test_P_local_global(self):
+        file = "M_P_local_global"
+        try:
+            testFile(file)
+        except SystemExit:
+            sys.exit()
+
+        self.assertTrue(filecmp.cmp("LLVM_output/" + file + ".ll", "LLVM_expected/" + file + ".ll"))
+    def test_P_printf(self):
+        file = "M_P_printf"
+        try:
+            testFile(file)
+        except SystemExit:
+            sys.exit()
+
+        self.assertTrue(filecmp.cmp("LLVM_output/" + file + ".ll", "LLVM_expected/" + file + ".ll"))
+    def test_P_scanf(self):
+        file = "M_P_scanf"
+        try:
+            testFile(file)
+        except SystemExit:
+            sys.exit()
+
+        self.assertTrue(filecmp.cmp("LLVM_output/" + file + ".ll", "LLVM_expected/" + file + ".ll"))
+    def test_P_while(self):
+        file = "M_P_while"
         try:
             testFile(file)
         except SystemExit:
