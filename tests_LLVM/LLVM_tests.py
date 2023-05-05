@@ -34,7 +34,6 @@ def testFile(fileName):
 
 class LLVM_TestCases_Working(unittest.TestCase):
     def test_binary1(self):
-
         file = "binary"
         try:
             testFile("manditory/input/"+file)
