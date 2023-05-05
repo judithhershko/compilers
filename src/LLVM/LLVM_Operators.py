@@ -777,6 +777,16 @@ class ToLLVM():
                 self.to_declaration(t)
                 self.function_load += self.store
                 self.store = ""
+            elif isinstance(t.root,Array) and isinstance(t.root.parent,Declaration):
+                a=AST
+                a.root=t.root.parent
+                t=a
+                t.root.leftChild.declaration = False
+                self.to_declaration(t)
+                self.function_alloc += self.allocate
+                self.function_load += self.store
+                self.store = ""
+                self.allocate =""
             elif isinstance(t.root, Scope):
                 print("new scope")
                 self.set_new_scope(t)
