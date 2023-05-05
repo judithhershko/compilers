@@ -662,6 +662,8 @@ class ToLLVM():
         """
         p_string=tree.root.input_string
         for t in tree.root.param:
+            if isinstance(t,tuple):
+                t=t[0]
             if not (isinstance(t.root,Value) or isinstance(t.root,Pointer) or isinstance(t.root,Array) ):
                 t.foldTree()
                 t.printTables("random",self)
@@ -682,6 +684,8 @@ class ToLLVM():
             self.store += "%{} = call i32 (ptr, ...) @{}(ptr noundef @.str{})\n".format(s, f_, var)
         else:
             for p in tree.root.param:
+                if isinstance(p,tuple):
+                    p=p[0]
                 p=p.root
                 if p.getType == LiteralType.FLOAT:
                     old = self.get_variable(p.getValue())
@@ -692,6 +696,8 @@ class ToLLVM():
             self.store += "%{} = call i32 (ptr, ...) @{}(ptr noundef @.str{} ".format(s, f_, var)
             i = 0
             for p in tree.root.param:
+                if isinstance(p,tuple):
+                    p=p[0]
                 p=p.root
                 self.store += ", "
                 type_ = self.getPrintType(tree.root.paramString[i], p)

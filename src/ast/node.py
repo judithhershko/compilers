@@ -187,11 +187,14 @@ class Print(AST_node):
                 raise PrintSize(self.line)
             for pos in range(len(self.param)):
                 if self.paramString[pos] == "%f" and self.param[pos].root.getType() != LiteralType.FLOAT:
-                    raise PrintType(self.line, "%f", str(LiteralType.FLOAT))
+                    pass
+                    #raise PrintType(self.line, "%f", str(LiteralType.FLOAT))
                 elif self.paramString[pos] in ("%d", "%i") and self.param[pos].root.getType() !=  LiteralType.INT:
-                    raise PrintType(self.line, self.paramString[pos], str(LiteralType.INT))
+                    pass
+                    #raise PrintType(self.line, self.paramString[pos], str(LiteralType.INT))
                 elif self.paramString[pos] == "%c" and self.param[pos].root.getType() !=  LiteralType.CHAR:
-                    raise PrintType(self.line, "%c", str(LiteralType.CHAR))
+                    #raise PrintType(self.line, "%c", str(LiteralType.CHAR))
+                    pass
                 self.param[pos] = self.param[pos].foldTree()
 
         except PrintSize:
@@ -201,7 +204,9 @@ class Print(AST_node):
         return self, True  # TODO: redo this when the print function is adapted to the final form
 
     def replaceVariables(self, values):
-        pass  # TODO: redo this when the print function is adapted to the final form
+        #pass  # TODO: redo this when the print function is adapted to the final form
+        for tree in self.param:
+            tree.replaceVariables(values)
 
 
 # Used to hald a single value/variable, normally a leaf of the AST
