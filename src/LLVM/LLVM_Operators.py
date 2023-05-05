@@ -849,7 +849,7 @@ class ToLLVM():
                 if self.if_stack.__len__() > 0 and not keep:
                     self.if_stack.pop()
                 self.enter_branch()
-                self.set_condition(t)
+                #self.set_condition(t)
                 counter0 = self.get_counter()
                 self.increase_counter()
                 tijdelijk = self.function_load
@@ -877,8 +877,12 @@ class ToLLVM():
             elif t.root.operator == ConditionType.ELIF:
                 t.root.operator = ConditionType.IF
                 self.set_if_loop(t, True)
-                last_entry = self.if_stack.pop()
-                st_entries = self.if_stack
+                if self.if_stack.__len__() > 0 :
+                    last_entry = self.if_stack
+                    st_entries = []
+                else:
+                    last_entry = self.if_stack.pop()
+                    st_entries = self.if_stack
                 while st_entries.__len__() > 0 and len(self.if_stack.peek()) == 2:
                     self.function_load = self.function_load.replace(st_entries.pop()[1], last_entry[1])
                 self.if_stack.push(last_entry)
@@ -894,7 +898,7 @@ class ToLLVM():
         self.transverse_tree(b)
 
     def to_continue(self, t: AST, counter=0, start_loop=0):
-        self.function_load += "br label %{}, !llvm.loop !5\n".format(start_loop)
+        self.function_load += "br label %{}\n".format(start_loop)
         if self.branch_stack.peek() == counter:
             self.stop_loop = True
 
@@ -908,7 +912,8 @@ class ToLLVM():
         self.branch_stack.push(self.get_counter())
 
     def exit_branch(self):
-        self.branch_stack.pop()
+        if self.branch_stack.__len__()>0:
+            self.branch_stack.pop()
 
     def getPrintType(self, param: str, val: Value):
         if param == "%d" and val.type == LiteralType.FLOAT:

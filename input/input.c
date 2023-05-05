@@ -1,13 +1,15 @@
 #include "stdio.h"
 int main(int x,int y)
 {
+const int r = 5;
 x=x+1*x+89;
-
-printf("%d", x+x*2, x+y);
-for(int k=0;k<5;k=k+1)
-    {
-
-    x=x+1;
-    }
+if(x>90)
+{
+x=x-10;
+}
+else
+{
+x=x+10;
+}
 return 1;
 }
