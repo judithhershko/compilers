@@ -8,7 +8,7 @@ from generated.input.ExpressionParser import ExpressionParser
 
 
 def testFile(fileName):
-    argv = "../tests_LLVM/" + fileName + ".c"
+    argv = "../tests_LLVM/input/" + fileName + ".c"
     input_stream = FileStream(argv)
     lexer = ExpressionLexer(input_stream)
     MyError = CustomError()
@@ -33,10 +33,10 @@ def testFile(fileName):
 
 
 class LLVM_TestCases_Working(unittest.TestCase):
-    def test_binary1(self):
-        file = "binary"
+    def test_binaryOperations1(self):
+        file = "proj2_man_pass_pointerOperations2"
         try:
-            testFile("manditory/input/"+file)
+            testFile(file)
         except SystemExit:
             sys.exit()
 

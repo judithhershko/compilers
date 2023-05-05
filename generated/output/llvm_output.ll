@@ -1,29 +1,35 @@
-;//intmain(){intz=0;z=1+2+3*89;intk=90-89;floatf=8.90;f=f/89.90;return1;}
+;//intf(intx){for(intz=0;z<5;z=z+1){x=1+1;}return1;}
 
 ; Function Attrs: noinline nounwind optnone ssp uwtable(sync)
-define i32 @main() #0 { 
-;  int z;
-%1 = alloca i32, align 4
-;  int k;
+define i32 @f(i32 noundef %0) #0 { 
 %2 = alloca i32, align 4
-;  float f;
-%3 = alloca float, align 4
+;  int z;
+%3 = alloca i32, align 4
 
+store i32 %0, ptr %2, align 4
+
+;//intx
+
+;//for(intz=0;z<5;z=z+1){x=1+1;}
 
 ;//intz=0
 
-store i32 0, i32* %1, align 4
-;//z=1+2+3*89
+;//z=z+1
 
-store i32 270, i32* %1, align 4
-;//intk=90-89
+store i32 0, i32* %3, align 4
+br label %4
+4:
+ %5 = load i32, ptr %3, align 4
+%6 = icmp slt i32 %5, 5
 
-store i32 1, i32* %2, align 4
-;//floatf=8.90
+br i1 %6, label %7, label %9
+7:
+ %8 = load i32, ptr %2, align 4
+;//x=1+1
 
-store float 0x4021ccccc0000000, float* %3, align 4
-;//f=f/89.90
-
-store float 0x3fb957fdc0000000, float* %3, align 4
+store i32 2, i32* %8, align 4
+store i32 1, i32* %6, align 4
+br label %4
+9:
 ret i32 1
 }
