@@ -33,7 +33,7 @@ def testFile(fileName):
 
 
 class LLVM_TestCases_Working(unittest.TestCase):
-    def test_binaryOperations1(self):
+    def test_M_P(self):
         file = "proj2_man_pass_pointerOperations2"
         try:
             testFile(file)

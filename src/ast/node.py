@@ -1448,7 +1448,40 @@ class Break(AST_node):
 class Continue(AST_node):
     def __init__(self, line):
         self.line = line
-        self.name = "cont"
+        self.name = "continue"
+        self.value = None
+        self.type = None
+        self.parent = None
+        self.variable = False
+        self.const = False
+        self.declaration = False
+        self.deref = False
+    def getLabel(self):
+        return "\"Empty Node: " + str(self.value) + "\""
+
+    def getValue(self):
+        return None
+
+    def getValue(self):
+        return self.value
+
+    def setValue(self, val):
+        self.value = val
+
+    def setType(self, type):
+        self.type = type
+
+    def getType(self):
+        return self.type
+
+    def getVariables(self, fill: bool = True, scope=None):
+        """
+        returns the variable contained within the node
+        :return:
+        """
+        return [[], True]
+    def fold(self,to_llvm):
+        return self
 
 
 # Used to hold a while loop

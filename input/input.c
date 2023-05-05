@@ -1,9 +1,11 @@
-int main()
+#include "stdio.h"
+int main(int x)
 {
-int z=0;
-z=1+2+3*89;
-int k=90-89;
-float f= 8.90;
-f=f/89.90;
-return 1;
+    x=x+1*x+89;
+    while(x+90>90)
+    {
+        x=x+1;
+        continue;
+    }
+    return 1;
 }
