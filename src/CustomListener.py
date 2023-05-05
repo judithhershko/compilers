@@ -735,6 +735,11 @@ class CustomListener(ExpressionListener):
             else:
                 if self.return_function:
                     self.c_scope.f_return = self.asT
+                    return_=create_tree()
+                    return_.root=ReturnNode(self.asT,self.asT.root.line,None,None)
+                    r=create_tree()
+                    r.root=return_
+                    self.c_scope.block.trees.append(r)
                 elif self.c_scope.f_name != "" and self.c_scope.f_return is not None:
                     return
                 else:
@@ -748,6 +753,11 @@ class CustomListener(ExpressionListener):
             self.asT = create_tree()
             self.asT.root = self.current
             self.c_scope.f_return = self.asT
+            self.current=ReturnNode(self.asT,self.asT.root.line,None,None)
+            self.asT=create_tree()
+            self.asT.root=self.current
+            self.c_scope.block.trees.append(self.asT)
+
             self.counter += 1
             self.parent = None
             self.current = None
@@ -1146,6 +1156,10 @@ class CustomListener(ExpressionListener):
             self.asT = create_tree()
             self.asT.root = self.current
             self.c_scope.f_return = self.asT
+            tijdelijk=ReturnNode(self.asT,self.asT.root.line,None,None)
+            t=create_tree()
+            t.root=tijdelijk
+            self.c_scope.block.trees.append(t)
             self.asT = create_tree()
             self.current = None
         return
