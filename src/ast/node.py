@@ -1517,7 +1517,7 @@ class While(AST_node):
         self.Condition.root.fold()
         for elem in self.c_block.getVariables(fill)[0]:
             res.append(elem)
-        self.c_block.fold()
+        self.c_block.cleanBlock()
         return [res, False]
 
     def replaceVariables(self, values):
