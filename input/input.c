@@ -1,9 +1,8 @@
 #include "stdio.h"
-
-int f(int x, int y)
+int main(int x,int y)
 {
-x=5+1;
-char z='a';
+printf("%d %d", x,y);
+
 return 1;
 }
 int main(int x,int y)

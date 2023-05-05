@@ -382,10 +382,10 @@ class ToLLVM():
             if inhoud[key].getType() == LiteralType.FLOAT:
                 val = self.float_to_64bit_hex(key)
             if is_var:
-                self.store += " noundef %{} ".format(self.get_variable(val))
+                self.store += " noundef %{},".format(self.get_variable(val))
             else:
-                self.store += " noundef {} ".format(val)
-
+                self.store += " noundef {},".format(val)
+        self.store=self.store[:-1]
         self.store += ")\n"
         self.store += "store {} %{}, ptr %{}, align 4\n".format(self.get_llvm_type(var),self.get_variable(var.getValue()),self.allocated_var[var.getValue()])
 
@@ -410,7 +410,7 @@ class ToLLVM():
                 self.f_declerations += "@{} = global [".format(v.value)
             else:
                 self.f_declerations += "@__const.{}.{} = private unnamed_addr constant [{} x {}] [".format(
-                    self.c_scope.f_name, v.value, v.pos, self.get_llvm_type(v.getType()))
+                    self.c_function.root.f_name, v.value, v.pos, self.get_llvm_type(v.getType()))
 
             for i in v.arrayContent:
                 val = i.value
@@ -556,11 +556,14 @@ class ToLLVM():
     # save it to be used as input in declaration
     def redec_array(self,dec:AST):
         dec=dec.root
-        size=0;
+        size=0
         if self.c_function is not None:
             size=self.c_function.root.block.getSymbolTable().findSymbol(dec.leftChild.value)[0]
-        self.store += "%{} = getelementptr inbounds [3 x i32], ptr %{}, i64 0, i64 2\n".format(self.add_variable(dec.leftChild.getValue()),size, self.allocated_var[dec.leftChild.getValue()])
-        self.store += "store {} {}, ptr %{}, align 4\n".format(self.get_llvm_type(dec.leftChild.get),dec.rightChild.getValue(),self.get_variable(dec.leftChild.getValue()))
+        print("content")
+        print(dec.leftChild.value)
+        old_counter=self.allocated_var[dec.leftChild.value]
+        self.store += "%{} = getelementptr inbounds [{} x i32], ptr %{}, i64 0, i64 {}\n".format(self.add_variable(dec.leftChild.value),size, self.allocated_var[dec.leftChild.value],dec.leftChild.getPosition())
+        self.store += "store {} {}, ptr %{}, align 4\n".format(self.get_llvm_type(dec.leftChild.type),dec.rightChild.value,self.get_variable(dec.leftChild.value))
 
         return
     def to_declaration(self, ast: AST, one_side=False):
@@ -1072,8 +1075,10 @@ class ToLLVM():
         self.g_count += 1
         if isinstance(v,Value):
             v=v.getValue()
-        self.f_declerations += "@.str{} = private unnamed_addr constant [{}x i8] c\"{}\\0A\\00\", align 1\n".format(
-            var, len(v)+2, v)
+        #self.f_declerations += "@.str{} = private unnamed_addr constant [{}x i8] c\"{}\\0A\\00\", align 1\n".format(var, len(v)+2, v)
+        ps=str(v)
+        ps= ps.replace("\"", "")
+        self.f_declerations += "@.str{} = private unnamed_addr constant [{} x i8] c\"{}\\00\", align 1\n".format(var, len(ps)+1,ps)
         return var
 
     def make_value(self, lit, valueType, line):

@@ -721,7 +721,8 @@ class CustomListener(ExpressionListener):
             self.asT.setRoot(self.current)
             if self.is_print:
                 self.c_print.addParam(self.asT)
-                self.c_print.value = self.asT
+                self.asT=create_tree()
+                #self.c_print.value = self.asT
                 return
             if self.is_loop and self.loop.Condition is None:
                 self.loop.Condition = self.asT.root  # TODO: check if this still works: set Condition to node instead of ast
