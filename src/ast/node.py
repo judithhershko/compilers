@@ -119,7 +119,9 @@ class Comment(AST_node):
         self.type = type
 
     def getLabel(self):
-        return "\"Comment: " + self.value + "\""
+        a = self.value
+        a = a.replace('"', '')
+        return "\"Comment: " + a + "\""
 
     def getType(self):
         return self.type
@@ -180,6 +182,22 @@ class Print(AST_node):
         return "\"Print: " + str(self.value) + "\""
 
     def fold(self, to_llvm=None):
+        try:
+            if len(self.param) != len(self.paramString):
+                raise PrintSize(self.line)
+            for pos in range(len(self.param)):
+                if self.paramString[pos] == "%f" and self.param[pos].root.getType() != LiteralType.FLOAT:
+                    raise PrintType(self.line, "%f", str(LiteralType.FLOAT))
+                elif self.paramString[pos] in ("%d", "%i") and self.param[pos].root.getType() !=  LiteralType.INT:
+                    raise PrintType(self.line, self.paramString[pos], str(LiteralType.INT))
+                elif self.paramString[pos] == "%c" and self.param[pos].root.getType() !=  LiteralType.CHAR:
+                    raise PrintType(self.line, "%c", str(LiteralType.CHAR))
+                self.param[pos] = self.param[pos].foldTree()
+
+        except PrintSize:
+            raise
+        except PrintType:
+            raise
         return self, True  # TODO: redo this when the print function is adapted to the final form
 
     def replaceVariables(self, values):
@@ -1270,7 +1288,7 @@ class Scope(AST_node):  # TODO: let it hold a block instead of trees
             # for elem in res:
             for elem in self.block.getVariables(fill=False):
                 if len(elem) != 0 and elem[0][0] not in self.parameters and \
-                        not self.block.symbols.findSymbol(elem[0][0]):
+                        not self.block.symbols.findSymbol(elem[0][0]) :
                     res.append(elem[0])
             for elem in self.f_return.getVariables(fill=False):
                 if isinstance(elem, list):
@@ -1528,7 +1546,7 @@ class Function(AST_node):
         return self.line == other.line and self.param == other.param and self.f_name == other.f_name and \
             self.decl == other.decl
 
-    def addParameter(self, var: str, scope, line: int):
+    def addParameter(self, var, scope, line: int):
         # TODO: check type of input parameter and amount of added input parameters
 
         # TODO: dit moet anders --> als value/pointer/ref wordt doorgegeven
@@ -1554,11 +1572,14 @@ class Function(AST_node):
         # try:
         #     if exp == given:
         pos = len(self.param)
-        if var.isdigit():
-            val = Value(var, None, line)
+        if isinstance(var, str):
+            if var.isdigit():
+                val = Value(var, None, line)
+            else:
+                val = Value(var, None, line, None, True)
+            self.param[pos] = val
         else:
-            val = Value(var, None, line, None, True)
-        self.param[pos] = val
+            self.param[pos] = var
         # try:
         #     if len(self.param) > len(self.expected):
         #         raise FunctionParam(self.f_name, len(self.expected), self.line)
@@ -1608,12 +1629,16 @@ class Function(AST_node):
                     continue
                 expec = self.expected[exp]
                 given = self.param[pos]
-                givenType = scope.symbols.findSymbol(given.value)
+                if given.variable:
+                    givenType = scope.symbols.findSymbol(given.value)
+                else:
+                    givenType = [[], given.type]
                 if expec != str(givenType[1]):
                     raise FunctionParamType(self.f_name, exp, givenType, expec, self.line)
                 else:
-                    params.append((self.param[pos].value, self.param[pos].line))
-                    self.param[pos].type = givenType[1]
+                    if self.param[pos].variable:
+                        params.append((self.param[pos].value, self.param[pos].line))
+                        self.param[pos].type = givenType[1]
                 pos += 1;
 
         except FunctionParam:

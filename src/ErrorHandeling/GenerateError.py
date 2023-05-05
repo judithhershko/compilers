@@ -370,3 +370,22 @@ class ArraySize(Exception):
     def __str__(self):
         return "\n\tError in line " + str(self.line) + ": the array " + self.name + " should hold exactly " + \
                str(self.size) + " parameters"
+
+
+class PrintSize(Exception):
+    def __init__(self, line: int):
+        self.line = line
+
+    def __str__(self):
+        return "\n\tError in line " + str(self.line) + ": the print expects the same amount of flags and values"
+
+
+class PrintType(Exception):
+    def __init__(self, line: int, flag: str, type: str):
+        self.line = line
+        self.flag = flag
+        self.type = type
+
+    def __str__(self):
+        return "\n\tError in line " + str(self.line) + ": print expects a " + \
+               self.type + " as input with the flag " + self.flag
