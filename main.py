@@ -31,9 +31,9 @@ def main():
         printer.get_program("./src/ast/dotFiles/no_fold_expression_dot")
         printer.program.printTables("./src/ast/dotFiles/table")
 
-        # to_llvm = ToLLVM()
-        # to_llvm.transverse_program(printer.program)
-        # to_llvm.write_to_file("./generated/output/llvm_output.ll")
+        to_llvm = ToLLVM()
+        to_llvm.transverse_program(printer.program)
+        to_llvm.write_to_file("./generated/output/llvm_output.ll")
         return
     except SystemExit:
         sys.exit()
