@@ -1303,18 +1303,20 @@ class Scope(AST_node):  # TODO: let it hold a block instead of trees
         else:
             # res = self.block.cleanBlock(onlyLocal=True)
             self.block.cleanBlock(onlyLocal=True)
-            self.block.fillLiterals(self.f_return, True)
+            if self.f_return is not None:
+                self.block.fillLiterals(self.f_return, True)
             res = []
             # for elem in res:
             for elem in self.block.getVariables(fill=False):
                 if len(elem) != 0 and elem[0][0] not in self.parameters and \
                         not self.block.symbols.findSymbol(elem[0][0]) :
                     res.append(elem[0])
-            for elem in self.f_return.getVariables(fill=False):
-                if isinstance(elem, list):
-                    if len(elem) > 0 and elem[0][0] not in self.parameters and \
-                            not self.block.symbols.findSymbol(elem[0][0]):
-                        res.append(elem[0])
+            if self.f_return is not None:
+                for elem in self.f_return.getVariables(fill=False):
+                    if isinstance(elem, list):
+                        if len(elem) > 0 and elem[0][0] not in self.parameters and \
+                                not self.block.symbols.findSymbol(elem[0][0]):
+                            res.append(elem[0])
             return [res, True]
 
     def replaceVariables(self, values):
