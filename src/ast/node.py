@@ -5,6 +5,40 @@ from src.ast.node_types.node_type import LiteralType, ConditionType
 from itertools import islice
 
 
+def getHighestType(type1, type2, line):
+
+    if isinstance(type1, str):
+        type1 = LiteralType.getLiteral(type1)
+    if isinstance(type2, str):
+        type2 = LiteralType.getLiteral(type2)
+
+    try:
+        if (type1 == LiteralType.STR and type2 in (LiteralType.STR, LiteralType.CHAR)) or \
+                (type2 == LiteralType.STR and type1 == LiteralType.CHAR):
+            return LiteralType.STR
+        elif type1 == LiteralType.CHAR and type2 == LiteralType.CHAR:
+            return LiteralType.CHAR
+        elif (type1 == LiteralType.DOUBLE and type2 in (LiteralType.DOUBLE, LiteralType.FLOAT, LiteralType.INT)) or \
+                (type2 == LiteralType.DOUBLE and type1 in (LiteralType.FLOAT, LiteralType.INT)):
+            return LiteralType.DOUBLE
+        elif (type1 == LiteralType.FLOAT and type2 in (LiteralType.FLOAT, LiteralType.INT)) or \
+                (type2 == LiteralType.FLOAT and type1 == LiteralType.INT):
+            return LiteralType.FLOAT
+        elif type1 == LiteralType.INT and type2 == LiteralType.INT:
+            return LiteralType.INT
+        elif type1 == LiteralType.BOOL and type2 == LiteralType.BOOL:
+            return LiteralType.BOOL
+        elif type1 is None:
+            return type2
+        elif type1 in (LiteralType.INT, LiteralType.FLOAT) and type2 == LiteralType.BOOL:
+            return type1
+        else:
+            raise WrongType(type1, type2, line)
+
+    except WrongType:
+        raise
+
+
 class ToLLVM:
     pass
 
@@ -273,8 +307,8 @@ class Value(AST_node):
         :param node2: AST_node type containing the other child of the parent node in the AST
         :return: returns the LiteralType with the highest priority (str>char; double>float>int)
         """
-        if not (isinstance(node2, Value) or isinstance(node2, Array) or isinstance(node2, Function)):
-            return self.type
+        # if not (isinstance(node2, Value) or isinstance(node2, Array) or isinstance(node2, Function)):
+        #     return self.type
         type1 = self.type
         if isinstance(node2, Function):
             pass
@@ -470,6 +504,12 @@ class BinaryOperator(AST_node):
         self.leftChild.printTables(filePath, to_llvm)
         self.rightChild.printTables(filePath, to_llvm)
 
+    def getType(self):
+        type1 = self.leftChild.getType()
+        type2 = self.rightChild.getType()
+        return  getHighestType(type1, type2, self.line)
+
+
 
 # Used to hold a unary operator with its operator and the operand in the right child
 class UnaryOperator(AST_node):
@@ -568,6 +608,9 @@ class UnaryOperator(AST_node):
 
     def printTables(self, filePath: str, to_llvm=None):
         self.rightChild.printTables(filePath, to_llvm)
+
+    def getType(self):
+        return self.rightChild.getType()
 
 
 # Used for logical operators with the corresponding operator and the children holding the operators
@@ -706,6 +749,11 @@ class LogicalOperator(AST_node):
     def printTables(self, filePath: str, to_llvm=None):
         self.leftChild.printTables(filePath, to_llvm)
         self.rightChild.printTables(filePath, to_llvm)
+
+    def getType(self):
+        type1 = self.leftChild.getType()
+        type2 = self.rightChild.getType()
+        return getHighestType(type1, type2, self.line)
 
 
 # Used to hold a (re)declaration of a variable, the left child holds the variable and the left child the value/operation
@@ -1178,6 +1226,9 @@ class Scope(AST_node):  # TODO: let it hold a block instead of trees
             self.f_return.printTables(filePath, to_llvm)
         self.block.printTables(filePath, to_llvm)
 
+    def getType(self):
+        return self.f_return.root.getType()
+
 
 # Used to hold the for loops TODO: is this used?
 class For(AST_node):
@@ -1596,8 +1647,8 @@ class Array(AST_node):
         :param node2: AST_node type containing the other child of the parent node in the AST
         :return: returns the LiteralType with the highest priority (str>char; double>float>int)
         """
-        if not (isinstance(node2, Value) or isinstance(node2, Array) or isinstance(node2, Function)):
-            return self.type
+        # if not (isinstance(node2, Value) or isinstance(node2, Array) or isinstance(node2, Function)):
+        #     return self.type
         type1 = self.type
         type2 = node2.getType()
 

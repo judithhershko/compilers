@@ -1,7 +1,7 @@
 #include "stdio.h"
 int f(int b, char a) {
-	a = a +1;
-	return 1+1;
+	b = b +1;
+	return b+1;
 }
 
 
@@ -10,6 +10,6 @@ int main()
 int x=5+1;
 char z='a';
 
-int y = f(x+1, z);
+int y = f(x, z);
 return 1;
 }
