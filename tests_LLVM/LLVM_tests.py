@@ -34,7 +34,7 @@ def testFile(fileName):
 
 class LLVM_TestCases_Working(unittest.TestCase):
     def test_binaryOperations1(self):
-        file = "proj3_man_syntaxErr_commentSingleLine3"
+        file = "proj2_man_pass_pointerOperations2"
         try:
             testFile(file)
         except SystemExit:

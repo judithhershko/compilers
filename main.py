@@ -29,6 +29,7 @@ def main():
         walker = ParseTreeWalker()
         walker.walk(printer, tree)
         printer.get_program("./src/ast/dotFiles/no_fold_expression_dot")
+        printer.program.printTables("./src/ast/dotFiles/table")
 
         to_llvm = ToLLVM()
         to_llvm.transverse_program(printer.program)

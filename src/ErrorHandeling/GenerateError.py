@@ -98,6 +98,16 @@ class Redeclaration(Exception):
                str(self.variable)
 
 
+class RedeclarationF(Exception):
+    def __init__(self, var, line):
+        self.variable = var
+        self.line = line
+
+    def __str__(self):
+        return "\n\tError in line " + str(self.line) + ": there is a redeclaration of the function " + \
+               str(self.variable)
+
+
 class PointerRedeclaration(Exception):
     def __init__(self, var, line):
         self.variable = var
@@ -336,6 +346,19 @@ class FunctionParam(Exception):
     def __str__(self):
         return "\n\tError in line " + str(self.line) + ": the function " + self.name + " should hold exactly " + \
                str(self.size) + " parameters"
+
+
+class FunctionParamType(Exception):
+    def __init__(self, name, param, givenType, expType, line):
+        self.name = name
+        self.param = param
+        self.given = givenType
+        self.exp = expType
+        self.line = line
+
+    def __str__(self):
+        return "\n\tError in line " + str(self.line) + ": the function " + self.name + " should have type " + \
+               str(self.exp) + " for the parameter " + str(self.param) + " instead of the given " + str(self.given[1])
 
 
 class ArraySize(Exception):

@@ -7,6 +7,40 @@ from src.ast.node_types.node_type import LiteralType, ConditionType
 from itertools import islice
 
 
+def getHighestType(type1, type2, line):
+
+    if isinstance(type1, str):
+        type1 = LiteralType.getLiteral(type1)
+    if isinstance(type2, str):
+        type2 = LiteralType.getLiteral(type2)
+
+    try:
+        if (type1 == LiteralType.STR and type2 in (LiteralType.STR, LiteralType.CHAR)) or \
+                (type2 == LiteralType.STR and type1 == LiteralType.CHAR):
+            return LiteralType.STR
+        elif type1 == LiteralType.CHAR and type2 == LiteralType.CHAR:
+            return LiteralType.CHAR
+        elif (type1 == LiteralType.DOUBLE and type2 in (LiteralType.DOUBLE, LiteralType.FLOAT, LiteralType.INT)) or \
+                (type2 == LiteralType.DOUBLE and type1 in (LiteralType.FLOAT, LiteralType.INT)):
+            return LiteralType.DOUBLE
+        elif (type1 == LiteralType.FLOAT and type2 in (LiteralType.FLOAT, LiteralType.INT)) or \
+                (type2 == LiteralType.FLOAT and type1 == LiteralType.INT):
+            return LiteralType.FLOAT
+        elif type1 == LiteralType.INT and type2 == LiteralType.INT:
+            return LiteralType.INT
+        elif type1 == LiteralType.BOOL and type2 == LiteralType.BOOL:
+            return LiteralType.BOOL
+        elif type1 is None:
+            return type2
+        elif type1 in (LiteralType.INT, LiteralType.FLOAT) and type2 == LiteralType.BOOL:
+            return type1
+        else:
+            raise WrongType(type1, type2, line)
+
+    except WrongType:
+        raise
+
+
 class ToLLVM:
     pass
 
@@ -91,7 +125,7 @@ class Comment(AST_node):
     def getType(self):
         return self.type
 
-    def getVariables(self, fill: bool = True):
+    def getVariables(self, fill: bool = True, scope=None):
         return [[], True]
 
     def replaceVariables(self, values):
@@ -137,8 +171,8 @@ class Print(AST_node):
     def getValue(self):
         return self.value
 
-    def getVariables(self, fill: bool = True):
-        return self.value.getVariables(fill)
+    def getVariables(self, fill: bool = True, scope=None):
+        return self.value.getVariables(fill, scope)
 
     def setValue(self, val):
         self.value = val
@@ -183,8 +217,8 @@ class Scan(AST_node):
     def getValue(self):
         return self.value
 
-    def getVariables(self, fill: bool = True):
-        return self.value.getVariables(fill)
+    def getVariables(self, fill: bool = True, scope=None):
+        return self.value.getVariables(fill, scope)
 
     def setValue(self, val):
         self.value = val
@@ -242,7 +276,7 @@ class Value(AST_node):
     def getType(self):
         return self.type
 
-    def getVariables(self, fill: bool = True):
+    def getVariables(self, fill: bool = True, scope=None):
         """
         returns the variable contained within the node
         :return:
@@ -281,10 +315,17 @@ class Value(AST_node):
         :param node2: AST_node type containing the other child of the parent node in the AST
         :return: returns the LiteralType with the highest priority (str>char; double>float>int)
         """
-        if not (isinstance(node2, Value) or isinstance(node2, Array)):
-            return self.type
+        # if not (isinstance(node2, Value) or isinstance(node2, Array) or isinstance(node2, Function)):
+        #     return self.type
         type1 = self.type
+        if isinstance(node2, Function):
+            pass
         type2 = node2.getType()
+
+        if isinstance(type1, str):
+            type1 = LiteralType.getLiteral(type1)
+        if isinstance(type2, str):
+            type2 = LiteralType.getLiteral(type2)
 
         try:
             if (type1 == LiteralType.STR and type2 in (LiteralType.STR, LiteralType.CHAR)) or \
@@ -447,13 +488,13 @@ class BinaryOperator(AST_node):
         except NotSupported:
             raise
 
-    def getVariables(self, fill: bool = True):
+    def getVariables(self, fill: bool = True, scope=None):
         """
         returns the variable contained within the node
         :return:
         """
-        res = self.leftChild.getVariables(fill)
-        right = self.rightChild.getVariables(fill)
+        res = self.leftChild.getVariables(fill, scope)
+        right = self.rightChild.getVariables(fill, scope)
         res[0].extend(right[0])
         if not res[1] or not right[1]:
             res[1] = False
@@ -475,6 +516,12 @@ class BinaryOperator(AST_node):
                      set_llvm_binary_operators(self.leftChild, self.rightChild, self.operator, to_llvm)
         self.leftChild.printTables(filePath, to_llvm)
         self.rightChild.printTables(filePath, to_llvm)
+
+    def getType(self):
+        type1 = self.leftChild.getType()
+        type2 = self.rightChild.getType()
+        return  getHighestType(type1, type2, self.line)
+
 
 
 # Used to hold a unary operator with its operator and the operand in the right child
@@ -558,12 +605,12 @@ class UnaryOperator(AST_node):
         except NotSupported:
             raise
 
-    def getVariables(self, fill: bool = True):
+    def getVariables(self, fill: bool = True, scope=None):
         """
         returns the variable contained within the node
         :return:
         """
-        return self.rightChild.getVariables(fill)
+        return self.rightChild.getVariables(fill, scope)
 
     def replaceVariables(self, values):
         """
@@ -578,6 +625,9 @@ class UnaryOperator(AST_node):
                     self.rightChild, Array) or isinstance(self.rightChild, Pointer)):
                 set_llvm_unary_operators(self.rightChild, self.operator, to_llvm)
         self.rightChild.printTables(filePath, to_llvm)
+
+    def getType(self):
+        return self.rightChild.getType()
 
 
 # Used for logical operators with the corresponding operator and the children holding the operators
@@ -693,13 +743,13 @@ class LogicalOperator(AST_node):
         except NotSupported:
             raise
 
-    def getVariables(self, fill: bool = True):
+    def getVariables(self, fill: bool = True, scope=None):
         """
         returns the variable contained within the node
         :return:
         """
-        res = self.leftChild.getVariables(fill)
-        right = self.rightChild.getVariables(fill)
+        res = self.leftChild.getVariables(fill, scope)
+        right = self.rightChild.getVariables(fill, scope)
         res[0].extend(right[0])
         if not res[1] or not right[1]:
             res[1] = False
@@ -722,6 +772,11 @@ class LogicalOperator(AST_node):
                 set_llvm_binary_operators(self.leftChild, self.rightChild, self.operator, to_llvm)
         self.leftChild.printTables(filePath, to_llvm)
         self.rightChild.printTables(filePath, to_llvm)
+
+    def getType(self):
+        type1 = self.leftChild.getType()
+        type2 = self.rightChild.getType()
+        return getHighestType(type1, type2, self.line)
 
 
 # Used to hold a (re)declaration of a variable, the left child holds the variable and the left child the value/operation
@@ -789,7 +844,8 @@ class Declaration(AST_node):
         highestType = self.leftChild.getHigherType(self.rightChild)
         try:
             if self.leftChild.getType() == highestType or self.leftChild.getType() is None:
-                if self.rightChild.getValue() in ("True", "False") and \
+                test = "a"
+                if not isinstance(self.rightChild, Function) and self.rightChild.getValue() in ("True", "False") and \
                         self.leftChild.getType() in (LiteralType.INT, LiteralType.FLOAT):
                     if self.rightChild.getValue() == "True":
                         self.rightChild.setValue(1)
@@ -802,14 +858,14 @@ class Declaration(AST_node):
         except WrongDeclaration:
             raise
 
-    def getVariables(self, fill: bool = True):
+    def getVariables(self, fill: bool = True, scope=None):
         """
         returns the variable contained within the node
         :return:
         """
-        values = self.rightChild.getVariables(fill)
+        values = self.rightChild.getVariables(fill, scope)
         if not self.leftChild.declaration:
-            temp = self.leftChild.getVariables(fill)
+            temp = self.leftChild.getVariables(fill, scope)
             values[0].append(temp[0][0])
         return values
 
@@ -828,7 +884,10 @@ class Declaration(AST_node):
                     raise NotDeclared(name, self.leftChild.line)
                 self.leftChild.type = values[name][1]
             if not isinstance(self.leftChild, Pointer):
-                self.rightChild.replaceVariables(values)
+                if isinstance(self.rightChild, Value) and self.rightChild.deref:
+                    self.rightChild.replaceVariables(values, False)
+                else:
+                    self.rightChild.replaceVariables(values)
             else:
                 self.rightChild.replaceVariables(values, False)
 
@@ -926,7 +985,7 @@ class Pointer(AST_node):
     def setDeclaration(self, decl):
         self.declaration = decl
 
-    def getVariables(self, fill: bool = True):
+    def getVariables(self, fill: bool = True, scope=None):
         """
         returns the variable contained within the node
         :return:
@@ -951,6 +1010,11 @@ class Pointer(AST_node):
         """
         type1 = self.type
         type2 = node2.getType()
+
+        if isinstance(type1, str):
+            type1 = LiteralType.getLiteral(type1)
+        if isinstance(type2, str):
+            type2 = LiteralType.getLiteral(type2)
         try:
             if (type1 == LiteralType.STR and type2 in (LiteralType.STR, LiteralType.CHAR)) or \
                     (type2 == LiteralType.STR and type1 == LiteralType.CHAR):
@@ -997,9 +1061,6 @@ class EmptyNode(AST_node):
     def getLabel(self):
         return "\"Empty Node: " + str(self.value) + "\""
 
-    def getType(self):
-        return self.type
-
     def getValue(self):
         return None
 
@@ -1015,7 +1076,7 @@ class EmptyNode(AST_node):
     def getType(self):
         return self.type
 
-    def getVariables(self, fill: bool = True):
+    def getVariables(self, fill: bool = True, scope=None):
         """
         returns the variable contained within the node
         :return:
@@ -1053,7 +1114,7 @@ class Include(AST_node):
     def getType(self):
         return self.type
 
-    def getVariables(self, fill: bool = True):
+    def getVariables(self, fill: bool = True, scope=None):
         return [[], True]
 
     def fold(self, to_llvm):
@@ -1137,13 +1198,19 @@ class Scope(AST_node):  # TODO: let it hold a block instead of trees
         """
         'folds' the node and gives true with a nameless scope and false with a function
         """
-
+        for param in self.parameters:
+            if not (isinstance(self.parameters[param], Value) or isinstance(self.parameters[param], Array) or
+                    isinstance(self.parameters[param], Pointer)):
+                self.parameters[param] = self.parameters[param].fold()[0]
+        if self.f_return is not None:
+            self.f_return = self.f_return.foldTree()[0]
+            self.return_type = self.f_return.root.getType()
         if self.f_name == "":
             return self, True
         else:
             return self, False
 
-    def getVariables(self, fill: bool = True):
+    def getVariables(self, fill: bool = True, scope=None):
         """
         returns the variable contained within the node
         :return:
@@ -1154,16 +1221,18 @@ class Scope(AST_node):  # TODO: let it hold a block instead of trees
         else:
             # res = self.block.cleanBlock(onlyLocal=True)
             self.block.cleanBlock(onlyLocal=True)
+            self.block.fillLiterals(self.f_return, True)
             res = []
             # for elem in res:
             for elem in self.block.getVariables(fill=False):
                 if len(elem) != 0 and elem[0][0] not in self.parameters and \
                         not self.block.symbols.findSymbol(elem[0][0]):
                     res.append(elem[0])
-            # for elem in self.f_return.getVariables(fill=False):
-            #     if len(elem) != 0 and elem[0][0] not in self.parameters and \
-            #             not self.block.symbols.findSymbol(elem[0][0]):
-            #         res.append(elem[0])
+            for elem in self.f_return.getVariables(fill=False):
+                if isinstance(elem, list):
+                    if len(elem) > 0 and elem[0][0] not in self.parameters and \
+                            not self.block.symbols.findSymbol(elem[0][0]):
+                        res.append(elem[0])
             return [res, True]
 
     def replaceVariables(self, values):
@@ -1175,10 +1244,13 @@ class Scope(AST_node):  # TODO: let it hold a block instead of trees
 
     def printTables(self, filePath: str, to_llvm=None):
         for param in self.parameters:
-            param.printTables(filePath, to_llvm)
+            self.parameters[param].printTables(filePath, to_llvm)
         if self.f_return is not None:
             self.f_return.printTables(filePath, to_llvm)
         self.block.printTables(filePath, to_llvm)
+
+    def getType(self):
+        return self.f_return.root.getType()
 
 
 # Used to hold the for loops TODO: is this used?
@@ -1254,14 +1326,14 @@ class If(AST_node):
         # self.c_block = self.c_block.fold(to_llvm)
         return self, True
 
-    def getVariables(self, fill: bool = True):
+    def getVariables(self, fill: bool = True, scope=None):
         """
         returns the variable contained within the node
         :return:
         """
         res = None
         if self.operator != ConditionType.ELSE:
-            res = self.Condition.getVariables(fill)
+            res = self.Condition.getVariables(fill, scope)
         self.c_block.cleanBlock()
         if res is None:
             return [[], True]
@@ -1353,12 +1425,12 @@ class While(AST_node):
     def fold(self, to_llvm=None):
         return self, False
 
-    def getVariables(self, fill: bool = True):
+    def getVariables(self, fill: bool = True, scope=None):
         """
         returns the variable contained within the node
         :return:
         """
-        res = self.Condition.getVariables(fill)[0]
+        res = self.Condition.getVariables(fill, scope)[0]
         self.Condition.root.fold()
         for elem in self.c_block.getVariables(fill)[0]:
             res.append(elem)
@@ -1435,11 +1507,12 @@ class Function(AST_node):
         # given = scope.symbols.findSymbol(var)[1]
         # try:
         #     if exp == given:
+        pos = len(self.param)
         if var.isdigit():
             val = Value(var, None, line)
         else:
             val = Value(var, None, line, None, True)
-        self.param[var] = val
+        self.param[pos] = val
         # try:
         #     if len(self.param) > len(self.expected):
         #         raise FunctionParam(self.f_name, len(self.expected), self.line)
@@ -1461,7 +1534,10 @@ class Function(AST_node):
     def fold(self, to_llvm=None):
         return self, False
 
-    def getVariables(self, fill: bool = True):  # TODO: for now no filling of variables because this can run multiple times
+    def getType(self):
+        return self.expected["return"]
+
+    def getVariables(self, fill: bool = True, scope=None):  # TODO: for now no filling of variables because this can run multiple times
         """
         returns the variable contained within the node
         :return:
@@ -1471,10 +1547,33 @@ class Function(AST_node):
         #         raise FunctionParam(self.f_name, len(self.expected), self.line)
         # except FunctionParam:
         #     raise
-        params = []
-        for param in self.param:
-            if self.param[param].variable:
-                params.append((self.param[param].value, self.param[param].line))
+        prog = scope
+        while prog.name != "program":
+            prog = prog.parent
+        self.expected = prog.functions.findFunction(self.f_name, self.line)
+        try:
+            params = []
+            if len(self.expected)-1 != len(self.param):
+                raise FunctionParam(self.f_name, len(self.expected)-1, self.line)
+            pos = 0
+            for exp in self.expected:
+                if exp == "return":
+                    continue
+                expec = self.expected[exp]
+                given = self.param[pos]
+                givenType = scope.symbols.findSymbol(given.value)
+                if expec != str(givenType[1]):
+                    raise FunctionParamType(self.f_name, exp, givenType, expec, self.line)
+                else:
+                    params.append((self.param[pos].value, self.param[pos].line))
+                    self.param[pos].type = givenType[1]
+                pos += 1;
+
+        except FunctionParam:
+            raise
+        # for param in self.param:
+        #     if self.param[param].variable:
+        #         params.append((self.param[param].value, self.param[param].line))
         return [params, True]
 
     def replaceVariables(self, values):  # TODO: possible to get from listener if it is a variable or not???
@@ -1544,7 +1643,7 @@ class Array(AST_node):
         else:
             return "\"array: " + str(self.value) + "\nposition: " + str(self.pos) + "\""
 
-    def getVariables(self, fill: bool = True):
+    def getVariables(self, fill: bool = True, scope=None):
         """
         returns the variable contained within the node
         :return:
@@ -1571,10 +1670,15 @@ class Array(AST_node):
         :param node2: AST_node type containing the other child of the parent node in the AST
         :return: returns the LiteralType with the highest priority (str>char; double>float>int)
         """
-        if not (isinstance(node2, Value) or isinstance(node2, Array)):
-            return self.type
+        # if not (isinstance(node2, Value) or isinstance(node2, Array) or isinstance(node2, Function)):
+        #     return self.type
         type1 = self.type
         type2 = node2.getType()
+
+        if isinstance(type1, str):
+            type1 = LiteralType.getLiteral(type1)
+        if isinstance(type2, str):
+            type2 = LiteralType.getLiteral(type2)
 
         try:
             if (type1 == LiteralType.STR and type2 in (LiteralType.STR, LiteralType.CHAR)) or \
