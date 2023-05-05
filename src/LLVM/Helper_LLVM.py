@@ -374,6 +374,10 @@ def set_llvm_binary_operators(left, right, op: str, llvm):
     if op == "*" or op == "/" or op == "+" or op == "-" or op == "%" or op == ">=" or op == "<=" or op == ">" or op == "<" or op == "==" or op == "&&":
         llvm.function_load += stor_binary_operation(op, left, right, rtype, llvm, load_left, load_right)
         llvm.function_load += "\n"
+        if op == ">=" or op == "<=" or op == ">" or op == "<" or op == "==" or op == "&&":
+            llvm.comparator_found=True
+        else:
+            llvm.comparator_found=False
     else:
         raise NotSupported("operator", op, left.line)
     return ltype

@@ -79,6 +79,7 @@ class ToLLVM():
         self.looping = False
         self.allocated_var = dict()
         self.retransverse = []
+        self.comparator_found=False
 
     def STable_to_LLVM(self, table: SymbolTable):
         for entry in table:
@@ -817,8 +818,9 @@ class ToLLVM():
                     type=self.c_function.root.block.getSymbolTable().findSymbol(val)[1]
             if type is None:
                 type=LiteralType.INT
-            self.function_load += "%{} = icmp ne {} %{}, 0\n".format(self.increase_counter(),self.get_llvm_type(type),self.get_variable(val))
-
+            if not self.comparator_found:
+                self.function_load += "%{} = icmp ne {} %{}, 0\n".format(self.increase_counter(),self.get_llvm_type(type),self.get_variable(val))
+            self.comparator_found=False
         tijdelijk = self.function_load
         self.function_load = ""
         counter1 = self.get_counter()
@@ -926,6 +928,10 @@ class ToLLVM():
         if isinstance(v, Pointer):
             return "ptr"
         val = v
+        if isinstance(v,int):
+            v=LiteralType.INT
+        if isinstance(v,float):
+            v=LiteralType.FLOAT
         if isinstance(v, Value):
             v = v.getType()
         if v == LiteralType.INT:
@@ -942,7 +948,15 @@ class ToLLVM():
                     return self.get_llvm_type(self.c_function.root.parameters[val.getValue()])
                 else:
                     return self.get_llvm_type(self.c_function.root.block.getSymbolTable().findSymbol(val.getValue())[0])
+            if val.getValue() in self.c_function.root.parameters:
+                return self.get_llvm_type(self.c_function.root.parameters[val.getValue()])
+            elif self.c_function.root.block.getSymbolTable().findSymbol(val.getValue()) is not None:
+                self.get_llvm_type(self.c_function.root.block.getSymbolTable().findSymbol(val.getValue())[0])
+            else:
+                return None
         return None
+
+
 
     def getPrintValue(self, param: str, type_: str, p: Value):
         if param == "%c":
