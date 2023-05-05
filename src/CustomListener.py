@@ -49,7 +49,7 @@ class CustomListener(ExpressionListener):
         self.return_function = False
         self.function_scope = False
         self.c_scope = Scope(0, None)
-        self.c_print=None
+        self.c_print = None
         self.call_function = False
         self.param = []
 
@@ -142,7 +142,8 @@ class CustomListener(ExpressionListener):
             self.current = Value(float(ctx.getText()), type_, ctx.start.line, self.parent)
         elif type_ == LiteralType.CHAR:
             if len(ctx.getText()) > 3:
-                raise CharSize(ctx.getText(), ctx.start.line)
+                if not (ctx.getText() == "\n" or ctx.getText() == "\t" or ctx.getText() == "\0"):
+                    raise CharSize(ctx.getText(), ctx.start.line)
 
         """if self.is_print:
             val = self.current.getValue()
@@ -301,10 +302,10 @@ class CustomListener(ExpressionListener):
     def exitPrint(self, ctx: ParserRuleContext):
         self.is_print = False
         self.asT = create_tree()
-        self.asT.root=self.c_print
+        self.asT.root = self.c_print
         self.c_scope.block.trees.append(self.asT)
-        self.c_print=None
-        self.parent=None
+        self.c_print = None
+        self.parent = None
         self.asT = create_tree()
         self.current = None
 
@@ -312,10 +313,10 @@ class CustomListener(ExpressionListener):
     def enterFormat_string(self, ctx: ParserRuleContext):
         if isinstance(self.current, Print):
             self.current.setString(ctx.getText())
-            self.c_print=self.current
-            self.current=None
-            self.parent=None
-            self.asT=create_tree()
+            self.c_print = self.current
+            self.current = None
+            self.parent = None
+            self.asT = create_tree()
             return
 
     # Exit a parse tree produced by ExpressionParser#format_string.
@@ -718,11 +719,17 @@ class CustomListener(ExpressionListener):
             self.asT.setRoot(self.current)
             if self.is_print:
                 self.c_print.addParam(self.asT)
-                self.c_print.value=self.asT
+                self.c_print.value = self.asT
                 return
             if self.is_loop and self.loop.Condition is None:
                 self.loop.Condition = self.asT.root  # TODO: check if this still works: set Condition to node instead of ast
                 print("fill condition")
+            if not self.return_function:
+                self.c_scope.block.trees.append(self.asT)
+                self.current=None
+                self.parent=None
+                self.asT=create_tree()
+                return
             else:
                 if self.return_function:
                     self.c_scope.f_return = self.asT
@@ -921,11 +928,11 @@ class CustomListener(ExpressionListener):
     # Enter a parse tree produced by ExpressionParser#lscope.
     def enterLscope(self, ctx: ParserRuleContext):
         print("enter lscope:" + ctx.getText())
-        if isinstance(self.loop,While) and not isinstance(self.loop.Condition,AST):
-            self.asT=create_tree()
-            self.asT.root=self.loop.Condition
-            self.loop.Condition=self.asT
-            self.asT=create_tree()
+        if isinstance(self.loop, While) and not isinstance(self.loop.Condition, AST):
+            self.asT = create_tree()
+            self.asT.root = self.loop.Condition
+            self.loop.Condition = self.asT
+            self.asT = create_tree()
         self.stop_fold = True
         self.scope_stack.push(self.c_scope.block)
         self.c_scope.block = block(self.scope_stack.peek())
@@ -939,7 +946,7 @@ class CustomListener(ExpressionListener):
             sblock = self.scope_stack.pop()
             sblock.trees.append(self.loop.f_dec)
             wloop = While(self.loop.line, self.loop.parent)
-            wloop.Condition = self.loop.Condition # TODO: check if this is right -> AST changed to node
+            wloop.Condition = self.loop.Condition  # TODO: check if this is right -> AST changed to node
             self.c_scope.block.trees.append(self.loop.f_incr)
             wloop.c_block = self.c_scope.block
             ast = create_tree()
