@@ -1,7 +1,7 @@
 ;//intmain(intx){x=0;{intx=90;}return1;}
 
 ; Function Attrs: noinline nounwind optnone ssp uwtable(sync)
-define i32 @main(i32 noundef %0) #0 { 
+define i32 @main(i32 noundef %0) #0 {
 %2 = alloca i32, align 4
  %3 = alloca i32, align 4
 ;  int x;

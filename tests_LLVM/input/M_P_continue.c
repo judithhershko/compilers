@@ -1,15 +1,12 @@
 #include "stdio.h"
-int main(int x,int y)
+int main(int x)
 {
-const int r = 5;
-x=x+1*x+89;
-if(x>90)
-{
-x=x-10;
-}
-else
-{
-x=x+10;
-}
-return 1;
+    x=x+1*x+89;
+    while(x+90>90)
+    {
+        x=x+1;
+        continue;
+        int x=33;
+    }
+    return 1;
 }
