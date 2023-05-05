@@ -778,6 +778,7 @@ class CustomListener(ExpressionListener):
     # Exit a parse tree produced by ExpressionParser#char_expr.
     def exitChar_expr(self, ctx: ParserRuleContext):
         self.is_char = False
+        return self.exitExpr(ctx)
 
     # Enter a parse tree produced by ExpressionParser#char_pri.
     def enterChar_pri(self, ctx: ParserRuleContext):
@@ -786,7 +787,6 @@ class CustomListener(ExpressionListener):
     # Exit a parse tree produced by ExpressionParser#char_pri.
     def exitChar_pri(self, ctx: ParserRuleContext):
         pass
-
     def enterComments(self, ctx: ParserRuleContext):
         # print("comment detected")
         type = commentType(ctx.getText())
