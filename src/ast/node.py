@@ -173,7 +173,17 @@ class Print(AST_node):
         return self.value
 
     def getVariables(self, fill: bool = True, scope=None):
-        return self.value.getVariables(fill, scope)
+        ret = []
+        true = True
+        for tree in self.param:
+            temp = tree
+            if isinstance(tree, tuple):
+                temp = tree[0]
+            temp2 = temp.getVariables(fill, scope)
+            ret.append(temp2[0][0])
+            if not temp2[1]:
+                true = False
+        return ret, true
 
     def setValue(self, val):
         self.value = val
@@ -202,7 +212,6 @@ class Print(AST_node):
         return self, True  # TODO: redo this when the print function is adapted to the final form
 
     def replaceVariables(self, values):
-        #pass  # TODO: redo this when the print function is adapted to the final form
         for tree in self.param:
             tree.replaceVariables(values)
 
