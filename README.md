@@ -70,15 +70,15 @@ chmod 777 run.sh
 
 ### verplicht:
 
-- [ ] Conditional statements
-  - [ ] if else 
-- [ ]  Loops
-  - [ ] while
-  - [ ] for
-  - [ ] break 
-  - [ ] continue
-- [ ] scopes
-- [ ] to llvm 
+- [x ] Conditional statements
+  - [x] if else 
+- [x]  Loops
+  - [x] while
+  - [x] for
+  - [x] break 
+  - [x] continue
+- [x] scopes
+- [x] to llvm 
 
 ### optioneel:
 
@@ -88,24 +88,24 @@ chmod 777 run.sh
 
 ### verplicht:
 
-- [ ]  Function scopes
-- [ ] Local and global variables
-- [ ] Functions
-  - [ ] Defining functions (including forward declarations)
-  - [ ] Calling functions.
-  - [ ] Passing parameters of basic types and pointer types
-  - [ ] Returning values using the return keyword
-  - [ ] Functions that return nothing
+- [x]  Function scopes
+- [x] Local and global variables
+- [x] Functions
+  - [x] Defining functions (including forward declarations)
+  - [x] Calling functions.
+  - [x] Passing parameters of basic types and pointer types
+  - [x] Returning values using the return keyword
+  - [x] Functions that return nothing
 
-- [ ] to llvm 
+- [x] to llvm 
 ## project 6:
 
 ### verplicht:
 
-- [ ]  Arrays
-  - [ ] operations array elements
-- [ ]  Including stdio.h
-- [ ] to llvm 
+- [x]  Arrays
+  - [x] operations array elements
+- [x]  Including stdio.h
+- [x] to llvm 
 ### optioneel:
 - [ ] multi-dimensional arrays
 - [ ] assignments of complete arrays or array rows in case of multi-dimensional arrays.

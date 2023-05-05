@@ -221,7 +221,7 @@ def set_llvm_unary_operators(right, op: str, llvm):
         right_pointer = True
     if right.name == "pointer":
         return pointer_in_operation(right, None, op, llvm)
-    print("unary operator called")
+
     load_right = True
     if isinstance(right.value, int) or str(right.value).isdigit():
         llvm.var_dic["$" + str(right.value)] = right.value
@@ -278,8 +278,6 @@ def set_llvm_binary_operators(left, right, op: str, llvm):
         #load_higher_type_bool_to_int(llvm.allocated_var[right], right)
         #return llvm.to_retrans(left, right, op)
 
-    print(left)
-    print(right)
     if left is None:
         return
     if right is None:
@@ -311,7 +309,7 @@ def set_llvm_binary_operators(left, right, op: str, llvm):
         right_pointer = True
     if left.name == "pointer" or right.name == "pointer":
         return pointer_in_operation(left, right, op, llvm)
-    print("binary operator called")
+
     # get all types
     # move higher type if necessary
     load_left = True
@@ -320,13 +318,13 @@ def set_llvm_binary_operators(left, right, op: str, llvm):
         llvm.var_dic["$" + str(right.value)] = right.value
         load_right = False
     elif isinstance(right.value, float) or isfloat(str(right.value)):
-        llvm.var_dict["$" + str(right.value)] = llvm.float_to_64bit_hex(right.value)
+        llvm.var_dic["$" + str(right.value)] = llvm.float_to_64bit_hex(right.value)
         load_right = False
     elif isinstance(left.value, int) or str(left.value).isdigit():
         llvm.var_dic["$" + str(left.value)] = left.value
         load_left = False
     elif isinstance(right.value, float) or isfloat(str(left.value)):
-        llvm.var_dict["$" + str(left.value)] = llvm.float_to_64bit_hex(left.value)
+        llvm.var_dic["$" + str(left.value)] = llvm.float_to_64bit_hex(left.value)
         load_left = False
 
     if load_left:

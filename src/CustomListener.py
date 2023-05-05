@@ -726,7 +726,7 @@ class CustomListener(ExpressionListener):
                 return
             if self.is_loop and self.loop.Condition is None:
                 self.loop.Condition = self.asT.root  # TODO: check if this still works: set Condition to node instead of ast
-                print("fill condition")
+
             if not self.return_function:
                 self.c_scope.block.trees.append(self.asT)
                 self.current=None
@@ -893,7 +893,7 @@ class CustomListener(ExpressionListener):
     def enterScope(self, ctx: ParserRuleContext):
         if self.function_scope and ctx.getText()[0] != "{":
             return
-        print("scope:" + ctx.getText())
+
         if self.function_scope:
             self.function_scope = False
             return
@@ -908,7 +908,7 @@ class CustomListener(ExpressionListener):
 
     # Exit a parse tree produced by ExpressionParser#scope.
     def exitScope(self, ctx: ParserRuleContext):
-        print("exit scope:" + ctx.getText())
+
         self.scope_count -= 1
         # self.c_scope.block = self.c_block
         # TODO dit moet weg
@@ -940,7 +940,7 @@ class CustomListener(ExpressionListener):
 
     # Enter a parse tree produced by ExpressionParser#lscope.
     def enterLscope(self, ctx: ParserRuleContext):
-        print("enter lscope:" + ctx.getText())
+
         if isinstance(self.loop, While) and not isinstance(self.loop.Condition, AST):
             self.asT = create_tree()
             self.asT.root = self.loop.Condition
