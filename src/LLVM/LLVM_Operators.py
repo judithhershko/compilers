@@ -244,12 +244,11 @@ class ToLLVM():
         v = self.c_function.root.f_return.root
         if not isinstance(v, Value) or isinstance(v, Pointer):
             self.c_function.root.f_return.root.printTables("random", self)
-            v = self.c_function.root.f_return.root
         v = self.c_function.root.f_return.root
         if isinstance(v, Value) or isinstance(v, Pointer):
             var_name = v.getValue()
             type_ = v.getType()
-            if type_ != LiteralType.VAR:
+            if not v.variable:
                 if type_ == LiteralType.CHAR:
                     v.setValue(v.getValue().replace("\'", ""))
                     v.setValue(ord(v.getValue()))
@@ -366,13 +365,13 @@ class ToLLVM():
         elif type == 'i8':
             return '1'
     def LiteralFunction(self,v:Function, var:Value):
-        self.allocate += "%{} = alloca {}, align 4\n".format(self.add_variable(var.getValue()),self.get_llvm_type(var))
+        self.store += "%{} = alloca {}, align 4\n".format(self.add_variable(var.getValue()),self.get_llvm_type(var))
+
         self.allocated_var[var.getValue()]=self.get_counter()
         function=v
         inhoud = self.program.functions.findFunction(function.f_name, function.line)
         return_ = self.program.functions.findFunction(function.f_name, function.line)
         inhoud = function.param
-        self.add_variable(function.f_name)
         self.store += "%{} = call {} @{} ".format(self.add_variable(var.getValue()),
                                                          self.get_llvm_type(self.return_type_function(return_["return"])), function.f_name)
         self.store += "( "

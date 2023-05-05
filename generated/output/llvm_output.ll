@@ -30,7 +30,8 @@ store i32 %1, ptr %5, align 4
 
 ;//x=f(x)
 
-%8 = call i32 @f ( i32 noundef 0 )
-store i32 %8, ptr %6, align 4
-ret i32 x
-}
+%6 = alloca i32, align 4
+%7 = call i32 @f ( i32 noundef 0 )
+store i32 %7, ptr %6, align 4
+ %8 = load i32, ptr %6, align 4
+ret i32 %8}

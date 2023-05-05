@@ -1110,7 +1110,7 @@ class CustomListener(ExpressionListener):
             self.current.param[ctx.getText()]=v
             return
         if ctx.getText()[0]=='\'':
-            v = Value(ctx.getText(), LiteralType.CHAR, ctx.start.line, None)
+            v = Value(ctx.getText(), LiteralType.CH, ctx.start.line, None)
             self.current.param[ctx.getText()] = v
             return
         if isinstance(self.current, Function):
