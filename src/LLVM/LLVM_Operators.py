@@ -38,7 +38,7 @@ pointers
 class ToLLVM():
     def __init__(self):
 
-        print("------------------START LLVM-----------------")
+
         self.program = None
         self.c_function = None
         self.stop_loop = False
@@ -127,8 +127,7 @@ class ToLLVM():
         return hex(struct.unpack('<I', struct.pack('<f', f))[0])
 
     def float_to_64bit_hex(self, x):
-        if x is None:
-            print("x is none in scope:" + self.c_function.root.f_name)
+        #print("x is none in scope:" + self.c_function.root.f_name)
         if isinstance(x, str):
             x = float(x)
         bytes_of_x = struct.pack('>f', x)
@@ -235,7 +234,7 @@ class ToLLVM():
         self.store += "}\n"
 
     def end_function(self):
-        print("end function aangeroepen")
+        #print("end function aangeroepen")
         if self.c_function.root.f_return is None:
             self.g_assignment += "ret void"
             self.g_assignment += "}\n"
@@ -271,11 +270,10 @@ class ToLLVM():
                 self.g_assignment += "ret {} %{}".format(self.get_llvm_type(Value(0, type_, 0)),
                                                          self.get_variable(var_name))
         else:
-            print("fold return again")
             self.function_load = ""
             self.c_function.root.f_return.root.printTables("random", self)
             self.g_assignment += self.function_load
-            print(self.function_load)
+
             self.g_assignment += "ret ptr %{}".format(self.get_counter())
         self.g_assignment += "}\n"
         self.counter = 0
@@ -559,8 +557,7 @@ class ToLLVM():
         size=0
         if self.c_function is not None:
             size=self.c_function.root.block.getSymbolTable().findSymbol(dec.leftChild.value)[0]
-        print("content")
-        print(dec.leftChild.value)
+
         old_counter=self.allocated_var[dec.leftChild.value]
         self.store += "%{} = getelementptr inbounds [{} x i32], ptr %{}, i64 0, i64 {}\n".format(self.add_variable(dec.leftChild.value),size, self.allocated_var[dec.leftChild.value],dec.leftChild.getPosition())
         self.store += "store {} {}, ptr %{}, align 4\n".format(self.get_llvm_type(dec.leftChild.type),dec.rightChild.value,self.get_variable(dec.leftChild.value))
@@ -717,12 +714,11 @@ class ToLLVM():
 
     def unnamed_scope(self, tree):
         self.c_function = tree
-        print("unnamed scope")
         prev_global = self.is_global
 
     def function_scope(self, tree):
         self.c_function = tree
-        print("function scope")
+
         prev_global = self.is_global
         self.is_global = False
         self.counter = 0
@@ -770,7 +766,7 @@ class ToLLVM():
                 i.root = tree
                 tree = i
             if isinstance(tree.root, Declaration) and tree.root.leftChild.declaration:
-                print("entered for dec " + tree.root.leftChild.getValue())
+
                 self.to_declaration(tree, True)
                 self.function_alloc += self.allocate
                 self.allocate = ""
@@ -806,7 +802,7 @@ class ToLLVM():
                 self.store = ""
                 self.allocate =""
             elif isinstance(t.root, Scope):
-                print("new scope")
+
                 self.set_new_scope(t)
 
             elif isinstance(t.root, Array):
@@ -829,10 +825,10 @@ class ToLLVM():
             elif isinstance(t.root, Break):
                 self.to_break(t, branch_count)
             elif isinstance(t.root, While):
-                print("while loop")
+
                 self.set_while_loop(t)
             elif isinstance(t.root, If):
-                print("if")
+
                 self.set_if_loop(t)
             elif t is None:
                 pass
