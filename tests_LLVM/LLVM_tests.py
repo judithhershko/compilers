@@ -8,7 +8,7 @@ from generated.input.ExpressionParser import ExpressionParser
 
 
 def testFile(fileName):
-    argv = "../input/projecten_123_met_main/" + fileName + ".c"
+    argv = "../tests_LLVM/input/" + fileName + ".c"
     input_stream = FileStream(argv)
     lexer = ExpressionLexer(input_stream)
     MyError = CustomError()
