@@ -554,10 +554,17 @@ class ToLLVM():
         self.added.append(v.getValue())
 
     # save it to be used as input in declaration
+    def redec_array(self,dec:AST):
+        dec=dec.root
+        size=0;
+        if self.c_function is not None:
+            size=self.c_function.root.block.getSymbolTable().findSymbol(dec.leftChild.value)[0]
+        self.store += "%{} = getelementptr inbounds [3 x i32], ptr %{}, i64 0, i64 2\n".format(self.add_variable(dec.leftChild.getValue()),size, self.allocated_var[dec.leftChild.getValue()])
+        self.store += "store {} {}, ptr %{}, align 4\n".format(self.get_llvm_type(dec.leftChild.get),dec.rightChild.getValue(),self.get_variable(dec.leftChild.getValue()))
 
+        return
     def to_declaration(self, ast: AST, one_side=False):
         if isinstance(ast.root.leftChild, Pointer):
-
             if ast.root.leftChild.declaration:
                 t_type = self.get_type(ast.root.leftChild)
                 const = ""
@@ -667,7 +674,7 @@ class ToLLVM():
                         if t.root.getValue() in self.c_scope.parameters:
                             to_print = self.c_scope.parameters[t.root.getValue()].getValue()
                         else:
-                            to_print = self.c_function.root.parameters[t.root.getValue()].getValue()
+                            to_print = self.c_function.root.block.getSymbolTable().findSymbol(t.root.getValue())[0]
         var = self.addGlobalString(p_string)
         s = self.add_variable(f_ + str(self.g_count))
 
@@ -773,6 +780,8 @@ class ToLLVM():
                 i.root = t
                 t = i
             if isinstance(t.root, Declaration) and (isinstance(t.root.rightChild, Value) or isinstance(t.root.rightChild, Array) or isinstance(t.root.rightChild, Function)):
+                if isinstance(t.root.leftChild, Array):
+                    self.redec_array(t)
                 t.root.leftChild.declaration = False
                 self.to_declaration(t)
                 self.function_load += self.store

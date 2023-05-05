@@ -8,7 +8,6 @@ from itertools import islice
 
 
 def getHighestType(type1, type2, line):
-
     if isinstance(type1, str):
         type1 = LiteralType.getLiteral(type1)
     if isinstance(type2, str):
@@ -157,16 +156,16 @@ class Print(AST_node):
     # TODO: check dat dit een digit niet ervoor staat ipv letter
     def addParam(self, param):
         self.param.append(param)
-        self.value=param
+        self.value = param
 
-    def find_and_select(self,input_string):
+    def find_and_select(self, input_string):
         regex = r'%[cdsi]'
         matches = re.findall(regex, input_string)
         return matches
 
     #
     def setParamString(self, input: str):
-        self.paramString=self.find_and_select(input)
+        self.paramString = self.find_and_select(input)
 
     def getValue(self):
         return self.value
@@ -390,9 +389,9 @@ class BinaryOperator(AST_node):
         if not isinstance(other, BinaryOperator):
             return False
         return self.operator == other.operator and self.leftChild == other.leftChild and \
-               self.rightChild == other.rightChild and self.parent == other.parent and \
-               self.variable == other.variable and self.level == other.level and \
-               self.number == other.number and self.line == other.line
+            self.rightChild == other.rightChild and self.parent == other.parent and \
+            self.variable == other.variable and self.level == other.level and \
+            self.number == other.number and self.line == other.line
 
     def getValue(self):
         return self.operator
@@ -432,10 +431,10 @@ class BinaryOperator(AST_node):
                     not (isinstance(self.rightChild, Value) or isinstance(self.rightChild, Pointer) or
                          isinstance(self.rightChild, Array)):
                 if to_llvm is not None:
-                    if isinstance(self.leftChild,UnaryOperator) and not isinstance(self.rightChild,UnaryOperator):
-                        set_llvm_unary_operators(self.leftChild,self.operator, to_llvm)
-                    if not isinstance(self.leftChild,UnaryOperator) and isinstance(self.rightChild,UnaryOperator):
-                        set_llvm_unary_operators(self.rightChild,self.operator, to_llvm)
+                    if isinstance(self.leftChild, UnaryOperator) and not isinstance(self.rightChild, UnaryOperator):
+                        set_llvm_unary_operators(self.leftChild, self.operator, to_llvm)
+                    if not isinstance(self.leftChild, UnaryOperator) and isinstance(self.rightChild, UnaryOperator):
+                        set_llvm_unary_operators(self.rightChild, self.operator, to_llvm)
                     else:
                         set_llvm_binary_operators(self.leftChild, self.rightChild, self.operator, to_llvm)
                 return self, False
@@ -443,9 +442,9 @@ class BinaryOperator(AST_node):
                     (self.leftChild.variable or self.rightChild.variable):
                 if to_llvm is not None:
                     if isinstance(self.leftChild, UnaryOperator) or isinstance(self.rightChild, UnaryOperator):
-                        if isinstance(self.leftChild,UnaryOperator):
+                        if isinstance(self.leftChild, UnaryOperator):
                             set_llvm_unary_operators(self.leftChild, self.operator, to_llvm)
-                        if isinstance(self.rightChild,UnaryOperator):
+                        if isinstance(self.rightChild, UnaryOperator):
                             set_llvm_unary_operators(self.rightChild, self.operator, to_llvm)
                         return self, False
                     else:
@@ -510,18 +509,19 @@ class BinaryOperator(AST_node):
 
     def printTables(self, filePath: str, to_llvm=None):
         if to_llvm is not None:
-            if ((isinstance(self.rightChild,Value) or isinstance(self.rightChild,Function) or isinstance(self.rightChild,Array) or isinstance(self.rightChild,Pointer)) or
-            (isinstance(self.leftChild,Value) or isinstance(self.leftChild,Function) or isinstance(self.leftChild,Array)) or isinstance(self.leftChild,Pointer)):
+            if ((isinstance(self.rightChild, Value) or isinstance(self.rightChild, Function) or isinstance(
+                    self.rightChild, Array) or isinstance(self.rightChild, Pointer)) or
+                    (isinstance(self.leftChild, Value) or isinstance(self.leftChild, Function) or isinstance(
+                        self.leftChild, Array)) or isinstance(self.leftChild, Pointer)):
                 if not (self.rightChild is None or self.leftChild is None):
-                     set_llvm_binary_operators(self.leftChild, self.rightChild, self.operator, to_llvm)
+                    set_llvm_binary_operators(self.leftChild, self.rightChild, self.operator, to_llvm)
         self.leftChild.printTables(filePath, to_llvm)
         self.rightChild.printTables(filePath, to_llvm)
 
     def getType(self):
         type1 = self.leftChild.getType()
         type2 = self.rightChild.getType()
-        return  getHighestType(type1, type2, self.line)
-
+        return getHighestType(type1, type2, self.line)
 
 
 # Used to hold a unary operator with its operator and the operand in the right child
@@ -544,8 +544,8 @@ class UnaryOperator(AST_node):
         if not isinstance(other, UnaryOperator):
             return False
         return self.operator == other.operator and self.rightChild == other.rightChild and self.parent == other.parent \
-               and self.variable == other.variable and self.level == other.level and \
-               self.number == other.number and self.line == other.line
+            and self.variable == other.variable and self.level == other.level and \
+            self.number == other.number and self.line == other.line
 
     def getValue(self):
         return self.operator
@@ -650,9 +650,9 @@ class LogicalOperator(AST_node):
         if not isinstance(other, LogicalOperator):
             return False
         return self.operator == other.operator and self.leftChild == other.leftChild and \
-               self.rightChild == other.rightChild and self.parent == other.parent and \
-               self.variable == other.variable and self.level == other.level and \
-               self.number == other.number and self.line == other.line
+            self.rightChild == other.rightChild and self.parent == other.parent and \
+            self.variable == other.variable and self.level == other.level and \
+            self.number == other.number and self.line == other.line
 
     def getValue(self):
         return self.operator
@@ -802,8 +802,8 @@ class Declaration(AST_node):
         if not isinstance(other, LogicalOperator):
             return False
         return self.leftChild == other.leftChild and self.rightChild == other.rightChild and \
-               self.parent == other.parent and self.variable == other.variable and self.level == other.level and \
-               self.number == other.number and self.line == other.line
+            self.parent == other.parent and self.variable == other.variable and self.level == other.level and \
+            self.number == other.number and self.line == other.line
 
     def getLabel(self):
         return "\"Declaration: " + self.operator + "\""
@@ -898,6 +898,7 @@ class Declaration(AST_node):
         self.leftChild.printTables(filePath, to_llvm)
         self.rightChild.printTables(filePath, to_llvm)
 
+
 # Used to hold pointeres
 class Pointer(AST_node):
     def __init__(self, value: str, valueType: LiteralType, line: int, level: int, parent: AST_node = None,
@@ -925,8 +926,8 @@ class Pointer(AST_node):
         if not isinstance(other, Pointer):
             return False
         return self.value == other.value and self.type == other.type and self.parent == other.parent and \
-               self.variable == other.variable and self.pointerLevel == other.pointerLevel and \
-               self.const == other.const and self.number == other.number and self.line == other.line
+            self.variable == other.variable and self.pointerLevel == other.pointerLevel and \
+            self.const == other.const and self.number == other.number and self.line == other.line
 
     def getValue(self):
         return self.value
@@ -1084,6 +1085,49 @@ class EmptyNode(AST_node):
         return [[], True]
 
 
+class ReturnNode(AST_node):
+    def __init__(self,value, line: int, parent: AST_node = None, type_=None):
+        """
+        :param line: int, the line on which this node was formed
+        :param parent: AST_node, the parent node of this node
+        :param type_: LiteralType, the type of the values
+        """
+        self.value = value
+        self.type = type_
+        self.parent = parent
+        self.variable = False
+        self.const = False
+        self.declaration = False
+        self.line = line
+        self.name = "return"
+        self.deref = False
+
+    def getLabel(self):
+        return "\"Return Node: " + str(self.value) + "\""
+
+    def getValue(self):
+        return None
+
+    def getValue(self):
+        return self.value
+
+    def setValue(self, val):
+        self.value = val
+
+    def setType(self, type):
+        self.type = type
+
+    def getType(self):
+        return self.type
+
+    def getVariables(self, fill: bool = True, scope=None):
+        """
+        returns the variable contained within the node
+        :return:
+        """
+        return [[], True]
+
+
 class Include(AST_node):
     def __init__(self, value: str, line: int, parent: AST_node = None, type_=None):
         self.value = value
@@ -1155,8 +1199,8 @@ class Scope(AST_node):  # TODO: let it hold a block instead of trees
         if self.block is not None:
             same = self.block == other.block
         return self.parent == other.parent and self.line == other.line and same and self.f_name == other.f_name and \
-               self.f_return == other.f_return and self.return_type == other.return_type and \
-               self.parameters == other.parameters
+            self.f_return == other.f_return and self.return_type == other.return_type and \
+            self.parameters == other.parameters
 
     def setBlock(self, scope: block):
         self.block = scope
@@ -1294,7 +1338,7 @@ class If(AST_node):
         if not isinstance(other, If):
             return False
         return self.operator == other.operator and self.line == other.line and self.Condition == other.Condition and \
-               self.c_block == other.c_block
+            self.c_block == other.c_block
 
     def setCondition(self, con: AST_node):
         try:
@@ -1354,6 +1398,7 @@ class If(AST_node):
             self.Condition.printTables(filePath, to_llvm)
         self.c_block.printTables(filePath, to_llvm)
 
+
 # Used to indicate a break TODO: stop generation of tree in the body
 class Break(AST_node):
     def __init__(self, line):
@@ -1411,7 +1456,7 @@ class While(AST_node):
         if not isinstance(other, If):
             return False
         return self.operator == other.operator and self.line == other.line and self.Condition == other.Condition and \
-               self.c_block == other.c_block
+            self.c_block == other.c_block
 
     def setCondition(self, con: AST_node):
         self.Condition = con
@@ -1448,6 +1493,7 @@ class While(AST_node):
         self.Condition.printTables(filePath, to_llvm)
         self.c_block.printTables(filePath, to_llvm)
 
+
 """
 deze node is bij aanroepen van functies bv. 
 int i= functie(0)
@@ -1480,7 +1526,7 @@ class Function(AST_node):
         if not isinstance(other, Function):
             return False
         return self.line == other.line and self.param == other.param and self.f_name == other.f_name and \
-               self.decl == other.decl
+            self.decl == other.decl
 
     def addParameter(self, var: str, scope, line: int):
         # TODO: check type of input parameter and amount of added input parameters
@@ -1537,7 +1583,8 @@ class Function(AST_node):
     def getType(self):
         return self.expected["return"]
 
-    def getVariables(self, fill: bool = True, scope=None):  # TODO: for now no filling of variables because this can run multiple times
+    def getVariables(self, fill: bool = True,
+                     scope=None):  # TODO: for now no filling of variables because this can run multiple times
         """
         returns the variable contained within the node
         :return:
@@ -1553,8 +1600,8 @@ class Function(AST_node):
         self.expected = prog.functions.findFunction(self.f_name, self.line)
         try:
             params = []
-            if len(self.expected)-1 != len(self.param):
-                raise FunctionParam(self.f_name, len(self.expected)-1, self.line)
+            if len(self.expected) - 1 != len(self.param):
+                raise FunctionParam(self.f_name, len(self.expected) - 1, self.line)
             pos = 0
             for exp in self.expected:
                 if exp == "return":
@@ -1620,7 +1667,7 @@ class Array(AST_node):
 
     def __eq__(self, other):
         return self.value == other.value and self.pos == other.pos and self.type == other.type and \
-               self.line == other.line and self.init == other.init
+            self.line == other.line and self.init == other.init
 
     def getType(self):
         return self.type
