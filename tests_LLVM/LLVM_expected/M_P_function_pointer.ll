@@ -1,7 +1,7 @@
 ;//intf(intx,int*z,intk){return90;}
 
 ; Function Attrs: noinline nounwind optnone ssp uwtable(sync)
-define i32 @f(i32 noundef %0,ptr noundef %1,i32 noundef %2) #0 { 
+define i32 @f(i32 noundef %0,ptr noundef %1,i32 noundef %2) #0 {
 %4 = alloca i32, align 4
 %5 = alloca ptr, align 4
 %6 = alloca i32, align 4
@@ -21,7 +21,7 @@ ret i32 90
 ;//intmain(intx){intk=90;return1;}
 
 ; Function Attrs: noinline nounwind optnone ssp uwtable(sync)
-define i32 @main(i32 noundef %0) #0 { 
+define i32 @main(i32 noundef %0) #0 {
 %2 = alloca i32, align 4
 ;  int k;
 %3 = alloca i32, align 4
