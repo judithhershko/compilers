@@ -1,14 +1,15 @@
 #include "stdio.h"
-int f(int a) {
+int f(int b, char a) {
 	a = a +1;
-	return a;
+	return 1+1;
 }
+
 
 int main()
 {
 int x=5+1;
 char z='a';
 
-char y = f(x);
+int y = f(x+1, z);
 return 1;
 }

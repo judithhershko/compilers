@@ -26,7 +26,7 @@ class FunctionTable:
         if not self.functions:
             self.functions[func.f_name] = function
         elif func.f_name in self.functions:
-            raise Redeclaration(func.f_name, func.line)
+            raise RedeclarationF(func.f_name, func.line)
         else:
             self.functions[func.f_name] = function
 

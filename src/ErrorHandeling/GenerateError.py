@@ -98,6 +98,16 @@ class Redeclaration(Exception):
                str(self.variable)
 
 
+class RedeclarationF(Exception):
+    def __init__(self, var, line):
+        self.variable = var
+        self.line = line
+
+    def __str__(self):
+        return "\n\tError in line " + str(self.line) + ": there is a redeclaration of the function " + \
+               str(self.variable)
+
+
 class PointerRedeclaration(Exception):
     def __init__(self, var, line):
         self.variable = var
