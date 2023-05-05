@@ -130,7 +130,7 @@ class Print(AST_node):
         matches = re.findall(regex, input_string)
         return matches
 
-    # TODO: set %d,i,s,c type in paramString[]
+    #
     def setParamString(self, input: str):
         self.paramString=self.find_and_select(input)
 

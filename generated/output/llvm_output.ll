@@ -1,7 +1,19 @@
 declare i32 @printf(ptr noundef, ...) #1
 @.str = private unnamed_addr constant [13x i8] c""%d and %s"\0A\00", align 1
 @.str.1 = private unnamed_addr constant [3x i8] c"y\0A\00", align 1
-;//intmain(intx,inty){printf("%d and %s",x,y);returnx;}
+;//intf(intx){return1;}
+
+; Function Attrs: noinline nounwind optnone ssp uwtable(sync)
+define i32 @f(i32 noundef %0) #0 { 
+%2 = alloca i32, align 4
+
+store i32 %0, ptr %2, align 4
+
+;//intx
+
+ret i32 1
+}
+;//intmain(intx,inty){printf("%d and %s",x,y);f(0);returnx;}
 
 ; Function Attrs: noinline nounwind optnone ssp uwtable(sync)
 define i32 @main(i32 noundef %0,i32 noundef %1) #0 { 
