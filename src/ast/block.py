@@ -197,6 +197,7 @@ class block:
 
     def cleanBlock(self, glob: bool = False, onlyLocal: bool = False, fill: bool = True):
         allVar = []
+        cleanTrees = []
         for tree in self.trees:
             res = self.fillLiterals(tree.root, onlyLocal)
             all = res[1]
@@ -217,6 +218,10 @@ class block:
                 self.parent.functions.addFunction(tree.root)
             for elem in res[0]:
                 allVar.append(elem)
+            cleanTrees.append(tree)
+            if tree.root.name in ("break", "cont", "return"):
+                break
+        self.trees = cleanTrees
         return allVar
 
 
