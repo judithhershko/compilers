@@ -320,13 +320,13 @@ def set_llvm_binary_operators(left, right, op: str, llvm):
         llvm.var_dic["$" + str(right.value)] = right.value
         load_right = False
     elif isinstance(right.value, float) or isfloat(str(right.value)):
-        llvm.var_dict["$" + str(right.value)] = llvm.float_to_64bit_hex(right.value)
+        llvm.var_dic["$" + str(right.value)] = llvm.float_to_64bit_hex(right.value)
         load_right = False
     elif isinstance(left.value, int) or str(left.value).isdigit():
         llvm.var_dic["$" + str(left.value)] = left.value
         load_left = False
     elif isinstance(right.value, float) or isfloat(str(left.value)):
-        llvm.var_dict["$" + str(left.value)] = llvm.float_to_64bit_hex(left.value)
+        llvm.var_dic["$" + str(left.value)] = llvm.float_to_64bit_hex(left.value)
         load_left = False
 
     if load_left:

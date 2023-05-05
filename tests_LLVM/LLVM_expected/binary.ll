@@ -1,7 +1,7 @@
 ;//intmain(){intz=0;z=1+2+3*89;intk=90-89;floatf=8.90;f=f/89.90;return1;}
 
 ; Function Attrs: noinline nounwind optnone ssp uwtable(sync)
-define i32 @main() #0 { 
+define i32 @main() #0 {
 ;  int z;
 %1 = alloca i32, align 4
 ;  int k;
