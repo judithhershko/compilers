@@ -158,7 +158,7 @@ class Print(AST_node):
     # TODO: check dat dit een digit niet ervoor staat ipv letter
     def addParam(self, param):
         self.param.append(param)
-        self.value = param
+        # self.value = param
 
     def find_and_select(self, input_string):
         regex = r'%[cdsi]'
@@ -179,7 +179,7 @@ class Print(AST_node):
         self.value = val
 
     def getLabel(self):
-        return "\"Print: " + str(self.value) + "\""
+        return "\"Print:\""
 
     def fold(self, to_llvm=None):
         try:
@@ -187,11 +187,14 @@ class Print(AST_node):
                 raise PrintSize(self.line)
             for pos in range(len(self.param)):
                 if self.paramString[pos] == "%f" and self.param[pos].root.getType() != LiteralType.FLOAT:
-                    raise PrintType(self.line, "%f", str(LiteralType.FLOAT))
+                    pass
+                    #raise PrintType(self.line, "%f", str(LiteralType.FLOAT))
                 elif self.paramString[pos] in ("%d", "%i") and self.param[pos].root.getType() !=  LiteralType.INT:
-                    raise PrintType(self.line, self.paramString[pos], str(LiteralType.INT))
+                    pass
+                    #raise PrintType(self.line, self.paramString[pos], str(LiteralType.INT))
                 elif self.paramString[pos] == "%c" and self.param[pos].root.getType() !=  LiteralType.CHAR:
-                    raise PrintType(self.line, "%c", str(LiteralType.CHAR))
+                    #raise PrintType(self.line, "%c", str(LiteralType.CHAR))
+                    pass
                 self.param[pos] = self.param[pos].foldTree()
 
         except PrintSize:
@@ -201,7 +204,9 @@ class Print(AST_node):
         return self, True  # TODO: redo this when the print function is adapted to the final form
 
     def replaceVariables(self, values):
-        pass  # TODO: redo this when the print function is adapted to the final form
+        #pass  # TODO: redo this when the print function is adapted to the final form
+        for tree in self.param:
+            tree.replaceVariables(values)
 
 
 # Used to hald a single value/variable, normally a leaf of the AST
@@ -1121,7 +1126,7 @@ class ReturnNode(AST_node):
         self.deref = False
 
     def getLabel(self):
-        return "\"Return Node: " + str(self.value) + "\""
+        return "\"Return Node\""
 
     def getValue(self):
         return None
@@ -1144,6 +1149,14 @@ class ReturnNode(AST_node):
         :return:
         """
         return [[], True]
+
+    def fold(self, to_llvm):
+        # self.value.foldTree(to_llvm)
+        return self, True
+
+
+    def replaceVariables(self, values):
+        self.value.replaceVariables(values)
 
 
 class Include(AST_node):
