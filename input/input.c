@@ -1,12 +1,8 @@
 #include "stdio.h"
-int f(int x,int y)
-{
-x=x+1*x+89;
-
-for(int k=0;k<5;k=k+1)
+int f(int x)
+{for(int z=0;z<5;z=z+1)
     {
-
-    x=x+1;
+    x=1+1;
     }
 return 1;
 }
