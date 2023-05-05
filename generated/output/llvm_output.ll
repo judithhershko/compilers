@@ -1,7 +1,7 @@
 declare i32 @printf(ptr noundef, ...) #1
 @.str = private unnamed_addr constant [6 x i8] c"%d %d\00", align 1
 @__const.f.q = private unnamed_addr constant [2 x i32] [i32 1,i32 2] , align 4 
-;//intf(intx,inty){x=5+1;charz='a';intq[2]={1,2};return1;}
+;//intf(intx,inty){x=5+1;charz='a';intq[2]={1,2};q[1]=88;x=22+q[1];return1;}
 
 ; Function Attrs: noinline nounwind optnone ssp uwtable(sync)
 define i32 @f(i32 noundef %0,i32 noundef %1) #0 { 
@@ -28,6 +28,13 @@ store i32 6, i32* %5, align 4
 store i8 97, i8* %6, align 1
 ;//intq[2]={1,2}
 
+;//q[1]=88
+
+%8 = getelementptr inbounds [2 x i32], ptr %7, i64 0, i64 1
+store i32 88, ptr %8, align 4
+;//x=22+q[1]
+
+store i32 23, i32* %5, align 4
 ret i32 1
 }
 ;//intmain(intx,inty){x=90;y=f(x,y);printf("%d %d",x,x);x=f(0,x);returnx;}

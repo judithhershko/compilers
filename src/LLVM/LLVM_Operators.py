@@ -556,11 +556,14 @@ class ToLLVM():
     # save it to be used as input in declaration
     def redec_array(self,dec:AST):
         dec=dec.root
-        size=0;
+        size=0
         if self.c_function is not None:
             size=self.c_function.root.block.getSymbolTable().findSymbol(dec.leftChild.value)[0]
-        self.store += "%{} = getelementptr inbounds [3 x i32], ptr %{}, i64 0, i64 2\n".format(self.add_variable(dec.leftChild.getValue()),size, self.allocated_var[dec.leftChild.getValue()])
-        self.store += "store {} {}, ptr %{}, align 4\n".format(self.get_llvm_type(dec.leftChild.get),dec.rightChild.getValue(),self.get_variable(dec.leftChild.getValue()))
+        print("content")
+        print(dec.leftChild.value)
+        old_counter=self.allocated_var[dec.leftChild.value]
+        self.store += "%{} = getelementptr inbounds [{} x i32], ptr %{}, i64 0, i64 {}\n".format(self.add_variable(dec.leftChild.value),size, self.allocated_var[dec.leftChild.value],dec.leftChild.getPosition())
+        self.store += "store {} {}, ptr %{}, align 4\n".format(self.get_llvm_type(dec.leftChild.type),dec.rightChild.value,self.get_variable(dec.leftChild.value))
 
         return
     def to_declaration(self, ast: AST, one_side=False):
