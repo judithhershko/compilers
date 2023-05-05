@@ -120,7 +120,9 @@ class Comment(AST_node):
         self.type = type
 
     def getLabel(self):
-        return "\"Comment: " + self.value + "\""
+        a = self.value
+        a = a.replace('"', '')
+        return "\"Comment: " + a + "\""
 
     def getType(self):
         return self.type
@@ -1226,7 +1228,7 @@ class Scope(AST_node):  # TODO: let it hold a block instead of trees
             # for elem in res:
             for elem in self.block.getVariables(fill=False):
                 if len(elem) != 0 and elem[0][0] not in self.parameters and \
-                        not self.block.symbols.findSymbol(elem[0][0]):
+                        not self.block.symbols.findSymbol(elem[0][0]) :
                     res.append(elem[0])
             for elem in self.f_return.getVariables(fill=False):
                 if isinstance(elem, list):
@@ -1482,7 +1484,7 @@ class Function(AST_node):
         return self.line == other.line and self.param == other.param and self.f_name == other.f_name and \
                self.decl == other.decl
 
-    def addParameter(self, var: str, scope, line: int):
+    def addParameter(self, var, scope, line: int):
         # TODO: check type of input parameter and amount of added input parameters
 
         # TODO: dit moet anders --> als value/pointer/ref wordt doorgegeven
@@ -1508,11 +1510,14 @@ class Function(AST_node):
         # try:
         #     if exp == given:
         pos = len(self.param)
-        if var.isdigit():
-            val = Value(var, None, line)
+        if isinstance(var, str):
+            if var.isdigit():
+                val = Value(var, None, line)
+            else:
+                val = Value(var, None, line, None, True)
+            self.param[pos] = val
         else:
-            val = Value(var, None, line, None, True)
-        self.param[pos] = val
+            self.param[pos] = var
         # try:
         #     if len(self.param) > len(self.expected):
         #         raise FunctionParam(self.f_name, len(self.expected), self.line)
@@ -1561,12 +1566,16 @@ class Function(AST_node):
                     continue
                 expec = self.expected[exp]
                 given = self.param[pos]
-                givenType = scope.symbols.findSymbol(given.value)
+                if given.variable:
+                    givenType = scope.symbols.findSymbol(given.value)
+                else:
+                    givenType = [[], given.type]
                 if expec != str(givenType[1]):
                     raise FunctionParamType(self.f_name, exp, givenType, expec, self.line)
                 else:
-                    params.append((self.param[pos].value, self.param[pos].line))
-                    self.param[pos].type = givenType[1]
+                    if self.param[pos].variable:
+                        params.append((self.param[pos].value, self.param[pos].line))
+                        self.param[pos].type = givenType[1]
                 pos += 1;
 
         except FunctionParam:

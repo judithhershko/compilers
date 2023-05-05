@@ -1103,15 +1103,15 @@ class CustomListener(ExpressionListener):
         self.f_var = True
         if ctx.getText().isdigit():
             v = Value(int(ctx.getText()), LiteralType.INT, ctx.start.line, None)
-            self.current.param[ctx.getText()] = v
+            self.current.addParameter(v, scope=self.c_scope, line=ctx.start.line)
             return
         if is_float(ctx.getText()):
             v=Value(float(ctx.getText()),LiteralType.FLOAT,ctx.start.line,None)
-            self.current.param[ctx.getText()]=v
+            self.current.addParameter(v, scope=self.c_scope, line=ctx.start.line)
             return
         if ctx.getText()[0]=='\'':
             v = Value(ctx.getText(), LiteralType.CHAR, ctx.start.line, None)
-            self.current.param[ctx.getText()] = v
+            self.current.addParameter(v, scope=self.c_scope, line=ctx.start.line)
             return
         if isinstance(self.current, Function):
             self.current.addParameter(ctx.getText(), scope=self.c_scope, line=ctx.start.line)
