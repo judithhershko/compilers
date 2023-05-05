@@ -96,6 +96,42 @@ class LLVM_TestCases_Working(unittest.TestCase):
 
         self.assertTrue(filecmp.cmp("LLVM_output/" + file + ".ll", "LLVM_expected/" + file + ".ll"))
 
+    def test_Types(self):
+        file = "M_P_Types"
+        try:
+            testFile(file)
+        except SystemExit:
+            sys.exit()
+
+        self.assertTrue(filecmp.cmp("LLVM_output/" + file + ".ll", "LLVM_expected/" + file + ".ll"))
+
+    def test_ConstantVariables(self):
+        file = "M_P_ConstantVariables"
+        try:
+            testFile(file)
+        except SystemExit:
+            sys.exit()
+
+        self.assertTrue(filecmp.cmp("LLVM_output/" + file + ".ll", "LLVM_expected/" + file + ".ll"))
+
+    def test_Pointers(self):
+        file = "M_P_Pointers"
+        try:
+            testFile(file)
+        except SystemExit:
+            sys.exit()
+
+        self.assertTrue(filecmp.cmp("LLVM_output/" + file + ".ll", "LLVM_expected/" + file + ".ll"))
+
+    def test_SingleLineComment(self):
+        file = "M_P_SingleLineComment"
+        try:
+            testFile(file)
+        except SystemExit:
+            sys.exit()
+
+        self.assertTrue(filecmp.cmp("LLVM_output/" + file + ".ll", "LLVM_expected/" + file + ".ll"))
+
 
 if __name__ == '__main__':
     unittest.main()
