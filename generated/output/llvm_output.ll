@@ -26,7 +26,7 @@ store i32 6, i32* %5, align 4
 store i8 97, i8* %6, align 1
 ret i32 1
 }
-;//intmain(intx,inty){y=f(x,y);printf("%d %d",x,x);x=f(0,x);returnx;}
+;//intmain(intx,inty){y=f(x,y);printf("%d %d",x,y);x=f(0,x);returnx;x=5;}
 
 ; Function Attrs: noinline nounwind optnone ssp uwtable(sync)
 define i32 @main(i32 noundef %0,i32 noundef %1) #0 { 
@@ -47,10 +47,10 @@ store i32 %1, ptr %5, align 4
 %6 = alloca i32, align 4
 %7 = call i32 @f ( i32 noundef 0 i32 noundef 1 )
 store i32 %7, ptr %6, align 4
-;//printf("%d %d",x,x)
+;//printf("%d %d",x,y)
 
 ; printf ("%d %d")
-%8 = call i32 (ptr, ...) @printf(ptr noundef @.str ,  i32 noundef 3,  i32 noundef 3)
+%8 = call i32 (ptr, ...) @printf(ptr noundef @.str ,  i32 noundef 7,  i32 noundef 7)
 ;//x=f(0,x)
 
 %9 = alloca i32, align 4
