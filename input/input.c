@@ -1,5 +1,5 @@
 #include "stdio.h"
-int main(int x,int y)
+int f(int x,int y)
 {
 x=x+1*x+89;
 
