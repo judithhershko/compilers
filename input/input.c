@@ -2,7 +2,11 @@
 
 int f(int x)
 {
-    return 1;
+int x=5+1;
+char z='a';
+
+int y = f(1+1, z);
+return 1;
 }
 int main(int x,int y)
 {
