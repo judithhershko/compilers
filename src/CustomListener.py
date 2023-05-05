@@ -1111,6 +1111,7 @@ class CustomListener(ExpressionListener):
             self.current.addParameter(ctx.getText(), scope=self.c_scope, line=ctx.start.line)
         return
 
+
     # Exit a parse tree produced by ExpressionParser#f_variables.
     def exitF_variables(self, ctx: ParserRuleContext):
         self.f_var = False
