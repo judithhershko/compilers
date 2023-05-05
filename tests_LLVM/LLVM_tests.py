@@ -33,8 +33,62 @@ def testFile(fileName):
 
 
 class LLVM_TestCases_Working(unittest.TestCase):
-    def test_binaryOperations1(self):
-        file = "proj2_man_pass_pointerOperations2"
+    def test_binaryArithmeticOperators(self):
+        file = "M_P_BinaryArithmeticOperators"
+        try:
+            testFile(file)
+        except SystemExit:
+            sys.exit()
+
+        self.assertTrue(filecmp.cmp("LLVM_output/" + file + ".ll", "LLVM_expected/" + file + ".ll"))
+
+    def test_binaryComparisonOperators(self):
+        file = "M_P_BinaryComparisonOperators"
+        try:
+            testFile(file)
+        except SystemExit:
+            sys.exit()
+
+        self.assertTrue(filecmp.cmp("LLVM_output/" + file + ".ll", "LLVM_expected/" + file + ".ll"))
+
+    def test_logicalOperators(self):
+        file = "M_P_LogicalOperators"
+        try:
+            testFile(file)
+        except SystemExit:
+            sys.exit()
+
+        self.assertTrue(filecmp.cmp("LLVM_output/" + file + ".ll", "LLVM_expected/" + file + ".ll"))
+
+    def test_unaryOperators(self):
+        file = "M_P_UnaryOperators"
+        try:
+            testFile(file)
+        except SystemExit:
+            sys.exit()
+
+        self.assertTrue(filecmp.cmp("LLVM_output/" + file + ".ll", "LLVM_expected/" + file + ".ll"))
+
+    def test_orderOfOperators(self):
+        file = "M_P_OrderOfOperators"
+        try:
+            testFile(file)
+        except SystemExit:
+            sys.exit()
+
+        self.assertTrue(filecmp.cmp("LLVM_output/" + file + ".ll", "LLVM_expected/" + file + ".ll"))
+
+    def test_ignoreWhitespace(self):
+        file = "M_P_IgnoreWhitespace"
+        try:
+            testFile(file)
+        except SystemExit:
+            sys.exit()
+
+        self.assertTrue(filecmp.cmp("LLVM_output/" + file + ".ll", "LLVM_expected/" + file + ".ll"))
+
+    def test_constantFolding(self):
+        file = "M_P_ConstantFolding"
         try:
             testFile(file)
         except SystemExit:
