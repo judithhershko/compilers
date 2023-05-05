@@ -10,6 +10,6 @@ int main()
 int x=5+1;
 char z='a';
 
-int y = f(x, z);
+int y = f(1+1, z);
 return 1;
 }
