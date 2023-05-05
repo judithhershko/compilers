@@ -19,14 +19,14 @@ class FunctionTable:
         return self.functions.equals(other.functions)
 
     def addFunction(self, func: Scope):
-        function = dict()  # TODO: use ordered dict
+        function = OrderedDict()  # TODO: use ordered dict
         for param in func.parameters:
             function[param] = str(func.parameters[param].type)
         function["return"] = str(func.return_type)
         if not self.functions:
             self.functions[func.f_name] = function
         elif func.f_name in self.functions:
-            raise Redeclaration(func.f_name, func.line)
+            raise RedeclarationF(func.f_name, func.line)
         else:
             self.functions[func.f_name] = function
 
@@ -110,9 +110,9 @@ class SymbolTable:
                 elif ref not in self.table.index:
                     raise ImpossibleRef(ref, line)
                 refValue = self.table.loc[ref]
-                if not deref and level - 1 != refValue["Level"]:
+                if deref and level - 1 != refValue["Level"]:
                     raise RefPointerLevel(name, refValue["Level"], level, line)
-                elif deref and level != refValue["Level"]:
+                elif not deref and level != refValue["Level"]:
                     raise RefPointerLevel(name, refValue["Level"], level, line)
                 elif symType != refValue["Type"]:
                     raise PointerType(name, refValue["Type"], symType, line)
@@ -121,20 +121,22 @@ class SymbolTable:
             else:
                 row = self.table.loc[name]
                 if decl:
-                    if isinstance(root.getLeftChild(), Value):
+                    if isinstance(root.getLeftChild(), Value): # and isinstance(root.getRightChild(), Value) and not root.getRightChild().deref:
                         raise Redeclaration(name, line)
                     else:
                         raise PointerRedeclaration(name, line)
                 elif row["Global"]:
                     raise ResetGlobal(name, line)
-                elif row["Const"] and isinstance(root.getLeftChild(), Value): # TODO: check if deref can be used to let const pointer only not reset value of memorylocation, but reset memorylocation is possible
+                elif row["Const"] and isinstance(root.getLeftChild(), Value) and not root.getRightChild().deref: # TODO: check if deref can be used to let const pointer only not reset value of memorylocation, but reset memorylocation is possible
                     raise ResetConst(name, line)
-                elif row["Const"] and isinstance(root.getLeftChild(), Pointer) and not root.getRightChild().variable:
+                elif row["Const"] and isinstance(root.getLeftChild(), Pointer) and not root.getRightChild().deref:
                     raise ResetConstPointer(name, line)
                 elif row["Type"] != symType:
                     raise TypeDeclaration(name, row["Type"], symType, line)
-                elif row["Level"] != level:
+                elif row["Level"] != level and not root.getRightChild().deref:
                     raise PointerLevel(name, row["Level"], level, line)
+                elif row["Level"] != level+1 and root.getRightChild().deref:
+                    raise PointerLevel(name, row["Level"], level-1, line)
                 else:
                     if isinstance(root.getLeftChild(), Value):
                         self.table.loc[name, ["Value"]] = str(value)
@@ -150,7 +152,7 @@ class SymbolTable:
                             temp = self.table.loc[name]
                             if temp["Level"] != 0:
                                 raise WrongPointer(line)
-                            elif temp["Const"]:
+                            elif temp["Const"] and not isinstance(root.leftChild, Pointer):
                                 raise ResetConst(name, line)
                             self.table.loc[name, ["Value"]] = str(value)
                             self.table.loc[name, ["Fillable"]] = fill

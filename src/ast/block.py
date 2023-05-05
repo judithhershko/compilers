@@ -72,7 +72,7 @@ class block:
     def getVariables(self, fill: bool = True):
         result = []
         for tree in self.trees:
-            result.append(tree.getVariables(fill)[0])
+            result.append(tree.getVariables(fill, scope=self)[0])
         return result
 
     def fillLiterals(self, tree: AST, onlyLocal: bool = False):
@@ -80,7 +80,8 @@ class block:
         This function will try to replace the variables in the AST with the actual values. If it can not find the
         variables in its own symbol table, it will look at the symbol tables of its parents
         """
-        res = tree.getVariables()
+        test = self
+        res = tree.getVariables(scope=self)
         variables = res[0]
         notFound = []
         values = dict()
@@ -208,8 +209,11 @@ class block:
             elif fill and not fold[1] and tree.root.name == "declaration" and tree.root.leftChild.name == "pointer": # TODO: also add to program if works
                 self.symbols.addSymbol(tree.root, glob)
             elif fill and tree.root.name == "declaration" or tree.root.name == "array":
-                none = tree.createUnfilledDeclaration(tree.root)
-                self.symbols.addSymbol(none, glob, False)
+                if tree.root.name == "declaration" and tree.root.rightChild.name == "val" and tree.root.rightChild.deref:
+                    self.symbols.addSymbol(tree.root, glob)
+                else:
+                    none = tree.createUnfilledDeclaration(tree.root)
+                    self.symbols.addSymbol(none, glob, False)
             elif fill and tree.root.name == "scope" and tree.root.f_name != "":
                 self.parent.functions.addFunction(tree.root)
             for elem in res[0]:
