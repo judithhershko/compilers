@@ -258,8 +258,8 @@ class ToLLVM():
                 self.counter = 0
                 return
             if var_name is not None:
-                old_variable = self.get_variable(var_name)
-                self.g_assignment += " %{} = load ptr, ptr %{}, align 4\n".format(self.add_variable(var_name),
+                old_variable = self.allocated_var[var_name]
+                self.g_assignment += " %{} = load {}, ptr %{}, align 4\n".format(self.add_variable(var_name),self.get_llvm_type(Value(var_name, type_, 0)),
                                                                                   old_variable)
             type_ = None
             if self.c_function.root.block.getSymbolTable().findSymbol(var_name) is not None:

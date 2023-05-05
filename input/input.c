@@ -15,5 +15,5 @@ else
 {
 x=x+10;
 }
-return 1;
+return x;
 }

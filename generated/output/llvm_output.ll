@@ -1,4 +1,4 @@
-;//intmain(intx,inty){{intx=90;x=x+89;}constintr=5;x=x+1*x+89;if(x>90){x=x-10;}else{x=x+10;}return1;}
+;//intmain(intx,inty){{intx=90;x=x+89;}constintr=5;x=x+1*x+89;if(x>90){x=x-10;}else{x=x+10;}returnx;}
 
 ; Function Attrs: noinline nounwind optnone ssp uwtable(sync)
 define i32 @main(i32 noundef %0,i32 noundef %1) #0 { 
@@ -64,5 +64,5 @@ br label %22
  store i32 %21, ptr %7, align 4
 br label %22
 22:
-ret i32 1
-}
+ %23 = load i32, ptr %7, align 4
+ret i32 %23}
