@@ -9,7 +9,7 @@ return 1;
 int main(int x,int y)
 {
 y = f(x, y);
-printf("%d %s", x,x);
+//printf("%d %s", x,x);
 x=f(0, x);
 return x;
 }

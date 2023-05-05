@@ -1145,6 +1145,14 @@ class ReturnNode(AST_node):
         """
         return [[], True]
 
+    def fold(self, to_llvm):
+        # self.value.foldTree(to_llvm)
+        return self, True
+
+
+    def replaceVariables(self, values):
+        self.value.replaceVariables(values)
+
 
 class Include(AST_node):
     def __init__(self, value: str, line: int, parent: AST_node = None, type_=None):
