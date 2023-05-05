@@ -67,6 +67,8 @@ char_expr: char_pri| char_expr char_op char_expr;
 
 char_pri: CHAR_ID ( . )? CHAR_ID ;
 //'\\' 'n' | '\\' 'r' | '\\' 't' | '\\' '0'
+//CHAR_LITERAL : ( ESC | ~[\n\r"] ) ;
+
 
 INT     : 'int'     ;
 DOUBLE  : 'double'  ;
@@ -121,4 +123,5 @@ SL_COMMENT:  '//' ~('\r' | '\n')*;
 
 STRING_LITERAL: '"' (ESC_SEQ |~('%'|'"'|'\n'|'\r'))* '"';
 fragment ESC_SEQ: '%' ('d'|'i'|'s'|'c');
+fragment ESC : '\\' [nrt\\"'] ;
 NLINE: '\n';

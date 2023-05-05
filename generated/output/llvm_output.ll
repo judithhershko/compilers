@@ -1,5 +1,5 @@
 declare i32 @printf(ptr noundef, ...) #1
-@.str = private unnamed_addr constant [41x i8] c"<src.ast.AST.AST object at 0x11835c890>\0A\00", align 1
+@.str = private unnamed_addr constant [41x i8] c"<src.ast.AST.AST object at 0x130956410>\0A\00", align 1
 ;//intmain(intx,inty){x=x+1*x+89;charxi='a';printf("%d",x+x*2,x+y);for(intk=0;k<5;k=k+1){x=x+1;}return1;}
 
 ; Function Attrs: noinline nounwind optnone ssp uwtable(sync)
@@ -36,7 +36,7 @@ store i32 %1, ptr %5, align 4
 store i8 97, i8* %6, align 1
 ;//printf("%d",x+x*2,x+y)
 
-; printf (<src.ast.AST.AST object at 0x11835c890>)
+; printf (<src.ast.AST.AST object at 0x130956410>)
 %13 = call i32 (ptr, ...) @printf(ptr noundef @.str)
 ;//for(intk=0;k<5;k=k+1){x=x+1;}
 
