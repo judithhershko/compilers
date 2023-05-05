@@ -244,12 +244,11 @@ class ToLLVM():
         v = self.c_function.root.f_return.root
         if not isinstance(v, Value) or isinstance(v, Pointer):
             self.c_function.root.f_return.root.printTables("random", self)
-            v = self.c_function.root.f_return.root
         v = self.c_function.root.f_return.root
         if isinstance(v, Value) or isinstance(v, Pointer):
             var_name = v.getValue()
             type_ = v.getType()
-            if type_ != LiteralType.VAR:
+            if not v.variable:
                 if type_ == LiteralType.CHAR:
                     v.setValue(v.getValue().replace("\'", ""))
                     v.setValue(ord(v.getValue()))
@@ -366,13 +365,13 @@ class ToLLVM():
         elif type == 'i8':
             return '1'
     def LiteralFunction(self,v:Function, var:Value):
-        self.allocate += "%{} = alloca {}, align 4\n".format(self.add_variable(var.getValue()),self.get_llvm_type(var))
+        self.store += "%{} = alloca {}, align 4\n".format(self.add_variable(var.getValue()),self.get_llvm_type(var))
+
         self.allocated_var[var.getValue()]=self.get_counter()
         function=v
         inhoud = self.program.functions.findFunction(function.f_name, function.line)
         return_ = self.program.functions.findFunction(function.f_name, function.line)
         inhoud = function.param
-        self.add_variable(function.f_name)
         self.store += "%{} = call {} @{} ".format(self.add_variable(var.getValue()),
                                                          self.get_llvm_type(self.return_type_function(return_["return"])), function.f_name)
         self.store += "( "
@@ -408,18 +407,18 @@ class ToLLVM():
         self.allocated_var[str(v.value)] = self.get_variable(str(v.value))
         if v.pos > 0 and v.arrayContent.__len__()>0:
             if self.global_:
-                self.store += "@{} = global [".format(v.value)
+                self.f_declerations += "@{} = global [".format(v.value)
             else:
-                self.store += "@__const.{}.{} = private unnamed_addr constant [{} x {}] [".format(
+                self.f_declerations += "@__const.{}.{} = private unnamed_addr constant [{} x {}] [".format(
                     self.c_scope.f_name, v.value, v.pos, self.get_llvm_type(v.getType()))
 
             for i in v.arrayContent:
                 val = i.value
                 if v.type == LiteralType.FLOAT:
                     v = self.float_to_64bit_hex(v.getValue())
-                self.store += "{} {}".format(self.get_llvm_type(v.type), i.value)
-            self.store = self.g_assignment[:-1]
-            self.store += "] , align 4 \n"
+                self.f_declerations += "{} {},".format(self.get_llvm_type(v.type), i.value)
+            self.f_declerations = self.f_declerations[:-1]
+            self.f_declerations += "] , align 4 \n"
 
     def switch_Literals(self, v, input_, one_side=False):
         # comment above with original code:
@@ -555,10 +554,17 @@ class ToLLVM():
         self.added.append(v.getValue())
 
     # save it to be used as input in declaration
+    def redec_array(self,dec:AST):
+        dec=dec.root
+        size=0;
+        if self.c_function is not None:
+            size=self.c_function.root.block.getSymbolTable().findSymbol(dec.leftChild.value)[0]
+        self.store += "%{} = getelementptr inbounds [3 x i32], ptr %{}, i64 0, i64 2\n".format(self.add_variable(dec.leftChild.getValue()),size, self.allocated_var[dec.leftChild.getValue()])
+        self.store += "store {} {}, ptr %{}, align 4\n".format(self.get_llvm_type(dec.leftChild.get),dec.rightChild.getValue(),self.get_variable(dec.leftChild.getValue()))
 
+        return
     def to_declaration(self, ast: AST, one_side=False):
         if isinstance(ast.root.leftChild, Pointer):
-
             if ast.root.leftChild.declaration:
                 t_type = self.get_type(ast.root.leftChild)
                 const = ""
@@ -668,7 +674,7 @@ class ToLLVM():
                         if t.root.getValue() in self.c_scope.parameters:
                             to_print = self.c_scope.parameters[t.root.getValue()].getValue()
                         else:
-                            to_print = self.c_function.root.parameters[t.root.getValue()].getValue()
+                            to_print = self.c_function.root.block.getSymbolTable().findSymbol(t.root.getValue())[0]
         var = self.addGlobalString(p_string)
         s = self.add_variable(f_ + str(self.g_count))
 
@@ -774,10 +780,22 @@ class ToLLVM():
                 i.root = t
                 t = i
             if isinstance(t.root, Declaration) and (isinstance(t.root.rightChild, Value) or isinstance(t.root.rightChild, Array) or isinstance(t.root.rightChild, Function)):
+                if isinstance(t.root.leftChild, Array):
+                    self.redec_array(t)
                 t.root.leftChild.declaration = False
                 self.to_declaration(t)
                 self.function_load += self.store
                 self.store = ""
+            elif isinstance(t.root,Array) and isinstance(t.root.parent,Declaration):
+                a=AST
+                a.root=t.root.parent
+                t=a
+                t.root.leftChild.declaration = False
+                self.to_declaration(t)
+                self.function_alloc += self.allocate
+                self.function_load += self.store
+                self.store = ""
+                self.allocate =""
             elif isinstance(t.root, Scope):
                 print("new scope")
                 self.set_new_scope(t)
