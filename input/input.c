@@ -1,10 +1,15 @@
 #include "stdio.h"
 
-int main(int x)
+int f(int x, int y)
 {
-int z[3]={0,1,2};
-int y=0;
-//z[2]=9;
-printf("%d %d", x,y);
+x=5+1;
+char z='a';
 return 1;
+}
+int main(int x,int y)
+{
+y = f(x, y);
+printf("%d %s", x,x);
+x=f(0, x);
+return x;
 }
