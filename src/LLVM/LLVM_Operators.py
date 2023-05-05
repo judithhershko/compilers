@@ -368,20 +368,20 @@ class ToLLVM():
 
     def LiteralArray(self, v: Array):
         self.allocate += "%{} = alloca [ {} x {}], align 4\n".format(self.add_variable(str(v.value)),
-                                                                     len(v.arrayContent), self.get_llvm_type(v))
+                                                                     v.pos, self.get_llvm_type(v.getType()))
         self.allocated_var[str(v.value)] = self.get_variable(str(v.value))
-        if len(v.arrayContent) > 0:
+        if v.pos > 0 and v.arrayContent.__len__()>0:
             if self.global_:
                 self.store += "@{} = global [".format(v.value)
             else:
                 self.store += "@__const.{}.{} = private unnamed_addr constant [{} x {}] [".format(
-                    self.c_scope.f_name, v.value, len(v.arrayContent), self.get_llvm_type(v))
+                    self.c_scope.f_name, v.value, v.pos, self.get_llvm_type(v.getType()))
 
             for i in v.arrayContent:
                 val = i.value
                 if v.type == LiteralType.FLOAT:
                     v = self.float_to_64bit_hex(v.getValue())
-                self.store += "{} {}".format(self.get_llvm_type(v), i.value)
+                self.store += "{} {}".format(self.get_llvm_type(v.type), i.value)
             self.store = self.g_assignment[:-1]
             self.store += "] , align 4 \n"
 
@@ -600,6 +600,7 @@ class ToLLVM():
             self.store += "\n"
 
     def to_print(self, tree: AST, f_="printf"):
+        self.store += "; {} ({})\n".format(f_, tree.root.input_string)
         """
             printf("hi %d dit\n", z);
             printf("hi %i dit\n", z);
@@ -612,21 +613,29 @@ class ToLLVM():
             %12 = call i32 (ptr, ...) @printf(ptr noundef @.str.2, ptr noundef @.str.3)
             %13 = call i32 (ptr, ...) @printf(ptr noundef @.str.4, i32 noundef 99)
         """
-
-        to_print = tree.root.getValue()
-        if isinstance(to_print, Value):
-            to_print = to_print.value
-            if self.c_scope.block.getSymbolTable().findSymbol(to_print) is not None:
-                to_print = self.c_scope.block.getSymbolTable().findSymbol(to_print)[0]
-            elif self.c_scope.f_name != "":
-                to_print = self.c_scope.parameters[to_print]
-        var = self.addGlobalString(tree.root)
+        p_string=tree.root.input_string
+        for t in tree.root.param:
+            if not (isinstance(t.root,Value) or isinstance(t.root,Pointer) or isinstance(t.root,Array) ):
+                t.foldTree()
+                t.printTables("random",self)
+            elif isinstance(t.root, Value):
+                to_print = t.root.getValue()
+                if t.root.variable:
+                    if self.c_scope.block.getSymbolTable().findSymbol(to_print) is not None:
+                        to_print = self.c_scope.block.getSymbolTable().findSymbol(to_print)[0]
+                    else:
+                        if t.root.getValue() in self.c_scope.parameters:
+                            to_print = self.c_scope.parameters[t.root.getValue()].getValue()
+                        else:
+                            to_print = self.c_function.root.parameters[t.root.getValue()].getValue()
+        var = self.addGlobalString(p_string)
         s = self.add_variable(f_ + str(self.g_count))
-        self.store += "; {} ({})\n".format(f_, str(to_print))
-        if isinstance(tree.root, Print) and tree.root.param.__len__() == 0 or tree.root.paramString.__len__() == 0:
+
+        if tree.root.param.__len__() == 0:
             self.store += "%{} = call i32 (ptr, ...) @{}(ptr noundef @.str{})\n".format(s, f_, var)
         else:
             for p in tree.root.param:
+                p=p.root
                 if p.getType == LiteralType.FLOAT:
                     old = self.get_variable(p.getValue())
                     self.store += "%{} = load float, ptr %{}, align 4\n".format(self.add_variable(p.getValue()), old)
@@ -636,8 +645,9 @@ class ToLLVM():
             self.store += "%{} = call i32 (ptr, ...) @{}(ptr noundef @.str{} ".format(s, f_, var)
             i = 0
             for p in tree.root.param:
+                p=p.root
                 self.store += ", "
-                type_ = self.getPrintType(tree.root.paramString[i])
+                type_ = self.getPrintType(tree.root.paramString[i], p)
                 print_ = self.getPrintValue(tree.root.paramString[i], type_, p)
                 self.store += "{}noundef {}".format(type_, print_)
                 i += 1
@@ -995,8 +1005,10 @@ class ToLLVM():
                 self.f_declerations += "declare i32 @printf(ptr noundef, ...) #{}\n".format(self.f_count)
                 self.g_def["print"] = True
         self.g_count += 1
+        if isinstance(v,Value):
+            v=v.getValue()
         self.f_declerations += "@.str{} = private unnamed_addr constant [{}x i8] c\"{}\\0A\\00\", align 1\n".format(
-            var, len(str(v.getValue())) + 2, str(v.getValue()))
+            var, len(v)+2, v)
         return var
 
     def make_value(self, lit, valueType, line):

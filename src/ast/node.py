@@ -1,4 +1,6 @@
 from enum import Enum
+import re
+
 from src.ErrorHandeling.GenerateError import *
 from src.LLVM.Helper_LLVM import set_llvm_binary_operators, set_llvm_unary_operators
 from src.ast.node_types.node_type import LiteralType, ConditionType
@@ -123,9 +125,14 @@ class Print(AST_node):
         self.param.append(param)
         self.value=param
 
+    def find_and_select(self,input_string):
+        regex = r'%[cdsi]'
+        matches = re.findall(regex, input_string)
+        return matches
+
     # TODO: set %d,i,s,c type in paramString[]
     def setParamString(self, input: str):
-        pass
+        self.paramString=self.find_and_select(input)
 
     def getValue(self):
         return self.value
