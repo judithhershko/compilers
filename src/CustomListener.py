@@ -784,6 +784,8 @@ class CustomListener(ExpressionListener):
 
     # Enter a parse tree produced by ExpressionParser#char_pri.
     def enterChar_pri(self, ctx: ParserRuleContext):
+        if self.f_var:
+            return
         self.set_val(ctx)
 
     # Exit a parse tree produced by ExpressionParser#char_pri.
@@ -1099,9 +1101,22 @@ class CustomListener(ExpressionListener):
     # Enter a parse tree produced by ExpressionParser#f_variables.
     def enterF_variables(self, ctx: ParserRuleContext):
         self.f_var = True
+        if ctx.getText().isdigit():
+            v = Value(int(ctx.getText()), LiteralType.INT, ctx.start.line, None)
+            self.current.param[ctx.getText()] = v
+            return
+        if is_float(ctx.getText()):
+            v=Value(float(ctx.getText()),LiteralType.FLOAT,ctx.start.line,None)
+            self.current.param[ctx.getText()]=v
+            return
+        if ctx.getText()[0]=='\'':
+            v = Value(ctx.getText(), LiteralType.CHAR, ctx.start.line, None)
+            self.current.param[ctx.getText()] = v
+            return
         if isinstance(self.current, Function):
             self.current.addParameter(ctx.getText(), scope=self.c_scope, line=ctx.start.line)
         return
+
 
     # Exit a parse tree produced by ExpressionParser#f_variables.
     def exitF_variables(self, ctx: ParserRuleContext):

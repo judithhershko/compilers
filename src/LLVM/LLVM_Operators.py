@@ -365,6 +365,42 @@ class ToLLVM():
             return '4'
         elif type == 'i8':
             return '1'
+    def LiteralFunction(self,v:Function, var:Value):
+        self.allocate += "%{} = alloca {}, align 4\n".format(self.add_variable(var.getValue()),self.get_llvm_type(var))
+        self.allocated_var[var.getValue()]=self.get_counter()
+        function=v
+        inhoud = self.program.functions.findFunction(function.f_name, function.line)
+        return_ = self.program.functions.findFunction(function.f_name, function.line)
+        inhoud = function.param
+        self.add_variable(function.f_name)
+        self.store += "%{} = call {} @{} ".format(self.add_variable(var.getValue()),
+                                                         self.get_llvm_type(self.return_type_function(return_["return"])), function.f_name)
+        self.store += "( "
+        for key in inhoud:
+            self.store += self.get_llvm_type(inhoud[key])
+            val = key
+            is_var = inhoud[key].variable
+            if inhoud[key].getType() == LiteralType.FLOAT:
+                val = self.float_to_64bit_hex(key)
+            if is_var:
+                self.store += " noundef %{} ".format(self.get_variable(val))
+            else:
+                self.store += " noundef {} ".format(val)
+
+        self.store += ")\n"
+        self.store += "store {} %{}, ptr %{}, align 4\n".format(self.get_llvm_type(var),self.get_variable(var.getValue()),self.allocated_var[var.getValue()])
+
+        return
+    def return_type_function(self, string:str):
+        if string=="INT":
+            return LiteralType.INT
+        if string=="FLOAT":
+            return LiteralType.FLOAT
+        if string=="CHAR":
+            return LiteralType.CHAR
+        if string=="BOOL":
+            return LiteralType.BOOL
+
 
     def LiteralArray(self, v: Array):
         self.allocate += "%{} = alloca [ {} x {}], align 4\n".format(self.add_variable(str(v.value)),
@@ -385,12 +421,14 @@ class ToLLVM():
             self.store = self.g_assignment[:-1]
             self.store += "] , align 4 \n"
 
-    def switch_Literals(self, v, input, one_side=False):
+    def switch_Literals(self, v, input_, one_side=False):
         # comment above with original code:
         const = ""
         type = ""
         if isinstance(v, Array):
             return self.LiteralArray(v)
+        if isinstance(input_, Function):
+            return self.LiteralFunction(input_, v)
         if v.const:
             const = "const"
 
@@ -401,10 +439,10 @@ class ToLLVM():
                 self.allocated_var[str(v.value)] = self.get_variable(str(v.value))
             if one_side:
                 return
-            self.store += "store i32 {}, i32* %{}, align 4\n".format(input.value, self.get_variable(v.value))
+            self.store += "store i32 {}, i32* %{}, align 4\n".format(input_.value, self.get_variable(v.value))
 
         elif v.type == LiteralType.FLOAT:
-            val = self.float_to_64bit_hex(input.value)
+            val = self.float_to_64bit_hex(input_.value)
             if v.declaration:
                 self.allocate += "; {} {} {};\n".format(const, "float", v.value)
                 self.allocate += "%{} = alloca float, align 4\n".format(self.add_variable(v.value))
@@ -414,19 +452,19 @@ class ToLLVM():
             self.store += "store float {}, float* %{}, align 4\n".format(val, self.get_variable(v.value))
 
         elif v.type == LiteralType.CHAR:
-            size = len(input.value)
+            size = len(input_.value)
             if v.declaration:
                 self.allocate += "; {} {} {};\n".format(const, "char", v.value)
                 self.allocate += "%{} = alloca i8, align 1\n".format(self.add_variable(v.value))
                 self.allocated_var[str(v.value)] = self.get_variable(str(v.value))
             if one_side:
                 return
-            num = ord(input.value[1])
+            num = ord(input_.value[1])
             self.store += "store i8 {}, i8* %{}, align 1\n".format(num, self.get_variable(v.value))
 
         elif v.type == LiteralType.BOOL:
             bval = 0
-            if input.value == "True":
+            if input_.value == "True":
                 bval = 1
             if v.declaration:
                 self.allocate += "; {}{}{};\n".format(const, "_Bool", v.value)
@@ -440,6 +478,9 @@ class ToLLVM():
         # comment above with original code:
         if isinstance(v, Array):
             return self.LiteralArray(v)
+        if isinstance(v,Function):
+            input_=self.LiteralFunction(v)
+
         if v.declaration:
             const = ""
             type = ""
@@ -732,7 +773,7 @@ class ToLLVM():
                 i = AST
                 i.root = t
                 t = i
-            if isinstance(t.root, Declaration) and isinstance(t.root.rightChild, Value):
+            if isinstance(t.root, Declaration) and (isinstance(t.root.rightChild, Value) or isinstance(t.root.rightChild, Array) or isinstance(t.root.rightChild, Function)):
                 t.root.leftChild.declaration = False
                 self.to_declaration(t)
                 self.function_load += self.store

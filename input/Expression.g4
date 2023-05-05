@@ -27,7 +27,7 @@ continue: CONTINUE ';';
 function_dec: function_name '(' (f_variables)?  (',' f_variables )* ')';
 return_type: (CONST)? (INT| DOUBLE | FLOAT |CHAR | BOOL | VOID);
 parameters: (const)? typed_var (pointer)* (ref)? ID ;
-f_variables: pri;
+f_variables: pri | char_pri;
 ref: REF;
 function_definition: return_type function_name LBRAK (parameters)? (',' parameters )* RBRAK scope ;
 function_name: ID;
