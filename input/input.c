@@ -6,7 +6,7 @@ int f(int x)
 }
 int main(int x,int y)
 {
-printf("%d and %s", x,y);
-f('x');
+//printf("%d and %s", x,y);
+x=f(0);
 return x;
 }
