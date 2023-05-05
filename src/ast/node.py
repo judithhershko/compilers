@@ -158,7 +158,7 @@ class Print(AST_node):
     # TODO: check dat dit een digit niet ervoor staat ipv letter
     def addParam(self, param):
         self.param.append(param)
-        #self.value = param
+        # self.value = param
 
     def find_and_select(self, input_string):
         regex = r'%[cdsi]'
@@ -179,7 +179,7 @@ class Print(AST_node):
         self.value = val
 
     def getLabel(self):
-        return "\"Print: " + str(self.value) + "\""
+        return "\"Print:\""
 
     def fold(self, to_llvm=None):
         try:
@@ -1124,7 +1124,7 @@ class ReturnNode(AST_node):
         self.deref = False
 
     def getLabel(self):
-        return "\"Return Node: " + str(self.value) + "\""
+        return "\"Return Node\""
 
     def getValue(self):
         return None

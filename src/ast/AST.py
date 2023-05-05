@@ -58,6 +58,14 @@ class AST:
         elif isinstance(nextNode, Array):
             for node in nextNode.arrayContent:
                 number = self.setNodeIds(node, level + 1, number + 1)
+        elif isinstance(nextNode, ReturnNode):
+            number = self.setNodeIds(nextNode.value, level+1, number+1)
+        elif isinstance(nextNode, Print) or isinstance(nextNode, Scan):
+            for tree in nextNode.param:
+                temp = tree
+                if isinstance(temp, tuple):
+                    temp = tree[0]
+                number = self.setNodeIds(temp, level+1, number+1)
         # elif isinstance(nextNode, block):
         # number = self.setNodeIds(nextNode.getAst().root, level + 1, number + 1)
         # for tree in nextNode.trees:
@@ -153,6 +161,25 @@ class AST:
             for node in self.root.arrayContent:
                 edges = edges + "\n" + self.root.getId() + "--" + node.getId()
                 nodes = nodes + "\n" + node.getId() + " [label=" + node.getLabel() + "]"
+        elif isinstance(self.root, ReturnNode):
+            edges = edges + "\n" + self.root.getId() + "--" + self.root.value.getId()
+            if not (isinstance(self.root.value.root, Value) or isinstance(self.root.value.root, Array) or
+                    isinstance(self.root.value.root, Pointer)):
+                res = self.toDot(self.root.value)
+                nodes = nodes + res[0]
+                edges = edges + res[1]
+            else:
+                nodes = nodes + "\n" + self.root.value.root.getId() + " [label=" + self.root.value.root.getLabel() + "]"
+        elif isinstance(self.root, Print) or isinstance(self.root, Scan):
+            for tree in self.root.param:
+                edges = edges + "\n" + self.root.getId() + "--" + tree.root.getId()
+                if not (isinstance(self.root.value.root, Value) or isinstance(self.root.value.root, Array) or
+                        isinstance(self.root.value.root, Pointer)):
+                    res = self.toDot(tree)
+                    nodes = nodes + res[0]
+                    edges = edges + res[1]
+                else:
+                    nodes = nodes + "\n" + tree.root.getId() + " [label=" + tree.root.getLabel() + "]"
 
         output = "graph ast {\n" + nodes + "\n\n" + edges + "\n}"
         file = open(fileName, "w")
@@ -213,11 +240,11 @@ class AST:
                     nodes = nodes + res[0]
                     edges = edges + res[1]
                 edges = edges + "\n" + root.getId() + "--" + root.block.getId()
-                if root.f_return is not None:
-                    edges = edges + "\n" + root.getId() + "--" + root.f_return.root.getId()
-                    res = self.toDot(root.f_return.root)
-                    nodes = nodes + res[0]
-                    edges = edges + res[1]
+                # if root.f_return is not None:
+                #     edges = edges + "\n" + root.getId() + "--" + root.f_return.root.getId()
+                #     res = self.toDot(root.f_return.root)
+                #     nodes = nodes + res[0]
+                #     edges = edges + res[1]
             else:
                 nodes = "\n"
             res = root.block.toDot()
@@ -256,6 +283,28 @@ class AST:
             for node in self.root.arrayContent:
                 edges = edges + "\n" + self.root.getId() + "--" + node.getId()
                 nodes = nodes + "\n" + node.getId() + " [label=" + node.getLabel() + "]"
+        elif isinstance(self.root, ReturnNode):
+            edges = edges + "\n" + root.getId() + "--" + root.value.root.getId()
+            if not (isinstance(root.value.root, Value) or isinstance(root.value.root, Array) or
+                isinstance(root.value.root, Pointer)):
+                res = self.toDot(root.value.root)
+                nodes = nodes + res[0]
+                edges = edges + res[1]
+            else:
+                nodes = nodes + "\n" + root.value.root.getId() + " [label=" + root.value.root.getLabel() + "]"
+        elif isinstance(self.root, Print) or isinstance(self.root, Scan):
+            for tree in root.param:
+                temp = tree
+                if isinstance(temp, tuple):
+                    temp = temp[0]
+                edges = edges + "\n" + root.getId() + "--" + temp.root.getId()
+                if not (isinstance(root.value.root, Value) or isinstance(root.value.root, Array) or
+                        isinstance(root.value.root, Pointer)):
+                    res = self.toDot(temp)
+                    nodes = nodes + res[0]
+                    edges = edges + res[1]
+                else:
+                    nodes = nodes + "\n" + temp.root.getId() + " [label=" + temp.root.getLabel() + "]"
 
         return nodes, edges
 
