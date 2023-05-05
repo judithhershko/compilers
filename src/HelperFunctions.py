@@ -112,7 +112,12 @@ def isFloat(v: str):
         if i == '.':
             f = True
     return f
-
+def is_float(string):
+    try:
+        float(string)
+        return True
+    except ValueError:
+        return False
 
 def commentType(v: str):
     if v[1] == "/":

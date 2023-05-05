@@ -7,6 +7,6 @@ int f(int x)
 int main(int x,int y)
 {
 printf("%d and %s", x,y);
-f(0);
+f(0,x);
 return x;
 }

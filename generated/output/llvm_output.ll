@@ -13,7 +13,7 @@ store i32 %0, ptr %2, align 4
 
 ret i32 1
 }
-;//intmain(intx,inty){printf("%d and %s",x,y);f(0);returnx;}
+;//intmain(intx,inty){printf("%d and %s",x,y);f(0,x);returnx;}
 
 ; Function Attrs: noinline nounwind optnone ssp uwtable(sync)
 define i32 @main(i32 noundef %0,i32 noundef %1) #0 { 
