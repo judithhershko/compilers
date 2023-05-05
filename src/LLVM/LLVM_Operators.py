@@ -407,18 +407,18 @@ class ToLLVM():
         self.allocated_var[str(v.value)] = self.get_variable(str(v.value))
         if v.pos > 0 and v.arrayContent.__len__()>0:
             if self.global_:
-                self.store += "@{} = global [".format(v.value)
+                self.f_declerations += "@{} = global [".format(v.value)
             else:
-                self.store += "@__const.{}.{} = private unnamed_addr constant [{} x {}] [".format(
+                self.f_declerations += "@__const.{}.{} = private unnamed_addr constant [{} x {}] [".format(
                     self.c_scope.f_name, v.value, v.pos, self.get_llvm_type(v.getType()))
 
             for i in v.arrayContent:
                 val = i.value
                 if v.type == LiteralType.FLOAT:
                     v = self.float_to_64bit_hex(v.getValue())
-                self.store += "{} {}".format(self.get_llvm_type(v.type), i.value)
-            self.store = self.g_assignment[:-1]
-            self.store += "] , align 4 \n"
+                self.f_declerations += "{} {},".format(self.get_llvm_type(v.type), i.value)
+            self.f_declerations = self.f_declerations[:-1]
+            self.f_declerations += "] , align 4 \n"
 
     def switch_Literals(self, v, input_, one_side=False):
         # comment above with original code:
