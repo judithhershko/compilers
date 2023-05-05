@@ -1161,6 +1161,9 @@ class CustomListener(ExpressionListener):
             self.c_scope.block.trees.append(t)
             self.asT = create_tree()
             self.current = None
+        if self.c_scope.f_return is None:
+            return_=create_tree()
+            return_.root=EmptyNode(ctx.start.line,None,None)
         return
 
     # Enter a parse tree produced by ExpressionParser#parameters.
