@@ -1,18 +1,12 @@
 #include "stdio.h"
-
-int f(int x, float z,int k)
+int main(int x,int y)
 {
-    return 90;
+const int r = 5;
+x=x+1*x+89;
+if(x>90)
+{
+x=x-10;
 }
 
-int main(int x)
-{
-    int k[2];
-    int v[3]={1,2,3};
-    int f=10;
-    while (f<10)
-    {
-        f=f+1;
-    }
-    return 1;
+return 1;
 }

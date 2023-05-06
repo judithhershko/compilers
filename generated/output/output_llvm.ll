@@ -1,57 +1,49 @@
-@__const.main.v = private unnamed_addr constant [3 x i32] [i32 1,i32 2,i32 3] , align 4 
-;//intf(intx,floatz,intk){return90;}
+;//intmain(intx,inty){constintr=5;x=x+1*x+89;if(x>90){x=x-10;}return1;}
 
 ; Function Attrs: noinline nounwind optnone ssp uwtable(sync)
-define i32 @f(i32 noundef %0,float noundef %1,i32 noundef %2) #0 { 
-%4 = alloca i32, align 4
-%5 = alloca float, align 4
-%6 = alloca i32, align 4
-
-store i32 %0, ptr %4, align 4
-store float %1, ptr %5, align 4
-store i32 %2, ptr %6, align 4
-
-;//intx
-
-;//floatz
-
-;//intk
-
-ret i32 90
-}
-;//intmain(intx){intk[2];intv[3]={1,2,3};intf=10;while(f<10){f=f+1;}return1;}
-
-; Function Attrs: noinline nounwind optnone ssp uwtable(sync)
-define i32 @main(i32 noundef %0) #0 { 
-%2 = alloca i32, align 4
-;  int f;
+define i32 @main(i32 noundef %0,i32 noundef %1) #0 { 
 %3 = alloca i32, align 4
-%4 = alloca [ 2 x i32], align 4
-%5 = alloca [ 3 x i32], align 4
+%4 = alloca i32, align 4
+; const int r;
+%5 = alloca i32, align 4
+ %6 = alloca i32, align 4
 
-store i32 %0, ptr %2, align 4
+store i32 %0, ptr %3, align 4
+store i32 %1, ptr %4, align 4
+store i32 %1, ptr %6, align 4
 
 ;//intx
 
-;//intk[2]
+;//inty
 
-;//intv[3]={1,2,3}
+;//constintr=5
 
-;//intf=10
+store i32 5, i32* %5, align 4
+;//x=x+1*x+89
 
-store i32 10, i32* %3, align 4
-;//while(f<10){f=f+1;}
+%7 = load i32, ptr %6, align 4
+%8 = load i32, ptr %6, align 4
+%9 = add nsw i32 %8, 89
 
-br label %6
-6:
-%8 = icmp slt i32 %7, 10
+%10 = add nsw i32 %8, %9
 
-br i1 %8, label %9, label %10
-9:
-;//f=f+1
+%11 = mul nsw i32 1, %10
 
-store i32 11, i32* %3, align 4
-br label %6
-10:
+ store i32 %11, ptr %6, align 4
+;//if(x>90){x=x-10;}
+
+%12 = icmp sgt i32 %11, 90
+
+br i1 %12, label %13, label %17
+13:
+;//x=x-10
+
+%14 = load i32, ptr %6, align 4
+%15 = load i32, ptr %6, align 4
+%16 = sub nsw i32 %15, 10
+
+ store i32 %16, ptr %6, align 4
+br label %17
+17:
 ret i32 1
 }

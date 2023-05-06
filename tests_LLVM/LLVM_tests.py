@@ -40,8 +40,9 @@ class LLVM_TestCases_Working(unittest.TestCase):
         except SystemExit:
             sys.exit()
 
+
         # self.assertTrue(filecmp.cmp("LLVM_output/" + file + ".ll", "LLVM_expected/" + file + ".ll"))
-        
+
     def test_binaryArithmeticOperators(self):
         file = "M_P_BinaryArithmeticOperators"
         try:
@@ -49,17 +50,37 @@ class LLVM_TestCases_Working(unittest.TestCase):
         except SystemExit:
             sys.exit()
 
+        file1 = 'LLVM_output/' + file + '.ll'
+        file2 = 'LLVM_output/' + file + '.ll'
+        with open(file1, 'r') as file:
+            text1 = file.read().replace('\n', '')
+        with open(file2, 'r') as file:
+            text2 = file.read().replace('\n', '')
+        print(text1)
+        print("text2:\n")
+        print(text2)
+        self.assertTrue(text1 == text2)
+
         # self.assertTrue(filecmp.cmp("LLVM_output/" + file + ".ll", "LLVM_expected/" + file + ".ll"))
 
     def test_M_if(self):
         file = "M_P_if"
+
         try:
             testFile(file)
         except SystemExit:
             sys.exit()
+        file1 = 'LLVM_output/' + file + '.ll'
+        file2 = 'LLVM_output/' + file + '.ll'
+        with open(file1, 'r') as file:
+            text1 = file.read().replace('\n', '')
+        with open(file2, 'r') as file:
+            text2 = file.read().replace('\n', '')
+        print(text1)
+        print("text2:\n")
+        print(text2)
+        self.assertTrue(text1 == text2)
 
-        # self.assertTrue(filecmp.cmp("LLVM_output/" + file + ".ll", "LLVM_expected/" + file + ".ll"))
-        
     def test_P_anon_scope(self):
         file = "M_P_anon_scope"
 
@@ -67,9 +88,18 @@ class LLVM_TestCases_Working(unittest.TestCase):
             testFile(file)
         except SystemExit:
             sys.exit()
-
+        file1 = 'LLVM_output/' + file + '.ll'
+        file2 = 'LLVM_output/' + file + '.ll'
+        with open(file1, 'r') as file:
+            text1 = file.read().replace('\n', '')
+        with open(file2, 'r') as file:
+            text2 = file.read().replace('\n', '')
+        print(text1)
+        print("text2:\n")
+        print(text2)
+        self.assertTrue(text1 == text2)
         # self.assertTrue(filecmp.cmp("LLVM_output/" + file + ".ll", "LLVM_expected/" + file + ".ll"))
-    
+
     def test_binaryComparisonOperators(self):
         file = "M_P_BinaryComparisonOperators"
 
@@ -77,6 +107,16 @@ class LLVM_TestCases_Working(unittest.TestCase):
             testFile(file)
         except SystemExit:
             sys.exit()
+        file1 = 'LLVM_output/' + file + '.ll'
+        file2 = 'LLVM_output/' + file + '.ll'
+        with open(file1, 'r') as file:
+            text1 = file.read().replace('\n', '')
+        with open(file2, 'r') as file:
+            text2 = file.read().replace('\n', '')
+        print(text1)
+        print("text2:\n")
+        print(text2)
+        self.assertTrue(text1 == text2)
 
         # self.assertTrue(filecmp.cmp("LLVM_output/" + file + ".ll", "LLVM_expected/" + file + ".ll"))
 
@@ -86,9 +126,19 @@ class LLVM_TestCases_Working(unittest.TestCase):
             testFile(file)
         except SystemExit:
             sys.exit()
+        file1 = 'LLVM_output/' + file + '.ll'
+        file2 = 'LLVM_output/' + file + '.ll'
+        with open(file1, 'r') as file:
+            text1 = file.read().replace('\n', '')
+        with open(file2, 'r') as file:
+            text2 = file.read().replace('\n', '')
+        print(text1)
+        print("text2:\n")
+        print(text2)
+        self.assertTrue(text1 == text2)
 
         # self.assertTrue(filecmp.cmp("LLVM_output/" + file + ".ll", "LLVM_expected/" + file + ".ll"))
-    
+
     def test_P_break(self):
         file = "M_P_break"
 
@@ -96,15 +146,35 @@ class LLVM_TestCases_Working(unittest.TestCase):
             testFile(file)
         except SystemExit:
             sys.exit()
+        file1 = 'LLVM_output/' + file + '.ll'
+        file2 = 'LLVM_output/' + file + '.ll'
+        with open(file1, 'r') as file:
+            text1 = file.read().replace('\n', '')
+        with open(file2, 'r') as file:
+            text2 = file.read().replace('\n', '')
+        print(text1)
+        print("text2:\n")
+        print(text2)
+        self.assertTrue(text1 == text2)
 
         # self.assertTrue(filecmp.cmp("LLVM_output/" + file + ".ll", "LLVM_expected/" + file + ".ll"))
-        
+
     def test_logicalOperators(self):
         file = "M_P_LogicalOperators"
         try:
             testFile(file)
         except SystemExit:
             sys.exit()
+        file1 = 'LLVM_output/' + file + '.ll'
+        file2 = 'LLVM_output/' + file + '.ll'
+        with open(file1, 'r') as file:
+            text1 = file.read().replace('\n', '')
+        with open(file2, 'r') as file:
+            text2 = file.read().replace('\n', '')
+        print(text1)
+        print("text2:\n")
+        print(text2)
+        self.assertTrue(text1 == text2)
 
         # self.assertTrue(filecmp.cmp("LLVM_output/" + file + ".ll", "LLVM_expected/" + file + ".ll"))
 
@@ -114,6 +184,16 @@ class LLVM_TestCases_Working(unittest.TestCase):
             testFile(file)
         except SystemExit:
             sys.exit()
+        file1 = 'LLVM_output/' + file + '.ll'
+        file2 = 'LLVM_output/' + file + '.ll'
+        with open(file1, 'r') as file:
+            text1 = file.read().replace('\n', '')
+        with open(file2, 'r') as file:
+            text2 = file.read().replace('\n', '')
+        print(text1)
+        print("text2:\n")
+        print(text2)
+        self.assertTrue(text1 == text2)
 
         # self.assertTrue(filecmp.cmp("LLVM_output/" + file + ".ll", "LLVM_expected/" + file + ".ll"))
 
@@ -124,9 +204,19 @@ class LLVM_TestCases_Working(unittest.TestCase):
             testFile(file)
         except SystemExit:
             sys.exit()
+        file1 = 'LLVM_output/' + file + '.ll'
+        file2 = 'LLVM_output/' + file + '.ll'
+        with open(file1, 'r') as file:
+            text1 = file.read().replace('\n', '')
+        with open(file2, 'r') as file:
+            text2 = file.read().replace('\n', '')
+        print(text1)
+        print("text2:\n")
+        print(text2)
+        self.assertTrue(text1 == text2)
 
         # self.assertTrue(filecmp.cmp("LLVM_output/" + file + ".ll", "LLVM_expected/" + file + ".ll"))
-        
+
     def test_unaryOperators(self):
         file = "M_P_UnaryOperators"
 
@@ -134,6 +224,16 @@ class LLVM_TestCases_Working(unittest.TestCase):
             testFile(file)
         except SystemExit:
             sys.exit()
+        file1 = 'LLVM_output/' + file + '.ll'
+        file2 = 'LLVM_output/' + file + '.ll'
+        with open(file1, 'r') as file:
+            text1 = file.read().replace('\n', '')
+        with open(file2, 'r') as file:
+            text2 = file.read().replace('\n', '')
+        print(text1)
+        print("text2:\n")
+        print(text2)
+        self.assertTrue(text1 == text2)
 
         # self.assertTrue(filecmp.cmp("LLVM_output/" + file + ".ll", "LLVM_expected/" + file + ".ll"))
 
@@ -143,9 +243,19 @@ class LLVM_TestCases_Working(unittest.TestCase):
             testFile(file)
         except SystemExit:
             sys.exit()
+        file1 = 'LLVM_output/' + file + '.ll'
+        file2 = 'LLVM_output/' + file + '.ll'
+        with open(file1, 'r') as file:
+            text1 = file.read().replace('\n', '')
+        with open(file2, 'r') as file:
+            text2 = file.read().replace('\n', '')
+        print(text1)
+        print("text2:\n")
+        print(text2)
+        self.assertTrue(text1 == text2)
 
         # self.assertTrue(filecmp.cmp("LLVM_output/" + file + ".ll", "LLVM_expected/" + file + ".ll"))
-    
+
     def test_P_function_call_assignment(self):
         file = "M_P_function_call_assignment"
 
@@ -153,6 +263,16 @@ class LLVM_TestCases_Working(unittest.TestCase):
             testFile(file)
         except SystemExit:
             sys.exit()
+        file1 = 'LLVM_output/' + file + '.ll'
+        file2 = 'LLVM_output/' + file + '.ll'
+        with open(file1, 'r') as file:
+            text1 = file.read().replace('\n', '')
+        with open(file2, 'r') as file:
+            text2 = file.read().replace('\n', '')
+        print(text1)
+        print("text2:\n")
+        print(text2)
+        self.assertTrue(text1 == text2)
 
         # self.assertTrue(filecmp.cmp("LLVM_output/" + file + ".ll", "LLVM_expected/" + file + ".ll"))
 
@@ -162,6 +282,16 @@ class LLVM_TestCases_Working(unittest.TestCase):
             testFile(file)
         except SystemExit:
             sys.exit()
+        file1 = 'LLVM_output/' + file + '.ll'
+        file2 = 'LLVM_output/' + file + '.ll'
+        with open(file1, 'r') as file:
+            text1 = file.read().replace('\n', '')
+        with open(file2, 'r') as file:
+            text2 = file.read().replace('\n', '')
+        print(text1)
+        print("text2:\n")
+        print(text2)
+        self.assertTrue(text1 == text2)
 
         # self.assertTrue(filecmp.cmp("LLVM_output/" + file + ".ll", "LLVM_expected/" + file + ".ll"))
 
@@ -171,9 +301,19 @@ class LLVM_TestCases_Working(unittest.TestCase):
             testFile(file)
         except SystemExit:
             sys.exit()
+        file1 = 'LLVM_output/' + file + '.ll'
+        file2 = 'LLVM_output/' + file + '.ll'
+        with open(file1, 'r') as file:
+            text1 = file.read().replace('\n', '')
+        with open(file2, 'r') as file:
+            text2 = file.read().replace('\n', '')
+        print(text1)
+        print("text2:\n")
+        print(text2)
+        self.assertTrue(text1 == text2)
 
         # self.assertTrue(filecmp.cmp("LLVM_output/" + file + ".ll", "LLVM_expected/" + file + ".ll"))
-        
+
     def test_P_functions(self):
         file = "M_P_functions"
 
@@ -181,6 +321,16 @@ class LLVM_TestCases_Working(unittest.TestCase):
             testFile(file)
         except SystemExit:
             sys.exit()
+        file1 = 'LLVM_output/' + file + '.ll'
+        file2 = 'LLVM_output/' + file + '.ll'
+        with open(file1, 'r') as file:
+            text1 = file.read().replace('\n', '')
+        with open(file2, 'r') as file:
+            text2 = file.read().replace('\n', '')
+        print(text1)
+        print("text2:\n")
+        print(text2)
+        self.assertTrue(text1 == text2)
 
         # self.assertTrue(filecmp.cmp("LLVM_output/" + file + ".ll", "LLVM_expected/" + file + ".ll"))
 
@@ -191,7 +341,16 @@ class LLVM_TestCases_Working(unittest.TestCase):
             testFile(file)
         except SystemExit:
             sys.exit()
-
+        file1 = 'LLVM_output/' + file + '.ll'
+        file2 = 'LLVM_output/' + file + '.ll'
+        with open(file1, 'r') as file:
+            text1 = file.read().replace('\n', '')
+        with open(file2, 'r') as file:
+            text2 = file.read().replace('\n', '')
+        print(text1)
+        print("text2:\n")
+        print(text2)
+        self.assertTrue(text1 == text2)
         # self.assertTrue(filecmp.cmp("LLVM_output/" + file + ".ll", "LLVM_expected/" + file + ".ll"))
 
     def test_P_if_else(self):
@@ -201,6 +360,16 @@ class LLVM_TestCases_Working(unittest.TestCase):
             testFile(file)
         except SystemExit:
             sys.exit()
+        file1 = 'LLVM_output/' + file + '.ll'
+        file2 = 'LLVM_output/' + file + '.ll'
+        with open(file1, 'r') as file:
+            text1 = file.read().replace('\n', '')
+        with open(file2, 'r') as file:
+            text2 = file.read().replace('\n', '')
+        print(text1)
+        print("text2:\n")
+        print(text2)
+        self.assertTrue(text1 == text2)
 
         # self.assertTrue(filecmp.cmp("LLVM_output/" + file + ".ll", "LLVM_expected/" + file + ".ll"))
 
@@ -211,6 +380,16 @@ class LLVM_TestCases_Working(unittest.TestCase):
             testFile(file)
         except SystemExit:
             sys.exit()
+        file1 = 'LLVM_output/' + file + '.ll'
+        file2 = 'LLVM_output/' + file + '.ll'
+        with open(file1, 'r') as file:
+            text1 = file.read().replace('\n', '')
+        with open(file2, 'r') as file:
+            text2 = file.read().replace('\n', '')
+        print(text1)
+        print("text2:\n")
+        print(text2)
+        self.assertTrue(text1 == text2)
 
         # self.assertTrue(filecmp.cmp("LLVM_output/" + file + ".ll", "LLVM_expected/" + file + ".ll"))
 
@@ -221,6 +400,16 @@ class LLVM_TestCases_Working(unittest.TestCase):
             testFile(file)
         except SystemExit:
             sys.exit()
+        file1 = 'LLVM_output/' + file + '.ll'
+        file2 = 'LLVM_output/' + file + '.ll'
+        with open(file1, 'r') as file:
+            text1 = file.read().replace('\n', '')
+        with open(file2, 'r') as file:
+            text2 = file.read().replace('\n', '')
+        print(text1)
+        print("text2:\n")
+        print(text2)
+        self.assertTrue(text1 == text2)
 
         # self.assertTrue(filecmp.cmp("LLVM_output/" + file + ".ll", "LLVM_expected/" + file + ".ll"))
 
@@ -231,9 +420,18 @@ class LLVM_TestCases_Working(unittest.TestCase):
             testFile(file)
         except SystemExit:
             sys.exit()
+        file1 = 'LLVM_output/' + file + '.ll'
+        file2 = 'LLVM_output/' + file + '.ll'
+        with open(file1, 'r') as file:
+            text1 = file.read().replace('\n', '')
+        with open(file2, 'r') as file:
+            text2 = file.read().replace('\n', '')
+        print(text1)
+        print("text2:\n")
+        print(text2)
+        self.assertTrue(text1 == text2)
 
         # self.assertTrue(filecmp.cmp("LLVM_output/" + file + ".ll", "LLVM_expected/" + file + ".ll"))
-
 
     def test_P_printf(self):
         file = "M_P_printf"
@@ -242,6 +440,16 @@ class LLVM_TestCases_Working(unittest.TestCase):
             testFile(file)
         except SystemExit:
             sys.exit()
+        file1 = 'LLVM_output/' + file + '.ll'
+        file2 = 'LLVM_output/' + file + '.ll'
+        with open(file1, 'r') as file:
+            text1 = file.read().replace('\n', '')
+        with open(file2, 'r') as file:
+            text2 = file.read().replace('\n', '')
+        print(text1)
+        print("text2:\n")
+        print(text2)
+        self.assertTrue(text1 == text2)
 
         # self.assertTrue(filecmp.cmp("LLVM_output/" + file + ".ll", "LLVM_expected/" + file + ".ll"))
 
@@ -252,6 +460,16 @@ class LLVM_TestCases_Working(unittest.TestCase):
             testFile(file)
         except SystemExit:
             sys.exit()
+        file1 = 'LLVM_output/' + file + '.ll'
+        file2 = 'LLVM_output/' + file + '.ll'
+        with open(file1, 'r') as file:
+            text1 = file.read().replace('\n', '')
+        with open(file2, 'r') as file:
+            text2 = file.read().replace('\n', '')
+        print(text1)
+        print("text2:\n")
+        print(text2)
+        self.assertTrue(text1 == text2)
 
         # self.assertTrue(filecmp.cmp("LLVM_output/" + file + ".ll", "LLVM_expected/" + file + ".ll"))
 
@@ -262,6 +480,16 @@ class LLVM_TestCases_Working(unittest.TestCase):
             testFile(file)
         except SystemExit:
             sys.exit()
+        file1 = 'LLVM_output/' + file + '.ll'
+        file2 = 'LLVM_output/' + file + '.ll'
+        with open(file1, 'r') as file:
+            text1 = file.read().replace('\n', '')
+        with open(file2, 'r') as file:
+            text2 = file.read().replace('\n', '')
+        print(text1)
+        print("text2:\n")
+        print(text2)
+        self.assertTrue(text1 == text2)
 
         # self.assertTrue(filecmp.cmp("LLVM_output/" + file + ".ll", "LLVM_expected/" + file + ".ll"))
 
@@ -272,7 +500,16 @@ class LLVM_TestCases_Working(unittest.TestCase):
             testFile(file)
         except SystemExit:
             sys.exit()
-
+        file1 = 'LLVM_output/' + file + '.ll'
+        file2 = 'LLVM_output/' + file + '.ll'
+        with open(file1, 'r') as file:
+            text1 = file.read().replace('\n', '')
+        with open(file2, 'r') as file:
+            text2 = file.read().replace('\n', '')
+        print(text1)
+        print("text2:\n")
+        print(text2)
+        self.assertTrue(text1 == text2)
         # self.assertTrue(filecmp.cmp("LLVM_output/" + file + ".ll", "LLVM_expected/" + file + ".ll"))
 
     def test_P_while(self):
@@ -282,6 +519,16 @@ class LLVM_TestCases_Working(unittest.TestCase):
             testFile(file)
         except SystemExit:
             sys.exit()
+        file1 = 'LLVM_output/' + file + '.ll'
+        file2 = 'LLVM_output/' + file + '.ll'
+        with open(file1, 'r') as file:
+            text1 = file.read().replace('\n', '')
+        with open(file2, 'r') as file:
+            text2 = file.read().replace('\n', '')
+        print(text1)
+        print("text2:\n")
+        print(text2)
+        self.assertTrue(text1 == text2)
 
         # self.assertTrue(filecmp.cmp("LLVM_output/" + file + ".ll", "LLVM_expected/" + file + ".ll"))
 
@@ -292,6 +539,16 @@ class LLVM_TestCases_Working(unittest.TestCase):
             testFile(file)
         except SystemExit:
             sys.exit()
+        file1 = 'LLVM_output/' + file + '.ll'
+        file2 = 'LLVM_output/' + file + '.ll'
+        with open(file1, 'r') as file:
+            text1 = file.read().replace('\n', '')
+        with open(file2, 'r') as file:
+            text2 = file.read().replace('\n', '')
+        print(text1)
+        print("text2:\n")
+        print(text2)
+        self.assertTrue(text1 == text2)
 
         # self.assertTrue(filecmp.cmp("LLVM_output/" + file + ".ll", "LLVM_expected/" + file + ".ll"))
 
