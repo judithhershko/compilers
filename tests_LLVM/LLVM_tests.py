@@ -552,6 +552,16 @@ class LLVM_TestCases_Working(unittest.TestCase):
 
         # self.assertTrue(filecmp.cmp("LLVM_output/" + file + ".ll", "LLVM_expected/" + file + ".ll"))
 
+    def test_MultiLineComment(self):
+        file = "M_P_MultiLineComment"
+
+        try:
+            testFile(file)
+        except SystemExit:
+            sys.exit()
+
+        # self.assertTrue(filecmp.cmp("LLVM_output/" + file + ".ll", "LLVM_expected/" + file + ".ll"))
+
 
 if __name__ == '__main__':
     unittest.main()
