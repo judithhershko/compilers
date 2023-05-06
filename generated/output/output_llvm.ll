@@ -1,49 +1,125 @@
-;//intmain(intx,inty){constintr=5;x=x+1*x+89;if(x>90){x=x-10;}return1;}
+;//intmain(inty){/**
+const int r = 5;
+
+int x=0;
+x=x+1*x+89;
+if(x>90)
+{
+x=x-10;
+while(x<8)
+{
+x=x+1;
+}
+}
+**/
+
+//INCOMPATIBLE TYPES OPERATIONS
+/**
+int x = 478;
+char b = 'a';
+int y = x + b;
+**/
+
+//INCOMPATIBLE POINTERS OP
+/**
+int x = 478;
+int b = -251454;
+int* b_ptr = &b;
+int** x_ptr = &b_ptr;
+x_ptr = &b;
+**/
+
+//INCOMPATIBLE TYPES VARIABLES
+//int x = 'a';
+
+//PRINT FAIL REMOVE INCLULDE
+//printf("is value");
+
+//REASSIGMENT ERROR
+/**
+const int x = 478;
+x=5;
+**/
+
+//REDECLARATION
+/**
+int x = 5;
+int x;
+**/
+
+//RVALUE
+//nt 0 = 5;
+
+//UNDECLARED
+/**
+int some_variable;
+some_variable = x + 3;
+**/return1;}
 
 ; Function Attrs: noinline nounwind optnone ssp uwtable(sync)
-define i32 @main(i32 noundef %0,i32 noundef %1) #0 { 
-%3 = alloca i32, align 4
-%4 = alloca i32, align 4
-; const int r;
-%5 = alloca i32, align 4
- %6 = alloca i32, align 4
+define i32 @main(i32 noundef %0) #0 { 
+%2 = alloca i32, align 4
 
-store i32 %0, ptr %3, align 4
-store i32 %1, ptr %4, align 4
-store i32 %1, ptr %6, align 4
-
-;//intx
+store i32 %0, ptr %2, align 4
 
 ;//inty
 
-;//constintr=5
-
-store i32 5, i32* %5, align 4
-;//x=x+1*x+89
-
-%7 = load i32, ptr %6, align 4
-%8 = load i32, ptr %6, align 4
-%9 = add nsw i32 %8, 89
-
-%10 = add nsw i32 %8, %9
-
-%11 = mul nsw i32 1, %10
-
- store i32 %11, ptr %6, align 4
-;//if(x>90){x=x-10;}
-
-%12 = icmp sgt i32 %11, 90
-
-br i1 %12, label %13, label %17
-13:
-;//x=x-10
-
-%14 = load i32, ptr %6, align 4
-%15 = load i32, ptr %6, align 4
-%16 = sub nsw i32 %15, 10
-
- store i32 %16, ptr %6, align 4
-br label %17
-17:
+;/**
+;const int r = 5;
+;
+;int x=0;
+;x=x+1*x+89;
+;if(x>90)
+;{
+;x=x-10;
+;while(x<8)
+;{
+;x=x+1;
+;}
+;}
+;**/
+;
+;//INCOMPATIBLE TYPES OPERATIONS
+;/**
+;int x = 478;
+;char b = 'a';
+;int y = x + b;
+;**/
+;
+;//INCOMPATIBLE POINTERS OP
+;/**
+;int x = 478;
+;int b = -251454;
+;int* b_ptr = &b;
+;int** x_ptr = &b_ptr;
+;x_ptr = &b;
+;**/
+;
+;//INCOMPATIBLE TYPES VARIABLES
+;//int x = 'a';
+;
+;//PRINT FAIL REMOVE INCLULDE
+;//printf("is value");
+;
+;//REASSIGMENT ERROR
+;/**
+;const int x = 478;
+;x=5;
+;**/
+;
+;//REDECLARATION
+;/**
+;int x = 5;
+;int x;
+;**/
+;
+;//RVALUE
+;//nt 0 = 5;
+;
+;//UNDECLARED
+;/**
+;int some_variable;
+;some_variable = x + 3;
+;**/
 ret i32 1
 }

@@ -561,7 +561,6 @@ class LLVM_TestCases_Working(unittest.TestCase):
             sys.exit()
 
         # self.assertTrue(filecmp.cmp("LLVM_output/" + file + ".ll", "LLVM_expected/" + file + ".ll"))
-
-
 if __name__ == '__main__':
     unittest.main()
+
