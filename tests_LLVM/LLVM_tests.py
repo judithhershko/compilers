@@ -33,12 +33,6 @@ def testFile(fileName):
 
 
 class LLVM_TestCases_Working(unittest.TestCase):
-    def test_M_while(self):
-        file = "M_P_while"
-        try:
-            testFile(file)
-        except SystemExit:
-            sys.exit()
 
 
         # self.assertTrue(filecmp.cmp("LLVM_output/" + file + ".ll", "LLVM_expected/" + file + ".ll"))
@@ -56,9 +50,56 @@ class LLVM_TestCases_Working(unittest.TestCase):
             text1 = file.read().replace('\n', '')
         with open(file2, 'r') as file:
             text2 = file.read().replace('\n', '')
-        print(text1)
-        print("text2:\n")
-        print(text2)
+
+        self.assertTrue(text1 == text2)
+
+    def test_binaryComparisonOperators(self):
+        file = "M_P_BinaryComparisonOperators"
+
+        try:
+            testFile(file)
+        except SystemExit:
+            sys.exit()
+        file1 = 'LLVM_output/' + file + '.ll'
+        file2 = 'LLVM_output/' + file + '.ll'
+        with open(file1, 'r') as file:
+            text1 = file.read().replace('\n', '')
+        with open(file2, 'r') as file:
+            text2 = file.read().replace('\n', '')
+
+        self.assertTrue(text1 == text2)
+
+        # self.assertTrue(filecmp.cmp("LLVM_output/" + file + ".ll", "LLVM_expected/" + file + ".ll"))
+    def test_logicalOperators(self):
+        file = "M_P_LogicalOperators"
+        try:
+            testFile(file)
+        except SystemExit:
+            sys.exit()
+        file1 = 'LLVM_output/' + file + '.ll'
+        file2 = 'LLVM_output/' + file + '.ll'
+        with open(file1, 'r') as file:
+            text1 = file.read().replace('\n', '')
+        with open(file2, 'r') as file:
+            text2 = file.read().replace('\n', '')
+
+        self.assertTrue(text1 == text2)
+
+        # self.assertTrue(filecmp.cmp("LLVM_output/" + file + ".ll", "LLVM_expected/" + file + ".ll"))
+    def test_unaryOperators(self):
+        file = "M_P_UnaryOperators"
+
+        try:
+            testFile(file)
+        except SystemExit:
+            sys.exit()
+        file1 = 'LLVM_output/' + file + '.ll'
+        file2 = 'LLVM_output/' + file + '.ll'
+        with open(file1, 'r') as file:
+            text1 = file.read().replace('\n', '')
+        with open(file2, 'r') as file:
+            text2 = file.read().replace('\n', '')
+
         self.assertTrue(text1 == text2)
 
         # self.assertTrue(filecmp.cmp("LLVM_output/" + file + ".ll", "LLVM_expected/" + file + ".ll"))
@@ -76,9 +117,23 @@ class LLVM_TestCases_Working(unittest.TestCase):
             text1 = file.read().replace('\n', '')
         with open(file2, 'r') as file:
             text2 = file.read().replace('\n', '')
-        print(text1)
-        print("text2:\n")
-        print(text2)
+
+        self.assertTrue(text1 == text2)
+
+    def test_M_while(self):
+        file = "M_P_while"
+        try:
+            testFile(file)
+        except SystemExit:
+            sys.exit()
+
+        file1 = 'LLVM_output/' + file + '.ll'
+        file2 = 'LLVM_output/' + file + '.ll'
+        with open(file1, 'r') as file:
+            text1 = file.read().replace('\n', '')
+        with open(file2, 'r') as file:
+            text2 = file.read().replace('\n', '')
+
         self.assertTrue(text1 == text2)
 
     def test_P_anon_scope(self):
@@ -94,29 +149,11 @@ class LLVM_TestCases_Working(unittest.TestCase):
             text1 = file.read().replace('\n', '')
         with open(file2, 'r') as file:
             text2 = file.read().replace('\n', '')
-        print(text1)
-        print("text2:\n")
-        print(text2)
+
         self.assertTrue(text1 == text2)
         # self.assertTrue(filecmp.cmp("LLVM_output/" + file + ".ll", "LLVM_expected/" + file + ".ll"))
 
-    def test_binaryComparisonOperators(self):
-        file = "M_P_BinaryComparisonOperators"
 
-        try:
-            testFile(file)
-        except SystemExit:
-            sys.exit()
-        file1 = 'LLVM_output/' + file + '.ll'
-        file2 = 'LLVM_output/' + file + '.ll'
-        with open(file1, 'r') as file:
-            text1 = file.read().replace('\n', '')
-        with open(file2, 'r') as file:
-            text2 = file.read().replace('\n', '')
-        print(text1)
-        print("text2:\n")
-        print(text2)
-        self.assertTrue(text1 == text2)
 
         # self.assertTrue(filecmp.cmp("LLVM_output/" + file + ".ll", "LLVM_expected/" + file + ".ll"))
 
@@ -132,9 +169,7 @@ class LLVM_TestCases_Working(unittest.TestCase):
             text1 = file.read().replace('\n', '')
         with open(file2, 'r') as file:
             text2 = file.read().replace('\n', '')
-        print(text1)
-        print("text2:\n")
-        print(text2)
+
         self.assertTrue(text1 == text2)
 
         # self.assertTrue(filecmp.cmp("LLVM_output/" + file + ".ll", "LLVM_expected/" + file + ".ll"))
@@ -152,31 +187,11 @@ class LLVM_TestCases_Working(unittest.TestCase):
             text1 = file.read().replace('\n', '')
         with open(file2, 'r') as file:
             text2 = file.read().replace('\n', '')
-        print(text1)
-        print("text2:\n")
-        print(text2)
+
         self.assertTrue(text1 == text2)
 
         # self.assertTrue(filecmp.cmp("LLVM_output/" + file + ".ll", "LLVM_expected/" + file + ".ll"))
 
-    def test_logicalOperators(self):
-        file = "M_P_LogicalOperators"
-        try:
-            testFile(file)
-        except SystemExit:
-            sys.exit()
-        file1 = 'LLVM_output/' + file + '.ll'
-        file2 = 'LLVM_output/' + file + '.ll'
-        with open(file1, 'r') as file:
-            text1 = file.read().replace('\n', '')
-        with open(file2, 'r') as file:
-            text2 = file.read().replace('\n', '')
-        print(text1)
-        print("text2:\n")
-        print(text2)
-        self.assertTrue(text1 == text2)
-
-        # self.assertTrue(filecmp.cmp("LLVM_output/" + file + ".ll", "LLVM_expected/" + file + ".ll"))
 
     def test_P_continue(self):
         file = "M_P_continue"
@@ -190,9 +205,7 @@ class LLVM_TestCases_Working(unittest.TestCase):
             text1 = file.read().replace('\n', '')
         with open(file2, 'r') as file:
             text2 = file.read().replace('\n', '')
-        print(text1)
-        print("text2:\n")
-        print(text2)
+
         self.assertTrue(text1 == text2)
 
         # self.assertTrue(filecmp.cmp("LLVM_output/" + file + ".ll", "LLVM_expected/" + file + ".ll"))
@@ -210,32 +223,11 @@ class LLVM_TestCases_Working(unittest.TestCase):
             text1 = file.read().replace('\n', '')
         with open(file2, 'r') as file:
             text2 = file.read().replace('\n', '')
-        print(text1)
-        print("text2:\n")
-        print(text2)
+
         self.assertTrue(text1 == text2)
 
         # self.assertTrue(filecmp.cmp("LLVM_output/" + file + ".ll", "LLVM_expected/" + file + ".ll"))
 
-    def test_unaryOperators(self):
-        file = "M_P_UnaryOperators"
-
-        try:
-            testFile(file)
-        except SystemExit:
-            sys.exit()
-        file1 = 'LLVM_output/' + file + '.ll'
-        file2 = 'LLVM_output/' + file + '.ll'
-        with open(file1, 'r') as file:
-            text1 = file.read().replace('\n', '')
-        with open(file2, 'r') as file:
-            text2 = file.read().replace('\n', '')
-        print(text1)
-        print("text2:\n")
-        print(text2)
-        self.assertTrue(text1 == text2)
-
-        # self.assertTrue(filecmp.cmp("LLVM_output/" + file + ".ll", "LLVM_expected/" + file + ".ll"))
 
     def test_P_for(self):
         file = "M_P_for"
@@ -249,9 +241,7 @@ class LLVM_TestCases_Working(unittest.TestCase):
             text1 = file.read().replace('\n', '')
         with open(file2, 'r') as file:
             text2 = file.read().replace('\n', '')
-        print(text1)
-        print("text2:\n")
-        print(text2)
+
         self.assertTrue(text1 == text2)
 
         # self.assertTrue(filecmp.cmp("LLVM_output/" + file + ".ll", "LLVM_expected/" + file + ".ll"))
@@ -269,9 +259,7 @@ class LLVM_TestCases_Working(unittest.TestCase):
             text1 = file.read().replace('\n', '')
         with open(file2, 'r') as file:
             text2 = file.read().replace('\n', '')
-        print(text1)
-        print("text2:\n")
-        print(text2)
+
         self.assertTrue(text1 == text2)
 
         # self.assertTrue(filecmp.cmp("LLVM_output/" + file + ".ll", "LLVM_expected/" + file + ".ll"))
@@ -288,9 +276,7 @@ class LLVM_TestCases_Working(unittest.TestCase):
             text1 = file.read().replace('\n', '')
         with open(file2, 'r') as file:
             text2 = file.read().replace('\n', '')
-        print(text1)
-        print("text2:\n")
-        print(text2)
+
         self.assertTrue(text1 == text2)
 
         # self.assertTrue(filecmp.cmp("LLVM_output/" + file + ".ll", "LLVM_expected/" + file + ".ll"))
@@ -307,9 +293,7 @@ class LLVM_TestCases_Working(unittest.TestCase):
             text1 = file.read().replace('\n', '')
         with open(file2, 'r') as file:
             text2 = file.read().replace('\n', '')
-        print(text1)
-        print("text2:\n")
-        print(text2)
+
         self.assertTrue(text1 == text2)
 
         # self.assertTrue(filecmp.cmp("LLVM_output/" + file + ".ll", "LLVM_expected/" + file + ".ll"))
@@ -327,9 +311,7 @@ class LLVM_TestCases_Working(unittest.TestCase):
             text1 = file.read().replace('\n', '')
         with open(file2, 'r') as file:
             text2 = file.read().replace('\n', '')
-        print(text1)
-        print("text2:\n")
-        print(text2)
+
         self.assertTrue(text1 == text2)
 
         # self.assertTrue(filecmp.cmp("LLVM_output/" + file + ".ll", "LLVM_expected/" + file + ".ll"))
@@ -347,9 +329,7 @@ class LLVM_TestCases_Working(unittest.TestCase):
             text1 = file.read().replace('\n', '')
         with open(file2, 'r') as file:
             text2 = file.read().replace('\n', '')
-        print(text1)
-        print("text2:\n")
-        print(text2)
+
         self.assertTrue(text1 == text2)
         # self.assertTrue(filecmp.cmp("LLVM_output/" + file + ".ll", "LLVM_expected/" + file + ".ll"))
 
@@ -366,9 +346,7 @@ class LLVM_TestCases_Working(unittest.TestCase):
             text1 = file.read().replace('\n', '')
         with open(file2, 'r') as file:
             text2 = file.read().replace('\n', '')
-        print(text1)
-        print("text2:\n")
-        print(text2)
+
         self.assertTrue(text1 == text2)
 
         # self.assertTrue(filecmp.cmp("LLVM_output/" + file + ".ll", "LLVM_expected/" + file + ".ll"))
@@ -386,9 +364,7 @@ class LLVM_TestCases_Working(unittest.TestCase):
             text1 = file.read().replace('\n', '')
         with open(file2, 'r') as file:
             text2 = file.read().replace('\n', '')
-        print(text1)
-        print("text2:\n")
-        print(text2)
+
         self.assertTrue(text1 == text2)
 
         # self.assertTrue(filecmp.cmp("LLVM_output/" + file + ".ll", "LLVM_expected/" + file + ".ll"))
@@ -406,9 +382,7 @@ class LLVM_TestCases_Working(unittest.TestCase):
             text1 = file.read().replace('\n', '')
         with open(file2, 'r') as file:
             text2 = file.read().replace('\n', '')
-        print(text1)
-        print("text2:\n")
-        print(text2)
+
         self.assertTrue(text1 == text2)
 
         # self.assertTrue(filecmp.cmp("LLVM_output/" + file + ".ll", "LLVM_expected/" + file + ".ll"))
@@ -426,9 +400,7 @@ class LLVM_TestCases_Working(unittest.TestCase):
             text1 = file.read().replace('\n', '')
         with open(file2, 'r') as file:
             text2 = file.read().replace('\n', '')
-        print(text1)
-        print("text2:\n")
-        print(text2)
+
         self.assertTrue(text1 == text2)
 
         # self.assertTrue(filecmp.cmp("LLVM_output/" + file + ".ll", "LLVM_expected/" + file + ".ll"))
@@ -446,9 +418,7 @@ class LLVM_TestCases_Working(unittest.TestCase):
             text1 = file.read().replace('\n', '')
         with open(file2, 'r') as file:
             text2 = file.read().replace('\n', '')
-        print(text1)
-        print("text2:\n")
-        print(text2)
+
         self.assertTrue(text1 == text2)
 
         # self.assertTrue(filecmp.cmp("LLVM_output/" + file + ".ll", "LLVM_expected/" + file + ".ll"))
@@ -466,9 +436,7 @@ class LLVM_TestCases_Working(unittest.TestCase):
             text1 = file.read().replace('\n', '')
         with open(file2, 'r') as file:
             text2 = file.read().replace('\n', '')
-        print(text1)
-        print("text2:\n")
-        print(text2)
+
         self.assertTrue(text1 == text2)
 
         # self.assertTrue(filecmp.cmp("LLVM_output/" + file + ".ll", "LLVM_expected/" + file + ".ll"))
@@ -486,9 +454,7 @@ class LLVM_TestCases_Working(unittest.TestCase):
             text1 = file.read().replace('\n', '')
         with open(file2, 'r') as file:
             text2 = file.read().replace('\n', '')
-        print(text1)
-        print("text2:\n")
-        print(text2)
+
         self.assertTrue(text1 == text2)
 
         # self.assertTrue(filecmp.cmp("LLVM_output/" + file + ".ll", "LLVM_expected/" + file + ".ll"))
@@ -506,9 +472,7 @@ class LLVM_TestCases_Working(unittest.TestCase):
             text1 = file.read().replace('\n', '')
         with open(file2, 'r') as file:
             text2 = file.read().replace('\n', '')
-        print(text1)
-        print("text2:\n")
-        print(text2)
+
         self.assertTrue(text1 == text2)
         # self.assertTrue(filecmp.cmp("LLVM_output/" + file + ".ll", "LLVM_expected/" + file + ".ll"))
 
@@ -525,9 +489,7 @@ class LLVM_TestCases_Working(unittest.TestCase):
             text1 = file.read().replace('\n', '')
         with open(file2, 'r') as file:
             text2 = file.read().replace('\n', '')
-        print(text1)
-        print("text2:\n")
-        print(text2)
+
         self.assertTrue(text1 == text2)
 
         # self.assertTrue(filecmp.cmp("LLVM_output/" + file + ".ll", "LLVM_expected/" + file + ".ll"))
@@ -545,9 +507,7 @@ class LLVM_TestCases_Working(unittest.TestCase):
             text1 = file.read().replace('\n', '')
         with open(file2, 'r') as file:
             text2 = file.read().replace('\n', '')
-        print(text1)
-        print("text2:\n")
-        print(text2)
+
         self.assertTrue(text1 == text2)
 
         # self.assertTrue(filecmp.cmp("LLVM_output/" + file + ".ll", "LLVM_expected/" + file + ".ll"))

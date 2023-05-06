@@ -15,4 +15,4 @@ java -jar antlr-4.12.0-complete.jar -o generated -visitor -listener -Dlanguage=P
 #tests
 #python3 src/TestCases/CToLLVM_Tests.py
 
-dot -Tpng generated/output/result.dot -o generated/output/result.png
+dot -Tpng src/ast/dotFiles/no_fold_expression_dot.dot -o generated/output/result.png

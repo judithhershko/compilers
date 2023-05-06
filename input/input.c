@@ -1,63 +1,63 @@
 #include "stdio.h"
-int main( int y)
+const int xx=90;
+const int y=89+9*(8/78+89)*(5-89);
+void ff(float y)
 {
-/**
-const int r = 5;
 
+return ;}
+
+
+float f(int x,float y)
+{
+
+x=x-1;
+y=y+1;
+x <=y;
+
+
+12>=78;
+!79;
+{
+int x=90;
+}
+
+printf("%i",x);
+
+return 1.1;
+}
+int main()
+{
 int x=0;
-x=x+1*x+89;
-if(x>90)
+float y=9.90;
+y=89+9*(8/78+89)*
+(5-89);
+34>78;
+while (y>=789)
 {
-x=x-10;
-while(x<8)
+x=x+78;
+break;
+}
+
+if (x<=89)
 {
-x=x+1;
+x=x+90;
 }
+else{
+
+y=(89+89)+90;
+
+break;
+y=y+2;
 }
-**/
 
-//INCOMPATIBLE TYPES OPERATIONS
-/**
-int x = 478;
-char b = 'a';
-int y = x + b;
-**/
+x=!x;
+float z=f(1,1.1);
 
-//INCOMPATIBLE POINTERS OP
-/**
-int x = 478;
-int b = -251454;
-int* b_ptr = &b;
-int** x_ptr = &b_ptr;
-x_ptr = &b;
-**/
-
-//INCOMPATIBLE TYPES VARIABLES
-//int x = 'a';
-
-//PRINT FAIL REMOVE INCLULDE
-//printf("is value");
-
-//REASSIGMENT ERROR
-/**
-const int x = 478;
-x=5;
-**/
-
-//REDECLARATION
-/**
-int x = 5;
-int x;
-**/
-
-//RVALUE
-//nt 0 = 5;
-
-//UNDECLARED
-/**
-int some_variable;
-some_variable = x + 3;
-**/
+//pointers
+int p=90;
+int *pp= &p;
+int **ppp=&pp;
 
 return 1;
+x=x+90;
 }
