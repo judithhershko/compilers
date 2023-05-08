@@ -11,6 +11,12 @@ class Mips:
         self.text += ".globl main\n"
         # counter for temporary registers
         self.temp_count = 0
+        # keep used registers
+        self.register = dict()
+
+    def new_temp(self):
+        self.temp_count += 1
+        return "$t" + str(self.temp_count)
 
     def write_to_file(self, filename: str):
         text_file = open(filename, "w")
@@ -43,8 +49,21 @@ class Mips:
             return "s.s"
         if value.getType() == LiteralType.BOOL:
             return "s.b"
-    def get_register(self,v:Value):
+
+    def get_register(self, v: Value):
         return 1
+    def get_next_highest_register_type(self,type:str, v:Value):
+        # get highest register
+        if self.register.__len__() == 0:
+            self.register[v.getValue()] = type+"0"
+            return type+"0"
+        highest = max({k: v for k, v in self.register.items() if v.startswith(type)}.values())
+        # $ end of string \d match digits
+        digits = int(re.findall(r'\d+$', highest)[0])
+        digits += 1
+        self.register[v.getValue()] = type + str(digits)
+
+        return type + str(digits)
 
     def global_declaration(self, declaration: Declaration):
         content = self.get_value_content(declaration.rightChild)
@@ -78,25 +97,44 @@ class Mips:
         self.output += self.data
         self.output += self.text
 
+    """
+    # Save the return address and the previous frame pointer
+    addi $sp, $sp, -8
+    sw $fp, 4($sp)
+    sw $ra, 0($sp)
+    """
+
     def transverse_function(self, scope: Scope):
         self.text += scope.f_name + ": \n"
+        p = -1 * self.set_stack_space(scope)
+        self.text += "addi $sp, $sp, {}        # allocate space for arguments on stack\n".format(p)
+        p = -1 * p - 4
+        self.text += "sw $fp, {}($sp)           # save return address on stack\n".format(p)
+        p = p - 4
+        self.text += "sw $ra, {}($sp)          # save frame pointer on stack\n".format(p)
+
+        self.text += "addi $fp, $sp, {}         # set up new frame pointer\n".format(self.set_stack_space(scope))
+
         self.function_parameters(scope.parameters)
+
+        self.text += "# Return from the function\n"
+        self.text += "jr $ra\n"
 
     def function_parameters(self, parameters):
         # function start
-        p = -1 * len(parameters) * 4
-        self.text += "addi $sp, $sp, {}        # allocate space for arguments on stack\n".format(p)
-        p = -1 * p - 4
-        self.text += "sw $ra, {}($sp)           # save return address on stack\n".format(p)
-        p = p - 5
-        self.text += "sw $fp, {}($sp)          # save frame pointer on stack\n".format(p)
-        p = len(parameters) * 4
-        self.text += "addi $fp, $sp, {}         # set up new frame pointer\n".format(p)
+        p = 0
         self.text += "#fucntion parameters\n"
         # save values
         for par in parameters:
-            self.text += "{} ${}, {}($fp)\n".format(self.get_sw_type(parameters[par]), self.get_register(parameters[par]), p)
-            p += 4
+            t="a"
+            if parameters[par]==LiteralType.FLOAT:
+                t="f"
+            self.text += "{} ${}, {} ($sp)\n".format(self.get_sw_type(parameters[par]),
+                                                     self.get_next_highest_register_type(t,parameters[par]), p)
+            if parameters[par].getType() == LiteralType.BOOL:
+                p += 1
+            else:
+                p += 4
         # save addresses
 
         # function body
@@ -127,3 +165,16 @@ f:
     jr $ra                    # return to caller
 
         """
+
+    # determine space arguments and any local variable needed
+    def set_stack_space(self, scope):
+        p = 0
+        # Iterate through the DataFrame
+        for index, row in scope.block.getSymbolTable().table.iterrows():
+            # Access the data for each column using the column name
+            type_ = row['Type']
+            if type_ == LiteralType.BOOL:
+                p += 1
+            else:
+                p += 4
+        return p
