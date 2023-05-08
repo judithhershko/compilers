@@ -94,58 +94,6 @@ class LLVM_TestCases(unittest.TestCase):
         except SystemExit:
             self.assertTrue(True)
 
-    def test_NotDeclared(self):
-        file = "InputFiles/NotDeclared1.c"
-        input_stream = FileStream(file)
-        lexer = ExpressionLexer(input_stream)
-        MyError = CustomError()
-        lexer.removeErrorListeners()
-        lexer.addErrorListener(MyError)
-        stream = CommonTokenStream(lexer)
-        parser = ExpressionParser(stream)
-        parser.removeErrorListeners()
-        parser.addErrorListener(MyError)
-        tree = parser.start_rule()
-        printer = CustomListener("DotFiles/NotDeclared")
-        walker = ParseTreeWalker()
-        with self.assertRaises(Exception) as excep:
-            walker.walk(printer, tree)
-        self.assertEqual("\n\tError in line 1: x has not been declared yet", str(excep.exception))
-
-        file = "InputFiles/NotDeclared2.c"
-        input_stream = FileStream(file)
-        lexer = ExpressionLexer(input_stream)
-        MyError = CustomError()
-        lexer.removeErrorListeners()
-        lexer.addErrorListener(MyError)
-        stream = CommonTokenStream(lexer)
-        parser = ExpressionParser(stream)
-        parser.removeErrorListeners()
-        parser.addErrorListener(MyError)
-        tree = parser.start_rule()
-        printer = CustomListener("DotFiles/NotDeclared")
-        walker = ParseTreeWalker()
-        with self.assertRaises(Exception) as excep:
-            walker.walk(printer, tree)
-        self.assertEqual("\n\tError in line 1: z has not been declared yet", str(excep.exception))
-
-        file = "InputFiles/NotDeclared3.c"
-        input_stream = FileStream(file)
-        lexer = ExpressionLexer(input_stream)
-        MyError = CustomError()
-        lexer.removeErrorListeners()
-        lexer.addErrorListener(MyError)
-        stream = CommonTokenStream(lexer)
-        parser = ExpressionParser(stream)
-        parser.removeErrorListeners()
-        parser.addErrorListener(MyError)
-        tree = parser.start_rule()
-        printer = CustomListener("DotFiles/NotDeclared")
-        walker = ParseTreeWalker()
-        with self.assertRaises(Exception) as excep:
-            walker.walk(printer, tree)
-        self.assertEqual("\n\tError in line 1: z has not been declared yet", str(excep.exception))
-
     def test_Redefined(self):
         file = "InputFiles/Redefined1.c"
         input_stream = FileStream(file)

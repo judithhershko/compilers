@@ -339,21 +339,6 @@ class ToLLVM():
         # open text file
         text_file = open(filename, "w")
         text_file.write(self.output)
-        # write string to file
-        """
-        if self.main:
-            text_file.write(self.g_assignment)
-            text_file.write("\n")
-            text_file.write(self.allocate)
-            text_file.write("\n")
-            text_file.write(self.store)
-            text_file.write("\n")
-            text_file.write(self.f_declerations)
-            text_file.write("\n")
-
-        else:
-            text_file.write(self.global_)
-"""
         # close file
         text_file.close()
 
