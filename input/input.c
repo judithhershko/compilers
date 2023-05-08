@@ -1,6 +1,8 @@
 #include "stdio.h"
 const int xx=90;
+int yy[3]={1,2,3};
 const int y=89+9*(8/78+89)*(5-89);
+bool z= 89>9;
 void ff(float y)
 {
 

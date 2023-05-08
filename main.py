@@ -8,6 +8,7 @@ from src.LLVM.LLVM_Operators import ToLLVM
 from src.CustomErrorListener import *
 from src.ErrorHandeling.GenerateError import *
 from src.CustomErrorListener import *
+from src.MIPS.Mips import Mips
 
 
 def main():
@@ -31,9 +32,12 @@ def main():
         printer.get_program("./src/ast/dotFiles/no_fold_expression_dot")
         printer.program.printTables("./src/ast/dotFiles/table")
 
-        to_llvm = ToLLVM()
+        """to_llvm = ToLLVM()
         to_llvm.transverse_program(printer.program)
-        to_llvm.write_to_file("./generated/output/output_llvm.ll")
+        to_llvm.write_to_file("./generated/output/output_llvm.ll")"""
+        to_mips=Mips(printer.program)
+        to_mips.transverse_program()
+        to_mips.write_to_file("./generated/output/mars_output.asm")
         return
     except SystemExit:
         sys.exit()
