@@ -1,6 +1,11 @@
 from src.ast.Program import *
 from src.ast.node import *
 
+""""
+sp altijd terug op 0 zetten
+
+"""
+
 
 class Mips:
     def __init__(self, program_: program):
@@ -52,11 +57,12 @@ class Mips:
 
     def get_register(self, v: Value):
         return 1
-    def get_next_highest_register_type(self,type:str, v:Value):
+
+    def get_next_highest_register_type(self, type: str, v: Value):
         # get highest register
         if self.register.__len__() == 0:
-            self.register[v.getValue()] = type+"0"
-            return type+"0"
+            self.register[v.getValue()] = type + "0"
+            return type + "0"
         highest = max({k: v for k, v in self.register.items() if v.startswith(type)}.values())
         # $ end of string \d match digits
         digits = int(re.findall(r'\d+$', highest)[0])
@@ -74,7 +80,7 @@ class Mips:
 
     def global_array(self, array: Array):
         type_ = self.get_mars_type(array.getType())
-        self.data += "{}:\n".format(array.getValue())
+        self.data += "{}:\n".format(array.value)
         for i in array.arrayContent:
             self.data += "  {} {}\n".format(type_, self.get_value_content(i))
 
@@ -97,27 +103,19 @@ class Mips:
         self.output += self.data
         self.output += self.text
 
-    """
-    # Save the return address and the previous frame pointer
-    addi $sp, $sp, -8
-    sw $fp, 4($sp)
-    sw $ra, 0($sp)
-    """
-
     def transverse_function(self, scope: Scope):
         self.text += scope.f_name + ": \n"
-        p = -1 * self.set_stack_space(scope)
-        self.text += "addi $sp, $sp, {}        # allocate space for arguments on stack\n".format(p)
-        p = -1 * p - 4
-        self.text += "sw $fp, {}($sp)           # save return address on stack\n".format(p)
-        p = p - 4
-        self.text += "sw $ra, {}($sp)          # save frame pointer on stack\n".format(p)
-
-        self.text += "addi $fp, $sp, {}         # set up new frame pointer\n".format(self.set_stack_space(scope))
-
+        # p = -1 * self.set_stack_space(scope)
+        pend = -1 * (scope.parameters.__len__() - 1) * 4
+        self.text += "addi $sp, $sp, {}        # allocate space for arguments on stack\n".format(pend)
+        pbegin = -1 * pend - 4
+        self.text += "sw $fp, {}($sp)           # save return address on stack\n".format(pbegin)
+        self.text += "move $fp, $sp           # set new frame pointer\n"
         self.function_parameters(scope.parameters)
 
-        self.text += "# Return from the function\n"
+        self.set_return_function(scope.f_return)
+        self.text += "lw   $fp, {}($sp)       # restore old frame pointer\n".format(pbegin)
+        self.text += "addi $sp, $sp, {}       # deallocate stack space\n".format(pend)
         self.text += "jr $ra\n"
 
     def function_parameters(self, parameters):
@@ -126,45 +124,15 @@ class Mips:
         self.text += "#fucntion parameters\n"
         # save values
         for par in parameters:
-            t="a"
-            if parameters[par]==LiteralType.FLOAT:
-                t="f"
-            self.text += "{} ${}, {} ($sp)\n".format(self.get_sw_type(parameters[par]),
-                                                     self.get_next_highest_register_type(t,parameters[par]), p)
+            t = "a"
+            if parameters[par] == LiteralType.FLOAT:
+                t = "f"
+            self.text += "{} ${}, {}($sp)\n".format(self.get_sw_type(parameters[par]),
+                                                    self.get_next_highest_register_type(t, parameters[par]), p)
             if parameters[par].getType() == LiteralType.BOOL:
                 p += 1
             else:
                 p += 4
-        # save addresses
-
-        # function body
-
-        # function end
-
-        """
-        
-f:
-    addi $sp, $sp, -16        # allocate space for 4 arguments on stack
-    sw $ra, 12($sp)           # save return address on stack
-    sw $fp, 8($sp)            # save frame pointer on stack
-    addi $fp, $sp, 16         # set up new frame pointer
-    sw $a0, 16($fp)           # save value of x on stack
-    s.s $f12, 20($fp)         # save value of y on stack
-    sb $a2, 24($fp)           # save value of z on stack
-    sw $a1, 28($fp)           # save address of xp on stack
-    sw $a3, 32($fp)           # save address of fp on stack
-    sw $a2, 36($fp)           # save address of zp on stack
-
-    # function body
-    li $v0, 1                 # return 1
-    
-    # function epilogue
-    lw $ra, 12($sp)           # restore return address from stack
-    lw $fp, 8($sp)            # restore frame pointer from stack
-    addi $sp, $sp, 16         # deallocate space for 4 arguments on stack
-    jr $ra                    # return to caller
-
-        """
 
     # determine space arguments and any local variable needed
     def set_stack_space(self, scope):
@@ -178,3 +146,19 @@ f:
             else:
                 p += 4
         return p
+
+    def set_return_function(self, f_return: AST):
+        if f_return is None:
+            return
+        if isinstance(f_return.root, Value):
+            if f_return.root.getType() == LiteralType.INT:
+                self.text += "li   $v0, {}            # set return value\n".format(f_return.root.value)
+                return
+            if f_return.root.getType() == LiteralType.FLOAT:
+                self.text += "lwc1 $f0, 0($sp)        # load the return value from stack to $f0\n"
+                return
+            # save the char in t0
+            if f_return.root.getType() == LiteralType.CHAR:
+                self.text += "andi $v0, $t0, 0xff     # mask out the lower 8 bits of $t0 and store in $v0\n"
+                return
+        # TODO function returns an expression

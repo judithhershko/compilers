@@ -1,6 +1,6 @@
 .data
 xx: .word 90
-3:
+yy:
   .word 1
   .word 2
   .word 3
@@ -9,29 +9,31 @@ z: .word 1
 .text
 .globl main
 ff: 
-addi $sp, $sp, -4        # allocate space for arguments on stack
-sw $fp, 0($sp)           # save return address on stack
-sw $ra, -4($sp)          # save frame pointer on stack
-addi $fp, $sp, 4         # set up new frame pointer
+addi $sp, $sp, 0        # allocate space for arguments on stack
+sw $fp, -4($sp)           # save return address on stack
+move $fp, $sp           # set new frame pointer
 #fucntion parameters
-s.s $a0, 0 ($sp)
-# Return from the function
+s.s $a0, 0($sp)
+lw   $fp, -4($sp)       # restore old frame pointer
+addi $sp, $sp, 0       # deallocate stack space
 jr $ra
 f: 
-addi $sp, $sp, -8        # allocate space for arguments on stack
-sw $fp, 4($sp)           # save return address on stack
-sw $ra, 0($sp)          # save frame pointer on stack
-addi $fp, $sp, 8         # set up new frame pointer
+addi $sp, $sp, -4        # allocate space for arguments on stack
+sw $fp, 0($sp)           # save return address on stack
+move $fp, $sp           # set new frame pointer
 #fucntion parameters
-sw $a1, 0 ($sp)
-s.s $a2, 4 ($sp)
-# Return from the function
+sw $a1, 0($sp)
+s.s $a2, 4($sp)
+lwc1 $f0, 0($sp)        # load the return value from stack to $f0
+lw   $fp, 0($sp)       # restore old frame pointer
+addi $sp, $sp, -4       # deallocate stack space
 jr $ra
 main: 
-addi $sp, $sp, -24        # allocate space for arguments on stack
-sw $fp, 20($sp)           # save return address on stack
-sw $ra, 16($sp)          # save frame pointer on stack
-addi $fp, $sp, 24         # set up new frame pointer
+addi $sp, $sp, 4        # allocate space for arguments on stack
+sw $fp, -8($sp)           # save return address on stack
+move $fp, $sp           # set new frame pointer
 #fucntion parameters
-# Return from the function
+li   $v0, 1            # set return value
+lw   $fp, -8($sp)       # restore old frame pointer
+addi $sp, $sp, 4       # deallocate stack space
 jr $ra
