@@ -1,12 +1,6 @@
 from src.ast.Program import *
 from src.ast.node import *
 
-""""
-sp altijd terug op 0 zetten
-
-"""
-
-
 class Mips:
     def __init__(self, program_: program):
         self.program = program_
