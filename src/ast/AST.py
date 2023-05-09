@@ -4,7 +4,6 @@ from src.ast.node import *
 # class block:
 #     pass
 #
-
 class AST:
     root = None
 

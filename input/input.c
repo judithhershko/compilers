@@ -1,8 +1,18 @@
-#include <stdio.h>
+#include <stdio.h>;
 
 int main()
 {
-        int x=5;
-        scanf("%d %i; ", x+5, x*x);
+    // this should print the numbers: 0, 1, 2, 3, 4, 5
+	int i = 0;
+	while(i < 10){
+		printf("%d\n",i);
+		if (i == 5){
+			break;
+		} else {
+			i=i+1;
+			continue;
+		}
+		i = 10;
+	}
 return 1;
 }

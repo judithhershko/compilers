@@ -137,13 +137,14 @@ class Comment(AST_node):
 
 
 class Print(AST_node):
-    def __init__(self, lit):
+    def __init__(self, line):
         self.parent = None
-        self.value = lit
+        self.value = None
         self.name = "print"
         self.input_string = ""
         self.param = []
         self.paramString = []
+        self.line = line
 
     def __eq__(self, other):
         if not isinstance(other, Print):
@@ -161,7 +162,7 @@ class Print(AST_node):
         # self.value = param
 
     def find_and_select(self, input_string):
-        regex = r'%[cdsi]'
+        regex = r'%[cdsif]'
         matches = re.findall(regex, input_string)
         return matches
 
@@ -220,13 +221,14 @@ class Print(AST_node):
 # Used to hald a single value/variable, normally a leaf of the AST
 
 class Scan(AST_node):
-    def __init__(self, lit):
+    def __init__(self, line):
         self.parent = None
-        self.value = lit
+        self.value = None
         self.name = "scan"
         self.input_string = ""
         self.param = []
         self.paramString = []
+        self.line = line
 
     def __eq__(self, other):
         if not isinstance(other, Print):
@@ -244,7 +246,7 @@ class Scan(AST_node):
         # self.value = param
 
     def find_and_select(self, input_string):
-        regex = r'%[cdsi]'
+        regex = r'%[cdsif]'
         matches = re.findall(regex, input_string)
         return matches
 
@@ -294,6 +296,7 @@ class Scan(AST_node):
         except PrintType:
             raise
         return self, True  # TODO: redo this when the print function is adapted to the final form
+
     def replaceVariables(self, values):
         for tree in self.param:
             tree.replaceVariables(values)
@@ -1446,7 +1449,7 @@ class If(AST_node):
         """
         res = None
         if self.operator != ConditionType.ELSE:
-            res = self.Condition.fold(to_llvm)  # TODO: if condition seems to hold an AST instead of a node
+            res = self.Condition.root.fold(to_llvm)  # TODO: if condition seems to hold an AST instead of a node
             self.Condition = res[0]
             return self, res[1]
         # self.c_block = self.c_block.fold(to_llvm)
@@ -1628,6 +1631,7 @@ class While(AST_node):
         :return:
         """
         res = self.Condition.getVariables(fill, scope)[0]
+        # self.Condition=self.Condition.root
         self.Condition.root.fold()
         for elem in self.c_block.getVariables(fill)[0]:
             res.append(elem)

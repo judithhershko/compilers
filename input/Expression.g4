@@ -122,6 +122,6 @@ ML_COMMENT:  '/*' .* '*/';
 SL_COMMENT:  '//' ~('\r' | '\n')*;
 
 STRING_LITERAL: '"' (ESC_SEQ |~('%'|'"'|'\n'|'\r'))* '"';
-fragment ESC_SEQ: '%' ('d'|'i'|'s'|'c');
+fragment ESC_SEQ: '%' ('d'|'i'|'s'|'c'|'f');
 fragment ESC : '\\' [nrt\\"'] ;
 NLINE: '\n';

@@ -14,6 +14,8 @@ class Declaration:
 class block:
     def __init__(self, parent):
         self.symbols = SymbolTable()
+        if parent is not None:
+            self.symbols.setParent(parent.symbols)
         self.ast = AST()
         self.parent = parent
         self.blocks = []
