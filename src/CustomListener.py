@@ -700,7 +700,7 @@ class CustomListener(ExpressionListener):
                                                  For) and self.expr_layer == 0 and self.loop.Condition is not None and self.loop.f_dec is not None and self.loop.f_incr is None:
 
             self.loop.f_incr = self.parent
-        elif not self.declaration and self.expr_layer == 0:
+        elif (not self.declaration) and self.expr_layer == 0:
             if isinstance(self.current.parent, BinaryOperator) and self.current.parent.operator == "":
                 self.current.parent = None
                 if isinstance(self.parent, BinaryOperator) and self.parent.operator == "":
@@ -722,6 +722,8 @@ class CustomListener(ExpressionListener):
             if self.is_print:
                 self.c_print.addParam(self.asT)
                 self.asT=create_tree()
+                self.current=None
+                self.parent=None
                 #self.c_print.value = self.asT
                 return
             if self.is_loop and self.loop.Condition is None:

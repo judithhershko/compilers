@@ -180,7 +180,8 @@ class Print(AST_node):
             if isinstance(tree, tuple):
                 temp = tree[0]
             temp2 = temp.getVariables(fill, scope)
-            ret.append(temp2[0][0])
+            if not len(temp2[0]) == 0:
+                ret.append(temp2[0][0])
             if not temp2[1]:
                 true = False
         return ret, true
@@ -198,9 +199,9 @@ class Print(AST_node):
             for pos in range(len(self.param)):
                 if self.paramString[pos] == "%f" and self.param[pos].root.getType() != LiteralType.FLOAT:
                     raise PrintType(self.line, "%f", str(LiteralType.FLOAT))
-                elif self.paramString[pos] in ("%d", "%i") and self.param[pos].root.getType() !=  LiteralType.INT:
+                elif self.paramString[pos] in ("%d", "%i") and self.param[pos].root.getType() != LiteralType.INT:
                     raise PrintType(self.line, self.paramString[pos], str(LiteralType.INT))
-                elif self.paramString[pos] == "%c" and self.param[pos].root.getType() !=  LiteralType.CHAR:
+                elif self.paramString[pos] == "%c" and self.param[pos].root.getType() != LiteralType.CHAR:
                     raise PrintType(self.line, "%c", str(LiteralType.CHAR))
 
                 self.param[pos] = self.param[pos].foldTree()
@@ -1116,7 +1117,7 @@ class EmptyNode(AST_node):
 
 
 class ReturnNode(AST_node):
-    def __init__(self,value, line: int, parent: AST_node = None, type_=None):
+    def __init__(self, value, line: int, parent: AST_node = None, type_=None):
         """
         :param line: int, the line on which this node was formed
         :param parent: AST_node, the parent node of this node
@@ -1160,7 +1161,6 @@ class ReturnNode(AST_node):
     def fold(self, to_llvm):
         # self.value.foldTree(to_llvm)
         return self, True
-
 
     def replaceVariables(self, values):
         self.value.replaceVariables(values)
@@ -1309,7 +1309,7 @@ class Scope(AST_node):  # TODO: let it hold a block instead of trees
             # for elem in res:
             for elem in self.block.getVariables(fill=False):
                 if len(elem) != 0 and elem[0][0] not in self.parameters and \
-                        not self.block.symbols.findSymbol(elem[0][0]) :
+                        not self.block.symbols.findSymbol(elem[0][0]):
                     res.append(elem[0])
             if self.f_return is not None:
                 for elem in self.f_return.getVariables(fill=False):
@@ -1451,6 +1451,7 @@ class Break(AST_node):
         self.const = False
         self.declaration = False
         self.deref = False
+
     def getLabel(self):
         return "\"Break Node: " + str(self.value) + "\""
 
@@ -1475,7 +1476,8 @@ class Break(AST_node):
         :return:
         """
         return [[], True]
-    def fold(self,to_llvm):
+
+    def fold(self, to_llvm):
         return self
 
 
@@ -1491,6 +1493,7 @@ class Continue(AST_node):
         self.const = False
         self.declaration = False
         self.deref = False
+
     def getLabel(self):
         return "\"Continue Node: " + str(self.value) + "\""
 
@@ -1515,7 +1518,8 @@ class Continue(AST_node):
         :return:
         """
         return [[], True]
-    def fold(self,to_llvm):
+
+    def fold(self, to_llvm):
         return self
 
 
