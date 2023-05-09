@@ -15,7 +15,6 @@ class CustomListener(ExpressionListener):
         self.is_char = False
         self.is_parameter = False
         self.is_print = False
-        self.is_scan = False
         self.is_array = False
 
         self.a_dec = False
@@ -125,8 +124,6 @@ class CustomListener(ExpressionListener):
         # print("set val:" + ctx.getText())
         type_ = find_value_type(ctx.getText())
         v = ctx.getText()
-        """if self.is_print or self.is_scan:
-            return self.set_print(ctx, type_)"""
         if self.pointer:
             return self.set_pointer(ctx, type_)
         if type_ == LiteralType.VAR:
@@ -311,7 +308,7 @@ class CustomListener(ExpressionListener):
 
     # Enter a parse tree produced by ExpressionParser#format_string.
     def enterFormat_string(self, ctx: ParserRuleContext):
-        if isinstance(self.current, Print):
+        if isinstance(self.current, Print) or isinstance(self.current,Scan):
             self.current.setString(ctx.getText())
             self.c_print = self.current
             self.current = None
@@ -326,14 +323,21 @@ class CustomListener(ExpressionListener):
     # Enter a parse tree produced by ExpressionParser#scan.
     def enterScan(self, ctx: ParserRuleContext):
         self.addComment(ctx)
-        self.is_scan = True
-        self.current = Scan("")
+        self.is_print = True
         if not self.program.include_added:
             raise NotDeclared("scanf", ctx.start.line)
+        self.current = Scan("")
 
     # Exit a parse tree produced by ExpressionParser#scan.
     def exitScan(self, ctx: ParserRuleContext):
-        self.is_scan = False
+        self.is_print = False
+        self.asT = create_tree()
+        self.asT.root = self.c_print
+        self.c_scope.block.trees.append(self.asT)
+        self.c_print = None
+        self.parent = None
+        self.asT = create_tree()
+        self.current = None
 
     # Enter a parse tree produced by ExpressionParser#typed_var.
     def enterTyped_var(self, ctx: ParserRuleContext):

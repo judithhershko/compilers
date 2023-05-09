@@ -7,7 +7,7 @@ includes: INCLUDE|INCLUDEH (';')?;
 line:NLINE;
 
 print : PRINT '(' format_string (',' expr )* ')';
-scan  : SCAN '(' format_string (',' pri)* ')';
+scan  : SCAN '(' format_string (',' expr )* ')';
 format_string: STRING_LITERAL (',' STRING_LITERAL)*;
 
 comments: ML_COMMENT | SL_COMMENT;
