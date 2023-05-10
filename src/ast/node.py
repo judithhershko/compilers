@@ -198,12 +198,12 @@ class Print(AST_node):
             if len(self.param) != len(self.paramString):
                 raise PrintSize(self.line)
             for pos in range(len(self.param)):
-                if self.paramString[pos] == "%f" and self.param[pos].root.getType() != LiteralType.FLOAT:
+                """if self.paramString[pos] == "%f" and self.param[pos].root.getType() != LiteralType.FLOAT:
                     raise PrintType(self.line, "%f", str(LiteralType.FLOAT))
-                elif self.paramString[pos] in ("%d", "%i") and self.param[pos].root.getType() != LiteralType.INT:
+                elif self.paramString[pos] in ("%d", "%i") and self.param[pos].root.getType() != LiteralType.INT :
                     raise PrintType(self.line, self.paramString[pos], str(LiteralType.INT))
                 elif self.paramString[pos] == "%c" and self.param[pos].root.getType() != LiteralType.CHAR:
-                    raise PrintType(self.line, "%c", str(LiteralType.CHAR))
+                    raise PrintType(self.line, "%c", str(LiteralType.CHAR))"""
 
                 self.param[pos] = self.param[pos].foldTree()
 

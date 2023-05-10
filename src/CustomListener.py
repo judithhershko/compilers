@@ -1277,6 +1277,7 @@ class CustomListener(ExpressionListener):
         self.program.ast.root = self.program.tree
         self.program.tree = None
         self.program.cleanProgram()
+        self.program.getFunctionTable().findFunction("main",0)
         self.program.setNodeIds()
         self.program.generateDot(fileName)
         self.program.tree = self.program.ast.root
