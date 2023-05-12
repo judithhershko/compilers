@@ -322,8 +322,8 @@ class AST:
     def getVariables(self, fill: bool = True, scope=None):
         return self.root.getVariables(fill, scope)
 
-    def replaceVariables(self, values):
-        self.root.replaceVariables(values)
+    def replaceVariables(self, values, fill: bool = True):
+        self.root.replaceVariables(values, fill)
 
     def createUnfilledDeclaration(self, root: AST_node):
         left = root.leftChild
