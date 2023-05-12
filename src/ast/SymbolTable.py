@@ -252,9 +252,12 @@ class SymbolTable:
             raise
 
     def findSymbol(self, name: str, onlyNext: bool = False, pos: int = None,
-                   line: int = None):  # TODO: tell adition of pos and line for arrayCall
+                   line: int = None):
         if name not in self.table.index:
-            return None
+            if self.parent is not None: # TODO: check if this gives no problems (changed to find elements in global scope)
+                return self.parent.findSymbol(name, onlyNext, pos)
+            else:
+                return None
         if pos is not None:
             try:
                 if pos < 0 or pos >= self.table.at[name, "Value"]:

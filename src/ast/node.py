@@ -1773,6 +1773,7 @@ class Function(AST_node):
                     givenType = scope.symbols.findSymbol(given.value)
                 else:
                     givenType = [[], given.type]
+
                 if expec != str(givenType[1]):
                     raise FunctionParamType(self.f_name, exp, givenType, expec, self.line)
                 else:

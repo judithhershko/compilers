@@ -1,4 +1,5 @@
 .data
+x: .word 5
 .text
 .globl main
 f: 
@@ -8,16 +9,6 @@ move $fp, $sp           # set new frame pointer
 #fucntion parameters
 sw $a0, 0($sp)
 sw $a1, 4($sp)
-lw   $fp, 0($sp)       # restore old frame pointer
-addi $sp, $sp, -4       # deallocate stack space
-jr $ra
-f: 
-addi $sp, $sp, -4        # allocate space for arguments on stack
-sw $fp, 0($sp)           # save return address on stack
-move $fp, $sp           # set new frame pointer
-#fucntion parameters
-sw $a2, 0($sp)
-sw $a3, 4($sp)
 li   $v0, z            # set return value
 lw   $fp, 0($sp)       # restore old frame pointer
 addi $sp, $sp, -4       # deallocate stack space

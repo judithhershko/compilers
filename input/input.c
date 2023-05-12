@@ -1,11 +1,10 @@
-int f(int x, int y);
+int x=5;
 int f(int x, int y){
     int z = x*y;
     return z;
 }
 int main(){
-int x = 5;
-int y = 6;
+int y = x;
 int i=f(x, y);
 return 0;
 }
