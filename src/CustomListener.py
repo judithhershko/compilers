@@ -16,6 +16,7 @@ class CustomListener(ExpressionListener):
         self.is_parameter = False
         self.is_print = False
         self.is_array = False
+        self.is_function_forward=False
 
         self.a_dec = False
         self.a_val = None
@@ -900,7 +901,7 @@ class CustomListener(ExpressionListener):
 
     # Enter a parse tree produced by ExpressionParser#scope.
     def enterScope(self, ctx: ParserRuleContext):
-        if self.function_scope and ctx.getText()[0] != "{":
+        if (self.function_scope and ctx.getText()[0] != "{") or self.is_function_forward:
             return
 
         if self.function_scope:
@@ -1092,7 +1093,7 @@ class CustomListener(ExpressionListener):
     # Enter a parse tree produced by ExpressionParser#function_name.
     def enterFunction_name(self, ctx: ParserRuleContext):
         # print("function name:" + ctx.getText())
-        if self.function_scope:
+        if self.function_scope or self.is_function_forward:
             self.c_scope.f_name = ctx.getText()
 
     # Exit a parse tree produced by ExpressionParser#function_name.
@@ -1122,6 +1123,34 @@ class CustomListener(ExpressionListener):
             return
         # self.c_scope.block.trees.append(self.current)
         self.call_function = False
+
+    # Enter a parse tree produced by ExpressionParser#function_forward.
+    def enterFunction_forward(self,  ctx: ParserRuleContext):
+        print("forward declaration")
+        """self.current=Scope(ctx.start.line)
+        self.is_function_forward=True
+        return"""
+        # print("enter function definition:" + ctx.getText())
+        self.addComment(ctx)
+        self.enterScope(ctx)
+        self.is_function_forward = True
+        self.stop_fold = True
+        return
+
+    # Exit a parse tree produced by ExpressionParser#function_forward.
+    def exitFunction_forward(self,  ctx: ParserRuleContext):
+        # self.program.getFunctionTable().addFunction(self.c_scope)
+        oldscope=self.c_scope
+        oldscope.forward_declaration=True
+        if self.scope_stack.__len__() > 0:
+            self.c_scope = self.scope_stack.pop()
+        else:
+            self.c_scope = self.program.tree
+        self.asT=create_tree()
+        self.asT.root=oldscope
+        self.c_scope.block.trees.append(self.asT)
+        self.is_function_forward=False
+        return
 
     # Enter a parse tree produced by ExpressionParser#f_variables.
     def enterF_variables(self, ctx: ParserRuleContext):
@@ -1196,12 +1225,17 @@ class CustomListener(ExpressionListener):
         if v[0] == "*":
             while v[0] == "*":
                 plevel += 1
-                v = v[1]
+                v = v[1:]
         if plevel > 0:
             val = Pointer(v, ptype, ctx.start.line, plevel, None, const, True)
         else:
             val = Value(v, ptype, ctx.start.line, None, True, const, True)
+
         self.c_scope.addParameter(val)
+        if self.is_function_forward:
+            self.is_parameter = True
+            self.enterDec(ctx)
+            return
         symbol = Declaration(var=val, line=ctx.start.line, parent=None)
         symbol.leftChild = val
         symbol.rightChild = EmptyNode(line=ctx.start.line)

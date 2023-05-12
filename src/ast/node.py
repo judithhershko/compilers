@@ -1254,7 +1254,7 @@ class Scope(AST_node):  # TODO: let it hold a block instead of trees
     block = None
 
     # TODO: check if block in Scope is cleaned -> same with while3
-    def __init__(self, line: int, parent: AST_node = None):
+    def __init__(self, line: int, parent: AST_node = None, forward_declaration=False):
         """
         :param line: the line on which the scope/function was formed
         :param parent: the parent node of this node
@@ -1274,6 +1274,7 @@ class Scope(AST_node):  # TODO: let it hold a block instead of trees
         # hier moeten de parameters als values en pointers binnen
         self.parameters = dict()
         self.name = "scope"
+        self.forward_declaration=forward_declaration
 
     def __eq__(self, other):
         if not isinstance(other, Scope):
@@ -1815,6 +1816,7 @@ class Array(AST_node):
         self.value = value
         # DEZE WORD IN DE LISTENER GESEt
         self.declaration = declaration
+        # todo : needs to be ast
         self.pos = pos
         self.type = valueType
         self.line = line
