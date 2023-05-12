@@ -1,4 +1,5 @@
 int f(int x, float **y);
+
 int x=90;
 int main(){
 int a[2]={1,2};
