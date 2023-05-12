@@ -31,7 +31,7 @@ f_variables: pri | char_pri;
 ref: REF;
 function_definition: return_type function_name LBRAK (parameters)? (',' parameters )* RBRAK scope  ;
 function_name: ID;
-function_forward : return_type function_name LBRAK ( parameters (','parameters)? )* RBRAK ';' ;
+function_forward : return_type function_name LBRAK ( parameters (','parameters)* ) RBRAK ';' ;
 return: RETURN (expr | char_expr)? ';' ;
 
 const : CONST;
