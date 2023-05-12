@@ -513,7 +513,10 @@ class CustomListener(ExpressionListener):
 
         if self.bracket_stack.__len__() > 0:
             self.set_bracket()
-        if not isinstance(self.parent, UnaryOperator) and isinstance(self.parent.leftChild, Pointer):
+        """if self.parent is None:
+            self.parent = self.current.parent"""
+        if self.current is not None and (
+                not isinstance(self.parent, UnaryOperator) and isinstance(self.parent.leftChild, Pointer)):
             self.dec_op.rightChild = self.parent.rightChild
             if self.dec_op.rightChild is None:
                 self.dec_op.rightChild = EmptyNode(ctx.start.line, self.dec_op, self.dec_op.leftChild.getType())
@@ -736,14 +739,15 @@ class CustomListener(ExpressionListener):
             if self.is_array_position:
                 if self.a_dec and isinstance(self.dec_op.leftChild, Array):
                     self.dec_op.leftChild.pos = self.current
-                    self.current = None
-                    self.parent = None
+                    # self.current = None
+                    # self.parent = None
+                    return
                 elif isinstance(self.a_val, Array):
                     self.a_val.pos = self.current
                 return
             if self.loop is not None and self.loop.Condition is None:
                 self.loop.Condition = self.asT.root
-                return # TODO: check if this still works: set Condition to node instead of ast
+                return  # TODO: check if this still works: set Condition to node instead of ast
 
             if not self.return_function:
                 self.c_scope.block.trees.append(self.asT)
@@ -1262,7 +1266,8 @@ class CustomListener(ExpressionListener):
     # Enter a parse tree produced by ExpressionParser#array.
     def enterArray(self, ctx: ParserRuleContext):
         self.is_array = True
-        self.current = Array(getArrayName(ctx.getText()), line=ctx.start.line, pos=getArraySize(ctx.getText()),
+        # pos=getArraySize(ctx.getText()
+        self.current = Array(getArrayName(ctx.getText()), line=ctx.start.line, pos=None,
                              parent=self.parent, valueType=self.dec_op.leftChild.getType(),
                              init=self.a_dec, declaration=self.a_dec)
         if self.a_dec and getArrayName(self.a_val, self.dec_op.leftChild.getType()) == self.current.getValue():
@@ -1276,7 +1281,6 @@ class CustomListener(ExpressionListener):
                 self.parent.rightChild = self.current
             elif self.parent.leftChild is not None:
                 self.parent.leftChild = self.current
-        self.a_dec = False
 
     # Exit a parse tree produced by ExpressionParser#array.
     def exitArray(self, ctx: ParserRuleContext):
@@ -1298,6 +1302,9 @@ class CustomListener(ExpressionListener):
     # Exit a parse tree produced by ExpressionParser#array_position.
     def exitArray_position(self, ctx: ParserRuleContext):
         self.is_array_position = False
+        self.a_dec = False
+        self.current = self.a_val
+        return
 
     # Enter a parse tree produced by ExpressionParser#array_ci.
     def enterArray_ci(self, ctx: ParserRuleContext):
