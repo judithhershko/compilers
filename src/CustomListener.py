@@ -311,6 +311,7 @@ class CustomListener(ExpressionListener):
 
     # Enter a parse tree produced by ExpressionParser#format_string.
     def enterFormat_string(self, ctx: ParserRuleContext):
+
         if isinstance(self.current, Print) or isinstance(self.current, Scan):
             self.current.setString(ctx.getText())
             self.c_print = self.current
@@ -322,6 +323,25 @@ class CustomListener(ExpressionListener):
     # Exit a parse tree produced by ExpressionParser#format_string.
     def exitFormat_string(self, ctx: ParserRuleContext):
         pass
+
+
+    # Enter a parse tree produced by ExpressionParser#string.
+    def enterString(self, ctx: ParserRuleContext):
+        if isinstance(self.c_print,Print) or isinstance(self.c_print,Scan):
+            self.asT = create_tree()
+            self.asT.root = String(ctx.start.line, ctx.getText())
+            self.c_print.addParam(self.asT)
+            self.asT = create_tree()
+        if isinstance(self.current,Print) or isinstance(self.current,Scan):
+            self.asT=create_tree()
+            self.asT.root=String(ctx.start.line,ctx.getText())
+            self.current.addParam(self.asT)
+            self.asT=create_tree()
+
+    # Exit a parse tree produced by ExpressionParser#string.
+    def exitString(self, ctx: ParserRuleContext):
+        pass
+
 
     # Enter a parse tree produced by ExpressionParser#scan.
     def enterScan(self, ctx: ParserRuleContext):

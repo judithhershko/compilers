@@ -6,9 +6,10 @@ s_rule: (print ';'|scan ';'|expr ';'|dec ';'|comments|line|loop|scope (';')?| fu
 includes: INCLUDE|INCLUDEH (';')?;
 line:NLINE;
 
-print : PRINT '(' format_string (',' expr )* ')';
-scan  : SCAN '(' format_string (',' expr )* ')';
-format_string: STRING_LITERAL (',' STRING_LITERAL)*;
+print : PRINT '(' format_string (',' (string| expr) )* ')';
+scan  : SCAN '(' format_string (',' (string | expr) )* ')';
+format_string: STRING_LITERAL;
+string : STRING_LITERAL ;
 
 comments: '/*' ~( '*/' ) '*/' | SL_COMMENT;
 typed_var: INT| DOUBLE | FLOAT |CHAR | BOOL;
@@ -31,7 +32,7 @@ f_variables: pri | char_pri;
 ref: REF;
 function_definition: return_type function_name LBRAK (parameters)? (',' parameters )* RBRAK scope  ;
 function_name: ID;
-function_forward : return_type function_name LBRAK ( parameters (','parameters)? )* RBRAK ';' ;
+function_forward : return_type function_name LBRAK ( parameters (','parameters)* ) RBRAK ';' ;
 return: RETURN (expr | char_expr)? ';' ;
 
 const : CONST;
@@ -124,6 +125,7 @@ ML_COMMENT:  '/*' * '*/';
 SL_COMMENT:  '//' ~('\r' | '\n')*;
 
 STRING_LITERAL: '"' (ESC_SEQ |~('%'|'"'|'\n'|'\r'))* '"';
+
 fragment ESC_SEQ: '%' ('d'|'i'|'s'|'c'|'f');
 fragment ESC : '\\' [nrt\\"'] ;
 NLINE: '\n';
