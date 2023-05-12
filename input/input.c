@@ -6,4 +6,3 @@ int i=0;
 a[i+1]=2;
 return 0;
 }
-
