@@ -7,6 +7,7 @@ from .ast.Program import program
 class CustomListener(ExpressionListener):
     def __init__(self, pathName):
 
+        self.is_array_position = False
         self.ArrayIni = False
         self.array_content = False
         self.f_var = False
@@ -16,6 +17,7 @@ class CustomListener(ExpressionListener):
         self.is_parameter = False
         self.is_print = False
         self.is_array = False
+        self.is_function_forward = False
 
         self.a_dec = False
         self.a_val = None
@@ -705,7 +707,7 @@ class CustomListener(ExpressionListener):
                                                  For) and self.expr_layer == 0 and self.loop.Condition is not None and self.loop.f_dec is not None and self.loop.f_incr is None:
 
             self.loop.f_incr = self.parent
-        elif (not self.declaration) and self.expr_layer == 0:
+        elif (not self.declaration or self.is_array_position) and self.expr_layer == 0:
             if isinstance(self.current.parent, BinaryOperator) and self.current.parent.operator == "":
                 self.current.parent = None
                 if isinstance(self.parent, BinaryOperator) and self.parent.operator == "":
@@ -730,6 +732,14 @@ class CustomListener(ExpressionListener):
                 self.current = None
                 self.parent = None
                 # self.c_print.value = self.asT
+                return
+            if self.is_array_position:
+                if self.a_dec and isinstance(self.dec_op.leftChild, Array):
+                    self.dec_op.leftChild.pos = self.current
+                    self.current = None
+                    self.parent = None
+                elif isinstance(self.a_val, Array):
+                    self.a_val.pos = self.current
                 return
             if self.loop is not None and self.loop.Condition is None:
                 self.loop.Condition = self.asT.root
@@ -900,7 +910,7 @@ class CustomListener(ExpressionListener):
 
     # Enter a parse tree produced by ExpressionParser#scope.
     def enterScope(self, ctx: ParserRuleContext):
-        if self.function_scope and ctx.getText()[0] != "{":
+        if (self.function_scope and ctx.getText()[0] != "{") or self.is_function_forward:
             return
 
         if self.function_scope:
@@ -1092,7 +1102,7 @@ class CustomListener(ExpressionListener):
     # Enter a parse tree produced by ExpressionParser#function_name.
     def enterFunction_name(self, ctx: ParserRuleContext):
         # print("function name:" + ctx.getText())
-        if self.function_scope:
+        if self.function_scope or self.is_function_forward:
             self.c_scope.f_name = ctx.getText()
 
     # Exit a parse tree produced by ExpressionParser#function_name.
@@ -1122,6 +1132,34 @@ class CustomListener(ExpressionListener):
             return
         # self.c_scope.block.trees.append(self.current)
         self.call_function = False
+
+    # Enter a parse tree produced by ExpressionParser#function_forward.
+    def enterFunction_forward(self, ctx: ParserRuleContext):
+        print("forward declaration")
+        """self.current=Scope(ctx.start.line)
+        self.is_function_forward=True
+        return"""
+        # print("enter function definition:" + ctx.getText())
+        self.addComment(ctx)
+        self.enterScope(ctx)
+        self.is_function_forward = True
+        self.stop_fold = True
+        return
+
+    # Exit a parse tree produced by ExpressionParser#function_forward.
+    def exitFunction_forward(self, ctx: ParserRuleContext):
+        # self.program.getFunctionTable().addFunction(self.c_scope)
+        oldscope = self.c_scope
+        oldscope.forward_declaration = True
+        if self.scope_stack.__len__() > 0:
+            self.c_scope = self.scope_stack.pop()
+        else:
+            self.c_scope = self.program.tree
+        self.asT = create_tree()
+        self.asT.root = oldscope
+        self.c_scope.block.trees.append(self.asT)
+        self.is_function_forward = False
+        return
 
     # Enter a parse tree produced by ExpressionParser#f_variables.
     def enterF_variables(self, ctx: ParserRuleContext):
@@ -1196,12 +1234,17 @@ class CustomListener(ExpressionListener):
         if v[0] == "*":
             while v[0] == "*":
                 plevel += 1
-                v = v[1]
+                v = v[1:]
         if plevel > 0:
             val = Pointer(v, ptype, ctx.start.line, plevel, None, const, True)
         else:
             val = Value(v, ptype, ctx.start.line, None, True, const, True)
+
         self.c_scope.addParameter(val)
+        if self.is_function_forward:
+            self.is_parameter = True
+            self.enterDec(ctx)
+            return
         symbol = Declaration(var=val, line=ctx.start.line, parent=None)
         symbol.leftChild = val
         symbol.rightChild = EmptyNode(line=ctx.start.line)
@@ -1247,6 +1290,15 @@ class CustomListener(ExpressionListener):
     def exitArray_content(self, ctx: ParserRuleContext):
         pass
 
+    # Enter a parse tree produced by ExpressionParser#array_position.
+    def enterArray_position(self, ctx: ParserRuleContext):
+        self.is_array_position = True
+        self.a_val = self.current
+
+    # Exit a parse tree produced by ExpressionParser#array_position.
+    def exitArray_position(self, ctx: ParserRuleContext):
+        self.is_array_position = False
+
     # Enter a parse tree produced by ExpressionParser#array_ci.
     def enterArray_ci(self, ctx: ParserRuleContext):
         self.array_content = True
@@ -1277,7 +1329,7 @@ class CustomListener(ExpressionListener):
         self.program.ast.root = self.program.tree
         self.program.tree = None
         self.program.cleanProgram()
-        self.program.getFunctionTable().findFunction("main",0)
+        self.program.getFunctionTable().findFunction("main", 0)
         self.program.setNodeIds()
         self.program.generateDot(fileName)
         self.program.tree = self.program.ast.root

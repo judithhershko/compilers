@@ -38,13 +38,13 @@ def getType(txt):
 
 
 def remove_type(ptype: LiteralType, v: str):
-    if ptype == LiteralType.INT and len(v)>=3:
+    if ptype == LiteralType.INT and len(v) >= 3:
         v = v[3:]
-    elif ptype == LiteralType.FLOAT and len(v)>=5:
+    elif ptype == LiteralType.FLOAT and len(v) >= 5:
         v = v[5:]
-    elif ptype == LiteralType.BOOL and len(v)>=4:
+    elif ptype == LiteralType.BOOL and len(v) >= 4:
         v = v[4:]
-    elif ptype == LiteralType.CHAR and len(v)>=4:
+    elif ptype == LiteralType.CHAR and len(v) >= 4:
         v = v[4:]
     return v
 
@@ -95,14 +95,14 @@ def find_value_type(v: str):
 
 def getArrayName(text: str, type_=LiteralType.INT):
     x = text.split("[")
-    x[0]=remove_type(type_,x[0])
+    x[0] = remove_type(type_, x[0])
     return x[0]
 
 
 def getArraySize(text: str):
     x = text.split("[")
     x = x[1].split("]")
-    #if x[0]=="+" or x[0]=="-" or
+    # if x[0]=="+" or x[0]=="-" or
     return int(x[0])
 
 
@@ -112,12 +112,15 @@ def isFloat(v: str):
         if i == '.':
             f = True
     return f
+
+
 def is_float(string):
     try:
         float(string)
         return True
     except ValueError:
         return False
+
 
 def commentType(v: str):
     if v[1] == "/":

@@ -1,7 +1,7 @@
 grammar Expression;
 
 start_rule : (includes (';')* )? s_rule ;
-s_rule: (print ';'|scan ';'|expr ';'|dec ';'|comments|line|loop|scope (';')?| function_definition | function_dec| includes)*;
+s_rule: (print ';'|scan ';'|expr ';'|dec ';'|comments|line|loop|scope (';')?| function_definition | function_dec| includes | function_forward )*;
 
 includes: INCLUDE|INCLUDEH (';')?;
 line:NLINE;
@@ -10,7 +10,7 @@ print : PRINT '(' format_string (',' expr )* ')';
 scan  : SCAN '(' format_string (',' expr )* ')';
 format_string: STRING_LITERAL (',' STRING_LITERAL)*;
 
-comments: ML_COMMENT | SL_COMMENT;
+comments: '/*' ~( '*/' ) '*/' | SL_COMMENT;
 typed_var: INT| DOUBLE | FLOAT |CHAR | BOOL;
 
 scope : '{' rule (return)? rule'}' (';')?;
@@ -31,6 +31,7 @@ f_variables: pri | char_pri;
 ref: REF;
 function_definition: return_type function_name LBRAK (parameters)? (',' parameters )* RBRAK scope  ;
 function_name: ID;
+function_forward : return_type function_name LBRAK ( parameters (','parameters)? )* RBRAK ';' ;
 return: RETURN (expr | char_expr)? ';' ;
 
 const : CONST;
@@ -40,7 +41,8 @@ pointers: (pointer)+ ID (EQ ref_ref)? |  REF (EQ ref_ref)?;
 suf_dec: pointers | ID EQ (char_expr|expr);
 pointer_val: (pointer)+ ID;
 
-array : ID '[' num ']' ;
+array : ID '[' array_position ']' ;
+array_position :expr;
 array_content : '{' array_ci (',' array_ci)* '}';
 array_ci      : pri | (pointer)* (ID|array) ;
 dec:(const)? typed_var (pointer)* (ID|array) EQ (function_dec|pointer_val|ref_ref|char_expr|expr|array_content|array) |(pointer)* (ID|array) EQ (function_dec|pointer_val|ref_ref|char_expr|expr|array)
@@ -116,9 +118,9 @@ LOE  :  '<=';
 MOD  :  '%' ;
 CHAR_ID:'\'';
 ONE_LINE_COMMENT:'//';
-STRT_COMMENT:'/**';
-END_COMMENT:'**/' ;
-ML_COMMENT:  '/*' .* '*/';
+STRT_COMMENT:'/*';
+END_COMMENT:'*/' ;
+ML_COMMENT:  '/*' * '*/';
 SL_COMMENT:  '//' ~('\r' | '\n')*;
 
 STRING_LITERAL: '"' (ESC_SEQ |~('%'|'"'|'\n'|'\r'))* '"';

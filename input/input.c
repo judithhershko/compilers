@@ -1,25 +1,8 @@
+int f(int x, float **y);
+int x=90;
 int main(){
-    int x = 5;
-    int y = 6;
-    if(y<0){
-        y = y+1;
-    }
-    else if(y>0){
-        y = y-1;
-    }
-    else {
-        y = y;
-    }
-    while(x>0){
-        x = x-1;
-        if(y<0){
-            y = y+1;
-        }
-        else if(y>0){
-            y = y-1;
-        }
-        else {
-            y = y;
-        }
-    }
+int a[2]={1,2};
+int i=0;
+a[i+1]=2;
+return 0;
 }
