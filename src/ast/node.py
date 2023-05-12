@@ -129,7 +129,7 @@ class Comment(AST_node):
     def getVariables(self, fill: bool = True, scope=None):
         return [[], True]
 
-    def replaceVariables(self, values):
+    def replaceVariables(self, values, fill: bool = True):
         pass
 
     def fold(self, to_llvm=None):
@@ -213,9 +213,9 @@ class Print(AST_node):
             raise
         return self, True  # TODO: redo this when the print function is adapted to the final form
 
-    def replaceVariables(self, values):
+    def replaceVariables(self, values, fill: bool = True):
         for tree in self.param:
-            tree.replaceVariables(values)
+            tree.replaceVariables(values, fill)
 
 
 # Used to hald a single value/variable, normally a leaf of the AST
@@ -297,9 +297,9 @@ class Scan(AST_node):
             raise
         return self, True  # TODO: redo this when the print function is adapted to the final form
 
-    def replaceVariables(self, values):
+    def replaceVariables(self, values, fill: bool = True):
         for tree in self.param:
-            tree.replaceVariables(values)
+            tree.replaceVariables(values, fill)
 
 
 class Value(AST_node):
@@ -364,7 +364,7 @@ class Value(AST_node):
     def getDeref(self):
         return self.deref
 
-    def replaceVariables(self, values, rep: bool = True):
+    def replaceVariables(self, values, fill: bool = True):
         """
         replaces the variables in the node with the actual values contained in values
         :param values: dictionary containing the variable names as keys and the corresponding values as values
@@ -374,7 +374,7 @@ class Value(AST_node):
                 pass
             elif self.variable and not self.value in values:
                 raise NotDeclared(self.value, self.line)
-            elif self.variable and values[self.value][3] and rep:
+            elif self.variable and values[self.value][3] and fill:
                 self.type = values[self.value][1]
                 self.value = values[self.value][0]
                 self.variable = False
@@ -575,13 +575,13 @@ class BinaryOperator(AST_node):
             res[1] = False
         return res
 
-    def replaceVariables(self, values):
+    def replaceVariables(self, values, fill: bool = True):
         """
         replaces the variables in the node with the actual values contained in values
         :param values: dictionary containing the variable names as keys and the corresponding values as values
         """
-        self.leftChild.replaceVariables(values)
-        self.rightChild.replaceVariables(values)
+        self.leftChild.replaceVariables(values, fill)
+        self.rightChild.replaceVariables(values, fill)
 
     def printTables(self, filePath: str, to_llvm=None):
         if to_llvm is not None:
@@ -688,12 +688,12 @@ class UnaryOperator(AST_node):
         """
         return self.rightChild.getVariables(fill, scope)
 
-    def replaceVariables(self, values):
+    def replaceVariables(self, values, fill: bool = True):
         """
         replaces the variables in the node with the actual values contained in values
         :param values: dictionary containing the variable names as keys and the corresponding values as values
         """
-        self.rightChild.replaceVariables(values)
+        self.rightChild.replaceVariables(values, fill)
 
     def printTables(self, filePath: str, to_llvm=None):
         if to_llvm is not None:
@@ -831,13 +831,13 @@ class LogicalOperator(AST_node):
             res[1] = False
         return res
 
-    def replaceVariables(self, values):
+    def replaceVariables(self, values, fill: bool = True):
         """
         replaces the variables in the node with the actual values contained in values
         :param values: dictionary containing the variable names as keys and the corresponding values as values
         """
-        self.leftChild.replaceVariables(values)
-        self.rightChild.replaceVariables(values)
+        self.leftChild.replaceVariables(values, fill)
+        self.rightChild.replaceVariables(values, fill)
 
     def printTables(self, filePath: str, to_llvm=None):
         if to_llvm is not None:
@@ -945,7 +945,7 @@ class Declaration(AST_node):
             values[0].append(temp[0][0])
         return values
 
-    def replaceVariables(self, values):
+    def replaceVariables(self, values, fill: bool = True):
         """
         replaces the variables in the node with the actual values contained in values
         :param values: dictionary containing the variable names as keys and the corresponding values as values
@@ -963,7 +963,7 @@ class Declaration(AST_node):
                 if isinstance(self.rightChild, Value) and self.rightChild.deref:
                     self.rightChild.replaceVariables(values, False)
                 else:
-                    self.rightChild.replaceVariables(values)
+                    self.rightChild.replaceVariables(values, fill)
             else:
                 self.rightChild.replaceVariables(values, False)
 
@@ -1069,13 +1069,14 @@ class Pointer(AST_node):
         """
         return [[(self.value, self.line)], True]
 
-    def replaceVariables(self, values):
+    def replaceVariables(self, values, fill: bool = True):
         """
         replaces the variables in the node with the actual values contained in values
         :param values: dictionary containing the variable names as keys and the corresponding values as values
         """
-        if self.variable and values[self.value][3]:
+        if fill and self.variable and values[self.value][3]:
             self.value = values[self.value]
+            self.type = values[self.value][1]
             self.variable = False
         elif self.variable:
             self.type = values[self.value][1]
@@ -1207,8 +1208,8 @@ class ReturnNode(AST_node):
         # self.value.foldTree(to_llvm)
         return self, True
 
-    def replaceVariables(self, values):
-        self.value.replaceVariables(values)
+    def replaceVariables(self, values, fill: bool = True):
+        self.value.replaceVariables(values, fill)
 
 
 class Include(AST_node):
@@ -1364,7 +1365,7 @@ class Scope(AST_node):  # TODO: let it hold a block instead of trees
                             res.append(elem[0])
             return [res, True]
 
-    def replaceVariables(self, values):
+    def replaceVariables(self, values, fill: bool = True):
         """
         replaces the variables in the node with the actual values contained in values
         :param values: dictionary containing the variable names as keys and the corresponding values as values
@@ -1449,7 +1450,7 @@ class If(AST_node):
         """
         res = None
         if self.operator != ConditionType.ELSE:
-            res = self.Condition.root.fold(to_llvm)  # TODO: if condition seems to hold an AST instead of a node
+            res = self.Condition.fold(to_llvm)
             self.Condition = res[0]
             return self, res[1]
         # self.c_block = self.c_block.fold(to_llvm)
@@ -1463,19 +1464,19 @@ class If(AST_node):
         res = None
         if self.operator != ConditionType.ELSE:
             res = self.Condition.getVariables(fill, scope)
-        self.c_block.cleanBlock()
+        self.c_block.cleanBlock(fill=fill)
         if res is None:
             return [[], True]
         else:
             return res
 
-    def replaceVariables(self, values):
+    def replaceVariables(self, values, fill: bool = True):
         """
         replaces the variables in the node with the actual values contained in values
         :param values: dictionary containing the variable names as keys and the corresponding values as values
         """
         if self.operator != ConditionType.ELSE:
-            self.Condition.replaceVariables(values)
+            self.Condition.replaceVariables(values, fill)
             # self.c_block.fillBlock()
 
     def printTables(self, filePath: str, to_llvm=None):
@@ -1632,13 +1633,13 @@ class While(AST_node):
         """
         res = self.Condition.getVariables(fill, scope)[0]
         # self.Condition=self.Condition.root
-        self.Condition.root.fold()
-        for elem in self.c_block.getVariables(fill)[0]:
+        self.Condition.fold()
+        for elem in self.c_block.getVariables(False)[0]:
             res.append(elem)
-        self.c_block.cleanBlock(fill=False)
+        # self.c_block.cleanBlock(fill=False) # TODO: check if something needs to be done instead of this one (to fill in variables)
         return [res, False]
 
-    def replaceVariables(self, values):
+    def replaceVariables(self, values, fill: bool = True):
         """
         replaces the variables in the node with the actual values contained in values
         :param values: dictionary containing the variable names as keys and the corresponding values as values
@@ -1786,15 +1787,16 @@ class Function(AST_node):
         #         params.append((self.param[param].value, self.param[param].line))
         return [params, True]
 
-    def replaceVariables(self, values):  # TODO: possible to get from listener if it is a variable or not???
+    def replaceVariables(self, values, fill: bool = True):  # TODO: possible to get from listener if it is a variable or not???
         """
         replaces the variables in the node with the actual values contained in values
         :param values: dictionary containing the variable names as keys and the corresponding values as values
         """
         for var in self.param:
             if self.param[var].variable:
-                self.param[var].variable = False  # TODO: check if this is right bool
-                self.param[var].replaceVariables(values)
+                if fill:
+                    self.param[var].variable = False  # TODO: check if this is right bool
+                self.param[var].replaceVariables(values, fill)
 
             # Used to set initialisation or call of arrays
 
@@ -1862,13 +1864,13 @@ class Array(AST_node):
             return [[], True]
         return [[(str(self.pos) + str(self.value), self.line)], True]
 
-    def replaceVariables(self, values):
+    def replaceVariables(self, values, fill: bool = True):
         """
         replaces the variables in the node with the actual values contained in values
         :param values: dictionary containing the variable names as keys and the corresponding values as values
         """
         name = str(self.pos) + str(self.value)
-        if values and values[name][3]:
+        if fill and values and values[name][3]:
             self.type = values[name][1]
             self.value = values[name][0]
             self.isValue = True

@@ -698,9 +698,9 @@ class CustomListener(ExpressionListener):
 
         if self.declaration is False and isinstance(self.loop,
                                                     For) and self.expr_layer == 0 and self.loop.Condition is None and self.loop.f_dec is not None:
-            self.asT = create_tree()
-            self.asT.setRoot(self.parent)
-            self.loop.Condition = self.asT
+            # self.asT = create_tree()
+            # self.asT.setRoot(self.parent)
+            self.loop.Condition = self.parent
         elif not self.declaration and isinstance(self.loop,
                                                  For) and self.expr_layer == 0 and self.loop.Condition is not None and self.loop.f_dec is not None and self.loop.f_incr is None:
 
@@ -732,7 +732,7 @@ class CustomListener(ExpressionListener):
                 # self.c_print.value = self.asT
                 return
             if self.loop is not None and self.loop.Condition is None:
-                self.loop.Condition = self.asT
+                self.loop.Condition = self.asT.root
                 return # TODO: check if this still works: set Condition to node instead of ast
 
             if not self.return_function:
