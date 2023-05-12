@@ -1,8 +1,11 @@
-int f(int x, float **y);
-int x=90;
+int f(int x, float y);
+int f(int x, int y){
+    int z = x*y;
+    return z;
+}
 int main(){
-int a[2]={1,2};
-int i=0;
-a[i+1]=2;
+int x = 5;
+int y = 6;
+int i=f(x, y);
 return 0;
 }
