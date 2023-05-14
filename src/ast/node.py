@@ -1076,6 +1076,8 @@ class Pointer(AST_node):
         """
         if fill and self.variable and values[self.value][3]:
             self.value = values[self.value]
+            #for key in values:
+            #    self.type=values[key][1]
             self.type = values[self.value][1]
             self.variable = False
         elif self.variable:

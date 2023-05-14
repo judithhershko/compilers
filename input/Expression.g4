@@ -11,7 +11,7 @@ scan  : SCAN '(' format_string (',' (string | expr) )* ')';
 format_string: STRING_LITERAL;
 string : STRING_LITERAL ;
 
-comments: '/*' ~( '*/' ) '*/' | SL_COMMENT;
+comments:  '/*' ~( '*/' )* '*/' | SL_COMMENT;
 typed_var: INT| DOUBLE | FLOAT |CHAR | BOOL;
 
 scope : '{' rule (return)? rule'}' (';')?;
