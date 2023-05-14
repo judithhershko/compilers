@@ -79,9 +79,17 @@ class Mips:
         for i in array.arrayContent:
             self.data += "  {} {}\n".format(type_, self.get_value_content(i))
 
-    def global_comment(self, comment: Comment):
-        self.data += "# {}\n".format(comment.getValue())
-
+    def to_comment(self, comment: Comment):
+        if comment.getType() == CommentType.SL:
+            self.text += "#"
+            self.text += comment.getValue()
+            self.text += "\n"
+        elif comment.getType() == CommentType.ML:
+            self.text += "#"
+            for s in comment.value:
+                self.text += s
+                if s == "\n":
+                    self.text += "#"
         return
 
     def transverse_program(self):
@@ -93,29 +101,42 @@ class Mips:
             elif isinstance(tree.root, Array):
                 self.global_array(tree.root)
             elif isinstance(tree.root, Comment):
-                # self.global_comment(tree.root)
+                self.to_comment(tree.root)
                 pass
         self.output += self.data
         self.output += self.text
+
+    def transverse_trees(self):
+        for tree in self.program.tree.block.trees:
+            if isinstance(tree.root, Scope):
+                self.transverse_function(tree.root)
+            elif isinstance(tree.root, Declaration):
+                self.global_declaration(tree.root)
+            elif isinstance(tree.root, Array):
+                self.global_array(tree.root)
+            elif isinstance(tree.root, Comment):
+                self.global_comment(tree.root)
+                pass
 
     def transverse_function(self, scope: Scope):
         self.text += scope.f_name + ": \n"
         # stack space
         p = self.set_stack_space(scope)
-        p+=4
+        p += 4
         return_size = 4
         if self.program.getFunctionTable().findFunction(scope.f_name)["return"] == "BOOL":
             return_size = 1
-        p+=return_size
+        p += return_size
         self.text += " sw	$fp, 0($sp)	# push old frame pointer (dynamic link)\n"
         self.text += "move	$fp, $sp	# frame	pointer now points to the top of the stack\n"
         self.text += "subu	$sp, $sp,{}	# allocate bytes on the stack\n".format(p)
         self.text += "sw	$ra, -{}($fp)	# store the value of the return address\n".format(return_size)
         # save parameters function
         self.save_function_variables(scope)
-
+        # transverse trees
         # return
-        self.set_return_function(scope.f_return,scope.f_name=="main")
+        self.set_return_function(scope.f_return, scope.f_name == "main")
+
     def save_function_variables(self, scope: Scope):
         # Iterate through the DataFrame
         counter = -4

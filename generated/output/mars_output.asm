@@ -1,6 +1,7 @@
 .data
 .text
 .globl main
+#//intmain(intx){//this is a commentinty=90;return0;}
 main: 
  sw	$fp, 0($sp)	# push old frame pointer (dynamic link)
 move	$fp, $sp	# frame	pointer now points to the top of the stack
