@@ -1,6 +1,7 @@
 from src.ast.Program import *
 from src.ast.node import *
 
+
 class Mips:
     def __init__(self, program_: program):
         self.program = program_
@@ -99,18 +100,37 @@ class Mips:
 
     def transverse_function(self, scope: Scope):
         self.text += scope.f_name + ": \n"
-        # p = -1 * self.set_stack_space(scope)
-        pend = -1 * (scope.parameters.__len__() - 1) * 4
-        self.text += "addi $sp, $sp, {}        # allocate space for arguments on stack\n".format(pend)
-        pbegin = -1 * pend - 4
-        self.text += "sw $fp, {}($sp)           # save return address on stack\n".format(pbegin)
-        self.text += "move $fp, $sp           # set new frame pointer\n"
-        self.function_parameters(scope.parameters)
+        # stack space
+        p = self.set_stack_space(scope)
+        p+=4
+        return_size = 4
+        if self.program.getFunctionTable().findFunction(scope.f_name)["return"] == "BOOL":
+            return_size = 1
+        p+=return_size
+        self.text += " sw	$fp, 0($sp)	# push old frame pointer (dynamic link)\n"
+        self.text += "move	$fp, $sp	# frame	pointer now points to the top of the stack\n"
+        self.text += "subu	$sp, $sp,{}	# allocate bytes on the stack\n".format(p)
+        self.text += "sw	$ra, -{}($fp)	# store the value of the return address\n".format(return_size)
+        # save parameters function
+        self.save_function_variables(scope)
 
-        self.set_return_function(scope.f_return)
-        self.text += "lw   $fp, {}($sp)       # restore old frame pointer\n".format(pbegin)
-        self.text += "addi $sp, $sp, {}       # deallocate stack space\n".format(pend)
-        self.text += "jr $ra\n"
+        # return
+        self.set_return_function(scope.f_return,scope.f_name=="main")
+    def save_function_variables(self, scope: Scope):
+        # Iterate through the DataFrame
+        counter = -4
+        for index, row in scope.block.getSymbolTable().table.iterrows():
+            size = 4
+            type_ = row['Type']
+            if type_ == LiteralType.BOOL:
+                size += 1
+                counter -= 1
+            else:
+                counter -= 4
+
+            name = row['Value']
+            s = self.get_next_highest_register_type("s", Value(valueType=type_, lit=name, line=0))
+            self.text += "sw	${}, {}($fp)\n".format(s, counter)
 
     def function_parameters(self, parameters):
         # function start
@@ -127,6 +147,7 @@ class Mips:
                 p += 1
             else:
                 p += 4
+        return p
 
     # determine space arguments and any local variable needed
     def set_stack_space(self, scope):
@@ -139,20 +160,13 @@ class Mips:
                 p += 1
             else:
                 p += 4
+        print(p)
         return p
 
-    def set_return_function(self, f_return: AST):
+    def set_return_function(self, f_return: AST, is_main=False):
+
         if f_return is None:
             return
-        if isinstance(f_return.root, Value):
-            if f_return.root.getType() == LiteralType.INT:
-                self.text += "li   $v0, {}            # set return value\n".format(f_return.root.value)
-                return
-            if f_return.root.getType() == LiteralType.FLOAT:
-                self.text += "lwc1 $f0, 0($sp)        # load the return value from stack to $f0\n"
-                return
-            # save the char in t0
-            if f_return.root.getType() == LiteralType.CHAR:
-                self.text += "andi $v0, $t0, 0xff     # mask out the lower 8 bits of $t0 and store in $v0\n"
-                return
-        # TODO function returns an expression
+        if is_main:
+            self.text += "li  $v0,10\n"
+            self.text += "syscall\n"
