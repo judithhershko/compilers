@@ -86,6 +86,8 @@ class CustomListener(ExpressionListener):
             return
         while self.parent.parent is not None:
             self.parent = self.parent.parent
+        if isinstance(self.parent,BinaryOperator) and self.parent.operator=="":
+            self.parent=self.parent.leftChild
         self.parent.parent = non_brack
 
         if not isinstance(non_brack, UnaryOperator) and non_brack.leftChild is None:
@@ -324,24 +326,22 @@ class CustomListener(ExpressionListener):
     def exitFormat_string(self, ctx: ParserRuleContext):
         pass
 
-
     # Enter a parse tree produced by ExpressionParser#string.
     def enterString(self, ctx: ParserRuleContext):
-        if isinstance(self.c_print,Print) or isinstance(self.c_print,Scan):
+        if isinstance(self.c_print, Print) or isinstance(self.c_print, Scan):
             self.asT = create_tree()
             self.asT.root = String(ctx.start.line, ctx.getText())
             self.c_print.addParam(self.asT)
             self.asT = create_tree()
-        if isinstance(self.current,Print) or isinstance(self.current,Scan):
-            self.asT=create_tree()
-            self.asT.root=String(ctx.start.line,ctx.getText())
+        if isinstance(self.current, Print) or isinstance(self.current, Scan):
+            self.asT = create_tree()
+            self.asT.root = String(ctx.start.line, ctx.getText())
             self.current.addParam(self.asT)
-            self.asT=create_tree()
+            self.asT = create_tree()
 
     # Exit a parse tree produced by ExpressionParser#string.
     def exitString(self, ctx: ParserRuleContext):
         pass
-
 
     # Enter a parse tree produced by ExpressionParser#scan.
     def enterScan(self, ctx: ParserRuleContext):
@@ -398,16 +398,24 @@ class CustomListener(ExpressionListener):
     def enterPointer_val(self, ctx: ParserRuleContext):
         self.rhs_pointer = True
         pval = ctx.getText()
+        level = 0
         while len(pval) > 0 and pval[0] == '*':
             pval = pval[1:]
-        val = self.c_scope.block.getSymbolTable().findSymbol(pval)
+            level += 1
+        """val = self.c_scope.block.getSymbolTable().findSymbol(pval)
         cval = ''
         if val[1] == LiteralType.INT:
             cval = int(val[0])
         elif val[1] == LiteralType.FLOAT:
-            cval = float(val[0])
-        self.current = Value(cval, val[1], ctx.start.line, self.parent)
-        self.parent.rightChild = self.current
+            cval = float(val[0])"""
+        # self.current = Value(cval, val[1], ctx.start.line, self.parent)
+        self.current = Pointer(pval, LiteralType.VAR, ctx.start.line, level, self.parent)
+        #self.parent.rightChild = self.current
+        if self.parent.rightChild is None:
+            self.parent.leftChild=self.current
+        else:
+            self.parent.rightChild=self.current
+        return
 
     # Exit a parse tree produced by ExpressionParser#pointer_val.
     def exitPointer_val(self, ctx: ParserRuleContext):

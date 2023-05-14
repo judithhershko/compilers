@@ -1,6 +1,9 @@
 #include "stdio.h";
 int main()
 {
-scanf("this is a code with %s", "c");
+int i=90;
+int *pi= &i;
+78* (*pi)+90;
+scanf("this is a code with %d", *i);
 return 0;
 }
