@@ -1076,6 +1076,8 @@ class Pointer(AST_node):
         """
         if fill and self.variable and values[self.value][3]:
             self.value = values[self.value]
+            #for key in values:
+            #    self.type=values[key][1]
             self.type = values[self.value][1]
             self.variable = False
         elif self.variable:
@@ -1569,6 +1571,45 @@ class Continue(AST_node):
     def fold(self, to_llvm):
         return self
 
+class String(AST_node):
+    def __init__(self, line, value):
+        self.line = line
+        self.name = "string"
+        self.value = value
+        self.type = None
+        self.parent = None
+        self.variable = False
+        self.const = False
+        self.declaration = False
+        self.deref = False
+
+    def getLabel(self):
+        return "\"String Node: " + self.value + "\""
+
+    def getValue(self):
+        return self.value
+
+    def setValue(self, value):
+        self.value=value
+        return self.value
+
+    def setType(self, type):
+        self.type = type
+
+    def getType(self):
+        return self.type
+
+    def getVariables(self, fill: bool = True, scope=None):
+        """
+        returns the variable contained within the node
+        :return:
+        """
+        return [[], True]
+    def replaceVariables(self,values, fill: bool = True ):
+        pass
+
+    def fold(self, to_llvm):
+        return self
 
 # Used to hold a while loop
 class While(AST_node):

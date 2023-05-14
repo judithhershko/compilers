@@ -6,11 +6,12 @@ s_rule: (print ';'|scan ';'|expr ';'|dec ';'|comments|line|loop|scope (';')?| fu
 includes: INCLUDE|INCLUDEH (';')?;
 line:NLINE;
 
-print : PRINT '(' format_string (',' expr )* ')';
-scan  : SCAN '(' format_string (',' expr )* ')';
-format_string: STRING_LITERAL (',' STRING_LITERAL)*;
+print : PRINT '(' format_string (',' (string| expr) )* ')';
+scan  : SCAN '(' format_string (',' (string | expr) )* ')';
+format_string: STRING_LITERAL;
+string : STRING_LITERAL ;
 
-comments: '/*' ~( '*/' ) '*/' | SL_COMMENT;
+comments:  '/*' ~( '*/' )* '*/' | SL_COMMENT;
 typed_var: INT| DOUBLE | FLOAT |CHAR | BOOL;
 
 scope : '{' rule (return)? rule'}' (';')?;
@@ -59,7 +60,7 @@ suffix_op: PP | MM ;
 expr: expr suffix_op | prefix_op expr | expr binop_md expr | expr binop expr | expr comparator expr |  expr equality expr | expr or_and expr  | fac;
 fac : brackets|pri ;
 brackets: LBRAK expr RBRAK;
-pri: function_dec | array | ID | ('-' | '+') ? num+ '.' num* |('-' | '+') ? '.' num+ | ('-' | '+') ? num;
+pri: function_dec | array| pointer_val | ID | ('-' | '+') ? num+ '.' num* |('-' | '+') ? '.' num+ | ('-' | '+') ? num;
 
 fnum: num | num+ '.' num* | '.' num+ ;
 num: NUM;
@@ -124,6 +125,7 @@ ML_COMMENT:  '/*' * '*/';
 SL_COMMENT:  '//' ~('\r' | '\n')*;
 
 STRING_LITERAL: '"' (ESC_SEQ |~('%'|'"'|'\n'|'\r'))* '"';
+
 fragment ESC_SEQ: '%' ('d'|'i'|'s'|'c'|'f');
 fragment ESC : '\\' [nrt\\"'] ;
 NLINE: '\n';
