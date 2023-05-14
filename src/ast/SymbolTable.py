@@ -23,10 +23,22 @@ class FunctionTable:
         for param in func.parameters:
             function[param] = str(func.parameters[param].type)
         function["return"] = str(func.return_type)
+        function["forDecl"] = func.forward_declaration
         if not self.functions:
             self.functions[func.f_name] = function
         elif func.f_name in self.functions:
-            raise RedeclarationF(func.f_name, func.line)
+            if self.functions[func.f_name]["forDecl"]:
+                temp = self.functions[func.f_name]
+                if len(function) != len(temp):
+                    raise forwardWrongSize(func.f_name, func.line)
+                for para in function:
+                    if para == "forDecl":
+                        continue
+                    if temp[para] != function[para]:
+                        raise forwardWrongType(func.f_name, func.line)
+                self.functions[func.f_name]["forDecl"] = False
+            else:
+                raise RedeclarationF(func.f_name, func.line)
         else:
             self.functions[func.f_name] = function
 
@@ -240,9 +252,12 @@ class SymbolTable:
             raise
 
     def findSymbol(self, name: str, onlyNext: bool = False, pos: int = None,
-                   line: int = None):  # TODO: tell adition of pos and line for arrayCall
+                   line: int = None):
         if name not in self.table.index:
-            return None
+            if self.parent is not None: # TODO: check if this gives no problems (changed to find elements in global scope)
+                return self.parent.findSymbol(name, onlyNext, pos)
+            else:
+                return None
         if pos is not None:
             try:
                 if pos < 0 or pos >= self.table.at[name, "Value"]:

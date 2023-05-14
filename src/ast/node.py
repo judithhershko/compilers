@@ -1802,11 +1802,11 @@ class Function(AST_node):
         self.expected = prog.functions.findFunction(self.f_name, self.line)
         try:
             params = []
-            if len(self.expected) - 1 != len(self.param):
-                raise FunctionParam(self.f_name, len(self.expected) - 1, self.line)
+            if len(self.expected) - 2 != len(self.param):
+                raise FunctionParam(self.f_name, len(self.expected) - 2, self.line)
             pos = 0
             for exp in self.expected:
-                if exp == "return":
+                if exp in ("return", "forDecl"):
                     continue
                 expec = self.expected[exp]
                 given = self.param[pos]
@@ -1814,6 +1814,7 @@ class Function(AST_node):
                     givenType = scope.symbols.findSymbol(given.value)
                 else:
                     givenType = [[], given.type]
+
                 if expec != str(givenType[1]):
                     raise FunctionParamType(self.f_name, exp, givenType, expec, self.line)
                 else:

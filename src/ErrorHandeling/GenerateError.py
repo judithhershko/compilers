@@ -389,3 +389,23 @@ class PrintType(Exception):
     def __str__(self):
         return "\n\tError in line " + str(self.line) + ": print expects a " + \
                self.type + " as input with the flag " + self.flag
+
+
+class forwardWrongType(Exception):
+    def __init__(self, name, line):
+        self.name = name
+        self.line = line
+
+    def __str__(self):
+        return "\n\tError in line " + str(self.line) + ": the parameters of the function " + \
+               self.name + " do not have the same types as the forward declaration"
+
+
+class forwardWrongSize(Exception):
+    def __init__(self, name, line):
+        self.name = name
+        self.line = line
+
+    def __str__(self):
+        return "\n\tError in line " + str(self.line) + ": the amount of parameters of the function " + \
+               self.name + " is not the same as in the forward declaration"
