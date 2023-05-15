@@ -1,6 +1,16 @@
+import struct
+
 from src.ast.Program import *
 from src.ast.node import *
 
+
+# TODO: DECLARATIONS
+# TODO: OPERATIONS
+# TODO: LOOPS
+# TODO: POINTERS
+# TODO: PRINT
+# TODO: SCAN
+# TODO: ARRAYS
 
 class Mips:
     def __init__(self, program_: program):
@@ -14,7 +24,18 @@ class Mips:
         self.temp_count = 0
         # keep used registers
         self.register = dict()
+        self.frame_register = dict()
         self.data_dict = dict()
+
+    def float_to_64bit_hex(self, x):
+        # print("x is none in scope:" + self.c_function.root.f_name)
+        if isinstance(x, str):
+            x = float(x)
+        bytes_of_x = struct.pack('>f', x)
+        x_as_int = struct.unpack('>f', bytes_of_x)[0]
+        x_as_double = struct.pack('>d', x_as_int).hex()
+        x_as_double = '0x' + x_as_double
+        return x_as_double
 
     def new_temp(self):
         self.temp_count += 1
@@ -58,6 +79,10 @@ class Mips:
     def get_next_highest_register_type(self, type: str, v: Value):
         # get highest register
         if self.register.__len__() == 0:
+            self.register[v.getValue()] = type + "0"
+            return type + "0"
+        a = {k: v for k, v in self.register.items() if v.startswith(type)}
+        if a.__len__() == 0:
             self.register[v.getValue()] = type + "0"
             return type + "0"
         highest = max({k: v for k, v in self.register.items() if v.startswith(type)}.values())
@@ -120,6 +145,8 @@ class Mips:
                 i = AST
                 i.root = t
                 t = i
+            if isinstance(t.root, Declaration) and isinstance(t.root.leftChild, Value):
+                self.to_declaration(t.root)
             if isinstance(t.root, Comment):
                 self.to_comment(t.root)
             elif isinstance(t.root, Print):
@@ -156,12 +183,13 @@ class Mips:
         self.text += "sw	$ra, -{}($fp)	# store the value of the return address\n".format(return_size)
         # save parameters function
         min_count = self.save_function_variables(scope)
-        last_key = list(self.register.keys())[-1]
+        var_reg = self.register
 
         # transverse trees
         self.transverse_trees(scope.block)
         # return
-        self.set_return_function(scope.f_return, scope.f_name == "main", min_count, last_key)
+        self.set_return_function(scope.f_return, scope.f_name == "main", min_count, var_reg)
+        return
 
     def save_function_variables(self, scope: Scope):
         # Iterate through the DataFrame
@@ -175,27 +203,14 @@ class Mips:
             else:
                 counter -= 4
 
-            name = row['Value']
-            s = self.get_next_highest_register_type("s", Value(valueType=type_, lit=name, line=0))
+            name = index
+            reg = "s"
+            """if type_ == LiteralType.FLOAT:
+                reg = "f"""""
+            s = self.get_next_highest_register_type(reg, Value(valueType=type_, lit=name, line=0))
+            self.frame_register[s] = str(counter) + "($fp)"
             self.text += "sw	${}, {}($fp)\n".format(s, counter)
         return counter
-
-    def function_parameters(self, parameters):
-        # function start
-        p = 0
-        self.text += "#fucntion parameters\n"
-        # save values
-        for par in parameters:
-            t = "a"
-            if parameters[par] == LiteralType.FLOAT:
-                t = "f"
-            self.text += "{} ${}, {}($sp)\n".format(self.get_sw_type(parameters[par]),
-                                                    self.get_next_highest_register_type(t, parameters[par]), p)
-            if parameters[par].getType() == LiteralType.BOOL:
-                p += 1
-            else:
-                p += 4
-        return p
 
     # determine space arguments and any local variable needed
     def set_stack_space(self, scope):
@@ -211,14 +226,11 @@ class Mips:
         print(p)
         return p
 
-    def set_return_function(self, f_return: AST, is_main=False, min_counter=0, last_key="s0"):
+    def set_return_function(self, f_return: AST, is_main=False, min_counter=0, reg=dict()):
 
-        last_index = ''.join(filter(str.isdigit, self.register[last_key]))
-        last_index =int(last_index)
-        while last_index >= 0:
-            self.text += "lw	$s{}, {}($fp)\n".format(last_index, min_counter)
+        for key in reversed(reg.keys()):
+            self.text += "lw	${}, {}($fp)\n".format(reg[key], min_counter)
             min_counter += 4
-            last_index -= 1
         self.text += "lw	$ra, -4($fp)\n"
         self.text += "move	$sp, $fp\n"
         self.text += "lw	$fp, ($sp)\n"
@@ -281,3 +293,31 @@ class Mips:
 
     def set_new_scope(self, t: Scope):
         pass
+
+    def to_declaration(self, declaration: Declaration):
+        # find register it is stored
+        # store it
+        s = self.register[declaration.leftChild.value]
+        f = self.frame_register[self.register[declaration.leftChild.value]]
+        self.text += "lw  ${}, {}\n".format(s, f)
+        if declaration.rightChild.getType() == LiteralType.FLOAT:
+            self.text += "ori ${},$0,{}\n".format(self.register[declaration.leftChild.value],
+                                                  self.float_to_64bit_hex(declaration.rightChild.value))
+            self.text += "sw  ${}, {}\n".format(s, f)
+        elif declaration.rightChild.getType() == LiteralType.INT:
+            self.text += "ori ${},$0,{}\n".format(self.register[declaration.leftChild.value],
+                                                  declaration.rightChild.value)
+            self.text += "sw  ${}, {}\n".format(s, f)
+        elif declaration.rightChild.getType() == LiteralType.BOOL:
+            if declaration.rightChild == 'True':
+                self.text += "ori {},$0,1\n".format(self.register[declaration.leftChild.value])
+                self.text += "sw  ${}, {}\n".format(s, f)
+            else:
+                self.text += "ori {},$0,0\n".format(self.register[declaration.leftChild.value])
+                self.text += "sw  ${}, {}\n".format(s, f)
+        elif declaration.rightChild.getType() == LiteralType.VAR:
+            s1 = self.register[declaration.rightChild.value]
+            f1 = self.frame_register[s1]
+            self.text += "lw ${} , \n".format(s,f)
+            self.text += "sw ${}, {}\n".format(s,f1)
+        return
