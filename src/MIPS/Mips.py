@@ -300,24 +300,48 @@ class Mips:
         s = self.register[declaration.leftChild.value]
         f = self.frame_register[self.register[declaration.leftChild.value]]
         self.text += "lw  ${}, {}\n".format(s, f)
-        if declaration.rightChild.getType() == LiteralType.FLOAT:
+        if declaration.rightChild.getType() == LiteralType.FLOAT and is_float(str(declaration.rightChild.value)):
             self.text += "ori ${},$0,{}\n".format(self.register[declaration.leftChild.value],
-                                                  self.float_to_64bit_hex(declaration.rightChild.value))
+                                                 float_to_hex(declaration.rightChild.value))
             self.text += "sw  ${}, {}\n".format(s, f)
-        elif declaration.rightChild.getType() == LiteralType.INT:
+        elif declaration.rightChild.getType() == LiteralType.INT and str(declaration.rightChild.value).isdigit():
             self.text += "ori ${},$0,{}\n".format(self.register[declaration.leftChild.value],
                                                   declaration.rightChild.value)
             self.text += "sw  ${}, {}\n".format(s, f)
-        elif declaration.rightChild.getType() == LiteralType.BOOL:
+        elif declaration.rightChild.getType() == LiteralType.BOOL and (
+                declaration.rightChild == 'True' or declaration.rightChild == 'False'):
             if declaration.rightChild == 'True':
                 self.text += "ori {},$0,1\n".format(self.register[declaration.leftChild.value])
                 self.text += "sw  ${}, {}\n".format(s, f)
             else:
                 self.text += "ori {},$0,0\n".format(self.register[declaration.leftChild.value])
                 self.text += "sw  ${}, {}\n".format(s, f)
-        elif declaration.rightChild.getType() == LiteralType.VAR:
+        else:
             s1 = self.register[declaration.rightChild.value]
             f1 = self.frame_register[s1]
-            self.text += "lw ${} , \n".format(s,f)
-            self.text += "sw ${}, {}\n".format(s,f1)
+            self.text += "lw ${} ,{} \n".format(s, f)
+            self.text += "sw ${}, {}\n".format(s, f1)
         return
+
+
+def is_float(string):
+    try:
+        float(string)
+        return True
+    except ValueError:
+        return False
+
+
+def float_to_hex(float_num):
+    if isinstance(float_num, str):
+        float_num = float(float_num)
+    # Pack the float as a single-precision (32-bit) binary representation
+    binary_data = struct.pack('!f', float_num)
+
+    # Unpack the binary data as a 32-bit unsigned integer
+    int_value = struct.unpack('!I', binary_data)[0]
+
+    # Convert the integer to a hexadecimal string
+    hex_value = hex(int_value)
+
+    return hex_value
