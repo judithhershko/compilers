@@ -11,6 +11,7 @@ from src.ast.node import *
 # TODO: PRINT
 # TODO: SCAN
 # TODO: ARRAYS
+# UNNAMED SCOPES
 
 class Mips:
     def __init__(self, program_: program):
