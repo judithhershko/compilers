@@ -321,7 +321,28 @@ class Mips:
             f1 = self.frame_register[s1]
             self.text += "lw ${} ,{} \n".format(s, f)
             self.text += "sw ${}, {}\n".format(s, f1)
+
         return
+    def is_function(self, f_):
+        return isinstance(f_, Function)
+
+    def is_array(self, a_):
+        return isinstance(a_, Array)
+
+    def is_pointer(self, p_):
+        return isinstance(p_, Pointer)
+
+    def is_value(self, v_):
+        return isinstance(v_, Value)
+
+    def is_binary(self, bin):
+        return isinstance(bin, BinaryOperator)
+
+    def is_unary(self, un):
+        return isinstance(un, UnaryOperator)
+
+    def is_logical(self, logic):
+        return isinstance(logic, LogicalOperator)
 
 
 def is_float(string):
@@ -345,3 +366,4 @@ def float_to_hex(float_num):
     hex_value = hex(int_value)
 
     return hex_value
+
