@@ -7,12 +7,14 @@ class Mips:
         self.program = program_
         self.output = ""
         self.data = ".data\n"
+        self.data_count = 0
         self.text = ".text\n"
         self.text += ".globl main\n"
         # counter for temporary registers
         self.temp_count = 0
         # keep used registers
         self.register = dict()
+        self.data_dict = dict()
 
     def new_temp(self):
         self.temp_count += 1
@@ -71,11 +73,15 @@ class Mips:
         self.data += "{}: {} {}\n".format(declaration.leftChild.getValue(),
                                           self.get_mars_type(declaration.leftChild.getType()),
                                           content)
+        self.data_count += 1
+        self.data_dict[declaration.leftChild.getValue()] = self.data_count
         return
 
     def global_array(self, array: Array):
         type_ = self.get_mars_type(array.getType())
         self.data += "{}:\n".format(array.value)
+        self.data_count += 1
+        self.data_dict[array.value] = self.data_count
         for i in array.arrayContent:
             self.data += "  {} {}\n".format(type_, self.get_value_content(i))
 
@@ -106,17 +112,34 @@ class Mips:
         self.output += self.data
         self.output += self.text
 
-    def transverse_trees(self):
-        for tree in self.program.tree.block.trees:
-            if isinstance(tree.root, Scope):
-                self.transverse_function(tree.root)
-            elif isinstance(tree.root, Declaration):
-                self.global_declaration(tree.root)
-            elif isinstance(tree.root, Array):
-                self.global_array(tree.root)
-            elif isinstance(tree.root, Comment):
-                self.global_comment(tree.root)
+    def transverse_trees(self, cblock: block, branch_count=0, start_loop=0):
+        for tree in cblock.trees:
+            # don't change tree function permanently
+            t = tree
+            if not isinstance(t, AST):
+                i = AST
+                i.root = t
+                t = i
+            if isinstance(t.root, Comment):
+                self.to_comment(t.root)
+            elif isinstance(t.root, Print):
+                self.to_print(t.root)
+            elif isinstance(t.root, Scan):
+                self.to_scan(t.root)
+            elif isinstance(t.root, Continue):
+                self.to_continue(t, branch_count, start_loop)
+            elif isinstance(t.root, Break):
+                self.to_break(t, branch_count)
+            elif isinstance(t.root, While):
+                self.set_while_loop(t.root)
+            elif isinstance(t.root, If):
+                self.set_if_loop(t.root)
+            elif isinstance(t.root, Scope):
+                self.set_new_scope(t)
+            elif t is None:
                 pass
+            else:
+                t.root.printTables("random", self)
 
     def transverse_function(self, scope: Scope):
         self.text += scope.f_name + ": \n"
@@ -132,10 +155,13 @@ class Mips:
         self.text += "subu	$sp, $sp,{}	# allocate bytes on the stack\n".format(p)
         self.text += "sw	$ra, -{}($fp)	# store the value of the return address\n".format(return_size)
         # save parameters function
-        self.save_function_variables(scope)
+        min_count = self.save_function_variables(scope)
+        last_key = list(self.register.keys())[-1]
+
         # transverse trees
+        self.transverse_trees(scope.block)
         # return
-        self.set_return_function(scope.f_return, scope.f_name == "main")
+        self.set_return_function(scope.f_return, scope.f_name == "main", min_count, last_key)
 
     def save_function_variables(self, scope: Scope):
         # Iterate through the DataFrame
@@ -152,6 +178,7 @@ class Mips:
             name = row['Value']
             s = self.get_next_highest_register_type("s", Value(valueType=type_, lit=name, line=0))
             self.text += "sw	${}, {}($fp)\n".format(s, counter)
+        return counter
 
     def function_parameters(self, parameters):
         # function start
@@ -184,10 +211,73 @@ class Mips:
         print(p)
         return p
 
-    def set_return_function(self, f_return: AST, is_main=False):
+    def set_return_function(self, f_return: AST, is_main=False, min_counter=0, last_key="s0"):
+
+        last_index = ''.join(filter(str.isdigit, self.register[last_key]))
+        last_index =int(last_index)
+        while last_index >= 0:
+            self.text += "lw	$s{}, {}($fp)\n".format(last_index, min_counter)
+            min_counter += 4
+            last_index -= 1
+        self.text += "lw	$ra, -4($fp)\n"
+        self.text += "move	$sp, $fp\n"
+        self.text += "lw	$fp, ($sp)\n"
 
         if f_return is None:
             return
+
         if is_main:
             self.text += "li  $v0,10\n"
             self.text += "syscall\n"
+        else:
+            self.text += "jr	$ra\n"
+
+    def to_print(self, p: Print):
+        print("print called")
+        # split syscall to %i
+        strings = p.input_string.split("%")
+        pi = 0
+        for i in strings:
+            if i[-1] == "\"":
+                continue
+            if i not in self.data_dict:
+                self.data_count += 1
+                self.data_dict[i] = self.data_count
+                self.data += "$${}  :.asciiz {} \"\n".format(self.data_count, i)
+            # load varialbe in $a0
+            # self.text += "lw $a0, integer_value"
+            self.text += "li $v0, 4\n"
+            self.text += "la $a0, $${}\n".format(self.data_count)
+            self.text += "syscall\n"
+            pi += 1
+
+    def print_load(self, v):
+        result = 0
+        if isinstance(v, String):
+            self.data_count += 1
+            self.data_dict[v.value] = self.data_count
+            self.data += "$${}  :.asciiz {} \n".format(self.data_count, v.value)
+            result = "$${}" + str(self.data_count)
+        elif isinstance(v, Value):
+            if isinstance(v.getType() == LiteralType.VAR):
+                reg = self.register[v.value]
+            else:
+                self.text += "li $t0, {}\n".format(v.value)
+
+    def to_scan(self, Scan):
+        pass
+
+    def to_continue(self, t: Continue, branch_count, start_loop):
+        pass
+
+    def to_break(self, t: Break, branch_count):
+        pass
+
+    def set_while_loop(self, w: While):
+        pass
+
+    def set_if_loop(self, f: If):
+        pass
+
+    def set_new_scope(self, t: Scope):
+        pass
