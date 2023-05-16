@@ -4,17 +4,23 @@ from src.ast.Program import *
 from src.ast.node import *
 
 
-# TODO: DECLARATIONS
-# TODO: OPERATIONS
+# TODO: DECLARATIONS v
+# TODO: binary OPERATIONS   v
+# todo: unary operations
 # TODO: LOOPS
+# todo: while
+# todo: if /else
 # TODO: POINTERS
 # TODO: PRINT
 # TODO: SCAN
 # TODO: ARRAYS
-# UNNAMED SCOPES
+# todo :UNNAMED SCOPES
+# todo : function calls
 
 class Mips:
     def __init__(self, program_: program):
+        self.c_function = None
+        self.loop = None
         self.declaration = None
         self.program = program_
         self.output = ""
@@ -27,8 +33,10 @@ class Mips:
         # keep used registers
         self.register = dict()
         self.frame_register = dict()
+        self.frame_counter = -4
         self.data_dict = dict()
         self.save_old_val = None
+        self.loop_counter = 0
 
     def float_to_64bit_hex(self, x):
         # print("x is none in scope:" + self.c_function.root.f_name)
@@ -175,9 +183,11 @@ class Mips:
                 self.save_old_val = None
                 self.declaration = None
                 # clear temporary registers
+                self.remove_temps()
 
     def transverse_function(self, scope: Scope):
         self.text += scope.f_name + ": \n"
+        self.c_function=scope
         # stack space
         p = self.set_stack_space(scope)
         p += 4
@@ -190,35 +200,36 @@ class Mips:
         self.text += "subu	$sp, $sp,{}	# allocate bytes on the stack\n".format(p)
         self.text += "sw	$ra, -{}($fp)	# store the value of the return address\n".format(return_size)
         # save parameters function
-        min_count = self.save_function_variables(scope)
+        self.save_function_variables(scope)
         var_reg = self.register
 
         # transverse trees
         self.transverse_trees(scope.block)
         # return
-        self.set_return_function(scope.f_return, scope.f_name == "main", min_count, var_reg)
+        self.set_return_function(scope.f_return, scope.f_name == "main", self.frame_counter, var_reg)
+        self.c_function=None
         return
 
     def save_function_variables(self, scope: Scope):
         # Iterate through the DataFrame
-        counter = -4
+        self.frame_counter = -4
         for index, row in scope.block.getSymbolTable().table.iterrows():
             size = 4
             type_ = row['Type']
             if type_ == LiteralType.BOOL:
                 size += 1
-                counter -= 1
+                self.frame_counter -= 1
             else:
-                counter -= 4
+                self.frame_counter -= 4
 
             name = index
             reg = "s"
             """if type_ == LiteralType.FLOAT:
                 reg = "f"""""
             s = self.get_next_highest_register_type(reg, Value(valueType=type_, lit=name, line=0))
-            self.frame_register[s] = str(counter) + "($fp)"
-            self.text += "sw	${}, {}($fp)\n".format(s, counter)
-        return counter
+            self.frame_register[s] = str(self.frame_counter) + "($fp)"
+            self.text += "sw	${}, {}($fp)\n".format(s, self.frame_counter)
+        return self.frame_counter
 
     # determine space arguments and any local variable needed
     def set_stack_space(self, scope):
@@ -294,7 +305,50 @@ class Mips:
         pass
 
     def set_while_loop(self, w: While):
-        pass
+        self.loop_counter += 1
+        condition = "loop{}".format(self.loop_counter)
+        self.loop_counter += 1
+        ctrue = "loop{}".format(self.loop_counter)
+        self.loop_counter += 1
+        cfalse = "loop{}".format(self.loop_counter)
+
+        self.text += "j ${}\n".format(condition)
+        self.text += "nop\n"
+        self.text += "${}:\n".format(condition)
+
+        # set condition
+        # save result in a register
+        self.declaration = Value(condition, LiteralType.BOOL, 0)
+        self.get_next_highest_register_type('', self.declaration)
+        self.frame_counter -= 4
+        self.frame_register[self.register[self.declaration.value]] = str(self.frame_counter) + "($fp)"
+        w.Condition.printTables("random", self)
+        #self.transverse_trees(w.Condition)
+        fr = self.frame_register[self.register[self.declaration.value]]
+        sr = self.register[self.declaration.value]
+        self.declaration=None
+        self.text += "lbu ${}, {}\n".format(sr, fr)
+        self.text += "andi  ${}, ${}, 1\n".format(sr, sr)
+        self.text += "beqz    ${}, ${}\n".format(sr, cfalse)
+        self.text += "nop \n"
+        self.text += "j ${}\n".format(ctrue)
+        self.text += "nop\n"
+
+        self.text += "${}:\n".format(ctrue)
+        self.transverse_trees(w.c_block)
+        # repaste condition at the end of c_block -> otherwise condition is permanent
+        self.declaration = Value(condition, LiteralType.BOOL, 0)
+        #self.transverse_trees(w.Condition)
+        w.Condition.printTables("random", self)
+        self.text += "lbu ${}, {}\n".format(sr, fr)
+        self.text += "andi  ${}, ${}, 1\n".format(sr, sr)
+        self.text += "sb ${}, {}\n".format(sr,fr)
+        self.text += "j ${}\n".format(condition)
+        self.text += "nop\n"
+        self.text += "${}:\n".format(cfalse)
+
+
+
 
     def set_if_loop(self, f: If):
         pass
@@ -366,6 +420,10 @@ class Mips:
 
     def is_logical(self, logic):
         return isinstance(logic, LogicalOperator)
+
+    def remove_temps(self):
+        self.register = {key: value for key, value in self.register.items() if not value.startswith('t')}
+        return
 
 
 def is_float(string):

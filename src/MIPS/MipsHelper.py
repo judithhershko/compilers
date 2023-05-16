@@ -151,23 +151,15 @@ def stor_unary_operation(op, right, rtype, llvm, load_right):
 def store_binary_operation(op, left, right, rtype, mips):
     # save olf variable counter
     mips.save_old_val = left
-    load = ""
-    save = ""
-    fr = ""
+
     sl = mips.register[left.value]
     sr = mips.register[right.value]
-    if sl[0] == "s":
-        save = sl
-        fr = mips.frame_register[mips.register[left.value]]
-    elif sr[0] == "s":
-        save = sr
-        fr = mips.frame_register[mips.register[right.value]]
-    else:
-        save= mips.register[mips.declaration.value]
-        fr = mips.frame_register[mips.register[mips.declaration.value]]
+    save = mips.register[mips.declaration.value]
+
     op = get_operation(op, rtype)
-    mips.text += "{} ${},${}, ${}\n".format(op,save, sl, sr)
+    mips.text += "{} ${},${}, ${}\n".format(op, save, sl, sr)
     # store back in frame
+    fr = mips.frame_register[mips.register[mips.declaration.value]]
     mips.text += "sw ${}, {}\n".format(save, fr)
 
 
@@ -293,13 +285,13 @@ def set_llvm_binary_operators(left, right, op: str, mips):
             str(left.value)):
         mips.get_next_highest_register_type("t", left)
         load_left = False
-    ltype=left.type
-    rtype=right.type
+    ltype = left.type
+    rtype = right.type
 
     # load left type
     if load_left:
         if left.type is LiteralType.VAR:
-            ltype = mips.c_function.root.block.getSymbolTable().findSymbol(left.value)[1]
+            ltype = mips.c_function.block.getSymbolTable().findSymbol(left.value)[1]
         else:
             ltype = left.type
         load_type(left, mips)
@@ -311,10 +303,10 @@ def set_llvm_binary_operators(left, right, op: str, mips):
     # load right type
     if load_right:
         if right.type == LiteralType.VAR:
-            rtype = mips.c_function.root.block.getSymbolTable().findSymbol(right.value)[1]
+            rtype = mips.c_function.block.getSymbolTable().findSymbol(right.value)[1]
         else:
             rtype = right.type
-        load_type(right,mips)
+        load_type(right, mips)
     else:
         # save to data+ load from data
         save_to_data(right, mips)
@@ -327,16 +319,18 @@ def set_llvm_binary_operators(left, right, op: str, mips):
         mips.function_load += load_higher_type_int_to_float(mips.get_variable(right.value),
                                                             mips.add_variable(right.value))"""
     # rtype = LiteralType.FLOAT
+    if op == ">=" or op == "<=" or op == ">" or op == "<" or op == "==" or op == "&&" or op == "||":
+        mips.comparator_found = True
+    else:
+        mips.comparator_found = False
 
-    if op == "*" or op == "/" or op == "+" or op == "-" or op == "%" or op == ">=" or op == "<=" or op == ">" or op == "<" or op == "==" or op == "&&":
+    if op == "*" or op == "/" or op == "+" or op == "-" or op == "%" or op == ">=" or op == "<=" or op == ">" or op == "<" or op == "==" or op == "&&" or op == "||":
         store_binary_operation(op, left, right, rtype, mips)
-        if op == ">=" or op == "<=" or op == ">" or op == "<" or op == "==" or op == "&&":
-            mips.comparator_found = True
-        else:
-            mips.comparator_found = False
+
     else:
         raise NotSupported("operator", op, left.line)
-    #return ltype
+    # return ltype
+    mips.remove_temps()
     return
 
 

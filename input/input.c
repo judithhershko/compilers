@@ -6,6 +6,10 @@ int f(int x)
 int y=90;
 int z=x;
 z=x+y*x+9;
+while (y>z+89*z)
+{
+y=y-1;
+}
 printf("y is : %d ", y );
 }
 int main(int x)
