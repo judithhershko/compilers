@@ -182,10 +182,11 @@ def set_llvm_unary_operators(right, op: str, mips):
 
 
 def save_to_data(left, mips):
-    if isfloat(left.value):
-        mips.text += "ori ${},$0,{}\n".format(mips.register[left.value], mips.float_to_hex(left.value))
-    elif str(left.value).isdigit():
+    if str(left.value).isdigit():
         mips.text += "ori ${},$0,{}\n".format(mips.register[left.value], left.value)
+    elif isfloat(left.value):
+        mips.text += "ori ${},$0,{}\n".format(mips.register[left.value], mips.float_to_hex(left.value))
+
     else:
         mips.data_count += 1
         mips.data_dict[left.value] = mips.data_count

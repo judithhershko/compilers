@@ -162,7 +162,8 @@ class Mips:
                 i = AST
                 i.root = t
                 t = i
-            if isinstance(t.root, Declaration) and isinstance(t.root.rightChild, Value):
+            if isinstance(t.root, Declaration) and \
+                    (isinstance(t.root.rightChild, Value) or isinstance(t.root.rightChild,Array) or isinstance(t.root.rightChild,Pointer) or isinstance(t.root.rightChild,Function)):
                 self.to_declaration(t.root)
             if isinstance(t.root, Comment):
                 self.to_comment(t.root)
@@ -251,7 +252,6 @@ class Mips:
                 p += 1
             else:
                 p += 4
-        print(p)
         return p
 
     def set_return_function(self, f_return: AST, is_main=False):
@@ -290,7 +290,6 @@ class Mips:
 
     def load_retrun_value(self, v):
         if v.getType() == LiteralType.INT and str(v.value).isdigit():
-            print("return")
             self.text += "li $v0, {}\n".format(v.value)
 
         elif v.getType() == LiteralType.FLOAT and is_float(v.value):
@@ -445,17 +444,24 @@ class Mips:
     def to_declaration(self, declaration: Declaration):
         # find register it is stored
         # store it
+        if isinstance(declaration.rightChild,Pointer):
+            return self.to_pointer_dec(declaration)
+        if isinstance(declaration.rightChild,Array):
+            return self.to_array_dec(declaration)
+        if isinstance(declaration.rightChild,Function):
+            return self.to_function_dec(declaration)
         s = self.register[declaration.leftChild.value]
         f = self.frame_register[self.register[declaration.leftChild.value]]
         self.text += "lw  ${}, {}\n".format(s, f)
-        if declaration.rightChild.getType() == LiteralType.FLOAT and is_float(str(declaration.rightChild.value)):
-            self.text += "ori ${},$0,{}\n".format(self.register[declaration.leftChild.value],
-                                                  self.float_to_hex(declaration.rightChild.value))
-            self.text += "sw  ${}, {}\n".format(s, f)
-        elif declaration.rightChild.getType() == LiteralType.INT and str(declaration.rightChild.value).isdigit():
+        if declaration.rightChild.getType() == LiteralType.INT and str(declaration.rightChild.value).isdigit():
             self.text += "ori ${},$0,{}\n".format(self.register[declaration.leftChild.value],
                                                   declaration.rightChild.value)
             self.text += "sw  ${}, {}\n".format(s, f)
+        elif declaration.rightChild.getType() == LiteralType.FLOAT and is_float(str(declaration.rightChild.value)):
+            self.text += "ori ${},$0,{}\n".format(self.register[declaration.leftChild.value],
+                                                  self.float_to_hex(declaration.rightChild.value))
+            self.text += "sw  ${}, {}\n".format(s, f)
+
         elif declaration.rightChild.getType() == LiteralType.BOOL and (
                 declaration.rightChild == 'True' or declaration.rightChild == 'False'):
             if declaration.rightChild == 'True':
@@ -520,6 +526,19 @@ class Mips:
         self.frame_counter -= 4
         self.frame_register[self.register[declaration.value]] = str(self.frame_counter) + "($fp)"
         self.text += "sw ${}, {}($fp)\n".format(self.register[declaration.value], self.frame_counter)
+
+    def to_pointer_dec(self, declaration):
+        return
+
+    def to_array_dec(self, declaration):
+        return
+
+    def to_function_dec(self, declaration):
+        #pass function paramerters
+
+        #jal function
+        #save return value
+        return
 
 
 def is_float(string):

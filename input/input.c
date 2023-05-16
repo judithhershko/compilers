@@ -2,7 +2,7 @@
 
 int f(int x)
 {
-//x=!x;
+x=!x;
 //this is a comment
 {
 int x=90;
@@ -17,6 +17,12 @@ return x;
 }
 int main()
 {
-float y=123.456;
+int x=8;
+int z=1;
+while (z<x)
+{
+z=z+1;
+printf(" val is: %d",z);
+}
 return 0;
 }
