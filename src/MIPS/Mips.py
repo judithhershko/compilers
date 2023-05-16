@@ -4,17 +4,17 @@ from src.ast.Program import *
 from src.ast.node import *
 
 
-# TODO: DECLARATIONS v
+# TODO: DECLARATIONS        v
 # TODO: binary OPERATIONS   v
 # todo: unary operations
 # TODO: LOOPS
 # todo: while               v
 # todo: if /else
 # TODO: POINTERS
+# todo :UNNAMED SCOPES
 # TODO: PRINT
 # TODO: SCAN
 # TODO: ARRAYS
-# todo :UNNAMED SCOPES
 # todo : function calls
 
 class Mips:
@@ -311,38 +311,13 @@ class Mips:
         ctrue = "loop{}".format(self.loop_counter)
         self.loop_counter += 1
         cfalse = "loop{}".format(self.loop_counter)
-
-        self.text += "j ${}\n".format(condition)
-        self.text += "nop\n"
-        self.text += "${}:\n".format(condition)
-
-        # set condition
-        # save result in a register
-        self.declaration = Value(condition, LiteralType.BOOL, 0)
-        self.get_next_highest_register_type('', self.declaration)
-        self.frame_counter -= 4
-        self.frame_register[self.register[self.declaration.value]] = str(self.frame_counter) + "($fp)"
-        w.Condition.printTables("random", self)
-
-        fr = self.frame_register[self.register[self.declaration.value]]
-        sr = self.register[self.declaration.value]
-        self.declaration = None
-        self.text += "lbu ${}, {}\n".format(sr, fr)
-        self.text += "andi  ${}, ${}, 1\n".format(sr, sr)
-        self.text += "beqz    ${}, ${}\n".format(sr, cfalse)
+        self.deel1_condition(w, condition, cfalse, ctrue)
         self.text += "nop \n"
         self.text += "j ${}\n".format(ctrue)
         self.text += "nop\n"
-
+        # if true
         self.text += "${}:\n".format(ctrue)
         self.transverse_trees(w.c_block)
-        # repaste condition at the end of c_block -> otherwise condition is permanent
-        self.declaration = Value(condition, LiteralType.BOOL, 0)
-
-        w.Condition.printTables("random", self)
-        self.text += "lbu ${}, {}\n".format(sr, fr)
-        self.text += "andi  ${}, ${}, 1\n".format(sr, sr)
-        self.text += "sb ${}, {}\n".format(sr, fr)
         self.text += "j ${}\n".format(condition)
         self.text += "nop\n"
         self.text += "${}:\n".format(cfalse)
@@ -352,7 +327,70 @@ class Mips:
         return
 
     def set_if_loop(self, f: If):
-        pass
+        if isinstance(f, If) and f.operator == ConditionType.IF:
+            self.loop_counter += 1
+            condition = "loop{}".format(self.loop_counter)
+            self.loop_counter +=1
+            ctrue = "loop{}".format(self.loop_counter)
+            self.loop_counter += 1
+            cfalse = "loop{}".format(self.loop_counter)
+            self.deel1_condition(f, condition, cfalse, ctrue)
+            # jump to rest of function
+
+            self.text += "nop \n"
+            self.text += "j ${}\n".format(ctrue)
+            self.text += "nop\n"
+            # if true
+            self.text += "${}:\n".format(ctrue)
+            self.transverse_trees(f.c_block)
+
+            self.text += "j ${}\n".format(cfalse)
+            self.text += "${}:\n".format(cfalse)
+
+        elif isinstance(f, If) and f.operator == ConditionType.ELSE:
+            #remove last two lines
+            lines = self.text.splitlines()  # Split the string into a list of lines
+            lines_without_last_two = lines[:-2]  # Remove the last two lines
+            self.text ='\n'.join(lines_without_last_two)  # Join the lines back into a string
+            lines = self.text.splitlines()  # Split the string into a list of lines
+            lines_without_last_two = lines[:-1]  # Remove the last two lines
+            self.text = '\n'.join(lines_without_last_two)
+
+            self.text +="\n"
+            celse="loop{}".format(self.loop_counter)
+            self.loop_counter +=1
+            cfalse="loop{}".format(self.loop_counter)
+            print(cfalse)
+            self.text += "j ${}\n".format(cfalse)
+            self.text += "${}:\n".format(celse)
+            self.transverse_trees(f.c_block)
+            self.text += "j ${}\n".format(cfalse)
+            self.text += "nop\n"
+            self.text += "${}:\n".format(cfalse)
+
+
+
+
+        elif isinstance(f, If) and f.operator == ConditionType.ELIF:
+            pass
+
+    def deel1_condition(self, f, condition, cfalse, ctrue):
+        self.text += "j ${}\n".format(condition)
+        self.text += "nop\n"
+        self.text += "${}:\n".format(condition)
+
+        self.declaration = Value(condition, LiteralType.BOOL, 0)
+        self.get_next_highest_register_type('', self.declaration)
+        self.frame_counter -= 4
+        self.frame_register[self.register[self.declaration.value]] = str(self.frame_counter) + "($fp)"
+        f.Condition.printTables("random", self)
+        fr = self.frame_register[self.register[self.declaration.value]]
+        sr = self.register[self.declaration.value]
+        self.declaration = None
+        self.text += "lbu ${}, {}\n".format(sr, fr)
+        self.text += "andi  ${}, ${}, 1\n".format(sr, sr)
+        self.text += "beqz    ${}, ${}\n".format(sr, cfalse)
+        return cfalse
 
     def set_new_scope(self, t: Scope):
         pass
