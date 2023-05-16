@@ -2,7 +2,7 @@
 $$1  :.asciiz "y is :  "
 .text
 .globl main
-#//intf(intx){//this is a commentinty=90;intz=x;z=x+y*x+9;while(y>z+89*z){y=y-1;}if(x+y*z+90>x){x=x+90;}else{y=y-1;}printf("y is : %d ",y);}
+#//intf(intx){//x=!x;//this is a commentinty=90;intz=x;z=x+y*x+9;while(y>z+89*z){y=y-1;}if(x+y*z+90>x){x=x+90;}else{intyz=y-1;}printf("y is : %d ",x);}
 f: 
  sw	$fp, 0($sp)	# push old frame pointer (dynamic link)
 move	$fp, $sp	# frame	pointer now points to the top of the stack
@@ -12,6 +12,7 @@ sw	$s0, -8($fp)
 sw	$s1, -12($fp)
 sw	$s2, -16($fp)
 #//intx
+#//x=!x;
 #//this is a comment
 #//inty=90
 lw  $s1, -12($fp)
@@ -146,21 +147,24 @@ addu $s0,$s0, $t0
 sw $s0, -8($fp)
 j $loop7
 $loop6:
-#//y=y-1
+#//intyz=y-1
+sw $s3, -28($fp)
 lw  $s1, -12($fp)
 ori $t0,$0,0x3f800000
-subu $s1,$s1, $t0
-sw $s1, -12($fp)
+subu $s3,$s1, $t0
+sw $s3, -28($fp)
 j $loop7
 nop
 $loop7:
-#//printf("y is : %d ",y)
+#//printf("y is : %d ",x)
 li $v0, 4
 la $a0, $$1
 syscall
-lw	$s2, -24($fp)
-lw	$s1, -20($fp)
-lw	$s0, -16($fp)
+lw $s3, -28($fp)
+lw $3, -24($fp)
+lw $s2, -16($fp)
+lw $s1, -12($fp)
+lw $s0, -8($fp)
 lw	$ra, -4($fp)
 move	$sp, $fp
 lw	$fp, ($sp)
@@ -170,17 +174,20 @@ main:
 move	$fp, $sp	# frame	pointer now points to the top of the stack
 subu	$sp, $sp,16	# allocate bytes on the stack
 sw	$ra, -4($fp)	# store the value of the return address
-sw	$s3, -8($fp)
-sw	$s4, -12($fp)
+sw	$s4, -8($fp)
+sw	$s5, -12($fp)
 #//intx
 #//floaty=123.456
-lw  $s4, -12($fp)
-ori $s4,$0,0x42f6e979
-sw  $s4, -12($fp)
-lw	$3, -12($fp)
-lw	$s2, -8($fp)
-lw	$s4, -4($fp)
-lw	$s3, 0($fp)
+lw  $s5, -12($fp)
+ori $s5,$0,0x42f6e979
+sw  $s5, -12($fp)
+lw $s5, -12($fp)
+lw $s4, -8($fp)
+lw $s3, -28($fp)
+lw $3, -24($fp)
+lw $s2, -16($fp)
+lw $s1, -12($fp)
+lw $s0, -8($fp)
 lw	$ra, -4($fp)
 move	$sp, $fp
 lw	$fp, ($sp)

@@ -251,14 +251,9 @@ def set_llvm_binary_operators(left, right, op: str, mips):
         return
     if right is None:
         return
-    """if mips.looping:
-        if mips.is_value(left):
-            mips.get_loop_param(left)
-        if mips.is_value(right):
-            mips.get_loop_param(right)"""
     if left.name == "binary" or left.name == "logical" or left.name == "unary":
         left = mips.save_old_val
-    if right.name == "binary" or right.name == "logical" or right.name == "unary":
+    elif right.name == "binary" or right.name == "logical" or right.name == "unary":
         right = mips.save_old_val
     if left.name == 'function' or right.name == "function":
         return function_in_operation(left, right, op, mips)

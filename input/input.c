@@ -2,7 +2,9 @@
 
 int f(int x)
 {
+//x=!x;
 //this is a comment
+
 int y=90;
 int z=x;
 z=x+y*x+9;
@@ -16,9 +18,10 @@ x=x+90;
 }
 else
 {
-y=y-1;
+int yz=y-1;
 }
-printf("y is : %d ", y );
+
+printf("y is : %d ", x);
 }
 int main(int x)
 {

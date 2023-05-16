@@ -3,13 +3,14 @@ import struct
 from src.ast.Program import *
 from src.ast.node import *
 
-
+# todo: vraag is probleem dat conditions output op de fp opslaag??
+# en return_function niet in volgorde?
 # TODO: DECLARATIONS        v
 # TODO: binary OPERATIONS   v
 # todo: unary operations
-# TODO: LOOPS
+# TODO: LOOPS               v
 # todo: while               v
-# todo: if /else
+# todo: if /else            v
 # TODO: POINTERS
 # todo :UNNAMED SCOPES
 # TODO: PRINT
@@ -179,6 +180,8 @@ class Mips:
             else:
                 if isinstance(t.root, Declaration):
                     self.declaration = t.root.leftChild
+                    if self.declaration.value not in self.register.keys():
+                        self.add_to_memory(self.declaration)
                 t.root.printTables("random", self)
                 self.save_old_val = None
                 self.declaration = None
@@ -247,9 +250,11 @@ class Mips:
 
     def set_return_function(self, f_return: AST, is_main=False, min_counter=0, reg=dict()):
 
-        for key in reversed(reg.keys()):
+        """for key in reversed(reg.keys()):
             self.text += "lw	${}, {}($fp)\n".format(reg[key], min_counter)
-            min_counter += 4
+            min_counter += 4"""
+        for key in reversed(self.frame_register):
+            self.text += "lw ${}, {}\n".format(key, self.frame_register[key])
         self.text += "lw	$ra, -4($fp)\n"
         self.text += "move	$sp, $fp\n"
         self.text += "lw	$fp, ($sp)\n"
@@ -463,6 +468,13 @@ class Mips:
     def remove_temps(self):
         self.register = {key: value for key, value in self.register.items() if not value.startswith('t')}
         return
+
+    def add_to_memory(self, declaration):
+        self.get_next_highest_register_type("s",declaration)
+        self.frame_counter -=4
+        self.frame_register[self.register[declaration.value]] = str(self.frame_counter) + "($fp)"
+        self.text += "sw ${}, {}($fp)\n".format(self.register[declaration.value], self.frame_counter)
+
 
 
 def is_float(string):
