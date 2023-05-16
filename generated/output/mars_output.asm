@@ -2,7 +2,7 @@
 .text
 .globl main
 j main
-#//intf(intx){//x=!x;//this is a comment//int y=(x*x+78+x*x-12);//printf("y is : %d ", x);return1;}
+#//intf(intx){//x=!x;//this is a comment//int y=(x*x+78+x*x-12);//printf("y is : %d ", x);returnx;}
 f: 
  sw	$fp, 0($sp)	# push old frame pointer (dynamic link)
 move	$fp, $sp	# frame	pointer now points to the top of the stack
@@ -14,7 +14,8 @@ sw	$s0, -8($fp)
 #//this is a comment
 #//int y=(x*x+78+x*x-12);
 #//printf("y is : %d ", x);
-li $v0, 1
+lw $t0, -8($fp)
+move $v0,$t0
 lw $s0, -8($fp)
 lw	$ra, -4($fp)
 move	$sp, $fp

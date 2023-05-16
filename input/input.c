@@ -7,7 +7,7 @@ int f(int x)
 
 //int y=(x*x+78+x*x-12);
 //printf("y is : %d ", x);
-return 1;
+return x;
 }
 int main()
 {

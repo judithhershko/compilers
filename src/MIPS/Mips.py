@@ -259,9 +259,10 @@ class Mips:
                 isinstance(f_return.root, BinaryOperator) or isinstance(f_return, UnaryOperator) or isinstance(f_return,
                                                                                                                LogicalOperator)):
             self.declaration = Value("$freturn", self.c_function.return_type, 0)
-            self.add_to_memory(self.declaration)
+            #self.add_to_memory(self.declaration)
+            self.register["v0"]=self.declaration.value
             f_return.printTables("random", self)
-            self.text += "sw ${}, $ra\n".format(self.register[self.declaration.value])
+            #self.text += "sw ${}, $ra\n".format(self.register[self.declaration.value])
         elif isinstance(f_return.root, Value):
             self.load_retrun_value(f_return.root)
         elif isinstance(f_return, Array):
@@ -292,9 +293,7 @@ class Mips:
             self.text += "li $v0, {}\n".format(v.value)
 
         elif v.getType() == LiteralType.FLOAT and is_float(v.value):
-            self.text += "ori $t0,$0,{}\n".format(self.float_to_hex(v.value))
-            #self.text += "sw $t0, $ra\n"
-            self.text += "move $v0,$t0\n"
+            self.text += "ori $v0,$0,{}\n".format(self.float_to_hex(v.value))
         elif v.getType() == LiteralType.CHAR:
             self.data_count += 1
             self.data_dict[v.value] = self.data_count
@@ -302,9 +301,7 @@ class Mips:
             self.text += "lb $t0 , $${}\n".format(self.data_count)
             self.text += "move $v0,$t0\n"
         else:
-            #self.text += "lw ${}, {}\n".format(self.register[v.value], self.frame_register[self.register[v.value]])
             self.text += "lw $t0, {}\n".format( self.frame_register[self.register[v.value]])
-            #self.text += "sw ${}, $ra\n".format(self.register[v.value])
             self.text += "move $v0,$t0\n"
 
 
