@@ -6,7 +6,7 @@ from src.ast.node import *
 
 # todo: vraag is probleem dat conditions output op de fp opslaag??
 # en return_function niet in volgorde?
-# TODO: modulo
+
 # TODO: DECLARATIONS        v
 # TODO: binary OPERATIONS   v
 # todo: unary operations    v --> kan niet helemaal getest worden door folding probleem
@@ -14,12 +14,13 @@ from src.ast.node import *
 # todo: while               v
 # todo: if /else            v
 # TODO: POINTERS
-# todo :UNNAMED SCOPES
-# TODO: function return -> transverse+save in $ra
+# todo :UNNAMED SCOPES      v --> vraag als dit ok is?
+# TODO: function return     v
 # TODO: PRINT
 # TODO: SCAN
 # TODO: ARRAYS
 # todo : function calls
+# TODO: modulo
 
 class Mips:
     def __init__(self, program_: program):
@@ -178,7 +179,7 @@ class Mips:
             elif isinstance(t.root, If):
                 self.set_if_loop(t.root)
             elif isinstance(t.root, Scope):
-                self.set_new_scope(t)
+                self.set_new_scope(t.root)
             elif t is None:
                 pass
             else:
@@ -435,7 +436,7 @@ class Mips:
         return cfalse
 
     def set_new_scope(self, t: Scope):
-        pass
+        self.transverse_trees(t.block)
 
     def add_to_frame_register(self, key):
         self.frame_counter -= 4
