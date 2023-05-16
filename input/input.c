@@ -5,6 +5,7 @@ int f(int x)
 //this is a comment
 int y=90;
 int z=x;
+z=x+y*x+9;
 printf("y is : %d ", y );
 }
 int main(int x)

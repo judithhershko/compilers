@@ -2,7 +2,7 @@ from enum import Enum
 import re
 
 from src.ErrorHandeling.GenerateError import *
-from src.LLVM.Helper_LLVM import set_llvm_binary_operators, set_llvm_unary_operators
+from src.MIPS.MipsHelper import set_llvm_binary_operators, set_llvm_unary_operators
 from src.ast.node_types.node_type import LiteralType, ConditionType
 from itertools import islice
 

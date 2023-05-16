@@ -15,6 +15,7 @@ from src.ast.node import *
 
 class Mips:
     def __init__(self, program_: program):
+        self.declaration = None
         self.program = program_
         self.output = ""
         self.data = ".data\n"
@@ -27,6 +28,7 @@ class Mips:
         self.register = dict()
         self.frame_register = dict()
         self.data_dict = dict()
+        self.save_old_val = None
 
     def float_to_64bit_hex(self, x):
         # print("x is none in scope:" + self.c_function.root.f_name)
@@ -146,7 +148,7 @@ class Mips:
                 i = AST
                 i.root = t
                 t = i
-            if isinstance(t.root, Declaration) and isinstance(t.root.leftChild, Value):
+            if isinstance(t.root, Declaration) and isinstance(t.root.rightChild, Value):
                 self.to_declaration(t.root)
             if isinstance(t.root, Comment):
                 self.to_comment(t.root)
@@ -167,7 +169,12 @@ class Mips:
             elif t is None:
                 pass
             else:
+                if isinstance(t.root, Declaration):
+                    self.declaration = t.root.leftChild
                 t.root.printTables("random", self)
+                self.save_old_val = None
+                self.declaration = None
+                # clear temporary registers
 
     def transverse_function(self, scope: Scope):
         self.text += scope.f_name + ": \n"
@@ -303,7 +310,7 @@ class Mips:
         self.text += "lw  ${}, {}\n".format(s, f)
         if declaration.rightChild.getType() == LiteralType.FLOAT and is_float(str(declaration.rightChild.value)):
             self.text += "ori ${},$0,{}\n".format(self.register[declaration.leftChild.value],
-                                                 float_to_hex(declaration.rightChild.value))
+                                                  self.float_to_hex(declaration.rightChild.value))
             self.text += "sw  ${}, {}\n".format(s, f)
         elif declaration.rightChild.getType() == LiteralType.INT and str(declaration.rightChild.value).isdigit():
             self.text += "ori ${},$0,{}\n".format(self.register[declaration.leftChild.value],
@@ -320,10 +327,25 @@ class Mips:
         else:
             s1 = self.register[declaration.rightChild.value]
             f1 = self.frame_register[s1]
-            self.text += "lw ${} ,{} \n".format(s, f)
+            # self.text += "lw ${} ,{} \n".format(s, f)
             self.text += "sw ${}, {}\n".format(s, f1)
 
         return
+
+    def float_to_hex(self, float_num):
+        if isinstance(float_num, str):
+            float_num = float(float_num)
+        # Pack the float as a single-precision (32-bit) binary representation
+        binary_data = struct.pack('!f', float_num)
+
+        # Unpack the binary data as a 32-bit unsigned integer
+        int_value = struct.unpack('!I', binary_data)[0]
+
+        # Convert the integer to a hexadecimal string
+        hex_value = hex(int_value)
+
+        return hex_value
+
     def is_function(self, f_):
         return isinstance(f_, Function)
 
@@ -352,19 +374,3 @@ def is_float(string):
         return True
     except ValueError:
         return False
-
-
-def float_to_hex(float_num):
-    if isinstance(float_num, str):
-        float_num = float(float_num)
-    # Pack the float as a single-precision (32-bit) binary representation
-    binary_data = struct.pack('!f', float_num)
-
-    # Unpack the binary data as a 32-bit unsigned integer
-    int_value = struct.unpack('!I', binary_data)[0]
-
-    # Convert the integer to a hexadecimal string
-    hex_value = hex(int_value)
-
-    return hex_value
-
