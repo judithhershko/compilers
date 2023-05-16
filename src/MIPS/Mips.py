@@ -3,8 +3,10 @@ import struct
 from src.ast.Program import *
 from src.ast.node import *
 
+
 # todo: vraag is probleem dat conditions output op de fp opslaag??
 # en return_function niet in volgorde?
+# TODO: modulo
 # TODO: DECLARATIONS        v
 # TODO: binary OPERATIONS   v
 # todo: unary operations
@@ -211,6 +213,7 @@ class Mips:
         # return
         self.set_return_function(scope.f_return, scope.f_name == "main", self.frame_counter, var_reg)
         self.c_function = None
+        self.remove_register_type('s')
         return
 
     def save_function_variables(self, scope: Scope):
@@ -335,7 +338,7 @@ class Mips:
         if isinstance(f, If) and f.operator == ConditionType.IF:
             self.loop_counter += 1
             condition = "loop{}".format(self.loop_counter)
-            self.loop_counter +=1
+            self.loop_counter += 1
             ctrue = "loop{}".format(self.loop_counter)
             self.loop_counter += 1
             cfalse = "loop{}".format(self.loop_counter)
@@ -353,18 +356,18 @@ class Mips:
             self.text += "${}:\n".format(cfalse)
 
         elif isinstance(f, If) and f.operator == ConditionType.ELSE:
-            #remove last two lines
+            # remove last two lines
             lines = self.text.splitlines()  # Split the string into a list of lines
             lines_without_last_two = lines[:-2]  # Remove the last two lines
-            self.text ='\n'.join(lines_without_last_two)  # Join the lines back into a string
+            self.text = '\n'.join(lines_without_last_two)  # Join the lines back into a string
             lines = self.text.splitlines()  # Split the string into a list of lines
             lines_without_last_two = lines[:-1]  # Remove the last two lines
             self.text = '\n'.join(lines_without_last_two)
 
-            self.text +="\n"
-            celse="loop{}".format(self.loop_counter)
-            self.loop_counter +=1
-            cfalse="loop{}".format(self.loop_counter)
+            self.text += "\n"
+            celse = "loop{}".format(self.loop_counter)
+            self.loop_counter += 1
+            cfalse = "loop{}".format(self.loop_counter)
             print(cfalse)
             self.text += "j ${}\n".format(cfalse)
             self.text += "${}:\n".format(celse)
@@ -469,12 +472,15 @@ class Mips:
         self.register = {key: value for key, value in self.register.items() if not value.startswith('t')}
         return
 
+    def remove_register_type(self, type: str):
+        self.register = {key: value for key, value in self.register.items() if not value.startswith(type)}
+        return
+
     def add_to_memory(self, declaration):
-        self.get_next_highest_register_type("s",declaration)
-        self.frame_counter -=4
+        self.get_next_highest_register_type("s", declaration)
+        self.frame_counter -= 4
         self.frame_register[self.register[declaration.value]] = str(self.frame_counter) + "($fp)"
         self.text += "sw ${}, {}($fp)\n".format(self.register[declaration.value], self.frame_counter)
-
 
 
 def is_float(string):
