@@ -138,10 +138,9 @@ sw	$s4, -12($fp)
 lw  $s4, -12($fp)
 ori $s4,$0,0x42f6e979
 sw  $s4, -12($fp)
-lw	$3, -12($fp)
-lw	$s2, -8($fp)
-lw	$s4, -4($fp)
-lw	$s3, 0($fp)
+lw	$s2, -12($fp)
+lw	$s4, -8($fp)
+lw	$s3, -4($fp)
 lw	$ra, -4($fp)
 move	$sp, $fp
 lw	$fp, ($sp)

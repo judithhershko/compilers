@@ -8,7 +8,7 @@ from src.ast.node import *
 # TODO: binary OPERATIONS   v
 # todo: unary operations
 # TODO: LOOPS
-# todo: while
+# todo: while               v
 # todo: if /else
 # TODO: POINTERS
 # TODO: PRINT
@@ -187,7 +187,7 @@ class Mips:
 
     def transverse_function(self, scope: Scope):
         self.text += scope.f_name + ": \n"
-        self.c_function=scope
+        self.c_function = scope
         # stack space
         p = self.set_stack_space(scope)
         p += 4
@@ -207,7 +207,7 @@ class Mips:
         self.transverse_trees(scope.block)
         # return
         self.set_return_function(scope.f_return, scope.f_name == "main", self.frame_counter, var_reg)
-        self.c_function=None
+        self.c_function = None
         return
 
     def save_function_variables(self, scope: Scope):
@@ -323,10 +323,10 @@ class Mips:
         self.frame_counter -= 4
         self.frame_register[self.register[self.declaration.value]] = str(self.frame_counter) + "($fp)"
         w.Condition.printTables("random", self)
-        #self.transverse_trees(w.Condition)
+
         fr = self.frame_register[self.register[self.declaration.value]]
         sr = self.register[self.declaration.value]
-        self.declaration=None
+        self.declaration = None
         self.text += "lbu ${}, {}\n".format(sr, fr)
         self.text += "andi  ${}, ${}, 1\n".format(sr, sr)
         self.text += "beqz    ${}, ${}\n".format(sr, cfalse)
@@ -338,17 +338,18 @@ class Mips:
         self.transverse_trees(w.c_block)
         # repaste condition at the end of c_block -> otherwise condition is permanent
         self.declaration = Value(condition, LiteralType.BOOL, 0)
-        #self.transverse_trees(w.Condition)
+
         w.Condition.printTables("random", self)
         self.text += "lbu ${}, {}\n".format(sr, fr)
         self.text += "andi  ${}, ${}, 1\n".format(sr, sr)
-        self.text += "sb ${}, {}\n".format(sr,fr)
+        self.text += "sb ${}, {}\n".format(sr, fr)
         self.text += "j ${}\n".format(condition)
         self.text += "nop\n"
         self.text += "${}:\n".format(cfalse)
 
-
-
+        # remove the temps
+        self.register = {key: value for key, value in self.register.items() if not value.isdigit()}
+        return
 
     def set_if_loop(self, f: If):
         pass
