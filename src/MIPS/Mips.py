@@ -9,12 +9,13 @@ from src.ast.node import *
 # TODO: modulo
 # TODO: DECLARATIONS        v
 # TODO: binary OPERATIONS   v
-# todo: unary operations
+# todo: unary operations    v --> kan niet helemaal getest worden door folding probleem
 # TODO: LOOPS               v
 # todo: while               v
 # todo: if /else            v
 # TODO: POINTERS
 # todo :UNNAMED SCOPES
+# TODO: function return -> transverse+save in $ra
 # TODO: PRINT
 # TODO: SCAN
 # TODO: ARRAYS
@@ -31,6 +32,7 @@ class Mips:
         self.data_count = 0
         self.text = ".text\n"
         self.text += ".globl main\n"
+        self.text += "j main\n"
         # counter for temporary registers
         self.temp_count = 0
         # keep used registers
@@ -211,7 +213,7 @@ class Mips:
         # transverse trees
         self.transverse_trees(scope.block)
         # return
-        self.set_return_function(scope.f_return, scope.f_name == "main", self.frame_counter, var_reg)
+        self.set_return_function(scope.f_return, scope.f_name == "main")
         self.c_function = None
         self.remove_register_type('s')
         return
@@ -251,7 +253,23 @@ class Mips:
         print(p)
         return p
 
-    def set_return_function(self, f_return: AST, is_main=False, min_counter=0, reg=dict()):
+    def set_return_function(self, f_return: AST, is_main=False):
+        # transverse return address
+        if f_return is not None and (
+                isinstance(f_return.root, BinaryOperator) or isinstance(f_return, UnaryOperator) or isinstance(f_return,
+                                                                                                               LogicalOperator)):
+            self.declaration = Value("$freturn", self.c_function.return_type, 0)
+            self.add_to_memory(self.declaration)
+            f_return.printTables("random", self)
+            self.text += "sw ${}, $ra\n".format(self.register[self.declaration.value])
+        elif isinstance(f_return.root, Value):
+            self.load_retrun_value(f_return.root)
+        elif isinstance(f_return, Array):
+            pass
+        elif isinstance(f_return, Pointer):
+            pass
+        elif isinstance(f_return, Function):
+            pass
 
         """for key in reversed(reg.keys()):
             self.text += "lw	${}, {}($fp)\n".format(reg[key], min_counter)
@@ -262,14 +280,33 @@ class Mips:
         self.text += "move	$sp, $fp\n"
         self.text += "lw	$fp, ($sp)\n"
 
-        if f_return is None:
-            return
-
-        if is_main:
+        if f_return is None or is_main:
             self.text += "li  $v0,10\n"
             self.text += "syscall\n"
         else:
             self.text += "jr	$ra\n"
+
+    def load_retrun_value(self, v):
+        if v.getType() == LiteralType.INT and str(v.value).isdigit():
+            print("return")
+            self.text += "li $v0, {}\n".format(v.value)
+
+        elif v.getType() == LiteralType.FLOAT and is_float(v.value):
+            self.text += "ori $t0,$0,{}\n".format(self.float_to_hex(v.value))
+            #self.text += "sw $t0, $ra\n"
+            self.text += "move $v0,$t0\n"
+        elif v.getType() == LiteralType.CHAR:
+            self.data_count += 1
+            self.data_dict[v.value] = self.data_count
+            self.data += "$${}  : .byte {} \"\n".format(self.data_count, v.value)
+            self.text += "lb $t0 , $${}\n".format(self.data_count)
+            self.text += "move $v0,$t0\n"
+        else:
+            #self.text += "lw ${}, {}\n".format(self.register[v.value], self.frame_register[self.register[v.value]])
+            self.text += "lw $t0, {}\n".format( self.frame_register[self.register[v.value]])
+            #self.text += "sw ${}, $ra\n".format(self.register[v.value])
+            self.text += "move $v0,$t0\n"
+
 
     def to_print(self, p: Print):
         print("print called")
@@ -389,8 +426,8 @@ class Mips:
 
         self.declaration = Value(condition, LiteralType.BOOL, 0)
         self.get_next_highest_register_type('', self.declaration)
-        self.frame_counter -= 4
-        self.frame_register[self.register[self.declaration.value]] = str(self.frame_counter) + "($fp)"
+        key = self.register[self.declaration.value]
+        self.add_to_frame_register(key)
         f.Condition.printTables("random", self)
         fr = self.frame_register[self.register[self.declaration.value]]
         sr = self.register[self.declaration.value]
@@ -402,6 +439,10 @@ class Mips:
 
     def set_new_scope(self, t: Scope):
         pass
+
+    def add_to_frame_register(self, key):
+        self.frame_counter -= 4
+        self.frame_register[key] = str(self.frame_counter) + "($fp)"
 
     def to_declaration(self, declaration: Declaration):
         # find register it is stored

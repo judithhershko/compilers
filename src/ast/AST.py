@@ -283,6 +283,7 @@ class AST:
                 edges = edges + "\n" + self.root.getId() + "--" + node.getId()
                 nodes = nodes + "\n" + node.getId() + " [label=" + node.getLabel() + "]"
         elif isinstance(self.root, ReturnNode):
+
             edges = edges + "\n" + root.getId() + "--" + root.value.root.getId()
             if not (isinstance(root.value.root, Value) or isinstance(root.value.root, Array) or
                 isinstance(root.value.root, Pointer)):
