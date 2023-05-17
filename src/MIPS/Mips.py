@@ -206,10 +206,10 @@ class Mips:
         if self.program.getFunctionTable().findFunction(scope.f_name)["return"] == "BOOL":
             return_size = 1
         p += return_size
-        self.text += " sw	$fp, 0($sp)	# push old frame pointer (dynamic link)\n"
-        self.text += "move	$fp, $sp	# frame	pointer now points to the top of the stack\n"
-        self.text += "subu	$sp, $sp,{}	# allocate bytes on the stack\n".format(p)
-        self.text += "sw	$ra, -{}($fp)	# store the value of the return address\n".format(return_size)
+        self.text += " sw	$fp, 0($sp)\n"
+        self.text += "move	$fp, $sp\n"
+        self.text += "subu	$sp, $sp,{}\n".format(p)
+        self.text += "sw	$ra, -{}($fp)\n".format(return_size)
         # save parameters function
         self.save_function_variables(scope)
         var_reg = self.register
@@ -450,7 +450,7 @@ class Mips:
         if isinstance(declaration.rightChild, Array):
             return self.to_array_dec(declaration)
         if isinstance(declaration.rightChild, Function):
-            return self.to_function_dec(declaration)
+            return self.to_function_dec(declaration.rightChild,declaration.leftChild)
         s = self.register[declaration.leftChild.value]
         f = self.frame_register[self.register[declaration.leftChild.value]]
         self.text += "lw  ${}, {}\n".format(s, f)
@@ -534,16 +534,16 @@ class Mips:
     def to_array_dec(self, declaration):
         return
 
-    def to_function_dec(self, d):
+    def to_function_dec(self, f, var):
         # pass function paramerters
         # jal function
         # save return value
-        for i in d.rightChild.param:
-            self.load_type(d.rightChild.param[i],True)
-        self.text += "jal {}\n".format(d.rightChild.f_name)
+        for i in f.param:
+            self.load_type(f.param[i],True)
+        self.text += "jal {}\n".format(f.f_name)
         #self.text += "sw $v0, {}\n".format(d.rightChild.f_name)
-        self.text += "move ${}, $v0\n".format(self.register[d.leftChild.value])
-        self.text += "sw ${}, {}\n".format(self.register[d.leftChild.value], self.frame_register[self.register[d.leftChild.value]])
+        self.text += "move ${}, $v0\n".format(self.register[var.value])
+        self.text += "sw ${}, {}\n".format(self.register[var.value], self.frame_register[self.register[var.value]])
 
         return
 

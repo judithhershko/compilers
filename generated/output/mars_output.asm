@@ -5,10 +5,10 @@ $$1  :.asciiz " val is:  "
 j main
 #//intf(intx){x=!x;//this is a comment{intx=90;x=x+1;{x=x+2;}x=3;}//int y=(x*x+78+x*x-12);//printf("y is : %d ", x);returnx;}
 f: 
- sw	$fp, 0($sp)	# push old frame pointer (dynamic link)
-move	$fp, $sp	# frame	pointer now points to the top of the stack
-subu	$sp, $sp,12	# allocate bytes on the stack
-sw	$ra, -4($fp)	# store the value of the return address
+ sw	$fp, 0($sp)
+move	$fp, $sp
+subu	$sp, $sp,12
+sw	$ra, -4($fp)
 sw	$s0, -8($fp)
 #//intx
 #//x=!x
@@ -43,10 +43,10 @@ lw	$fp, ($sp)
 jr	$ra
 #//intmain(){intx=f(2);intz=1;while(z<x){z=z+1;printf(" val is: %d",z);}return0;}
 main: 
- sw	$fp, 0($sp)	# push old frame pointer (dynamic link)
-move	$fp, $sp	# frame	pointer now points to the top of the stack
-subu	$sp, $sp,16	# allocate bytes on the stack
-sw	$ra, -4($fp)	# store the value of the return address
+ sw	$fp, 0($sp)
+move	$fp, $sp
+subu	$sp, $sp,16
+sw	$ra, -4($fp)
 sw	$s0, -8($fp)
 sw	$s1, -12($fp)
 #//intx=f(2)
