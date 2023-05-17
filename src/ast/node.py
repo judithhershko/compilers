@@ -282,14 +282,17 @@ class Scan(AST_node):
             if len(self.param) != len(self.paramString):
                 raise PrintSize(self.line)
             for pos in range(len(self.param)):
-                if self.paramString[pos] == "%f" and self.param[pos].root.getType() != LiteralType.FLOAT:
+                para = self.param[pos]
+                if isinstance(para, tuple):
+                    para = para[0]
+                if self.paramString[pos] == "%f" and para.root.getType() != LiteralType.FLOAT:
                     raise PrintType(self.line, "%f", str(LiteralType.FLOAT))
-                elif self.paramString[pos] in ("%d", "%i") and self.param[pos].root.getType() != LiteralType.INT:
+                elif self.paramString[pos] in ("%d", "%i") and para.root.getType() != LiteralType.INT:
                     raise PrintType(self.line, self.paramString[pos], str(LiteralType.INT))
-                elif self.paramString[pos] == "%c" and self.param[pos].root.getType() != LiteralType.CHAR:
+                elif self.paramString[pos] == "%c" and para.root.getType() != LiteralType.CHAR:
                     raise PrintType(self.line, "%c", str(LiteralType.CHAR))
 
-                self.param[pos] = self.param[pos].foldTree()
+                self.param[pos] = para.foldTree()
 
         except PrintSize:
             raise
@@ -299,6 +302,8 @@ class Scan(AST_node):
 
     def replaceVariables(self, values, fill: bool = True):
         for tree in self.param:
+            if isinstance(tree, tuple):
+                tree = tree[0]
             tree.replaceVariables(values, fill)
 
 
