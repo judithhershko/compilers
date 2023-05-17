@@ -25,6 +25,7 @@ class block:
         self.level = None
         self.number = None
         self.name = "block"
+        self.cleaned = False
 
     def __eq__(self, other):
         if not isinstance(other, block):
@@ -198,6 +199,8 @@ class block:
             self.parent.symbols.makeUnfillable()
 
     def cleanBlock(self, glob: bool = False, onlyLocal: bool = False, fill: bool = True):
+        if self.cleaned:
+            return []
         allVar = []
         cleanTrees = []
         for tree in self.trees:
@@ -224,6 +227,7 @@ class block:
             if tree.root.name in ("break", "cont", "return"):
                 break
         self.trees = cleanTrees
+        self.cleaned = True
         return allVar
 
 
