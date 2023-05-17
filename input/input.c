@@ -10,6 +10,7 @@ x=x+1;
 {
 x=x+2;
 }
+x=3;
 }
 //int y=(x*x+78+x*x-12);
 //printf("y is : %d ", x);
@@ -17,7 +18,7 @@ return x;
 }
 int main()
 {
-int x=8;
+int x=f(2);
 int z=1;
 while (z<x)
 {

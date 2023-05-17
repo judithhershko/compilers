@@ -3,7 +3,7 @@ $$1  :.asciiz " val is:  "
 .text
 .globl main
 j main
-#//intf(intx){x=!x;//this is a comment{intx=90;x=x+1;{x=x+2;}}//int y=(x*x+78+x*x-12);//printf("y is : %d ", x);returnx;}
+#//intf(intx){x=!x;//this is a comment{intx=90;x=x+1;{x=x+2;}x=3;}//int y=(x*x+78+x*x-12);//printf("y is : %d ", x);returnx;}
 f: 
  sw	$fp, 0($sp)	# push old frame pointer (dynamic link)
 move	$fp, $sp	# frame	pointer now points to the top of the stack
@@ -28,6 +28,10 @@ sw  $s0, -8($fp)
 lw  $s0, -8($fp)
 ori $s0,$0,93
 sw  $s0, -8($fp)
+#//x=3
+lw  $s0, -8($fp)
+ori $s0,$0,3
+sw  $s0, -8($fp)
 #//int y=(x*x+78+x*x-12);
 #//printf("y is : %d ", x);
 lw $t0, -8($fp)
@@ -37,7 +41,7 @@ lw	$ra, -4($fp)
 move	$sp, $fp
 lw	$fp, ($sp)
 jr	$ra
-#//intmain(){intx=8;intz=1;while(z<x){z=z+1;printf(" val is: %d",z);}return0;}
+#//intmain(){intx=f(2);intz=1;while(z<x){z=z+1;printf(" val is: %d",z);}return0;}
 main: 
  sw	$fp, 0($sp)	# push old frame pointer (dynamic link)
 move	$fp, $sp	# frame	pointer now points to the top of the stack
@@ -45,10 +49,11 @@ subu	$sp, $sp,16	# allocate bytes on the stack
 sw	$ra, -4($fp)	# store the value of the return address
 sw	$s0, -8($fp)
 sw	$s1, -12($fp)
-#//intx=8
-lw  $s0, -8($fp)
-ori $s0,$0,8
-sw  $s0, -8($fp)
+#//intx=f(2)
+ori $a0, $zero, 2
+jal f
+move $s0, $v0
+sw $s0, -8($fp)
 #//intz=1
 lw  $s1, -12($fp)
 ori $s1,$0,1

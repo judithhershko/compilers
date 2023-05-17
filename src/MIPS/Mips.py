@@ -13,14 +13,15 @@ from src.ast.node import *
 # TODO: LOOPS               v
 # todo: while               v
 # todo: if /else            v
-# TODO: POINTERS
+# TODO: POINTERS            x
 # todo :UNNAMED SCOPES      v --> vraag als dit ok is?
 # TODO: function return     v
-# TODO: PRINT
-# TODO: SCAN
-# TODO: ARRAYS
-# todo : function calls
-# TODO: modulo
+# TODO: PRINT               x
+# TODO: SCAN                x
+# TODO: ARRAYS              x
+# todo : function calls     x
+# TODO: modulo              x
+# todo: conversions int->float/bool->int in helper  x
 
 class Mips:
     def __init__(self, program_: program):
@@ -163,7 +164,8 @@ class Mips:
                 i.root = t
                 t = i
             if isinstance(t.root, Declaration) and \
-                    (isinstance(t.root.rightChild, Value) or isinstance(t.root.rightChild,Array) or isinstance(t.root.rightChild,Pointer) or isinstance(t.root.rightChild,Function)):
+                    (isinstance(t.root.rightChild, Value) or isinstance(t.root.rightChild, Array) or isinstance(
+                        t.root.rightChild, Pointer) or isinstance(t.root.rightChild, Function)):
                 self.to_declaration(t.root)
             if isinstance(t.root, Comment):
                 self.to_comment(t.root)
@@ -260,10 +262,10 @@ class Mips:
                 isinstance(f_return.root, BinaryOperator) or isinstance(f_return, UnaryOperator) or isinstance(f_return,
                                                                                                                LogicalOperator)):
             self.declaration = Value("$freturn", self.c_function.return_type, 0)
-            #self.add_to_memory(self.declaration)
-            self.register["v0"]=self.declaration.value
+            # self.add_to_memory(self.declaration)
+            self.register["v0"] = self.declaration.value
             f_return.printTables("random", self)
-            #self.text += "sw ${}, $ra\n".format(self.register[self.declaration.value])
+            # self.text += "sw ${}, $ra\n".format(self.register[self.declaration.value])
         elif isinstance(f_return.root, Value):
             self.load_retrun_value(f_return.root)
         elif isinstance(f_return, Array):
@@ -301,9 +303,8 @@ class Mips:
             self.text += "lb $t0 , $${}\n".format(self.data_count)
             self.text += "move $v0,$t0\n"
         else:
-            self.text += "lw $t0, {}\n".format( self.frame_register[self.register[v.value]])
+            self.text += "lw $t0, {}\n".format(self.frame_register[self.register[v.value]])
             self.text += "move $v0,$t0\n"
-
 
     def to_print(self, p: Print):
         print("print called")
@@ -444,11 +445,11 @@ class Mips:
     def to_declaration(self, declaration: Declaration):
         # find register it is stored
         # store it
-        if isinstance(declaration.rightChild,Pointer):
+        if isinstance(declaration.rightChild, Pointer):
             return self.to_pointer_dec(declaration)
-        if isinstance(declaration.rightChild,Array):
+        if isinstance(declaration.rightChild, Array):
             return self.to_array_dec(declaration)
-        if isinstance(declaration.rightChild,Function):
+        if isinstance(declaration.rightChild, Function):
             return self.to_function_dec(declaration)
         s = self.register[declaration.leftChild.value]
         f = self.frame_register[self.register[declaration.leftChild.value]]
@@ -533,12 +534,42 @@ class Mips:
     def to_array_dec(self, declaration):
         return
 
-    def to_function_dec(self, declaration):
-        #pass function paramerters
+    def to_function_dec(self, d):
+        # pass function paramerters
+        # jal function
+        # save return value
+        for i in d.rightChild.param:
+            self.load_type(d.rightChild.param[i],True)
+        self.text += "jal {}\n".format(d.rightChild.f_name)
+        #self.text += "sw $v0, {}\n".format(d.rightChild.f_name)
+        self.text += "move ${}, $v0\n".format(self.register[d.leftChild.value])
+        self.text += "sw ${}, {}\n".format(self.register[d.leftChild.value], self.frame_register[self.register[d.leftChild.value]])
 
-        #jal function
-        #save return value
         return
+
+    def load_type(self, v, is_param: bool):
+        save = "t"
+        if isinstance(v, Pointer):
+            pass
+        if isinstance(v, Array):
+            pass
+        if is_param:
+            save = 'a'
+        if isinstance(v, Value) and v.getType() == LiteralType.INT and str(v.value).isdigit():
+            self.get_next_highest_register_type(save, v)
+            self.text += "ori ${}, $zero, {}\n".format(self.register[v.value], v.value)
+        elif isinstance(v, Value) and v.getType() == LiteralType.FLOAT and is_float(v.value):
+            if is_param:
+                save = 'f'
+            self.get_next_highest_register_type(save, v)
+            self.text += "ori ${}, $zero, {}\n".format(self.register[v.value], self.float_to_hex(v.value))
+        elif isinstance(v, Value) and v.getType() == LiteralType.CHAR and v.value[0] == '\'':
+            self.data_count += 1
+            self.data_dict[v.value] = self.data_count
+            self.data += "$${}  : .byte {} \"\n".format(self.data_count, v.value)
+            self.text += "lb ${} , $${}\n".format(self.register[v.value], self.data_count)
+        elif isinstance(v, Value):
+            self.text += "lw ${}, {}\n".format(self.register[v.value], self.frame_register[self.register[v.value]])
 
 
 def is_float(string):
