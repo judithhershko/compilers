@@ -42,7 +42,7 @@ class FunctionTable:
         else:
             self.functions[func.f_name] = function
 
-    def findFunction(self, f_name: str, line: int):
+    def findFunction(self, f_name: str, line: int = 0):
         if f_name in self.functions:
             return self.functions[f_name]
         else:
@@ -117,7 +117,8 @@ class SymbolTable:
                     if isinstance(root.getLeftChild(), Pointer):
                         self.table.loc[name] = [value, symType, const, level, isGlobal, False]
                     else:
-                        self.table.loc[name] = [value, symType, const, level, isGlobal, fill] # TODO: use deref to make sure a reference can not be placed in a normal variable once introduced
+                        self.table.loc[name] = [value, symType, const, level, isGlobal,
+                                                fill]  # TODO: use deref to make sure a reference can not be placed in a normal variable once introduced
                     return "placed"
                 elif ref not in self.table.index:
                     raise ImpossibleRef(ref, line)
@@ -133,13 +134,15 @@ class SymbolTable:
             else:
                 row = self.table.loc[name]
                 if decl:
-                    if isinstance(root.getLeftChild(), Value): # and isinstance(root.getRightChild(), Value) and not root.getRightChild().deref:
+                    if isinstance(root.getLeftChild(),
+                                  Value):  # and isinstance(root.getRightChild(), Value) and not root.getRightChild().deref:
                         raise Redeclaration(name, line)
                     else:
                         raise PointerRedeclaration(name, line)
                 elif row["Global"]:
                     raise ResetGlobal(name, line)
-                elif row["Const"] and isinstance(root.getLeftChild(), Value) and not root.getRightChild().deref: # TODO: check if deref can be used to let const pointer only not reset value of memorylocation, but reset memorylocation is possible
+                elif row["Const"] and isinstance(root.getLeftChild(),
+                                                 Value) and not root.getRightChild().deref:  # TODO: check if deref can be used to let const pointer only not reset value of memorylocation, but reset memorylocation is possible
                     raise ResetConst(name, line)
                 elif row["Const"] and isinstance(root.getLeftChild(), Pointer) and not root.getRightChild().deref:
                     raise ResetConstPointer(name, line)
@@ -147,8 +150,8 @@ class SymbolTable:
                     raise TypeDeclaration(name, row["Type"], symType, line)
                 elif row["Level"] != level and not root.getRightChild().deref:
                     raise PointerLevel(name, row["Level"], level, line)
-                elif row["Level"] != level+1 and root.getRightChild().deref:
-                    raise PointerLevel(name, row["Level"], level-1, line)
+                elif row["Level"] != level + 1 and root.getRightChild().deref:
+                    raise PointerLevel(name, row["Level"], level - 1, line)
                 else:
                     if isinstance(root.getLeftChild(), Value):
                         self.table.loc[name, ["Value"]] = str(value)
@@ -212,7 +215,7 @@ class SymbolTable:
                     raise ArraySize(root.value, root.pos, root.line)
                 elif root.value not in self.table.index:
                     self.table.loc[root.value] = [root.pos, root.type, True, 0, isGlobal,
-                                                 fill]  # TODO: check if arrays are indeed always const
+                                                  fill]  # TODO: check if arrays are indeed always const
                     for pos in range(root.pos):
                         name = str(pos) + root.value
                         if len(root.arrayContent) != 0:
@@ -226,7 +229,7 @@ class SymbolTable:
                 if root.getLeftChild().declaration:
                     raise Redeclaration(name, root.line)
                 elif name not in self.table.index:
-                    raise NotDeclared(str(root.getLeftChild().pos)+str(root.getLeftChild().value),
+                    raise NotDeclared(str(root.getLeftChild().pos) + str(root.getLeftChild().value),
                                       root.getLeftChild().line)
                 elif root.getLeftChild().pos >= self.table.loc[root.getLeftChild().value]["Value"] or \
                         root.getLeftChild().pos < 0:
@@ -254,7 +257,7 @@ class SymbolTable:
     def findSymbol(self, name: str, onlyNext: bool = False, pos: int = None,
                    line: int = None):
         if name not in self.table.index:
-            if self.parent is not None: # TODO: check if this gives no problems (changed to find elements in global scope)
+            if self.parent is not None:  # TODO: check if this gives no problems (changed to find elements in global scope)
                 return self.parent.findSymbol(name, onlyNext, pos)
             else:
                 return None
@@ -264,7 +267,7 @@ class SymbolTable:
                     raise ArrayOutOfBounds(name, line, self.table.at[name, "Value"])
                 arrayName = str(pos) + name
                 return self.table.at[arrayName, "Value"], self.table.at[arrayName, "Type"], \
-                       self.table.at[arrayName, "Level"], self.table.at[arrayName, "Fillable"]
+                    self.table.at[arrayName, "Level"], self.table.at[arrayName, "Fillable"]
             except ArrayOutOfBounds:
                 raise
         if not onlyNext:
@@ -274,7 +277,7 @@ class SymbolTable:
             return self.table.at[name, "Value"], self.table.at[name, "Type"], level, self.table.at[name, "Fillable"]
         else:
             return self.table.at[name, "Value"], self.table.at[name, "Type"], self.table.at[name, "Level"], \
-                   self.table.at[name, "Fillable"]
+                self.table.at[name, "Fillable"]
 
     def makeUnfillable(self):
         self.table = self.table.assign(Fillable=False)
