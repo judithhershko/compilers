@@ -18,12 +18,7 @@ return x;
 }
 int main()
 {
-int x=f(2);
-int z=1;
-while (z<x)
-{
-z=z+1;
-printf(" val is: %d",z);
-}
+int z = 2;
+scanf(" val is: %d and %d",z*z, z);
 return 0;
 }
