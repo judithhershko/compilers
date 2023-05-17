@@ -1458,6 +1458,7 @@ class If(AST_node):
         """
         res = None
         if self.operator != ConditionType.ELSE:
+            # if not isinstance(self.Condition, Value):
             res = self.Condition.fold(to_llvm)
             self.Condition = res[0]
             return self, res[1]
