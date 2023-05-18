@@ -1369,7 +1369,6 @@ class Scope(AST_node):  # TODO: let it hold a block instead of trees
                 self.parameters[param] = self.parameters[param].fold()[0]
         if self.f_return is not None:
             self.f_return = self.f_return.foldTree()[0]
-            self.return_type = self.f_return.root.getType()
         self.folded = True
         if self.f_name == "":
             return self, True

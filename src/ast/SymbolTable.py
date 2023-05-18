@@ -22,7 +22,17 @@ class FunctionTable:
         function = OrderedDict()  # TODO: use ordered dict
         for param in func.parameters:
             function[param] = str(func.parameters[param].type)
-        function["return"] = str(func.return_type)
+        if func.f_return is None:
+            if func.return_type is None:
+                function["return"] = "void"
+            else:
+                raise wrongReturnType(func.f_name, func.line, str(func.return_type), "void")
+        elif func.return_type is None:
+            raise wrongReturnType(func.f_name, func.line, "void", str(func.f_return.root.getType()))
+        elif func.return_type == func.f_return.root.getType():
+            function["return"] = str(func.return_type)
+        else:
+            raise wrongReturnType(func.f_name, func.line, str(func.return_type), str(func.f_return.root.getType()))
         function["forDecl"] = func.forward_declaration
         if not self.functions:
             self.functions[func.f_name] = function

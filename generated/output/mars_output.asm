@@ -2,7 +2,17 @@
 .text
 .globl main
 j main
-#// Should print the numbers: 42 42 43 43 44 44 45 45
+#//intf(){return1;}
+f: 
+ sw	$fp, 0($sp)
+move	$fp, $sp
+subu	$sp, $sp,8
+sw	$ra, -4($fp)
+li $v0, 1
+lw	$ra, -4($fp)
+move	$sp, $fp
+lw	$fp, ($sp)
+jr	$ra
 #//intmain(){intx=0;int*xp=&x;*xp=42;int**p=&xp;inty=1;int*yp=&y;*yp=5;return1;}
 main: 
  sw	$fp, 0($sp)
