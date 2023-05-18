@@ -1385,7 +1385,7 @@ class Scope(AST_node):  # TODO: let it hold a block instead of trees
             return [[], True]
         else:
             # res = self.block.cleanBlock(onlyLocal=True)
-            self.block.cleanBlock(onlyLocal=True)
+            self.block.cleanBlock() # TODO: check if removing onlyLocal=True did not make other things crash
             if self.f_return is not None:
                 self.block.fillLiterals(self.f_return, True)
             res = []

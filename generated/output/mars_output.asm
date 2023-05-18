@@ -2,57 +2,76 @@
 .text
 .globl main
 j main
-#//intf(){return1;}
-f: 
- sw	$fp, 0($sp)
-move	$fp, $sp
-subu	$sp, $sp,8
-sw	$ra, -4($fp)
-li $v0, 1
-lw	$ra, -4($fp)
-move	$sp, $fp
-lw	$fp, ($sp)
-jr	$ra
-#//intmain(){intx=0;int*xp=&x;*xp=42;int**p=&xp;inty=1;int*yp=&y;*yp=5;return1;}
+#//intmain(){intx=5;while(x>5){x=x+5;}inty=(x*x+78+x*x-12);return1;}
 main: 
  sw	$fp, 0($sp)
 move	$fp, $sp
-subu	$sp, $sp,28
+subu	$sp, $sp,16
 sw	$ra, -4($fp)
 sw	$s0, -8($fp)
 sw	$s1, -12($fp)
-sw	$s2, -16($fp)
-sw	$s3, -20($fp)
-sw	$s4, -24($fp)
-#//intx=0
+#//intx=5
 lw  $s0, -8($fp)
-ori $s0,$0,0
+ori $s0,$0,5
 sw  $s0, -8($fp)
-#//int*xp=&x
-lw  $s1, -12($fp)
-sw $s1, -8($fp)
-#//*xp=42
-lw  $s1, -12($fp)
-ori $s1,$0,42
-sw  $s1, -12($fp)
-#//int**p=&xp
-lw  $s2, -16($fp)
-sw $s2, -12($fp)
-#//inty=1
-lw  $s3, -20($fp)
-ori $s3,$0,1
-sw  $s3, -20($fp)
-#//int*yp=&y
-lw  $s4, -24($fp)
-sw $s4, -20($fp)
-#//*yp=5
-lw  $s4, -24($fp)
-ori $s4,$0,5
-sw  $s4, -24($fp)
+#//while(x>5){x=x+5;}
+j $loop1
+nop
+$loop1:
+lw  $s0, -8($fp)
+ori $t0,$0,5
+sgt $2,$s0, $t0
+sw $2, -16($fp)
+lbu $2, -16($fp)
+andi  $2, $2, 1
+beqz    $2, $loop3
+nop 
+j $loop2
+nop
+$loop2:
+#//x=x+5
+lw  $s0, -8($fp)
+ori $t0,$0,5
+addu $s0,$s0, $t0
+sw $s0, -8($fp)
+j $loop1
+nop
+$loop3:
+#//inty=(x*x+78+x*x-12)
+lw  $s0, -8($fp)
+lw  $s0, -8($fp)
+mul $s1,$s0, $s0
+sw $s1, -12($fp)
+lw  $s0, -8($fp)
+ori $t0,$0,78
+addu $s1,$s0, $t0
+sw $s1, -12($fp)
+lw  $s0, -8($fp)
+lw  $s0, -8($fp)
+mul $s1,$s0, $s0
+sw $s1, -12($fp)
+lw  $s0, -8($fp)
+lw  $s0, -8($fp)
+mul $s1,$s0, $s0
+sw $s1, -12($fp)
+lw  $s0, -8($fp)
+ori $t0,$0,12
+subu $s1,$s0, $t0
+sw $s1, -12($fp)
+lw  $s0, -8($fp)
+ori $t0,$0,78
+addu $s1,$s0, $t0
+sw $s1, -12($fp)
+lw  $s0, -8($fp)
+lw  $s0, -8($fp)
+mul $s1,$s0, $s0
+sw $s1, -12($fp)
+lw  $s0, -8($fp)
+lw  $s0, -8($fp)
+mul $s1,$s0, $s0
+sw $s1, -12($fp)
 li $v0, 1
-lw $s4, -24($fp)
-lw $s3, -20($fp)
-lw $s2, -16($fp)
+lw $2, -16($fp)
 lw $s1, -12($fp)
 lw $s0, -8($fp)
 lw	$ra, -4($fp)
