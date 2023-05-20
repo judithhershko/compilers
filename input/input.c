@@ -1,7 +1,9 @@
 #include <stdio.h>
 
 int main(){
-    int [2];
+    int x = 5;
+    int * xp = &x;
+    int y = *xp;
 
 	return 1;
 }

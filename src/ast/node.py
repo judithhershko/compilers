@@ -1029,6 +1029,7 @@ class Pointer(AST_node):
         self.const = const
         self.declaration = decl
         self.name = "pointer"
+        self.deref = False
 
     def __eq__(self, other):
         if not isinstance(other, Pointer):
@@ -1099,7 +1100,10 @@ class Pointer(AST_node):
         returns the variable contained within the node
         :return:
         """
-        return [[(self.value, self.line)], True]
+        if self.variable:
+            return [[(self.value, self.line)], True]
+        else:
+            return [[], True]
 
     def replaceVariables(self, values, fill: bool = True):
         """
@@ -1107,10 +1111,10 @@ class Pointer(AST_node):
         :param values: dictionary containing the variable names as keys and the corresponding values as values
         """
         if fill and self.variable and values[self.value][3]:
-            self.value = values[self.value]
             #for key in values:
             #    self.type=values[key][1]
             self.type = values[self.value][1]
+            self.value = values[self.value][0]
             self.variable = False
         elif self.variable:
             self.type = values[self.value][1]
