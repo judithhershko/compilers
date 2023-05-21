@@ -4,6 +4,17 @@ $$2  :.asciiz " val is:  "
 .text
 .globl main
 j main
+#//voidfff(){return;}
+fff: 
+ sw	$fp, 0($sp)
+move	$fp, $sp
+subu	$sp, $sp,8
+sw	$ra, -4($fp)
+lw	$ra, -4($fp)
+move	$sp, $fp
+lw	$fp, ($sp)
+li  $v0,10
+syscall
 #//intf(intx){x=!x;//this is a comment{intx=90;x=x+1;{x=x+2;}x=3;}//int y=(x*x+78+x*x-12);//printf("y is : %d ", x);returnx;}
 f: 
  sw	$fp, 0($sp)

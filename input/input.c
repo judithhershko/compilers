@@ -1,4 +1,7 @@
 #include "stdio.h";
+void fff(){
+    return;
+}
 
 int f(int x)
 {

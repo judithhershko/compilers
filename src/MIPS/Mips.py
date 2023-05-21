@@ -22,7 +22,7 @@ from src.ast.node import *
 # todo : function calls     x
 # TODO: modulo              x
 # todo: conversions int    ->float/bool->int in helper  x
-# function forward declaration skippen
+# todo function forward declaration skippen v
 
 class Mips:
     def __init__(self, program_: program):
@@ -162,7 +162,7 @@ class Mips:
 
     def transverse_program(self):
         for tree in self.program.tree.block.trees:
-            if isinstance(tree.root, Scope):
+            if isinstance(tree.root, Scope) and not tree.root.forward_declaration:
                 self.transverse_function(tree.root)
             elif isinstance(tree.root, Declaration):
                 self.global_declaration(tree.root)
@@ -278,9 +278,9 @@ class Mips:
 
     def set_return_function(self, f_return: AST, is_main=False):
         # transverse return address
-        if f_return is not None and (
-                isinstance(f_return.root, BinaryOperator) or isinstance(f_return, UnaryOperator) or isinstance(f_return,
-                                                                                                               LogicalOperator)):
+        if f_return is None:
+            return self.end_function(True)
+        if isinstance(f_return.root, BinaryOperator) or isinstance(f_return, UnaryOperator) or isinstance(f_return,LogicalOperator):
             self.declaration = Value("$freturn", self.c_function.return_type, 0)
             # self.add_to_memory(self.declaration)
             self.register["v0"] = self.declaration.value
@@ -294,17 +294,14 @@ class Mips:
             pass
         elif isinstance(f_return, Function):
             pass
-
-        """for key in reversed(reg.keys()):
-            self.text += "lw	${}, {}($fp)\n".format(reg[key], min_counter)
-            min_counter += 4"""
+        self.end_function(is_main)
+    def end_function(self, void:bool):
         for key in reversed(self.frame_register):
             self.text += "lw ${}, {}\n".format(key, self.frame_register[key])
         self.text += "lw	$ra, -4($fp)\n"
         self.text += "move	$sp, $fp\n"
         self.text += "lw	$fp, ($sp)\n"
-
-        if f_return is None or is_main:
+        if void:
             self.text += "li  $v0,10\n"
             self.text += "syscall\n"
         else:
