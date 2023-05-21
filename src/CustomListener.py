@@ -411,7 +411,7 @@ class CustomListener(ExpressionListener):
         # self.current = Value(cval, val[1], ctx.start.line, self.parent)
         self.current = Pointer(pval, LiteralType.VAR, ctx.start.line, level, self.parent)
         #self.parent.rightChild = self.current
-        if self.parent.rightChild is None:
+        if self.parent.leftChild is None: # TODO: changed rightChild to leftChild
             self.parent.leftChild=self.current
         else:
             self.parent.rightChild=self.current

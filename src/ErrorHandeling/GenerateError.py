@@ -409,3 +409,15 @@ class forwardWrongSize(Exception):
     def __str__(self):
         return "\n\tError in line " + str(self.line) + ": the amount of parameters of the function " + \
                self.name + " is not the same as in the forward declaration"
+
+
+class wrongReturnType(Exception):
+    def __init__(self, name, line, exp, given):
+        self.name = name
+        self.line = line
+        self.expRet = exp
+        self.givenRet = given
+
+    def __str__(self):
+        return "\n\tError in line " + str(self.line) + ": the function " + self.name + \
+               " is initialised with return type " + self.expRet + " but returns " + self.givenRet

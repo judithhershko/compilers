@@ -287,7 +287,7 @@ class AST:
             edges = edges + "\n" + root.getId() + "--" + root.value.root.getId()
             if not (isinstance(root.value.root, Value) or isinstance(root.value.root, Array) or
                 isinstance(root.value.root, Pointer)):
-                res = self.toDot(root.value.root)
+                res = root.value.toDot(root.value.root)
                 nodes = nodes + res[0]
                 edges = edges + res[1]
             else:
@@ -300,7 +300,7 @@ class AST:
                 edges = edges + "\n" + root.getId() + "--" + temp.root.getId()
                 if not (isinstance(temp.root, Value) or isinstance(temp.root, Array) or
                         isinstance(temp.root, Pointer)):
-                    res = self.toDot(temp)
+                    res = temp.toDot(temp.root)
                     nodes = nodes + res[0]
                     edges = edges + res[1]
                 else:
