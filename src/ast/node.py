@@ -972,7 +972,7 @@ class Declaration(AST_node):
         :return:
         """
         values = self.rightChild.getVariables(fill, scope)
-        if not self.leftChild.declaration:
+        if not self.leftChild.declaration and not isinstance(self.leftChild, Array):
             temp = self.leftChild.getVariables(fill, scope)
             values[0].append(temp[0][0])
         return values
@@ -1914,7 +1914,7 @@ class Array(AST_node):
         self.arrayContent = []
 
     def getPosition(self):
-        return self.pos
+        return self.pos.value
 
     def __eq__(self, other):
         return self.value == other.value and self.pos == other.pos and self.type == other.type and \
@@ -1931,15 +1931,18 @@ class Array(AST_node):
         self.type = type_
 
     def getValue(self):
-        return str(self.pos)
+        # if self.pos is not None:
+        #     return str(self.pos.value)
+        # return None
+        return self.value
 
     def getLabel(self):
         if self.init:
-            return "\"array: " + str(self.value) + "\nsize: " + str(self.pos) + "\""
+            return "\"array: " + str(self.value) + "\nsize: " + str(self.pos.value) + "\""
         elif self.isValue:
             return "\"array value: " + str(self.value) + "\""
         else:
-            return "\"array: " + str(self.value) + "\nposition: " + str(self.pos) + "\""
+            return "\"array: " + str(self.value) + "\nposition: " + str(self.pos.value) + "\""
 
     def getVariables(self, fill: bool = True, scope=None):
         """

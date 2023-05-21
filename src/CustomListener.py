@@ -543,7 +543,7 @@ class CustomListener(ExpressionListener):
             self.set_bracket()
         """if self.parent is None:
             self.parent = self.current.parent"""
-        if self.current is not None and (
+        if self.current is not None and self.parent is not None and ( # TODO: added that parent is not allowed to be none
                 not isinstance(self.parent, UnaryOperator) and isinstance(self.parent.leftChild, Pointer)):
             self.dec_op.rightChild = self.parent.rightChild
             if self.dec_op.rightChild is None:
@@ -573,7 +573,7 @@ class CustomListener(ExpressionListener):
                 else:
                     self.current.rightChild.parent = self.dec_op
                     self.dec_op.rightChild = self.current.rightChild
-            else:
+            elif not isinstance(self.dec_op.rightChild, Array): # TODO added conditions to make int y = x[0] to work -> check if other things didn't break
                 self.dec_op.rightChild = self.current
         self.current = self.dec_op
         """
@@ -794,7 +794,9 @@ class CustomListener(ExpressionListener):
                     return
                 else:
                     self.c_scope.block.trees.append(self.asT)
-
+        elif self.declaration and isinstance(self.dec_op.rightChild, Array) and self.dec_op.rightChild.pos is None: # TODO added this to give int y = x[0] a position
+            self.current.parent == self.dec_op.rightChild
+            self.dec_op.rightChild.pos = self.current
         elif self.return_function and self.expr_layer == 0:
             while self.current.parent is not None:
                 self.current = self.current.parent
@@ -1305,10 +1307,14 @@ class CustomListener(ExpressionListener):
             self.current = None
         else:
             self.current.init = False
-            if self.parent.rightChild is not None:
+            name = ctx.getText()
+            if self.parent.rightChild is not None and self.dec_op.rightChild.value == name:
                 self.parent.rightChild = self.current
-            elif self.parent.leftChild is not None:
+            elif self.parent.leftChild is not None and self.dec_op.leftChild.value == name:
                 self.parent.leftChild = self.current
+            elif self.parent.rightChild is None:
+                self.parent = self.dec_op
+                self.parent.rightChild = self.current
 
     # Exit a parse tree produced by ExpressionParser#array.
     def exitArray(self, ctx: ParserRuleContext):

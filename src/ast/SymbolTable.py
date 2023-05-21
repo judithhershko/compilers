@@ -95,13 +95,20 @@ class SymbolTable:
             else:
                 name = root.getLeftChild().getValue()
                 if root.getRightChild() is not None:
-                    value = root.getRightChild().getValue()
+                    if isinstance(root.getRightChild(), Array):
+                        value = self.findSymbol(root.getRightChild().getValue(), False,
+                                                root.getRightChild().getPosition())[0]
+                    else:
+                        value = root.getRightChild().getValue()
                 else:
                     value = None
                 symType = root.getLeftChild().getType()
                 const = root.getLeftChild().const
                 decl = root.getLeftChild().declaration
-                deref = root.getRightChild().deref
+                if isinstance(root.rightChild, Array):
+                    deref = False
+                else:
+                    deref = root.getRightChild().deref
                 if isinstance(root.getLeftChild(), Value) and root.getLeftChild().isVariable():
                     ref = None
                     level = 0
@@ -221,12 +228,12 @@ class SymbolTable:
                     raise NotDeclared(root.value, root.line)
                 elif root.value in self.table.index:
                     raise Redeclaration(root.value, root.line)
-                elif len(root.arrayContent) != 0 and len(root.arrayContent) != root.pos:
-                    raise ArraySize(root.value, root.pos, root.line)
+                elif len(root.arrayContent) != 0 and len(root.arrayContent) != root.pos.value:
+                    raise ArraySize(root.value, root.pos.value, root.line)
                 elif root.value not in self.table.index:
-                    self.table.loc[root.value] = [root.pos, root.type, True, 0, isGlobal,
+                    self.table.loc[root.value] = [root.pos.value, root.type, True, 0, isGlobal,
                                                   fill]  # TODO: check if arrays are indeed always const
-                    for pos in range(root.pos):
+                    for pos in range(root.pos.value):
                         name = str(pos) + root.value
                         if len(root.arrayContent) != 0:
                             arrayValue = root.arrayContent[pos].value
@@ -235,17 +242,17 @@ class SymbolTable:
                         self.table.loc[name] = [arrayValue, root.type, False, 0, isGlobal, fill]
                     return "placed"
             elif isinstance(root, Declaration):
-                name = str(root.getLeftChild().pos) + str(root.getLeftChild().value)
+                position = root.getLeftChild().pos.value
+                name = str(position) + str(root.getLeftChild().value)
                 if root.getLeftChild().declaration:
                     raise Redeclaration(name, root.line)
                 elif name not in self.table.index:
-                    raise NotDeclared(str(root.getLeftChild().pos) + str(root.getLeftChild().value),
+                    raise NotDeclared(str(position) + str(root.getLeftChild().value),
                                       root.getLeftChild().line)
-                elif root.getLeftChild().pos >= self.table.loc[root.getLeftChild().value]["Value"] or \
-                        root.getLeftChild().pos < 0:
-                    raise ArrayOutOfBounds(name, root.getLeftChild().line, root.getLeftChild().pos)
+                elif position >= self.table.loc[root.getLeftChild().value]["Value"] or position < 0:
+                    raise ArrayOutOfBounds(name, root.getLeftChild().line, position)
                 elif name in self.table.index:
-                    # name = str(root.getLeftChild().pos) + root.getLeftChild().name
+                    # name = str(position) + root.getLeftChild().name
                     row = self.table.loc[name]
                     if row["Type"] != root.getRightChild().type:
                         raise TypeDeclaration
