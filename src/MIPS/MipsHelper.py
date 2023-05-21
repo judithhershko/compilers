@@ -115,6 +115,7 @@ def store_unary_operation(op, right, rtype, mips):
     mips.text += "{} ${}, ${} ,${}\n".format(op, save, sr, "zero")
     mips.text += "sw ${}, {}\n".format(save, fr)
 
+
 def store_binary_operation(op, left, right, rtype, mips):
     # save olf variable counter
     mips.save_old_val = left
@@ -131,6 +132,7 @@ def store_binary_operation(op, left, right, rtype, mips):
 
 
 def set_llvm_unary_operators(right, op: str, mips):
+    load_right = True
     if mips.is_binary(right) and mips.save_old_val is None:
         right.printTables("random", mips)
     if mips.is_unary(right) and mips.save_old_val is None:
@@ -138,7 +140,8 @@ def set_llvm_unary_operators(right, op: str, mips):
     if mips.is_logical(right) and mips.save_old_val is None:
         right.printTables("random", mips)
     if right.name == "function":
-        function_in_operation(right, None, op, mips)
+        right=load_function(right,mips)
+        load_right = False
     if right.name == "array":
         array_in_operation(right, None, op, mips)
     right_pointer = False
@@ -149,7 +152,7 @@ def set_llvm_unary_operators(right, op: str, mips):
         return
     # get all types
     # move higher type if necessary
-    load_right = True
+
     if isinstance(right.value, int) or str(right.value).isdigit() or isinstance(right.value, float) or isfloat(
             str(right.value)):
         mips.get_next_highest_register_type("t", right)
@@ -216,8 +219,16 @@ def set_llvm_binary_operators(left, right, op: str, mips):
         left = mips.save_old_val
     elif right.name == "binary" or right.name == "logical" or right.name == "unary":
         right = mips.save_old_val
-    if left.name == 'function' or right.name == "function":
-        return function_in_operation(left, right, op, mips)
+    load_left = True
+    load_right = True
+
+    if left.name == 'function':
+        load_left=False
+        left=load_function(left, mips)
+    if right.name == 'function':
+        load_right = False
+        right = load_function(right, mips)
+
     if left.name == "array" or right.name == "array":
         return array_in_operation(left, right, op, mips)
     left_pointer = False
@@ -231,8 +242,7 @@ def set_llvm_binary_operators(left, right, op: str, mips):
 
     # get all types
     # move higher type if necessary
-    load_left = True
-    load_right = True
+
     if isinstance(right.value, int) or str(right.value).isdigit() or isinstance(right.value, float) or isfloat(
             str(right.value)):
         mips.get_next_highest_register_type("t", right)
@@ -283,42 +293,22 @@ def set_llvm_binary_operators(left, right, op: str, mips):
     mips.remove_temps()
     return
 
-def function_in_operation(left, right, op: str, llvm):
-    if llvm.is_function(left):
-        left = load_function(left, llvm)
-    if llvm.is_function(right):
-        right = load_function(right, llvm)
+
+def function_in_operation(left, right, op: str, mips):
+    if mips.is_function(left):
+        left = load_function(left, mips)
+    if mips.is_function(right):
+        right = load_function(right, mips)
     if right is None:
-        return set_llvm_unary_operators(left, op, llvm)
-    # if declaration with function x=function() en geen verder operaties
-    if left is None or right is None:
-        return
-    return set_llvm_binary_operators(left, right, op, llvm)
+        return set_llvm_unary_operators(left, op, mips)
+    return set_llvm_binary_operators(left, right, op, mips)
 
 
-def load_function(p, llvm):
-    inhoud = llvm.program.functions.findFunction(p.f_name, p.line)
-    return_ = llvm.program.functions.findFunction(p.f_name, p.line)
-    inhoud = p.param
-    llvm.add_variable(p.f_name)
-    llvm.function_load += "%{} = call {} @{}".format(llvm.get_variable(p.f_name),
-                                                     llvm.get_llvm_type(return_["return"]), p.f_name)
-    llvm.function_load += "("
-    for key in inhoud:
-        llvm.function_load += llvm.get_llvm_type(inhoud[key])
-        val = key
-        is_var = True
-        if str(key[0]).isdigit():
-            is_var = False
-            if inhoud[key] == LiteralType.FLOAT:
-                val = llvm.float_to_64bit_hex(key)
-        if is_var:
-            llvm.function_load += " noundef %{}".format(llvm.get_variable(val))
-        else:
-            llvm.function_load += "noundef {}".format(val)
-
-    llvm.function_load += ")\n"
-    return llvm.make_value(lit=p.f_name, valueType=return_["return"], line=p.line)
+def load_function(p, mips):
+    v = mips.make_value(lit='$function', valueType=p.expected["return"], line=p.line)
+    mips.to_function_dec(p, v)
+    # return l
+    return v
 
 
 def load_array(left, llvm):

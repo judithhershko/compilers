@@ -1,5 +1,6 @@
 import struct
 
+from src.HelperFunctions import stack
 from src.ast.Program import *
 from src.ast.node import *
 
@@ -13,7 +14,6 @@ from src.ast.node import *
 # TODO: LOOPS               v
 # todo: while               v
 # todo: if /else            v
-# TODO: POINTERS            x
 # todo :UNNAMED SCOPES      v --> vraag als dit ok is?
 # TODO: function return     v
 # TODO: PRINT               x
@@ -21,7 +21,8 @@ from src.ast.node import *
 # TODO: ARRAYS              x
 # todo : function calls     x
 # TODO: modulo              x
-# todo: conversions int->float/bool->int in helper  x
+# todo: conversions int    ->float/bool->int in helper  x
+# function forward declaration skippen
 
 class Mips:
     def __init__(self, program_: program):
@@ -44,6 +45,7 @@ class Mips:
         self.data_dict = dict()
         self.save_old_val = None
         self.loop_counter = 0
+        self.reused_registers = list()
 
     def float_to_64bit_hex(self, x):
         # print("x is none in scope:" + self.c_function.root.f_name)
@@ -91,9 +93,6 @@ class Mips:
         if value.getType() == LiteralType.BOOL:
             return "s.b"
 
-    def get_register(self, v: Value):
-        return 1
-
     def get_next_highest_register_type(self, type: str, v: Value):
         # get highest register
         if self.register.__len__() == 0:
@@ -107,6 +106,26 @@ class Mips:
         # $ end of string \d match digits
         digits = int(re.findall(r'\d+$', highest)[0])
         digits += 1
+        if digits >= 7 and (type == 's' or type == 'f'):
+            """
+            need to reuse a register
+            set everything of this type in memory
+            save the values inn reused registers
+            remove them from registers
+            call function again
+            """
+            if type == 's' or type == 'f':
+                self.text += "push everything in memory to reuse registers \n"
+                for k, v in self.register.items():
+                    if v.startswith(type):
+                        self.reused_registers.append(self.frame_register[v])
+                        self.text += "sw {}, {}\n".format(v, self.frame_register[v])
+                self.remove_register_type(type)
+                return self.get_next_highest_register_type(type, v)
+            elif type == 't':
+                self.remove_register_type('t')
+                return self.get_next_highest_register_type(type, v)
+
         self.register[v.getValue()] = type + str(digits)
 
         return type + str(digits)
@@ -165,7 +184,8 @@ class Mips:
                 t = i
             if isinstance(t.root, Declaration) and \
                     (isinstance(t.root.rightChild, Value) or isinstance(t.root.rightChild, Array) or isinstance(
-                        t.root.rightChild, Pointer) or isinstance(t.root.rightChild, Function)):
+                        t.root.rightChild, Pointer) or isinstance(t.root.rightChild, Function) or isinstance(
+                        t.root.rightChild, EmptyNode)):
                 self.to_declaration(t.root)
             if isinstance(t.root, Comment):
                 self.to_comment(t.root)
@@ -411,9 +431,6 @@ class Mips:
             self.text += "nop\n"
             self.text += "${}:\n".format(cfalse)
 
-
-
-
         elif isinstance(f, If) and f.operator == ConditionType.ELIF:
             pass
 
@@ -442,6 +459,26 @@ class Mips:
         self.frame_counter -= 4
         self.frame_register[key] = str(self.frame_counter) + "($fp)"
 
+    def get_register(self, v, type_='s', value_type=LiteralType.INT):
+        if v in self.register.keys():
+            return self.register[v]
+        # not in keys:
+        s = self.get_next_highest_register_type(type_, Value(valueType=value_type, lit=v, line=0))
+        if type_ != 't':
+            self.frame_register[s] = str(self.frame_counter) + "($fp)"
+            self.text += "sw ${}, {}($fp)\n".format(s, self.frame_counter)
+        return s
+
+    def get_register_type(self, type_):
+        if type_ == LiteralType.INT:
+            return 's'
+        if type_ == LiteralType.FLOAT:
+            return 'f'
+        if type_ == LiteralType.BOOL:
+            return 's'
+        if type_ == LiteralType.CHAR:
+            return None
+
     def to_declaration(self, declaration: Declaration):
         # find register it is stored
         # store it
@@ -450,8 +487,9 @@ class Mips:
         if isinstance(declaration.rightChild, Array):
             return self.to_array_dec(declaration)
         if isinstance(declaration.rightChild, Function):
-            return self.to_function_dec(declaration.rightChild,declaration.leftChild)
-        s = self.register[declaration.leftChild.value]
+            return self.to_function_dec(declaration.rightChild, declaration.leftChild, True)
+        s = self.get_register(declaration.leftChild.value, self.get_register_type(declaration.leftChild.getType()),
+                              declaration.leftChild.getType())
         f = self.frame_register[self.register[declaration.leftChild.value]]
         self.text += "lw  ${}, {}\n".format(s, f)
         if declaration.rightChild.getType() == LiteralType.INT and str(declaration.rightChild.value).isdigit():
@@ -472,10 +510,17 @@ class Mips:
                 self.text += "ori {},$0,0\n".format(self.register[declaration.leftChild.value])
                 self.text += "sw  ${}, {}\n".format(s, f)
         else:
-            s1 = self.register[declaration.rightChild.value]
-            f1 = self.frame_register[s1]
-            # self.text += "lw ${} ,{} \n".format(s, f)
-            self.text += "sw ${}, {}\n".format(s, f1)
+            """
+            char needs to be saved in .data fragment
+            """
+            # check if needs data element:
+            if declaration.leftChild.getType() == LiteralType.CHAR:
+                self.data_count += 1
+                self.data_dict[declaration.leftChild.value] = self.data_count
+                self.data += "$${}  : .byte '{}' \n".format(self.data_count, declaration.leftChild.value)
+                s = self.get_register(declaration.leftChild.value, 's', LiteralType.CHAR)
+                self.text += "lb ${} , $${}\n".format(s, self.data_count)
+                self.text += "sb ${}, {}\n".format(s, self.frame_register[self.register[declaration.leftChild.value]])
 
         return
 
@@ -487,7 +532,6 @@ class Mips:
 
         # Unpack the binary data as a 32-bit unsigned integer
         int_value = struct.unpack('!I', binary_data)[0]
-
         # Convert the integer to a hexadecimal string
         hex_value = hex(int_value)
 
@@ -534,16 +578,19 @@ class Mips:
     def to_array_dec(self, declaration):
         return
 
-    def to_function_dec(self, f, var):
+    def to_function_dec(self, f, var, save_mem=False):
         # pass function paramerters
         # jal function
         # save return value
+        if var.value not in self.register.keys():
+            self.get_next_highest_register_type('t', var)
         for i in f.param:
-            self.load_type(f.param[i],True)
+            self.load_type(f.param[i], True)
         self.text += "jal {}\n".format(f.f_name)
-        #self.text += "sw $v0, {}\n".format(d.rightChild.f_name)
+        # self.text += "sw $v0, {}\n".format(d.rightChild.f_name)
         self.text += "move ${}, $v0\n".format(self.register[var.value])
-        self.text += "sw ${}, {}\n".format(self.register[var.value], self.frame_register[self.register[var.value]])
+        if save_mem:
+            self.text += "sw ${}, {}\n".format(self.register[var.value], self.frame_register[self.register[var.value]])
 
         return
 
@@ -570,6 +617,9 @@ class Mips:
             self.text += "lb ${} , $${}\n".format(self.register[v.value], self.data_count)
         elif isinstance(v, Value):
             self.text += "lw ${}, {}\n".format(self.register[v.value], self.frame_register[self.register[v.value]])
+
+    def make_value(self, lit, valueType, line):
+        return Value(lit=lit, valueType=valueType, line=line)
 
 
 def is_float(string):
