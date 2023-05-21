@@ -1,6 +1,6 @@
 #include "stdio.h";
-void fff(){
-    return;
+int fff(){
+    return 1;
 }
 
 int f(int x)
@@ -8,7 +8,7 @@ int f(int x)
 x=!x;
 //this is a comment
 {
-int x=90;
+int x= x+x*fff();
 x=x+1;
 {
 x=x+2;

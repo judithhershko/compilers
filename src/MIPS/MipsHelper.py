@@ -29,6 +29,9 @@ def load_type(left, mips):
         pass
     else:
         s = mips.register[left.value]
+        # temporaries dont need to be loaded
+        if s[0] == 't':
+            return
         f = mips.frame_register[mips.register[left.value]]
         mips.text += "lw  ${}, {}\n".format(s, f)
 
@@ -55,54 +58,54 @@ def get_unary_operation(op: str, rtype):
 
 
 def get_operation(op: str, type):
-    if op == "-" and type == LiteralType.INT:
+    if op == "-" and (type == LiteralType.INT or type == 'INT'):
         return "subu"
-    if op == "-" and type == LiteralType.FLOAT:
+    if op == "-" and (type == LiteralType.FLOAT or type == 'FLOAT'):
         return "sub.s"
-    if op == "+" and type == LiteralType.INT:
+    if op == "+" and (type == LiteralType.INT or type == 'INT'):
         return "addu"
-    if op == "+" and type == LiteralType.FLOAT:
+    if op == "+" and (type == LiteralType.FLOAT or type == 'FLOAT'):
         return "add.s"
-    if op == "*" and type == LiteralType.INT:
+    if op == "*" and (type == LiteralType.INT or type == 'INT'):
         return "mul"
-    if op == "*" and type == LiteralType.FLOAT:
+    if op == "*" and (type == LiteralType.FLOAT or type == 'FLOAT'):
         return "mul.s"
-    if op == "/" and type == LiteralType.INT:
+    if op == "/" and (type == LiteralType.INT or type == 'INT'):
         return "div"
-    if op == "/" and type == LiteralType.FLOAT:
+    if op == "/" and (type == LiteralType.FLOAT or type == 'FLOAT'):
         return "div.s"
     # TODO fist devide then save modulo
-    if op == "%" and type == LiteralType.INT:
+    if op == "%" and (type == LiteralType.INT or type == 'INT'):
         return "mfhi"
-    if op == "%" and type == LiteralType.FLOAT:
+    if op == "%" and (type == LiteralType.FLOAT or type == 'FLOAT'):
         raise NotSupported("%", "float")
-    if op == ">" and type == LiteralType.INT:
+    if op == ">" and (type == LiteralType.INT or type == 'INT'):
         return "sgt"
-    if op == ">" and type == LiteralType.FLOAT:
+    if op == ">" and (type == LiteralType.FLOAT or type == 'FLOAT'):
         return "sgt"
-    if op == ">=" and type == LiteralType.INT:
+    if op == ">=" and (type == LiteralType.INT or type == 'INT'):
         return "sge"
-    if op == ">=" and type == LiteralType.FLOAT:
+    if op == ">=" and (type == LiteralType.FLOAT or type == 'FLOAT'):
         return "sge"
-    if op == "<" and type == LiteralType.INT:
+    if op == "<" and (type == LiteralType.INT or type == 'INT'):
         return "slt"
-    if op == "<" and type == LiteralType.FLOAT:
+    if op == "<" and (type == LiteralType.FLOAT or type == 'FLOAT'):
         return "slt"
-    if op == "<=" and type == LiteralType.INT:
+    if op == "<=" and (type == LiteralType.INT or type == 'INT'):
         return "sle"
-    if op == "<=" and type == LiteralType.FLOAT:
+    if op == "<=" and (type == LiteralType.FLOAT or type == 'FLOAT'):
         return "slte"
-    if op == "==" and type == LiteralType.INT:
+    if op == "==" and (type == LiteralType.INT or type == 'INT'):
         return "seq"
-    if op == "==" and type == LiteralType.FLOAT:
+    if op == "==" and (type == LiteralType.FLOAT or type == 'FLOAT'):
         return "seq"
-    if op == "&&" and type == LiteralType.INT:
+    if op == "&&" and (type == LiteralType.INT or type == 'INT'):
         return "and"
-    if op == "&&" and type == LiteralType.FLOAT:
+    if op == "&&" and (type == LiteralType.FLOAT or type == 'FLOAT'):
         return "and"
-    if op == "||" and type == LiteralType.INT:
+    if op == "||" and (type == LiteralType.INT or type == 'INT'):
         return "or"
-    if op == "||" and type == LiteralType.FLOAT:
+    if op == "||" and (type == LiteralType.FLOAT or type == 'FLOAT'):
         return "or"
 
 
@@ -124,8 +127,8 @@ def store_binary_operation(op, left, right, rtype, mips):
     sr = mips.register[right.value]
     save = mips.register[mips.declaration.value]
 
-    op = get_operation(op, rtype)
-    mips.text += "{} ${},${}, ${}\n".format(op, save, sl, sr)
+    opi = get_operation(op, rtype)
+    mips.text += "{} ${},${}, ${}\n".format(opi, save, sl, sr)
     # store back in frame
     fr = mips.frame_register[mips.register[mips.declaration.value]]
     mips.text += "sw ${}, {}\n".format(save, fr)
@@ -140,8 +143,8 @@ def set_llvm_unary_operators(right, op: str, mips):
     if mips.is_logical(right) and mips.save_old_val is None:
         right.printTables("random", mips)
     if right.name == "function":
-        right=load_function(right,mips)
-        load_right = False
+        right = load_function(right, mips)
+        # load_right = False
     if right.name == "array":
         array_in_operation(right, None, op, mips)
     right_pointer = False
@@ -168,7 +171,7 @@ def set_llvm_unary_operators(right, op: str, mips):
     else:
         # save to data+ load from data
         save_to_data(right, mips)
-    # fix different types
+        # fix different types
 
     """if rtype == LiteralType.FLOAT and ltype == LiteralType.INT:
         mips.function_load += load_higher_type_int_to_float(mips.get_variable(left.value),
@@ -223,10 +226,10 @@ def set_llvm_binary_operators(left, right, op: str, mips):
     load_right = True
 
     if left.name == 'function':
-        load_left=False
-        left=load_function(left, mips)
+        # load_left = False
+        left = load_function(left, mips)
     if right.name == 'function':
-        load_right = False
+        # load_right = False
         right = load_function(right, mips)
 
     if left.name == "array" or right.name == "array":
@@ -292,16 +295,6 @@ def set_llvm_binary_operators(left, right, op: str, mips):
     # return ltype
     mips.remove_temps()
     return
-
-
-def function_in_operation(left, right, op: str, mips):
-    if mips.is_function(left):
-        left = load_function(left, mips)
-    if mips.is_function(right):
-        right = load_function(right, mips)
-    if right is None:
-        return set_llvm_unary_operators(left, op, mips)
-    return set_llvm_binary_operators(left, right, op, mips)
 
 
 def load_function(p, mips):

@@ -4,18 +4,18 @@ $$2  :.asciiz " val is:  "
 .text
 .globl main
 j main
-#//voidfff(){return;}
+#//intfff(){return1;}
 fff: 
  sw	$fp, 0($sp)
 move	$fp, $sp
 subu	$sp, $sp,8
 sw	$ra, -4($fp)
+li $v0, 1
 lw	$ra, -4($fp)
 move	$sp, $fp
 lw	$fp, ($sp)
-li  $v0,10
-syscall
-#//intf(intx){x=!x;//this is a comment{intx=90;x=x+1;{x=x+2;}x=3;}//int y=(x*x+78+x*x-12);//printf("y is : %d ", x);returnx;}
+jr	$ra
+#//intf(intx){x=!x;//this is a comment{intx=x+x*fff();x=x+1;{x=x+2;}x=3;}//int y=(x*x+78+x*x-12);//printf("y is : %d ", x);returnx;}
 f: 
  sw	$fp, 0($sp)
 move	$fp, $sp
@@ -28,18 +28,31 @@ lw  $s0, -8($fp)
 nor $s0, $s0 ,$zero
 sw $s0, -8($fp)
 #//this is a comment
-#//intx=90
+#//intx=x+x*fff()
+jal fff
+move $t0, $v0
 lw  $s0, -8($fp)
-ori $s0,$0,90
-sw  $s0, -8($fp)
+mul $s0,$s0, $t0
+sw $s0, -8($fp)
+lw  $s0, -8($fp)
+lw  $s0, -8($fp)
+addu $s0,$s0, $s0
+sw $s0, -8($fp)
+jal fff
+move $t0, $v0
+lw  $s0, -8($fp)
+mul $s0,$s0, $t0
+sw $s0, -8($fp)
 #//x=x+1
 lw  $s0, -8($fp)
-ori $s0,$0,91
-sw  $s0, -8($fp)
+ori $t0,$0,1
+addu $s0,$s0, $t0
+sw $s0, -8($fp)
 #//x=x+2
 lw  $s0, -8($fp)
-ori $s0,$0,93
-sw  $s0, -8($fp)
+ori $t0,$0,2
+addu $s0,$s0, $t0
+sw $s0, -8($fp)
 #//x=3
 lw  $s0, -8($fp)
 ori $s0,$0,3
