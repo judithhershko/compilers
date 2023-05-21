@@ -1,10 +1,14 @@
 #include <stdio.h>
 
 int main(){
-    int x[2];
-    x[0] = 5;
-    x[1] = 6;
-    int y = x[0];
+    int z = 1;
+    int x[3];
+    x[z-1] = 5;
+    x[z] = 6;
+    x[1+z] = 7;
+    int y = x[z-1];
+    int w = x[z];
+    int v = x[1+z];
 
 	return 1;
 }

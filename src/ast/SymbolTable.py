@@ -243,6 +243,7 @@ class SymbolTable:
                     return "placed"
             elif isinstance(root, Declaration):
                 position = root.getLeftChild().pos.value
+                position = int(position)
                 name = str(position) + str(root.getLeftChild().value)
                 if root.getLeftChild().declaration:
                     raise Redeclaration(name, root.line)
@@ -279,6 +280,16 @@ class SymbolTable:
             else:
                 return None
         if pos is not None:
+            if isinstance(pos, str) and not pos.isnumeric():
+                if name not in self.table.index:
+                    if self.parent is not None:  # TODO: check if this gives no problems (changed to find elements in global scope)
+                        pos = self.parent.findSymbol(name)
+                    else:
+                        return None
+                else:
+                    pos = self.table.at[pos, "Value"]
+            elif isinstance(pos, str) and pos.isnumeric():
+                pos = int(pos)
             try:
                 if pos < 0 or pos >= self.table.at[name, "Value"]:
                     raise ArrayOutOfBounds(name, line, self.table.at[name, "Value"])

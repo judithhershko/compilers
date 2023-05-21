@@ -160,6 +160,8 @@ class CustomListener(ExpressionListener):
         if self.array_content:
             return
         if self.right or (self.parent.rightChild is None and self.parent.leftChild is not None):
+            if isinstance(self.dec_op.leftChild, Array) and self.dec_op.leftChild.pos is not None: # TODO: added this to make complex array's work: int x[i+1] = 1;
+                self.parent = self.dec_op
             self.parent.setRightChild(self.current)
             self.right = False
             self.left = True
@@ -772,6 +774,9 @@ class CustomListener(ExpressionListener):
                     return
                 elif isinstance(self.a_val, Array):
                     self.a_val.pos = self.current
+                    if isinstance(self.a_val.parent, Declaration): # TODO: added this for complex structures in array: x[i+1] = 5;
+                        self.right = True
+                        self.parent = self.a_val
                 return
             if self.loop is not None and self.loop.Condition is None:
                 self.loop.Condition = self.asT.root
@@ -795,8 +800,12 @@ class CustomListener(ExpressionListener):
                 else:
                     self.c_scope.block.trees.append(self.asT)
         elif self.declaration and isinstance(self.dec_op.rightChild, Array) and self.dec_op.rightChild.pos is None: # TODO added this to give int y = x[0] a position
-            self.current.parent == self.dec_op.rightChild
+            self.current.parent = self.dec_op.rightChild
             self.dec_op.rightChild.pos = self.current
+            self.dec_op.rightChild.declaration = False
+        elif self.declaration and isinstance(self.dec_op.rightChild, Array) and isinstance(self.dec_op.rightChild.pos, Value) and not isinstance(self.parent, Value) and self.parent is not None and self.parent.rightChild is not None:
+            self.dec_op.rightChild.pos = self.parent
+            self.dec_op.rightChild.declaration = False
         elif self.return_function and self.expr_layer == 0:
             while self.current.parent is not None:
                 self.current = self.current.parent
@@ -1335,6 +1344,10 @@ class CustomListener(ExpressionListener):
 
     # Exit a parse tree produced by ExpressionParser#array_position.
     def exitArray_position(self, ctx: ParserRuleContext):
+        # if self.a_val is not None and self.parent is not None and \
+        #         (isinstance(self.parent, BinaryOperator) or isinstance(self.parent, UnaryOperator) or
+        #          isinstance(self.parent, LogicalOperator)): # TODO: added to fix int y = x[z+1]
+        #     self.a_val.pos = self.parent
         self.is_array_position = False
         self.a_dec = False
         self.current = self.a_val

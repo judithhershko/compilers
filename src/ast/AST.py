@@ -55,6 +55,7 @@ class AST:
             for value in nextNode.param:
                 number = self.setNodeIds(nextNode.param[value], level + 1, number + 1)
         elif isinstance(nextNode, Array):
+            number = self.setNodeIds(nextNode.pos, level + 1, number + 1)
             for node in nextNode.arrayContent:
                 number = self.setNodeIds(node, level + 1, number + 1)
         elif isinstance(nextNode, ReturnNode):
@@ -157,13 +158,19 @@ class AST:
                 edges = edges + "\n" + self.root.getId() + "--" + value.getId()
                 nodes = nodes + "\n" + value.getId() + " [label=" + value.getLabel() + "]"
         elif isinstance(self.root, Array):
+            edges = edges + "\n" + self.root.getId() + "--" + self.root.pos.getId()
+            if not (isinstance(self.root.pos, Value) or isinstance(self.root.pos, Pointer)):
+                res = self.toDot(self.root.pos)
+                nodes = nodes + res[0]
+                edges = edges + res[1]
+            else:
+                nodes = nodes + "\n" + self.root.pos.getId() + " [label=" + self.root.pos.getLabel() + "]"
             for node in self.root.arrayContent:
                 edges = edges + "\n" + self.root.getId() + "--" + node.getId()
                 nodes = nodes + "\n" + node.getId() + " [label=" + node.getLabel() + "]"
         elif isinstance(self.root, ReturnNode):
             edges = edges + "\n" + self.root.getId() + "--" + self.root.value.getId()
-            if not (isinstance(self.root.value.root, Value) or isinstance(self.root.value.root, Array) or
-                    isinstance(self.root.value.root, Pointer)):
+            if not (isinstance(self.root.value.root, Value) or isinstance(self.root.value.root, Pointer)):
                 res = self.toDot(self.root.value)
                 nodes = nodes + res[0]
                 edges = edges + res[1]
@@ -172,8 +179,7 @@ class AST:
         elif isinstance(self.root, Print) or isinstance(self.root, Scan):
             for tree in self.root.param:
                 edges = edges + "\n" + self.root.getId() + "--" + tree.root.getId()
-                if not (isinstance(self.root.value.root, Value) or isinstance(self.root.value.root, Array) or
-                        isinstance(self.root.value.root, Pointer)):
+                if not (isinstance(self.root.value.root, Value) or isinstance(self.root.value.root, Pointer)):
                     res = self.toDot(tree)
                     nodes = nodes + res[0]
                     edges = edges + res[1]
@@ -278,28 +284,33 @@ class AST:
                 value = self.root.param[value]
                 edges = edges + "\n" + self.root.getId() + "--" + value.getId()
                 nodes = nodes + "\n" + value.getId() + " [label=" + value.getLabel() + "]"
-        elif isinstance(self.root, Array):
-            for node in self.root.arrayContent:
-                edges = edges + "\n" + self.root.getId() + "--" + node.getId()
+        elif isinstance(root, Array): # TODO: removed self from before root
+            edges = edges + "\n" + root.getId() + "--" + root.pos.getId()
+            if not (isinstance(root.pos, Value) or isinstance(root.pos, Pointer)):
+                res = self.toDot(root.pos)
+                nodes = nodes + res[0]
+                edges = edges + res[1]
+            else:
+                nodes = nodes + "\n" + root.pos.getId() + " [label=" + root.pos.getLabel() + "]"
+            for node in root.arrayContent:
+                edges = edges + "\n" + root.getId() + "--" + node.getId()
                 nodes = nodes + "\n" + node.getId() + " [label=" + node.getLabel() + "]"
-        elif isinstance(self.root, ReturnNode):
+        elif isinstance(root, ReturnNode): # TODO: removed self. before root
 
             edges = edges + "\n" + root.getId() + "--" + root.value.root.getId()
-            if not (isinstance(root.value.root, Value) or isinstance(root.value.root, Array) or
-                isinstance(root.value.root, Pointer)):
+            if not (isinstance(root.value.root, Value) or isinstance(root.value.root, Pointer)):
                 res = root.value.toDot(root.value.root)
                 nodes = nodes + res[0]
                 edges = edges + res[1]
             else:
                 nodes = nodes + "\n" + root.value.root.getId() + " [label=" + root.value.root.getLabel() + "]"
-        elif isinstance(self.root, Print) or isinstance(self.root, Scan):
+        elif isinstance(root, Print) or isinstance(root, Scan): # TODO: removed self before both roots
             for tree in root.param:
                 temp = tree
                 if isinstance(temp, tuple):
                     temp = temp[0]
                 edges = edges + "\n" + root.getId() + "--" + temp.root.getId()
-                if not (isinstance(temp.root, Value) or isinstance(temp.root, Array) or
-                        isinstance(temp.root, Pointer)):
+                if not (isinstance(temp.root, Value) or isinstance(temp.root, Pointer)):
                     res = temp.toDot(temp.root)
                     nodes = nodes + res[0]
                     edges = edges + res[1]
@@ -314,7 +325,7 @@ class AST:
          tree, self.g_assignment
         """
         temp = None
-        if not (isinstance(self.root, Value) or isinstance(self.root, Array) or isinstance(self.root, Include) or isinstance(self.root,Continue) or isinstance(self.root,Break)):
+        if not (isinstance(self.root, Value) or isinstance(self.root, Include) or isinstance(self.root,Continue) or isinstance(self.root,Break)):
             temp = self.root.fold(to_llvm)
             self.root = temp[0]
             return self, temp[1]
