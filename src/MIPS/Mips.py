@@ -4,10 +4,16 @@ from src.HelperFunctions import stack
 from src.ast.Program import *
 from src.ast.node import *
 
+"""
+print implementatie:
+
+https://gist.github.com/KaceCottam/37a065a2c194c0eb50b417cf67455af1
+
+"""
+
 
 # todo: vraag is probleem dat conditions output op de fp opslaag??
 # en return_function niet in volgorde?
-
 # TODO: DECLARATIONS        v
 # TODO: binary OPERATIONS   v
 # todo: unary operations    v --> kan niet helemaal getest worden door folding probleem
@@ -16,10 +22,11 @@ from src.ast.node import *
 # todo: if /else            v
 # todo :UNNAMED SCOPES      v --> vraag als dit ok is?
 # TODO: function return     v
+# TODO: pointers            x
 # TODO: PRINT               x
 # TODO: SCAN                x
 # TODO: ARRAYS              x
-# todo : function calls     x
+# todo : function calls     v
 # TODO: modulo              x
 # todo: conversions int    ->float/bool->int in helper  x
 # todo function forward declaration skippen v
@@ -45,7 +52,7 @@ class Mips:
         self.data_dict = dict()
         self.save_old_val = None
         self.loop_counter = 0
-        self.reused_registers = list()
+        self.reused_registers = dict()
 
     def float_to_64bit_hex(self, x):
         # print("x is none in scope:" + self.c_function.root.f_name)
@@ -118,7 +125,7 @@ class Mips:
                 self.text += "push everything in memory to reuse registers \n"
                 for k, v in self.register.items():
                     if v.startswith(type):
-                        self.reused_registers.append(self.frame_register[v])
+                        self.reused_registers[v] = self.frame_register[v]
                         self.text += "sw {}, {}\n".format(v, self.frame_register[v])
                 self.remove_register_type(type)
                 return self.get_next_highest_register_type(type, v)
@@ -240,6 +247,7 @@ class Mips:
         self.set_return_function(scope.f_return, scope.f_name == "main")
         self.c_function = None
         self.remove_register_type('s')
+        self.reused_registers = dict()
         return
 
     def save_function_variables(self, scope: Scope):
@@ -280,7 +288,8 @@ class Mips:
         # transverse return address
         if f_return is None:
             return self.end_function(True)
-        if isinstance(f_return.root, BinaryOperator) or isinstance(f_return, UnaryOperator) or isinstance(f_return,LogicalOperator):
+        if isinstance(f_return.root, BinaryOperator) or isinstance(f_return, UnaryOperator) or isinstance(f_return,
+                                                                                                          LogicalOperator):
             self.declaration = Value("$freturn", self.c_function.return_type, 0)
             # self.add_to_memory(self.declaration)
             self.register["v0"] = self.declaration.value
@@ -295,7 +304,8 @@ class Mips:
         elif isinstance(f_return, Function):
             pass
         self.end_function(is_main)
-    def end_function(self, void:bool):
+
+    def end_function(self, void: bool):
         for key in reversed(self.frame_register):
             self.text += "lw ${}, {}\n".format(key, self.frame_register[key])
         self.text += "lw	$ra, -4($fp)\n"
@@ -323,6 +333,23 @@ class Mips:
             self.text += "lw $t0, {}\n".format(self.frame_register[self.register[v.value]])
             self.text += "move $v0,$t0\n"
 
+    def print_nr(self, type):
+        if type == LiteralType.INT:
+            return 1
+        if type == LiteralType.FLOAT:
+            return 2
+        if type == LiteralType.BOOL:
+            return 1
+        if type == LiteralType.CHAR:
+            return 11
+
+    def load_float(self, fl):
+        if isinstance(fl, str):
+            fl = float(fl)
+        self.data_count += 1
+        self.data += "$${}: .float {}\n".format(self.data_count, fl)
+        return self.data_count
+
     def to_print(self, p: Print):
         print("print called")
         # split syscall to %i
@@ -331,16 +358,95 @@ class Mips:
         for i in strings:
             if i[-1] == "\"":
                 continue
-            if i not in self.data_dict:
-                self.data_count += 1
-                self.data_dict[i] = self.data_count
-                self.data += "$${}  :.asciiz {} \"\n".format(self.data_count, i)
-            # load varialbe in $a0
-            # self.text += "lw $a0, integer_value"
+            self.data_count += 1
+            self.data_dict[i] = self.data_count
+            self.data += "$${}  :.asciiz {} \"\n".format(self.data_count, i)
             self.text += "li $v0, 4\n"
             self.text += "la $a0, $${}\n".format(self.data_count)
             self.text += "syscall\n"
+            # input value to print:
+            # todo:save return address in a register
+            # cdsif
+            inp = p.paramString[pi]
+            print_ = self.set_print_type(inp)
+            print_nr = 4
+            if print_ is not None:
+                print_nr = self.print_nr(print_.type)
+            if print_ is None or print_.type == LiteralType.CHAR:
+                # is string
+                self.data_count += 1
+                self.data_dict[i] = self.data_count
+                self.data += "$${}  :.asciiz {} \n".format(self.data_count, p.param[pi].value)
+                self.text += "li $v0, 4\n"
+                self.text += "la $a0, $${}\n".format(self.data_count)
+                self.text += "syscall\n"
+                continue
+            elif isinstance(p.param[pi], tuple):
+                p.param[pi] = p.param[pi][0]
+            if isinstance(p.param[pi].root, Value):
+                self.text += "li $v0, {}\n".format(print_nr)
+                # float
+                if p.param[pi].root.type == LiteralType.FLOAT:
+                    if is_float(str(p.param[pi].root.value)):
+                        self.load_float(p.param[pi].root.value)
+                        s = self.get_register(print_.value, 'f', print_.type)
+                        """"
+                        li $v0, 2
+                        lwc1 $f0, $$4
+                        mov.s $f12, $f0
+                        syscall
+                        """
+                        self.text += "lwc1 ${}, $${}\n".format(s,self.data_count)
+                # int
+                elif str(p.param[pi].root.value).isdigit():
+                    print_.value = p.param[pi].root.value
+                    s = self.get_register(print_.value, 't', print_.type)
+                    val = p.param[pi].root.value
+                    self.text += "ori ${}, {}\n".format(s, val)
+                # var
+                else:
+                    s = self.get_register(p.param[pi].root.value, 's', p.param[pi].root.type)
+
+                if print_.type == LiteralType.FLOAT:
+                    self.text += "mov.s $f12, ${}\n".format(s)
+                else:
+                    self.text += "move $a0, ${}\n".format(s)
+                self.text += "syscall\n"
+
+                # Lload value +syscall
+            elif isinstance(p.param[pi].root, Array):
+                pass
+            elif isinstance(p.param[pi].root, Pointer):
+                pass
+            elif isinstance(p.param[pi].root, UnaryOperator) or isinstance(p.param[pi].root,
+                                                                           BinaryOperator) or isinstance(
+                    p.param[pi].root, LogicalOperator):
+                self.declaration = print_
+                self.add_to_memory(self.declaration)
+                p.param[pi].printTables("random", self)
+                s = self.get_register(self.declaration.value, 's', self.declaration.type)
+                self.text += "li $v0, {}\n".format(print_nr)
+                if print_.type == LiteralType.FLOAT:
+                    self.text += "mov.s $f12, ${}\n".format(s)
+                else:
+                    self.text += "move $a0, ${}\n".format(s)
+                self.text += "syscall\n"
+                self.save_old_val = None
+                self.declaration = None
+                self.remove_temps()
             pi += 1
+
+    def set_print_type(self, type_):
+        if type_ == '%c':
+            return Value(lit='$print', line=0, valueType=LiteralType.CHAR)
+        if type_ == '%d':
+            return Value(lit='$print', line=0, valueType=LiteralType.INT)
+        if type_ == '%s':
+            return None
+        if type_ == '%i':
+            return Value(lit='$print', line=0, valueType=LiteralType.INT)
+        if type_ == '%f':
+            return Value(lit='$print', line=0, valueType=LiteralType.FLOAT)
 
     def print_load(self, v):
         result = 0
@@ -457,11 +563,17 @@ class Mips:
         self.frame_register[key] = str(self.frame_counter) + "($fp)"
 
     def get_register(self, v, type_='s', value_type=LiteralType.INT):
+        if type_ == 's' and value_type == LiteralType.FLOAT:
+            type_ = 'f'
         if v in self.register.keys():
             return self.register[v]
+        if v in self.reused_registers.keys():
+            s = self.get_next_highest_register_type(type_, Value(valueType=value_type, lit=v, line=0))
+            self.text += "sw ${}, {}\n".format(s, self.reused_registers[v])
+            return s
         # not in keys:
         s = self.get_next_highest_register_type(type_, Value(valueType=value_type, lit=v, line=0))
-        if type_ != 't':
+        if type_ != 't' and type_ != 'f':
             self.frame_register[s] = str(self.frame_counter) + "($fp)"
             self.text += "sw ${}, {}($fp)\n".format(s, self.frame_counter)
         return s
