@@ -30,7 +30,7 @@ def load_type(left, mips):
     else:
         s = mips.register[left.value]
         # temporaries dont need to be loaded
-        if s[0] == 't':
+        if s[0] == 't' or s[0] == 'f':
             return
         f = mips.frame_register[mips.register[left.value]]
         mips.text += "lw  ${}, {}\n".format(s, f)
@@ -114,9 +114,11 @@ def store_unary_operation(op, right, rtype, mips):
     op = get_unary_operation(op, rtype)
     sr = mips.register[right.value]
     save = mips.register[mips.declaration.value]
-    fr = mips.frame_register[mips.register[mips.declaration.value]]
+
     mips.text += "{} ${}, ${} ,${}\n".format(op, save, sr, "zero")
-    mips.text += "sw ${}, {}\n".format(save, fr)
+    if mips.register[mips.declaration.value] in mips.frame_register:
+        fr = mips.frame_register[mips.register[mips.declaration.value]]
+        mips.text += "sw ${}, {}\n".format(save, fr)
 
 
 def store_binary_operation(op, left, right, rtype, mips):
@@ -130,8 +132,9 @@ def store_binary_operation(op, left, right, rtype, mips):
     opi = get_operation(op, rtype)
     mips.text += "{} ${},${}, ${}\n".format(opi, save, sl, sr)
     # store back in frame
-    fr = mips.frame_register[mips.register[mips.declaration.value]]
-    mips.text += "sw ${}, {}\n".format(save, fr)
+    if mips.register[mips.declaration.value] in mips.frame_register:
+        fr = mips.frame_register[mips.register[mips.declaration.value]]
+        mips.text += "sw ${}, {}\n".format(save, fr)
 
 
 def set_llvm_unary_operators(right, op: str, mips):
@@ -156,9 +159,11 @@ def set_llvm_unary_operators(right, op: str, mips):
     # get all types
     # move higher type if necessary
 
-    if isinstance(right.value, int) or str(right.value).isdigit() or isinstance(right.value, float) or isfloat(
-            str(right.value)):
+    if isinstance(right.value, int) or str(right.value).isdigit():
         mips.get_next_highest_register_type("t", right)
+        load_right = False
+    elif isinstance(right.value, float) or isfloat(str(right.value)):
+        mips.get_next_highest_register_type("f", right)
         load_right = False
     rtype = right.type
     # load right type
@@ -191,7 +196,12 @@ def save_to_data(left, mips):
     if str(left.value).isdigit():
         mips.text += "ori ${},$0,{}\n".format(mips.register[left.value], left.value)
     elif isfloat(left.value):
-        mips.text += "ori ${},$0,{}\n".format(mips.register[left.value], mips.float_to_hex(left.value))
+        mips.load_float(left.value)
+        s = mips.get_register(left.value, 'f', left.type)
+        mips.text += "lwc1 ${}, $${}\n".format(s, mips.data_count)
+
+        """s = mips.get_register(left.value, 'f', left.type)
+        mips.text += "l.s ${}, {}\n".format(s, mips.float_to_hex(left.value))"""
 
     else:
         mips.data_count += 1
@@ -246,13 +256,17 @@ def set_llvm_binary_operators(left, right, op: str, mips):
     # get all types
     # move higher type if necessary
 
-    if isinstance(right.value, int) or str(right.value).isdigit() or isinstance(right.value, float) or isfloat(
-            str(right.value)):
-        mips.get_next_highest_register_type("t", right)
+    if isinstance(right.value, int) or str(right.value).isdigit():
         load_right = False
-    if isinstance(left.value, int) or str(left.value).isdigit() or isinstance(right.value, float) or isfloat(
-            str(left.value)):
+        mips.get_next_highest_register_type("t", right)
+    elif isinstance(right.value, float) or isfloat(str(right.value)):
+        mips.get_next_highest_register_type("f", right)
+        load_right = False
+    if isinstance(left.value, int) or str(left.value).isdigit():
+        load_right = False
         mips.get_next_highest_register_type("t", left)
+    elif isinstance(right.value, float) or isfloat(str(left.value)):
+        mips.get_next_highest_register_type("f", left)
         load_left = False
     ltype = left.type
     rtype = right.type

@@ -113,7 +113,7 @@ class Mips:
         # $ end of string \d match digits
         digits = int(re.findall(r'\d+$', highest)[0])
         digits += 1
-        if digits >= 7 and (type == 's' or type == 'f'):
+        if digits >= 7:
             """
             need to reuse a register
             set everything of this type in memory
@@ -121,7 +121,7 @@ class Mips:
             remove them from registers
             call function again
             """
-            if type == 's' or type == 'f':
+            if type == 's':
                 self.text += "push everything in memory to reuse registers \n"
                 for k, v in self.register.items():
                     if v.startswith(type):
@@ -264,11 +264,13 @@ class Mips:
 
             name = index
             reg = "s"
-            """if type_ == LiteralType.FLOAT:
-                reg = "f"""""
-            s = self.get_next_highest_register_type(reg, Value(valueType=type_, lit=name, line=0))
-            self.frame_register[s] = str(self.frame_counter) + "($fp)"
-            self.text += "sw	${}, {}($fp)\n".format(s, self.frame_counter)
+            if type_ == LiteralType.FLOAT:
+                reg = "f"
+                self.get_next_highest_register_type(reg, Value(valueType=type_, lit=name, line=0))
+            else:
+                s = self.get_next_highest_register_type(reg, Value(valueType=type_, lit=name, line=0))
+                self.frame_register[s] = str(self.frame_counter) + "($fp)"
+                self.text += "sw	${}, {}($fp)\n".format(s, self.frame_counter)
         return self.frame_counter
 
     # determine space arguments and any local variable needed
@@ -316,13 +318,19 @@ class Mips:
             self.text += "syscall\n"
         else:
             self.text += "jr	$ra\n"
-
+    def load_float(self, val):
+        self.load_float(val)
+        s = self.get_register(val, 'f', LiteralType.FLOAT)
+        self.text += "lwc1 ${}, $${}\n".format(s, self.data_count)
+        return s
     def load_retrun_value(self, v):
         if v.getType() == LiteralType.INT and str(v.value).isdigit():
             self.text += "li $v0, {}\n".format(v.value)
 
         elif v.getType() == LiteralType.FLOAT and is_float(v.value):
-            self.text += "ori $v0,$0,{}\n".format(self.float_to_hex(v.value))
+            #self.text += "ori $v0,$0,{}\n".format(self.float_to_hex(v.value))
+            self.load_float(v.value)
+            self.text += "mov.s $f0, ${}\n".format(self.get_register(v.value,'f',LiteralType.FLOAT))
         elif v.getType() == LiteralType.CHAR:
             self.data_count += 1
             self.data_dict[v.value] = self.data_count
@@ -394,17 +402,10 @@ class Mips:
             if isinstance(p.param[pi].root, Value):
                 self.text += "li $v0, {}\n".format(print_nr)
                 # float
-                if p.param[pi].root.type == LiteralType.FLOAT:
-                    if is_float(str(p.param[pi].root.value)):
-                        self.load_float(p.param[pi].root.value)
-                        s = self.get_register(print_.value, 'f', print_.type)
-                        """"
-                        li $v0, 2
-                        lwc1 $f0, $$4
-                        mov.s $f12, $f0
-                        syscall
-                        """
-                        self.text += "lwc1 ${}, $${}\n".format(s,self.data_count)
+                if p.param[pi].root.type == LiteralType.FLOAT and is_float(str(p.param[pi].root.value)):
+                    s = self.get_register(print_.value, 'f', print_.type)
+                    self.load_float(p.param[pi].root.value)
+                    self.text += "lwc1 ${}, $${}\n".format(s,self.data_count)
                 # int
                 elif str(p.param[pi].root.value).isdigit():
                     print_.value = p.param[pi].root.value
@@ -569,7 +570,9 @@ class Mips:
     def add_to_frame_register(self, key):
         self.frame_counter -= 4
         self.frame_register[key] = str(self.frame_counter) + "($fp)"
-
+    def remove_register(self, key):
+        del self.register[key]
+        return
     def get_register(self, v, type_='s', value_type=LiteralType.INT):
         if type_ == 's' and value_type == LiteralType.FLOAT:
             type_ = 'f'
@@ -705,8 +708,11 @@ class Mips:
             self.load_type(f.param[i], True)
         self.text += "jal {}\n".format(f.f_name)
         # self.text += "sw $v0, {}\n".format(d.rightChild.f_name)
-        self.text += "move ${}, $v0\n".format(self.register[var.value])
-        if save_mem:
+        if var.type==LiteralType.FLOAT:
+            self.text += "mov.s ${}, $f0\n".format(self.register[var.value])
+        else:
+            self.text += "move ${}, $v0\n".format(self.register[var.value])
+        if save_mem and self.register[var.value][0]=='s':
             self.text += "sw ${}, {}\n".format(self.register[var.value], self.frame_register[self.register[var.value]])
 
         return
@@ -725,8 +731,13 @@ class Mips:
         elif isinstance(v, Value) and v.getType() == LiteralType.FLOAT and is_float(v.value):
             if is_param:
                 save = 'f'
-            self.get_next_highest_register_type(save, v)
-            self.text += "ori ${}, $zero, {}\n".format(self.register[v.value], self.float_to_hex(v.value))
+            s = self.get_next_highest_register_type(save, v)
+            self.load_float(v.value)
+            self.remove_register(v.value)
+            si = self.get_register(v.value, 'a', v.type)
+            self.text += "lwc1 ${}, $${}\n".format(s, self.data_count)
+            self.text += "mfc1 ${}, ${}\n".format(si,s)
+            #self.text += "ori ${}, $zero, {}\n".format(self.register[v.value], self.float_to_hex(v.value))
         elif isinstance(v, Value) and v.getType() == LiteralType.CHAR and v.value[0] == '\'':
             self.data_count += 1
             self.data_dict[v.value] = self.data_count
