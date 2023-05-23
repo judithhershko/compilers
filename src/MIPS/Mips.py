@@ -358,15 +358,23 @@ class Mips:
         for i in strings:
             if i[-1] == "\"":
                 continue
+            i=str(i)
             self.data_count += 1
             self.data_dict[i] = self.data_count
-            self.data += "$${}  :.asciiz {} \"\n".format(self.data_count, i)
+            front=""
+            back=""
+            if i != strings[0]:
+                i = i[1:]
+            if i[0]!="\"" or i[0]!='\"':
+                front="\""
+            if i[-1] != "\"" or i[-1] != '\"':
+                back = "\""
+
+            self.data += "$${}  :.asciiz {} {} {} \n".format(self.data_count,front, i,back)
             self.text += "li $v0, 4\n"
             self.text += "la $a0, $${}\n".format(self.data_count)
             self.text += "syscall\n"
             # input value to print:
-            # todo:save return address in a register
-            # cdsif
             inp = p.paramString[pi]
             print_ = self.set_print_type(inp)
             print_nr = 4
