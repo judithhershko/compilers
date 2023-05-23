@@ -11,7 +11,8 @@ https://gist.github.com/KaceCottam/37a065a2c194c0eb50b417cf67455af1
 
 """
 
-
+# issue return x (int)
+# issue return float --> input function and not stored in a fp?
 # todo: vraag is probleem dat conditions output op de fp opslaag??
 # en return_function niet in volgorde?
 # TODO: DECLARATIONS        v
@@ -610,23 +611,31 @@ class Mips:
             return self.to_function_dec(declaration.rightChild, declaration.leftChild, True)
         s = self.get_register(declaration.leftChild.value, self.get_register_type(declaration.leftChild.getType()),
                               declaration.leftChild.getType())
-        f = self.frame_register[self.register[declaration.leftChild.value]]
-        self.text += "lw  ${}, {}\n".format(s, f)
+
         if declaration.rightChild.getType() == LiteralType.INT and str(declaration.rightChild.value).isdigit():
+            f = self.frame_register[self.register[declaration.leftChild.value]]
+            self.text += "lw  ${}, {}\n".format(s, f)
             self.text += "ori ${},$0,{}\n".format(self.register[declaration.leftChild.value],
                                                   declaration.rightChild.value)
             self.text += "sw  ${}, {}\n".format(s, f)
         elif declaration.rightChild.getType() == LiteralType.FLOAT and is_float(str(declaration.rightChild.value)):
-            self.text += "ori ${},$0,{}\n".format(self.register[declaration.leftChild.value],
-                                                  self.float_to_hex(declaration.rightChild.value))
-            self.text += "sw  ${}, {}\n".format(s, f)
+            #self.text += "ori ${},$0,{}\n".format(self.register[declaration.leftChild.value],
+            #                                      self.float_to_hex(declaration.rightChild.value))
+            #self.text += "sw  ${}, {}\n".format(s, f)
+            self.load_float(declaration.rightChild.value)
+            s = self.get_register(declaration.rightChild.value, 'f',declaration.rightChild.type)
+            self.text += "lwc1 ${}, $${}\n".format(s,self.data_count)
 
         elif declaration.rightChild.getType() == LiteralType.BOOL and (
                 declaration.rightChild == 'True' or declaration.rightChild == 'False'):
             if declaration.rightChild == 'True':
+                f = self.frame_register[self.register[declaration.leftChild.value]]
+                self.text += "lw  ${}, {}\n".format(s, f)
                 self.text += "ori {},$0,1\n".format(self.register[declaration.leftChild.value])
                 self.text += "sw  ${}, {}\n".format(s, f)
             else:
+                f = self.frame_register[self.register[declaration.leftChild.value]]
+                self.text += "lw  ${}, {}\n".format(s, f)
                 self.text += "ori {},$0,0\n".format(self.register[declaration.leftChild.value])
                 self.text += "sw  ${}, {}\n".format(s, f)
         else:
