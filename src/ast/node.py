@@ -1979,7 +1979,7 @@ class Array(AST_node):
         :param fill: bool deciding if the variables need to be replaced or not
         """
         if isinstance(self.pos, Value) and not self.pos.variable:
-            name = str(self.pos) + str(self.value)
+            name = str(self.pos.value) + str(self.value)
             if fill and values and values[name][3]:
                 self.type = values[name][1]
                 self.value = values[name][0]
