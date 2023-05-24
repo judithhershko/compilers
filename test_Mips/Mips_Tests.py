@@ -32,8 +32,6 @@ def testFile(fileName):
 
 
 class Mips_TestCases_Working(unittest.TestCase):
-    # MANDITORY
-    # ASSIGNEMT 1
     def filetest(self, filename):
         try:
             testFile(filename)
@@ -47,13 +45,15 @@ class Mips_TestCases_Working(unittest.TestCase):
             text2 = file.read().replace('\n', '')
         self.assertTrue(text1 == text2)
 
+    # MANDITORY
+    # ASSIGNEMT 1
     def test_binaryArithmeticOperators(self):
         # Binary arithmetic operators: +, -, *, /
         file = "M_P_BinaryArithmeticOperators"
         return self.filetest(file)
 
     def test_binaryComparatorOperators(self):
-        # Binary arithmetic operators: +, -, *, /
+        # Binary arithmetic operators: <, >, ==
         file = "M_P_BinaryComparatorOperators"
         return self.filetest(file)
 
@@ -75,6 +75,7 @@ class Mips_TestCases_Working(unittest.TestCase):
         file = "M_P_IgnoringWhiteSpaces"
         return self.filetest(file)
 
+    # SHOW AST OF CONSTANT FOLDING
     def test_ConstantFolding(self):
         file = "M_P_ConstantFolding"
         return self.filetest(file)
@@ -133,11 +134,10 @@ class Mips_TestCases_Working(unittest.TestCase):
         file = "M_P_Continue"
         return self.filetest(file)
 
+    # SHOW SYMBOLTABLE ANON SCOPE
     def test_AnonScope(self):
         file = "M_P_AnonScope"
         return self.filetest(file)
-
-    # SHOW SYMBOLTABLE ANON SCOPE
 
     # ASSIGNEMT 5
     def test_functionScope(self):
@@ -164,11 +164,11 @@ class Mips_TestCases_Working(unittest.TestCase):
         file = "M_P_ForwardDeclaration"
         return self.filetest(file)
 
-    def test_ReturnTypeChecking(self):
+    def test_ReturnTypeChecking(self): # TODO: together with syntax errors
         file = "M_P_returnTypeChecking"
         return self.filetest(file)
 
-    def test_TypeCheckforwardDec(self):
+    def test_TypeCheckforwardDec(self): # TODO: together with syntax errors
         file = "M_P_TypeCheckForwardDec"
         return self.filetest(file)
 
@@ -177,7 +177,7 @@ class Mips_TestCases_Working(unittest.TestCase):
         file = "M_P_DeadReturnBreakContinue"
         return self.filetest(file)
 
-    # ASSIGNEMT 6
+    # ASSIGNEMT 6 # TODO: progress from here
     def test_OneDimeArray(self):
         file = "M_P_Array"
         return self.filetest(file)
@@ -197,6 +197,12 @@ class Mips_TestCases_Working(unittest.TestCase):
 
 # EXTRA
 # TODO: CHECK WHAT EXTRA WE ARE IMPLEMENTING
+# - else if
+# - uitgebreide constant folding
+# – Additional logical operators: >=, <=, !=
+# – Modulo operator: %
+# – Increment, decrement operators: ++, -- (both prefix and suﬀix variants) ???????
+# – Store comments in AST and machine code ??????
 
 
 class Mips_TestCasesErrors(unittest.TestCase):

@@ -224,7 +224,7 @@ class block:
             for elem in res[0]:
                 allVar.append(elem)
             cleanTrees.append(tree)
-            if tree.root.name in ("break", "cont", "return"):
+            if tree.root.name in ("break", "continue", "return"):
                 break
         self.trees = cleanTrees
         self.cleaned = True

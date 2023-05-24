@@ -160,7 +160,7 @@ class CustomListener(ExpressionListener):
         if self.array_content:
             return
         if self.right or (self.parent.rightChild is None and self.parent.leftChild is not None):
-            if not isinstance(self.dec_op, Array) and isinstance(self.dec_op.leftChild, Array) and self.dec_op.leftChild.pos is not None: # TODO: added this to make complex array's work: int x[i+1] = 1;
+            if self.dec_op is not None and not isinstance(self.dec_op, Array) and isinstance(self.dec_op.leftChild, Array) and self.dec_op.leftChild.pos is not None: # TODO: added this to make complex array's work: int x[i+1] = 1;
                 self.parent = self.dec_op
             self.parent.setRightChild(self.current)
             self.right = False

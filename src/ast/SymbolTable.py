@@ -25,6 +25,8 @@ class FunctionTable:
         if func.f_return is None:
             if func.return_type is None:
                 function["return"] = "void"
+            elif func.forward_declaration:
+                function["return"] = str(func.return_type);
             else:
                 raise wrongReturnType(func.f_name, func.line, str(func.return_type), "void")
         elif func.return_type is None:
