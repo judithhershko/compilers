@@ -132,9 +132,9 @@ class SymbolTable:
                         self.parent.addSymbol(root, isGlobal, fill)
                 if ref is None:
                     if isinstance(root.getLeftChild(), Pointer):
-                        self.table.loc[name] = [value, symType, const, level, isGlobal, False]
+                        self.table.loc[name] = [str(value), symType, const, level, isGlobal, False]
                     else:
-                        self.table.loc[name] = [value, symType, const, level, isGlobal,
+                        self.table.loc[name] = [str(value), symType, const, level, isGlobal,
                                                 fill]  # TODO: use deref to make sure a reference can not be placed in a normal variable once introduced
                     return "placed"
                 elif ref not in self.table.index:
@@ -146,7 +146,7 @@ class SymbolTable:
                     raise RefPointerLevel(name, refValue["Level"], level, line)
                 elif symType != refValue["Type"]:
                     raise PointerType(name, refValue["Type"], symType, line)
-                self.table.loc[name] = [value, symType, const, level, isGlobal, fill]
+                self.table.loc[name] = [str(value), symType, const, level, isGlobal, fill]
                 return "placed"
             else:
                 row = self.table.loc[name]

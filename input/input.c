@@ -1,16 +1,9 @@
 #include "stdio.h";
-float fff(int x, float fx){
-float *px=&fx;
-float **ppx=&px;
-float z=*px;
-float f=90.9*z+z;
-return fx;
-}
-int main(int x, float z)
+int main()
 {
-float f=fff(1,2.2);
-x=90;
-
-printf("y is : %i en int is : %i ", x,x*x+89);
+float f=90.9;
+int x=88;
+char z='a';
+int y = x+x;
 return 0;
 }
