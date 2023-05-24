@@ -1,14 +1,16 @@
-#include <stdio.h>
+#include "stdio.h";
+float fff(int x, float fx){
+float *px=&fx;
+float **ppx=&px;
+float z=*px;
+float f=90.9*z+z;
+return fx;
+}
+int main(int x, float z)
+{
+float f=fff(1,2.2);
+x=90;
 
-int main(){
-    int z = 1;
-    int x[3];
-    x[z-1] = 5;
-    x[z] = 6;
-    x[1+z] = 7;
-    int y = x[z-1];
-    int w = x[z];
-    int v = x[1+z];
-
-	return 1;
+printf("y is : %i en int is : %i ", x,x*x+89);
+return 0;
 }

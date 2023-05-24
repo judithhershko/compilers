@@ -29,6 +29,9 @@ def load_type(left, mips):
         pass
     else:
         s = mips.register[left.value]
+        # temporaries dont need to be loaded
+        if s[0] == 't' or s[0] == 'f':
+            return
         f = mips.frame_register[mips.register[left.value]]
         mips.text += "lw  ${}, {}\n".format(s, f)
 
@@ -55,54 +58,54 @@ def get_unary_operation(op: str, rtype):
 
 
 def get_operation(op: str, type):
-    if op == "-" and type == LiteralType.INT:
+    if op == "-" and (type == LiteralType.INT or type == 'INT'):
         return "subu"
-    if op == "-" and type == LiteralType.FLOAT:
+    if op == "-" and (type == LiteralType.FLOAT or type == 'FLOAT'):
         return "sub.s"
-    if op == "+" and type == LiteralType.INT:
+    if op == "+" and (type == LiteralType.INT or type == 'INT'):
         return "addu"
-    if op == "+" and type == LiteralType.FLOAT:
+    if op == "+" and (type == LiteralType.FLOAT or type == 'FLOAT'):
         return "add.s"
-    if op == "*" and type == LiteralType.INT:
+    if op == "*" and (type == LiteralType.INT or type == 'INT'):
         return "mul"
-    if op == "*" and type == LiteralType.FLOAT:
+    if op == "*" and (type == LiteralType.FLOAT or type == 'FLOAT'):
         return "mul.s"
-    if op == "/" and type == LiteralType.INT:
+    if op == "/" and (type == LiteralType.INT or type == 'INT'):
         return "div"
-    if op == "/" and type == LiteralType.FLOAT:
+    if op == "/" and (type == LiteralType.FLOAT or type == 'FLOAT'):
         return "div.s"
     # TODO fist devide then save modulo
-    if op == "%" and type == LiteralType.INT:
+    if op == "%" and (type == LiteralType.INT or type == 'INT'):
         return "mfhi"
-    if op == "%" and type == LiteralType.FLOAT:
+    if op == "%" and (type == LiteralType.FLOAT or type == 'FLOAT'):
         raise NotSupported("%", "float")
-    if op == ">" and type == LiteralType.INT:
+    if op == ">" and (type == LiteralType.INT or type == 'INT'):
         return "sgt"
-    if op == ">" and type == LiteralType.FLOAT:
+    if op == ">" and (type == LiteralType.FLOAT or type == 'FLOAT'):
         return "sgt"
-    if op == ">=" and type == LiteralType.INT:
+    if op == ">=" and (type == LiteralType.INT or type == 'INT'):
         return "sge"
-    if op == ">=" and type == LiteralType.FLOAT:
+    if op == ">=" and (type == LiteralType.FLOAT or type == 'FLOAT'):
         return "sge"
-    if op == "<" and type == LiteralType.INT:
+    if op == "<" and (type == LiteralType.INT or type == 'INT'):
         return "slt"
-    if op == "<" and type == LiteralType.FLOAT:
+    if op == "<" and (type == LiteralType.FLOAT or type == 'FLOAT'):
         return "slt"
-    if op == "<=" and type == LiteralType.INT:
+    if op == "<=" and (type == LiteralType.INT or type == 'INT'):
         return "sle"
-    if op == "<=" and type == LiteralType.FLOAT:
+    if op == "<=" and (type == LiteralType.FLOAT or type == 'FLOAT'):
         return "slte"
-    if op == "==" and type == LiteralType.INT:
+    if op == "==" and (type == LiteralType.INT or type == 'INT'):
         return "seq"
-    if op == "==" and type == LiteralType.FLOAT:
+    if op == "==" and (type == LiteralType.FLOAT or type == 'FLOAT'):
         return "seq"
-    if op == "&&" and type == LiteralType.INT:
+    if op == "&&" and (type == LiteralType.INT or type == 'INT'):
         return "and"
-    if op == "&&" and type == LiteralType.FLOAT:
+    if op == "&&" and (type == LiteralType.FLOAT or type == 'FLOAT'):
         return "and"
-    if op == "||" and type == LiteralType.INT:
+    if op == "||" and (type == LiteralType.INT or type == 'INT'):
         return "or"
-    if op == "||" and type == LiteralType.FLOAT:
+    if op == "||" and (type == LiteralType.FLOAT or type == 'FLOAT'):
         return "or"
 
 
@@ -111,9 +114,12 @@ def store_unary_operation(op, right, rtype, mips):
     op = get_unary_operation(op, rtype)
     sr = mips.register[right.value]
     save = mips.register[mips.declaration.value]
-    fr = mips.frame_register[mips.register[mips.declaration.value]]
+
     mips.text += "{} ${}, ${} ,${}\n".format(op, save, sr, "zero")
-    mips.text += "sw ${}, {}\n".format(save, fr)
+    if mips.register[mips.declaration.value] in mips.frame_register:
+        fr = mips.frame_register[mips.register[mips.declaration.value]]
+        mips.text += "sw ${}, {}\n".format(save, fr)
+
 
 def store_binary_operation(op, left, right, rtype, mips):
     # save olf variable counter
@@ -123,14 +129,19 @@ def store_binary_operation(op, left, right, rtype, mips):
     sr = mips.register[right.value]
     save = mips.register[mips.declaration.value]
 
-    op = get_operation(op, rtype)
-    mips.text += "{} ${},${}, ${}\n".format(op, save, sl, sr)
+    opi = get_operation(op, rtype)
+    mips.text += "{} ${},${}, ${}\n".format(opi, save, sl, sr)
     # store back in frame
-    fr = mips.frame_register[mips.register[mips.declaration.value]]
-    mips.text += "sw ${}, {}\n".format(save, fr)
+    if mips.register[mips.declaration.value] in mips.frame_register:
+        fr = mips.frame_register[mips.register[mips.declaration.value]]
+        if save[0] == 'f':
+            mips.text += "s.s ${}, {}\n".format(save, fr)
+        else:
+            mips.text += "sw ${}, {}\n".format(save, fr)
 
 
 def set_llvm_unary_operators(right, op: str, mips):
+    load_right = True
     if mips.is_binary(right) and mips.save_old_val is None:
         right.printTables("random", mips)
     if mips.is_unary(right) and mips.save_old_val is None:
@@ -138,21 +149,24 @@ def set_llvm_unary_operators(right, op: str, mips):
     if mips.is_logical(right) and mips.save_old_val is None:
         right.printTables("random", mips)
     if right.name == "function":
-        function_in_operation(right, None, op, mips)
+        right = load_function(right, mips)
+        # load_right = False
     if right.name == "array":
         array_in_operation(right, None, op, mips)
     right_pointer = False
     if right.name == "pointer":
         right_pointer = True
-        return pointer_in_operation(right, None, op, mips)
+        right = load_pointer(right, mips)
     if right is None:
         return
     # get all types
     # move higher type if necessary
-    load_right = True
-    if isinstance(right.value, int) or str(right.value).isdigit() or isinstance(right.value, float) or isfloat(
-            str(right.value)):
+
+    if isinstance(right.value, int) or str(right.value).isdigit():
         mips.get_next_highest_register_type("t", right)
+        load_right = False
+    elif isinstance(right.value, float) or isfloat(str(right.value)):
+        mips.get_next_highest_register_type("f", right)
         load_right = False
     rtype = right.type
     # load right type
@@ -165,7 +179,7 @@ def set_llvm_unary_operators(right, op: str, mips):
     else:
         # save to data+ load from data
         save_to_data(right, mips)
-    # fix different types
+        # fix different types
 
     """if rtype == LiteralType.FLOAT and ltype == LiteralType.INT:
         mips.function_load += load_higher_type_int_to_float(mips.get_variable(left.value),
@@ -185,7 +199,12 @@ def save_to_data(left, mips):
     if str(left.value).isdigit():
         mips.text += "ori ${},$0,{}\n".format(mips.register[left.value], left.value)
     elif isfloat(left.value):
-        mips.text += "ori ${},$0,{}\n".format(mips.register[left.value], mips.float_to_hex(left.value))
+        mips.load_float(left.value)
+        s = mips.get_register(left.value, 'f', left.type)
+        mips.text += "lwc1 ${}, $${}\n".format(s, mips.data_count)
+
+        """s = mips.get_register(left.value, 'f', left.type)
+        mips.text += "l.s ${}, {}\n".format(s, mips.float_to_hex(left.value))"""
 
     else:
         mips.data_count += 1
@@ -216,8 +235,16 @@ def set_llvm_binary_operators(left, right, op: str, mips):
         left = mips.save_old_val
     elif right.name == "binary" or right.name == "logical" or right.name == "unary":
         right = mips.save_old_val
-    if left.name == 'function' or right.name == "function":
-        return function_in_operation(left, right, op, mips)
+    load_left = True
+    load_right = True
+
+    if left.name == 'function':
+        # load_left = False
+        left = load_function(left, mips)
+    if right.name == 'function':
+        # load_right = False
+        right = load_function(right, mips)
+
     if left.name == "array" or right.name == "array":
         return array_in_operation(left, right, op, mips)
     left_pointer = False
@@ -226,20 +253,24 @@ def set_llvm_binary_operators(left, right, op: str, mips):
         left_pointer = True
     if right.name == "pointer":
         right_pointer = True
-    if left.name == "pointer" or right.name == "pointer":
-        return pointer_in_operation(left, right, op, mips)
-
+    if left.name == "pointer":
+        left = load_pointer(left, mips)
+    if right.name == "pointer":
+        right = load_pointer(right, mips)
     # get all types
     # move higher type if necessary
-    load_left = True
-    load_right = True
-    if isinstance(right.value, int) or str(right.value).isdigit() or isinstance(right.value, float) or isfloat(
-            str(right.value)):
-        mips.get_next_highest_register_type("t", right)
+
+    if isinstance(right.value, int) or str(right.value).isdigit():
         load_right = False
-    if isinstance(left.value, int) or str(left.value).isdigit() or isinstance(right.value, float) or isfloat(
-            str(left.value)):
+        mips.get_next_highest_register_type("t", right)
+    elif isinstance(right.value, float) or isfloat(str(right.value)):
+        mips.get_next_highest_register_type("f", right)
+        load_right = False
+    if isinstance(left.value, int) or str(left.value).isdigit():
+        load_right = False
         mips.get_next_highest_register_type("t", left)
+    elif isinstance(right.value, float) or isfloat(str(left.value)):
+        mips.get_next_highest_register_type("f", left)
         load_left = False
     ltype = left.type
     rtype = right.type
@@ -283,42 +314,12 @@ def set_llvm_binary_operators(left, right, op: str, mips):
     mips.remove_temps()
     return
 
-def function_in_operation(left, right, op: str, llvm):
-    if llvm.is_function(left):
-        left = load_function(left, llvm)
-    if llvm.is_function(right):
-        right = load_function(right, llvm)
-    if right is None:
-        return set_llvm_unary_operators(left, op, llvm)
-    # if declaration with function x=function() en geen verder operaties
-    if left is None or right is None:
-        return
-    return set_llvm_binary_operators(left, right, op, llvm)
 
-
-def load_function(p, llvm):
-    inhoud = llvm.program.functions.findFunction(p.f_name, p.line)
-    return_ = llvm.program.functions.findFunction(p.f_name, p.line)
-    inhoud = p.param
-    llvm.add_variable(p.f_name)
-    llvm.function_load += "%{} = call {} @{}".format(llvm.get_variable(p.f_name),
-                                                     llvm.get_llvm_type(return_["return"]), p.f_name)
-    llvm.function_load += "("
-    for key in inhoud:
-        llvm.function_load += llvm.get_llvm_type(inhoud[key])
-        val = key
-        is_var = True
-        if str(key[0]).isdigit():
-            is_var = False
-            if inhoud[key] == LiteralType.FLOAT:
-                val = llvm.float_to_64bit_hex(key)
-        if is_var:
-            llvm.function_load += " noundef %{}".format(llvm.get_variable(val))
-        else:
-            llvm.function_load += "noundef {}".format(val)
-
-    llvm.function_load += ")\n"
-    return llvm.make_value(lit=p.f_name, valueType=return_["return"], line=p.line)
+def load_function(p, mips):
+    v = mips.make_value(lit='$function', valueType=p.expected["return"], line=p.line)
+    mips.to_function_dec(p, v)
+    # return l
+    return v
 
 
 def load_array(left, llvm):
@@ -344,24 +345,11 @@ def array_in_operation(left, right, op, llvm):
     return set_llvm_binary_operators(left, right, op, llvm)
 
 
-def load_pointer(left, llvm):
-    for i in range(1, left.getPointerLevel()):
-        old_val = llvm.get_variable(left.getValue())
-        new_val = llvm.add_variable(left.getValue())
-        llvm.function_load += "%{} = load ptr, ptr %{}, align 8\n".format(new_val, old_val)
-    return llvm.make_value(lit=new_val, valueType=left.getType(), line=left.line)
-
-
-def pointer_in_operation(left, right, op, llvm):
-    if llvm.is_pointer(left):
-        left = load_pointer(left, llvm)
-    if llvm.is_pointer(right):
-        right = load_pointer(right, llvm)
-    if right is None:
-        set_llvm_unary_operators(left, op, llvm)
-    if left is None or right is None:
-        return
-    return set_llvm_binary_operators(left, right, op, llvm)
+def load_pointer(p, mips):
+    v = mips.make_value(lit='$pointer', valueType=p.type, line=p.line)
+    mips.to_pointer_dec(p, v)
+    # return l
+    return v
 
 
 def isfloat(num):
