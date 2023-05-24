@@ -426,7 +426,7 @@ class Mips:
                     print_.value = p.param[pi].root.value
                     s = self.get_register(print_.value, 't', print_.type)
                     val = p.param[pi].root.value
-                    self.text += "ori ${}, {}\n".format(s, val)
+                    self.text += "li ${}, {}\n".format(s, val)
                 # var
                 else:
                     s = self.get_register(p.param[pi].root.value, 's', p.param[pi].root.type)

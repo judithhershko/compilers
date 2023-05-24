@@ -1,6 +1,7 @@
 #include "stdio.h";
 float fff(int x, float fx){
 float *px=&fx;
+float **ppx=&px;
 float z=*px;
 float f=90.9*z+z;
 return fx;

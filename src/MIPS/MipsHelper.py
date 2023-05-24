@@ -134,7 +134,7 @@ def store_binary_operation(op, left, right, rtype, mips):
     # store back in frame
     if mips.register[mips.declaration.value] in mips.frame_register:
         fr = mips.frame_register[mips.register[mips.declaration.value]]
-        if save[0]=='f':
+        if save[0] == 'f':
             mips.text += "s.s ${}, {}\n".format(save, fr)
         else:
             mips.text += "sw ${}, {}\n".format(save, fr)
@@ -156,7 +156,7 @@ def set_llvm_unary_operators(right, op: str, mips):
     right_pointer = False
     if right.name == "pointer":
         right_pointer = True
-        return pointer_in_operation(right, None, op, mips)
+        right = load_pointer(right, mips)
     if right is None:
         return
     # get all types
@@ -253,9 +253,10 @@ def set_llvm_binary_operators(left, right, op: str, mips):
         left_pointer = True
     if right.name == "pointer":
         right_pointer = True
-    if left.name == "pointer" or right.name == "pointer":
-        return pointer_in_operation(left, right, op, mips)
-
+    if left.name == "pointer":
+        left = load_pointer(left, mips)
+    if right.name == "pointer":
+        right = load_pointer(right, mips)
     # get all types
     # move higher type if necessary
 
@@ -344,24 +345,11 @@ def array_in_operation(left, right, op, llvm):
     return set_llvm_binary_operators(left, right, op, llvm)
 
 
-def load_pointer(left, llvm):
-    for i in range(1, left.getPointerLevel()):
-        old_val = llvm.get_variable(left.getValue())
-        new_val = llvm.add_variable(left.getValue())
-        llvm.function_load += "%{} = load ptr, ptr %{}, align 8\n".format(new_val, old_val)
-    return llvm.make_value(lit=new_val, valueType=left.getType(), line=left.line)
-
-
-def pointer_in_operation(left, right, op, llvm):
-    if llvm.is_pointer(left):
-        left = load_pointer(left, llvm)
-    if llvm.is_pointer(right):
-        right = load_pointer(right, llvm)
-    if right is None:
-        set_llvm_unary_operators(left, op, llvm)
-    if left is None or right is None:
-        return
-    return set_llvm_binary_operators(left, right, op, llvm)
+def load_pointer(p, mips):
+    v = mips.make_value(lit='$pointer', valueType=p.type, line=p.line)
+    mips.to_pointer_dec(p, v)
+    # return l
+    return v
 
 
 def isfloat(num):
