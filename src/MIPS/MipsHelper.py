@@ -134,7 +134,10 @@ def store_binary_operation(op, left, right, rtype, mips):
     # store back in frame
     if mips.register[mips.declaration.value] in mips.frame_register:
         fr = mips.frame_register[mips.register[mips.declaration.value]]
-        mips.text += "sw ${}, {}\n".format(save, fr)
+        if save[0]=='f':
+            mips.text += "s.s ${}, {}\n".format(save, fr)
+        else:
+            mips.text += "sw ${}, {}\n".format(save, fr)
 
 
 def set_llvm_unary_operators(right, op: str, mips):

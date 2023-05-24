@@ -11,6 +11,7 @@ https://gist.github.com/KaceCottam/37a065a2c194c0eb50b417cf67455af1
 
 """
 
+
 # issue return x (int)
 # issue return float --> input function and not stored in a fp?
 # todo: vraag is probleem dat conditions output op de fp opslaag??
@@ -24,6 +25,9 @@ https://gist.github.com/KaceCottam/37a065a2c194c0eb50b417cf67455af1
 # todo :UNNAMED SCOPES      v --> vraag als dit ok is?
 # TODO: function return     v
 # TODO: pointers            x
+# todo declaration pointer
+# todo: expression pointer
+# todo : deref pointer *px=90;
 # TODO: PRINT               x
 # TODO: SCAN                x
 # TODO: ARRAYS              x
@@ -267,7 +271,9 @@ class Mips:
             reg = "s"
             if type_ == LiteralType.FLOAT:
                 reg = "f"
-                self.get_next_highest_register_type(reg, Value(valueType=type_, lit=name, line=0))
+                s = self.get_next_highest_register_type(reg, Value(valueType=type_, lit=name, line=0))
+                self.frame_register[s] = str(self.frame_counter) + "($fp)"
+                self.text += "s.s   ${}, {}($fp)\n".format(s, self.frame_counter)
             else:
                 s = self.get_next_highest_register_type(reg, Value(valueType=type_, lit=name, line=0))
                 self.frame_register[s] = str(self.frame_counter) + "($fp)"
@@ -310,7 +316,10 @@ class Mips:
 
     def end_function(self, void: bool):
         for key in reversed(self.frame_register):
-            self.text += "lw ${}, {}\n".format(key, self.frame_register[key])
+            if key[0]=='f':
+                self.text += "l.s ${}, {}\n".format(key, self.frame_register[key])
+            else:
+                self.text += "lw ${}, {}\n".format(key, self.frame_register[key])
         self.text += "lw	$ra, -4($fp)\n"
         self.text += "move	$sp, $fp\n"
         self.text += "lw	$fp, ($sp)\n"
@@ -319,19 +328,24 @@ class Mips:
             self.text += "syscall\n"
         else:
             self.text += "jr	$ra\n"
+
     def load_float(self, val):
         self.load_float(val)
         s = self.get_register(val, 'f', LiteralType.FLOAT)
         self.text += "lwc1 ${}, $${}\n".format(s, self.data_count)
         return s
+
     def load_retrun_value(self, v):
         if v.getType() == LiteralType.INT and str(v.value).isdigit():
             self.text += "li $v0, {}\n".format(v.value)
-
+        elif v.getType()==LiteralType.INT:
+            self.text += "move $v0, ${}\n".format(self.get_register(v.value))
         elif v.getType() == LiteralType.FLOAT and is_float(v.value):
-            #self.text += "ori $v0,$0,{}\n".format(self.float_to_hex(v.value))
+            # self.text += "ori $v0,$0,{}\n".format(self.float_to_hex(v.value))
             self.load_float(v.value)
-            self.text += "mov.s $f0, ${}\n".format(self.get_register(v.value,'f',LiteralType.FLOAT))
+            self.text += "mov.s $f0, ${}\n".format(self.get_register(v.value, 'f', LiteralType.FLOAT))
+        elif v.getType() == LiteralType.FLOAT:
+            self.text += "mov.s $f0,${}\n".format(self.get_register(v.value, 'f', LiteralType.FLOAT))
         elif v.getType() == LiteralType.CHAR:
             self.data_count += 1
             self.data_dict[v.value] = self.data_count
@@ -367,19 +381,19 @@ class Mips:
         for i in strings:
             if i[-1] == "\"":
                 continue
-            i=str(i)
+            i = str(i)
             self.data_count += 1
             self.data_dict[i] = self.data_count
-            front=""
-            back=""
+            front = ""
+            back = ""
             if i != strings[0]:
                 i = i[1:]
-            if i[0]!="\"" or i[0]!='\"':
-                front="\""
+            if i[0] != "\"" or i[0] != '\"':
+                front = "\""
             if i[-1] != "\"" or i[-1] != '\"':
                 back = "\""
 
-            self.data += "$${}  :.asciiz {} {} {} \n".format(self.data_count,front, i,back)
+            self.data += "$${}  :.asciiz {} {} {} \n".format(self.data_count, front, i, back)
             self.text += "li $v0, 4\n"
             self.text += "la $a0, $${}\n".format(self.data_count)
             self.text += "syscall\n"
@@ -406,7 +420,7 @@ class Mips:
                 if p.param[pi].root.type == LiteralType.FLOAT and is_float(str(p.param[pi].root.value)):
                     s = self.get_register(print_.value, 'f', print_.type)
                     self.load_float(p.param[pi].root.value)
-                    self.text += "lwc1 ${}, $${}\n".format(s,self.data_count)
+                    self.text += "lwc1 ${}, $${}\n".format(s, self.data_count)
                 # int
                 elif str(p.param[pi].root.value).isdigit():
                     print_.value = p.param[pi].root.value
@@ -430,7 +444,7 @@ class Mips:
                 pass
             elif isinstance(p.param[pi].root, UnaryOperator) or isinstance(p.param[pi].root,
                                                                            BinaryOperator) or isinstance(
-                    p.param[pi].root, LogicalOperator):
+                p.param[pi].root, LogicalOperator):
                 self.declaration = print_
                 self.add_to_memory(self.declaration)
                 p.param[pi].printTables("random", self)
@@ -571,9 +585,11 @@ class Mips:
     def add_to_frame_register(self, key):
         self.frame_counter -= 4
         self.frame_register[key] = str(self.frame_counter) + "($fp)"
+
     def remove_register(self, key):
         del self.register[key]
         return
+
     def get_register(self, v, type_='s', value_type=LiteralType.INT):
         if type_ == 's' and value_type == LiteralType.FLOAT:
             type_ = 'f'
@@ -603,8 +619,9 @@ class Mips:
     def to_declaration(self, declaration: Declaration):
         # find register it is stored
         # store it
-        if isinstance(declaration.rightChild, Pointer):
+        if isinstance(declaration.leftChild, Pointer):
             return self.to_pointer_dec(declaration)
+        # todo: left child array
         if isinstance(declaration.rightChild, Array):
             return self.to_array_dec(declaration)
         if isinstance(declaration.rightChild, Function):
@@ -619,12 +636,12 @@ class Mips:
                                                   declaration.rightChild.value)
             self.text += "sw  ${}, {}\n".format(s, f)
         elif declaration.rightChild.getType() == LiteralType.FLOAT and is_float(str(declaration.rightChild.value)):
-            #self.text += "ori ${},$0,{}\n".format(self.register[declaration.leftChild.value],
+            # self.text += "ori ${},$0,{}\n".format(self.register[declaration.leftChild.value],
             #                                      self.float_to_hex(declaration.rightChild.value))
-            #self.text += "sw  ${}, {}\n".format(s, f)
+            # self.text += "sw  ${}, {}\n".format(s, f)
             self.load_float(declaration.rightChild.value)
-            s = self.get_register(declaration.rightChild.value, 'f',declaration.rightChild.type)
-            self.text += "lwc1 ${}, $${}\n".format(s,self.data_count)
+            s = self.get_register(declaration.rightChild.value, 'f', declaration.rightChild.type)
+            self.text += "lwc1 ${}, $${}\n".format(s, self.data_count)
 
         elif declaration.rightChild.getType() == LiteralType.BOOL and (
                 declaration.rightChild == 'True' or declaration.rightChild == 'False'):
@@ -650,6 +667,16 @@ class Mips:
                 s = self.get_register(declaration.leftChild.value, 's', LiteralType.CHAR)
                 self.text += "lb ${} , $${}\n".format(s, self.data_count)
                 self.text += "sb ${}, {}\n".format(s, self.frame_register[self.register[declaration.leftChild.value]])
+            else:
+                # is variable
+                t = declaration.leftChild.type
+                t= self.get_register_type(t)
+                s = self.get_register(declaration.leftChild.value, t, declaration.leftChild.value)
+                m = 'move'
+                if t == 'f':
+                    m = 'mov.s'
+                self.text += "{} ${}, ${}\n".format(m, s, self.get_register(declaration.rightChild.value, t,
+                                                                            declaration.rightChild.type))
 
         return
 
@@ -702,6 +729,19 @@ class Mips:
         self.text += "sw ${}, {}($fp)\n".format(self.register[declaration.value], self.frame_counter)
 
     def to_pointer_dec(self, declaration):
+        ps = self.get_register(declaration.leftChild.value, 's', declaration.leftChild.getType())
+        vs = self.get_register(declaration.rightChild.value, 's', declaration.rightChild.getType())
+        if declaration.leftChild.type == LiteralType.FLOAT:
+            #store value content in (mem location)
+            #load float value in data
+            #store data content in the  pointer
+            self.load_float(0.0)
+            #store value in data
+            self.text += "swc1  ${}, $${}\n".format(vs,self.data_count)
+            self.text += "la    $t0, $${}\n".format(self.data_count)
+            self.text += "lwc1  ${}, ($t0)\n".format(ps)
+        else:
+            self.text += "sw ${}, (${})\n".format(vs, ps)
         return
 
     def to_array_dec(self, declaration):
@@ -717,11 +757,11 @@ class Mips:
             self.load_type(f.param[i], True)
         self.text += "jal {}\n".format(f.f_name)
         # self.text += "sw $v0, {}\n".format(d.rightChild.f_name)
-        if var.type==LiteralType.FLOAT:
+        if var.type == LiteralType.FLOAT:
             self.text += "mov.s ${}, $f0\n".format(self.register[var.value])
         else:
             self.text += "move ${}, $v0\n".format(self.register[var.value])
-        if save_mem and self.register[var.value][0]=='s':
+        if save_mem and self.register[var.value][0] == 's':
             self.text += "sw ${}, {}\n".format(self.register[var.value], self.frame_register[self.register[var.value]])
 
         return
@@ -745,8 +785,8 @@ class Mips:
             self.remove_register(v.value)
             si = self.get_register(v.value, 'a', v.type)
             self.text += "lwc1 ${}, $${}\n".format(s, self.data_count)
-            self.text += "mfc1 ${}, ${}\n".format(si,s)
-            #self.text += "ori ${}, $zero, {}\n".format(self.register[v.value], self.float_to_hex(v.value))
+            self.text += "mfc1 ${}, ${}\n".format(si, s)
+            # self.text += "ori ${}, $zero, {}\n".format(self.register[v.value], self.float_to_hex(v.value))
         elif isinstance(v, Value) and v.getType() == LiteralType.CHAR and v.value[0] == '\'':
             self.data_count += 1
             self.data_dict[v.value] = self.data_count
