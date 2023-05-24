@@ -508,11 +508,9 @@ class BinaryOperator(AST_node):
         """
         if self.folded:
             return self, True
-        if not (isinstance(self.leftChild, Value) or isinstance(self.leftChild, Pointer) or
-                isinstance(self.leftChild, Array)):
+        if not (isinstance(self.leftChild, Value) or isinstance(self.leftChild, Pointer)):
             self.leftChild = self.leftChild.fold(to_llvm)[0]
-        if not (isinstance(self.rightChild, Value) or isinstance(self.rightChild, Pointer) or
-                isinstance(self.rightChild, Array)):
+        if not (isinstance(self.rightChild, Value) or isinstance(self.rightChild, Pointer)):
             self.rightChild = self.rightChild.fold(to_llvm)[0]
 
         try:
@@ -933,21 +931,24 @@ class Declaration(AST_node):
         if self.folded:
             return self, True
         folded = True
-        if not (isinstance(self.leftChild, Value) or isinstance(self.leftChild, Pointer) or
-                isinstance(self.leftChild, Array)):
-            temp = self.leftChild.fold(to_llvm)
-            self.leftChild = temp[0]
-            if not temp[1]:
-                folded = False
+        # if not (isinstance(self.leftChild, Value) or isinstance(self.leftChild, Pointer)): # TODO: commented because it seems to be the same as the next but with one less option
+        #     temp = self.leftChild.fold(to_llvm)
+        #     self.leftChild = temp[0]
+        #     if not temp[1]:
+        #         folded = False
         if not (isinstance(self.rightChild, Value) or isinstance(self.rightChild, Pointer) or
-                isinstance(self.rightChild, EmptyNode) or isinstance(self.rightChild, Array)):
+                isinstance(self.rightChild, EmptyNode)):
             temp = self.rightChild.fold(to_llvm)
             self.rightChild = temp[0]
             if not temp[1]:
                 folded = False
         if self.rightChild.variable:
             folded = False
-
+        if isinstance(self.leftChild, Array) and not (isinstance(self.leftChild.pos, Value) or
+                                                      isinstance(self.leftChild.pos, Pointer)):
+            temp = self.leftChild.fold(to_llvm)
+            if not temp[1]:
+                folded = False
         highestType = self.leftChild.getHigherType(self.rightChild)
         try:
             if self.leftChild.getType() == highestType or self.leftChild.getType() is None:
@@ -972,9 +973,12 @@ class Declaration(AST_node):
         :return:
         """
         values = self.rightChild.getVariables(fill, scope)
-        if not self.leftChild.declaration:
+        if not self.leftChild.declaration: # TODO: removed this part: and not isinstance(self.leftChild, Array):
             temp = self.leftChild.getVariables(fill, scope)
             values[0].append(temp[0][0])
+        # if isinstance(self.leftChild, Array) and self.leftChild.declaration:
+        #     temp = self.leftChild.getVariables(fill, scope)
+        #     values[0].append(temp[0][0])
         return values
 
     def replaceVariables(self, values, fill: bool = True):
@@ -985,12 +989,18 @@ class Declaration(AST_node):
         try:
             if not self.leftChild.declaration:
                 if self.leftChild.name == "array":
-                    name = str(self.leftChild.pos) + str(self.leftChild.value)
+                    if not (isinstance(self.leftChild.pos, Value) or isinstance(self.leftChild.pos, Pointer)) or \
+                            (isinstance(self.leftChild.pos, Value) and self.leftChild.pos.variable):
+                        self.leftChild.pos.replaceVariables(values, fill)
+                        name = None
+                    else:
+                        name = str(self.leftChild.pos.value) + str(self.leftChild.value)
+                        self.leftChild.type = values[name][1]
                 else:
                     name = self.leftChild.value
-                if not name in values:
+                    self.leftChild.type = values[name][1]
+                if name is not None and not name in values:
                     raise NotDeclared(name, self.leftChild.line)
-                self.leftChild.type = values[name][1]
             if not isinstance(self.leftChild, Pointer):
                 if isinstance(self.rightChild, Value) and self.rightChild.deref:
                     self.rightChild.replaceVariables(values, False)
@@ -1368,8 +1378,7 @@ class Scope(AST_node):  # TODO: let it hold a block instead of trees
         if self.folded:
             return self, True
         for param in self.parameters:
-            if not (isinstance(self.parameters[param], Value) or isinstance(self.parameters[param], Array) or
-                    isinstance(self.parameters[param], Pointer)):
+            if not (isinstance(self.parameters[param], Value) or isinstance(self.parameters[param], Pointer)):
                 self.parameters[param] = self.parameters[param].fold()[0]
         if self.f_return is not None:
             self.f_return = self.f_return.foldTree()[0]
@@ -1613,6 +1622,7 @@ class Continue(AST_node):
     def fold(self, to_llvm):
         return self, True
 
+
 class String(AST_node):
     def __init__(self, line, value):
         self.line = line
@@ -1647,11 +1657,13 @@ class String(AST_node):
         :return:
         """
         return [[], True]
+
     def replaceVariables(self,values, fill: bool = True ):
         pass
 
     def fold(self, to_llvm):
         return self, True
+
 
 # Used to hold a while loop
 class While(AST_node):
@@ -1914,7 +1926,7 @@ class Array(AST_node):
         self.arrayContent = []
 
     def getPosition(self):
-        return self.pos
+        return self.pos.value
 
     def __eq__(self, other):
         return self.value == other.value and self.pos == other.pos and self.type == other.type and \
@@ -1931,15 +1943,18 @@ class Array(AST_node):
         self.type = type_
 
     def getValue(self):
-        return str(self.pos)
+        # if self.pos is not None:
+        #     return str(self.pos.value)
+        # return None
+        return self.value
 
     def getLabel(self):
         if self.init:
-            return "\"array: " + str(self.value) + "\nsize: " + str(self.pos) + "\""
+            return "\"array: " + str(self.value) + "\nsize: " + "\"" # TODO: removed this: + str(self.pos.value)
         elif self.isValue:
-            return "\"array value: " + str(self.value) + "\""
+            return "\"array value: " + "\"" # TODO: removed this: + str(self.pos.value)
         else:
-            return "\"array: " + str(self.value) + "\nposition: " + str(self.pos) + "\""
+            return "\"array: " + str(self.value) + "\nposition: " + "\"" # TODO: removed this: + str(self.pos.value)
 
     def getVariables(self, fill: bool = True, scope=None):
         """
@@ -1948,20 +1963,31 @@ class Array(AST_node):
         """
         if self.declaration:
             return [[], True]
-        return [[(str(self.pos) + str(self.value), self.line)], True]
+        if not isinstance(self.pos, Value) or self.pos.variable:
+            return self.pos.getVariables()
+        return [[(str(self.pos.value) + str(self.value), self.line)], True]
+
+    def fold(self, to_llvm):
+        if self.pos is not None and not(isinstance(self.pos, Value) or isinstance(self.pos, Pointer)):
+            self.pos = self.pos.fold()[0]
+        return self, True
 
     def replaceVariables(self, values, fill: bool = True):
         """
         replaces the variables in the node with the actual values contained in values
         :param values: dictionary containing the variable names as keys and the corresponding values as values
+        :param fill: bool deciding if the variables need to be replaced or not
         """
-        name = str(self.pos) + str(self.value)
-        if fill and values and values[name][3]:
-            self.type = values[name][1]
-            self.value = values[name][0]
-            self.isValue = True
-        elif self.variable:
-            self.type = values[name][1]
+        if isinstance(self.pos, Value) and not self.pos.variable:
+            name = str(self.pos) + str(self.value)
+            if fill and values and values[name][3]:
+                self.type = values[name][1]
+                self.value = values[name][0]
+                self.isValue = True
+            elif self.variable:
+                self.type = values[name][1]
+        else:
+            self.pos.replaceVariables(values, fill)
 
     def getHigherType(self, node2: AST_node):
         """
