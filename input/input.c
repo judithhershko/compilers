@@ -1,9 +1,9 @@
 #include "stdio.h";
 int main()
 {
-int x = 0;
-while (x < 2){
-    x = x + 1;
-}
+int z = 1;
+    while (z>0){
+        z = z - 1;
+    }
 return 0;
 }

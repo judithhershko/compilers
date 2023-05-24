@@ -90,7 +90,7 @@ class block:
         for elem in variables:
             if len(elem) == 0:
                 continue
-            temp = self.symbols.findSymbol(elem[0])
+            temp = self.symbols.findSymbol(elem[0], line = elem[1])
             if temp:
                 values[elem[0]] = temp
             else:

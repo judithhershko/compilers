@@ -421,3 +421,13 @@ class wrongReturnType(Exception):
     def __str__(self):
         return "\n\tError in line " + str(self.line) + ": the function " + self.name + \
                " is initialised with return type " + self.expRet + " but returns " + self.givenRet
+
+
+class fullArrayOperation(Exception):
+    def __init__(self, name, line):
+        self.name = name
+        self.line = line
+
+    def __str__(self):
+        return "\n\tError in line " + str(self.line) + ": no operations can be done with the full array " + \
+               str(self.name)

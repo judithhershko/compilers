@@ -73,7 +73,8 @@ class SymbolTable:
                                    "Const": pd.Series(dtype=bool),
                                    "Level": pd.Series(dtype=int),
                                    "Global": pd.Series(dtype=bool),
-                                   "Fillable": pd.Series(dtype=bool)})
+                                   "Fillable": pd.Series(dtype=bool),
+                                   "Array": pd.Series(dtype=bool)})
         self.parent = None
 
     def __eq__(self, other):
@@ -132,10 +133,10 @@ class SymbolTable:
                         self.parent.addSymbol(root, isGlobal, fill)
                 if ref is None:
                     if isinstance(root.getLeftChild(), Pointer):
-                        self.table.loc[name] = [str(value), symType, const, level, isGlobal, False]
+                        self.table.loc[name] = [str(value), symType, const, level, isGlobal, False, False]
                     else:
                         self.table.loc[name] = [str(value), symType, const, level, isGlobal,
-                                                fill]  # TODO: use deref to make sure a reference can not be placed in a normal variable once introduced
+                                                fill, False]  # TODO: use deref to make sure a reference can not be placed in a normal variable once introduced
                     return "placed"
                 elif ref not in self.table.index:
                     raise ImpossibleRef(ref, line)
@@ -146,7 +147,7 @@ class SymbolTable:
                     raise RefPointerLevel(name, refValue["Level"], level, line)
                 elif symType != refValue["Type"]:
                     raise PointerType(name, refValue["Type"], symType, line)
-                self.table.loc[name] = [str(value), symType, const, level, isGlobal, fill]
+                self.table.loc[name] = [str(value), symType, const, level, isGlobal, fill, False]
                 return "placed"
             else:
                 row = self.table.loc[name]
@@ -232,14 +233,14 @@ class SymbolTable:
                     raise ArraySize(root.value, root.pos.value, root.line)
                 elif root.value not in self.table.index:
                     self.table.loc[root.value] = [root.pos.value, root.type, True, 0, isGlobal,
-                                                  fill]  # TODO: check if arrays are indeed always const
+                                                  fill, True]  # TODO: check if arrays are indeed always const
                     for pos in range(root.pos.value):
                         name = str(pos) + root.value
                         if len(root.arrayContent) != 0:
                             arrayValue = root.arrayContent[pos].value
                         else:
                             arrayValue = None
-                        self.table.loc[name] = [arrayValue, root.type, False, 0, isGlobal, fill]
+                        self.table.loc[name] = [arrayValue, root.type, False, 0, isGlobal, fill, False]
                     return "placed"
             elif isinstance(root, Declaration):
                 position = root.getLeftChild().pos.value
@@ -299,6 +300,8 @@ class SymbolTable:
             except ArrayOutOfBounds:
                 raise
         if not onlyNext:
+            if self.table.at[name, "Array"]:
+                raise fullArrayOperation(name, line)
             level = self.table.at[name, "Level"]
             while self.table.at[name, "Level"] > 0:
                 name = self.table.at[name, "Value"]
