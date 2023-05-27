@@ -424,6 +424,12 @@ class Mips_TestCasesErrors(unittest.TestCase):
         with self.assertRaises(SystemExit) as ce:
             testFile(file)
         self.assertEqual(ce.exception.code, "Line 10 has a syntax error. Please check the code.")
+
+    def test_synErr_ifElse1(self):
+        file = "M_synErr_ifElse1"
+        with self.assertRaises(SystemExit) as ce:
+            testFile(file)
+        self.assertEqual(ce.exception.code, "Line 10 has a syntax error. Please check the code.")
     
 
 # LOCAL/GLOBAL VARIABLES
