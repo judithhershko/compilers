@@ -198,7 +198,7 @@ class Mips_TestCases_Working(unittest.TestCase):
 # EXTRA
 # TODO: CHECK WHAT EXTRA WE ARE IMPLEMENTING
 # - else if
-# - uitgebreide constant folding
+# - uitgebreide constant propagation + folding
 # – Additional logical operators: >=, <=, !=
 # – Modulo operator: %
 # – Increment, decrement operators: ++, -- (both prefix and suﬀix variants) ???????
@@ -206,20 +206,230 @@ class Mips_TestCases_Working(unittest.TestCase):
 
 
 class Mips_TestCasesErrors(unittest.TestCase):
-    pass
-    # ASSIGNEMT 2
-    # Syntax errors + error message
-    # Semantic errors + error message:
-    """
-    * Usage of uninitialised and undeclared variables
-    ∗ Redeclarations and redefinitions of existing variables
-    ∗ Operations and assignments with incompatible types
-    ∗ Assignment to an rvalue expression
-    ∗ Re-assignment of const variables
+    # ASSIGNMENT 1
+    def test_synErr_operators1(self):
+        file = "M_synErr_operators1"
+        with self.assertRaises(SystemExit) as ce:
+            testFile(file)
+        self.assertEqual(ce.exception.code, "")
+
+    def test_synErr_operators2(self):
+        file = "M_synErr_operators2"
+        with self.assertRaises(SystemExit) as ce:
+            testFile(file)
+        self.assertEqual(ce.exception.code, "Line 2 has a syntax error. Please check the code.")
+
+    def test_synErr_operators3(self):
+        file = "M_synErr_operators3"
+        with self.assertRaises(SystemExit) as ce:
+            testFile(file)
+        self.assertEqual(ce.exception.code, "Line 4 has a syntax error. Please check the code.")
+
+    def test_synErr_operators4(self):
+        file = "M_synErr_operators4"
+        with self.assertRaises(SystemExit) as ce:
+            testFile(file)
+        self.assertEqual(ce.exception.code, "")
+
+    #TODO: add syntax error for logical operators
+
+    # ASSIGNMENT 2
+    def test_synErr_variable(self):
+        file = "M_synErr_variable"
+        with self.assertRaises(SystemExit) as ce:
+            testFile(file)
+        self.assertEqual(ce.exception.code, "Line 3 has a syntax error. Please check the code.")
+
+    def test_synErr_float1(self):
+        file = "M_synErr_float1"
+        with self.assertRaises(SystemExit) as ce:
+            testFile(file)
+        self.assertEqual(ce.exception.code, "Line 4 has a syntax error. Please check the code.")
+
+    def test_synErr_float2(self):
+        file = "M_synErr_float2"
+        with self.assertRaises(SystemExit) as ce:
+            testFile(file)
+        self.assertEqual(ce.exception.code, "Line 5 has a syntax error. Please check the code.")
+
+    def test_synErr_charEmpty(self):
+        file = "M_synErr_charEmpty"
+        with self.assertRaises(Exception) as ce:
+            testFile(file)
+        self.assertEqual(str(ce.exception), "\n\tError in line 3: '' char size should be one.")
+
+    def test_synErr_charMultiple(self):
+        file = "M_synErr_charMultiple"
+        with self.assertRaises(Exception) as ce:
+            testFile(file)
+        self.assertEqual(str(ce.exception), "\n\tError in line 3: 'abcdef' char size should be one.")
+
+    def test_synErr_constVar1(self):
+        file = "M_synErr_constVar1"
+        with self.assertRaises(SystemExit) as ce:
+            testFile(file)
+        self.assertEqual(ce.exception.code, "Line 2 has a syntax error. Please check the code.")
+
+    def test_synErr_constVar2(self):
+        file = "M_synErr_constVar2"
+        with self.assertRaises(SystemExit) as ce:
+            testFile(file)
+        self.assertEqual(ce.exception.code, "Line 2 has a syntax error. Please check the code.")
+
+    def test_synErr_constVar3(self):
+        file = "M_synErr_constVar3"
+        with self.assertRaises(SystemExit) as ce:
+            testFile(file)
+        self.assertEqual(ce.exception.code, "Line 2 has a syntax error. Please check the code.")
+
+    def test_synErr_constVar4(self):
+        file = "M_synErr_constVar4"
+        with self.assertRaises(SystemExit) as ce:
+            testFile(file)
+        self.assertEqual(ce.exception.code, "Line 2 has a syntax error. Please check the code.")
+
+    def test_synErr_pointerDec1(self):
+        file = "M_synErr_pointerDec1"
+        with self.assertRaises(SystemExit) as ce:
+            testFile(file)
+        self.assertEqual(ce.exception.code, "Line 3 has a syntax error. Please check the code.")
+
+    def test_synErr_pointerDec2(self):
+        file = "M_synErr_pointerDec2"
+        with self.assertRaises(SystemExit) as ce:
+            testFile(file)
+        self.assertEqual(ce.exception.code, "Line 3 has a syntax error. Please check the code.")
+
+    def test_synErr_pointerOpp1(self):
+        file = "M_synErr_pointerOpp1"
+        with self.assertRaises(SystemExit) as ce:
+            testFile(file)
+        self.assertEqual(ce.exception.code, "Line 9 has a syntax error. Please check the code.")
+
+    def test_synErr_pointerOpp2(self):
+        file = "M_synErr_pointerOpp2"
+        with self.assertRaises(SystemExit) as ce:
+            testFile(file)
+        self.assertEqual(ce.exception.code, "")
+
+    def test_synErr_pointerOpp3(self):
+        file = "M_synErr_pointerOpp3"
+        with self.assertRaises(SystemExit) as ce:
+            testFile(file)
+        self.assertEqual(ce.exception.code, "Line 11 has a syntax error. Please check the code.")
+
+    def test_semErr_varUndeclared1(self):
+        file = "M_semErr_varUndeclared1"
+        with self.assertRaises(Exception) as ce:
+            testFile(file)
+        self.assertEqual(str(ce.exception), "\n\tError in line 6: x is not declared")
+
+    def test_semErr_varUndeclared2(self):
+        file = "M_semErr_varUndeclared2"
+        with self.assertRaises(Exception) as ce:
+            testFile(file)
+        self.assertEqual(str(ce.exception), "\n\tError in line 3: x is not declared")
+
+    def test_semErr_varRedeclared(self):
+        file = "M_semErr_varRedeclared"
+        with self.assertRaises(Exception) as ce:
+            testFile(file)
+        self.assertEqual(str(ce.exception), "\n\tError in line 5: there is a redeclaration of the variable x")
+
+    def test_semErr_varRedefinition(self):
+        file = "M_semErr_varRedefinition"
+        with self.assertRaises(Exception) as ce:
+            testFile(file)
+        self.assertEqual(str(ce.exception), "\n\tError in line 4: there is a redeclaration of the variable f")
+
+    def test_semErr_incompatibleTypes1(self):
+        file = "M_semErr_incompatibleTypes1"
+        with self.assertRaises(Exception) as ce:
+            testFile(file)
+        self.assertEqual(str(ce.exception),
+                         "\n\tError in line 9: x_ptr should reference a level 2 pointer and not the given 0")
+
+    def test_semErr_incompatibleTypes2(self):
+        file = "M_semErr_incompatibleTypes2"
+        with self.assertRaises(Exception) as ce:
+            testFile(file)
+        self.assertEqual(str(ce.exception),
+                         "\n\tError in line 6: x_ptr should reference a variable with a reference level of 1 "
+                         "and not the given 0")
+
+    def test_semErr_incompatibleTypes3(self):
+        file = "M_semErr_incompatibleTypes3"
+        with self.assertRaises(Exception) as ce:
+            testFile(file)
+        self.assertEqual(str(ce.exception), "\n\tError in line 5: INT can not be placed in a variable of type CHAR")
+
+    def test_semErr_incompatibleTypes4(self):
+        file = "M_semErr_incompatibleTypes4"
+        with self.assertRaises(Exception) as ce:
+            testFile(file)
+        self.assertEqual(str(ce.exception),
+                         "\n\tError in line 7: the binary operator + can not be executed on a INT and a CHAR")
+
+    def test_semErr_assignRvalue1(self):
+        file = "M_semErr_assignRvalue1"
+        with self.assertRaises(SystemExit) as ce:
+            testFile(file)
+        self.assertEqual(ce.exception.code, "Line 4 has a syntax error. Please check the code.")
+
+    def test_semErr_assignRvalue2(self):
+        file = "M_semErr_assignRvalue2"
+        with self.assertRaises(SystemExit) as ce:
+            testFile(file)
+        self.assertEqual(ce.exception.code, "Line 4 has a syntax error. Please check the code.")
+
+    def test_semErr_assignConstVar(self):
+        file = "M_semErr_assignConstVar"
+        with self.assertRaises(Exception) as ce:
+            testFile(file)
+        self.assertEqual(str(ce.exception), "\n\tError in line 4: there is a reassignment of the const variable x")
+
+    def test_semErr_assignConstPointer(self):
+        file = "M_semErr_assignConstPointer"
+        with self.assertRaises(Exception) as ce:
+            testFile(file)
+        self.assertEqual(str(ce.exception), "\n\tError in line 7: there is a reassignment of the const pointer x_ptr")
+
+    # ASSIGNMENT 3
+    def test_synErr_singleLineComment1(self):
+        file = "M_synErr_singleLineComment1"
+        with self.assertRaises(SystemExit) as ce:
+            testFile(file)
+        self.assertEqual(ce.exception.code, "Line 2 has a syntax error. Please check the code.")
+
+    def test_synErr_singleLineComment2(self):
+        file = "M_synErr_singleLineComment2"
+        with self.assertRaises(SystemExit) as ce:
+            testFile(file)
+        self.assertEqual(ce.exception.code, "Line 4 has a syntax error. Please check the code.")
+
+    def test_synErr_singleLineComment3(self):
+        file = "M_synErr_singleLineComment3"
+        with self.assertRaises(SystemExit) as ce:
+            testFile(file)
+        self.assertEqual(ce.exception.code, "Line 3 has a syntax error. Please check the code.")
+
+    def test_synErr_multiLineComment1(self):
+        file = "M_synErr_multiLineComment1"
+        with self.assertRaises(SystemExit) as ce:
+            testFile(file)
+        self.assertEqual(ce.exception.code, "Line 4 has a syntax error. Please check the code.")
+
+    def test_synErr_multiLineComment2(self):
+        file = "M_synErr_multiLineComment2"
+        with self.assertRaises(SystemExit) as ce:
+            testFile(file)
+        self.assertEqual(ce.exception.code, "Line 10 has a syntax error. Please check the code.")
     
-    """
+
 # LOCAL/GLOBAL VARIABLES
 
 # type checking
 
 # include
+if __name__ == '__main__':
+    unittest.main()

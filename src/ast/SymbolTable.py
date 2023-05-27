@@ -169,9 +169,9 @@ class SymbolTable:
                 elif row["Type"] != symType:
                     raise TypeDeclaration(name, row["Type"], symType, line)
                 elif row["Level"] != level and not root.getRightChild().deref:
-                    raise PointerLevel(name, row["Level"], level, line)
+                    raise PointerLevel(name, row["Level"], level+1, line)
                 elif row["Level"] != level + 1 and root.getRightChild().deref:
-                    raise PointerLevel(name, row["Level"], level - 1, line)
+                    raise PointerLevel(name, row["Level"], level, line)
                 else:
                     if isinstance(root.getLeftChild(), Value):
                         self.table.loc[name, ["Value"]] = str(value)

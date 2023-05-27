@@ -143,6 +143,8 @@ class CustomListener(ExpressionListener):
         elif type_ == LiteralType.DOUBLE:
             self.current = Value(float(ctx.getText()), type_, ctx.start.line, self.parent)
         elif type_ == LiteralType.CHAR:
+            if len(ctx.getText()) == 2:
+                raise CharSize(ctx.getText(), ctx.start.line)
             if len(ctx.getText()) > 3:
                 if not (ctx.getText() == "\n" or ctx.getText() == "\t" or ctx.getText() == "\0"):
                     raise CharSize(ctx.getText(), ctx.start.line)

@@ -169,7 +169,7 @@ class PointerLevel(Exception):
 
     def __str__(self):
         return "\n\tError in line " + str(self.line) + ": " + str(self.variable) + " should reference a level " + \
-               str(self.level-1) + " pointer and not the given " + str(self.valueLevel)
+               str(self.level) + " pointer and not the given " + str(self.valueLevel)
 
 
 class RefPointerLevel(Exception):
