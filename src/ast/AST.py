@@ -279,10 +279,10 @@ class AST:
             res = root.c_block.toDot()
             nodes = nodes + res[0]
             edges = edges + res[1]
-        elif isinstance(self.root, Function):
+        elif isinstance(root, Function):
             for value in self.root.param:
-                value = self.root.param[value]
-                edges = edges + "\n" + self.root.getId() + "--" + value.getId()
+                value = root.param[value]
+                edges = edges + "\n" + root.getId() + "--" + value.getId()
                 nodes = nodes + "\n" + value.getId() + " [label=" + value.getLabel() + "]"
         elif isinstance(root, Array): # TODO: removed self from before root
             edges = edges + "\n" + root.getId() + "--" + root.pos.getId()

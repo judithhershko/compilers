@@ -141,7 +141,11 @@ class SymbolTable:
                                                 fill, False]  # TODO: use deref to make sure a reference can not be placed in a normal variable once introduced
                     return "placed"
                 elif ref not in self.table.index:
-                    raise ImpossibleRef(ref, line)
+                    if root.getRightChild().value == 0: # TODO: added to make int* a; work
+                        self.table.loc[name] = ['', symType, const, level, isGlobal, fill, False]
+                        return "placed"
+                    else:
+                        raise ImpossibleRef(ref, line)
                 refValue = self.table.loc[ref]
                 if deref and level - 1 != refValue["Level"]:
                     raise RefPointerLevel(name, refValue["Level"], level, line)
@@ -306,7 +310,10 @@ class SymbolTable:
                 raise fullArrayOperation(name, line)
             level = self.table.at[name, "Level"]
             while self.table.at[name, "Level"] > 0:
+                old = name
                 name = self.table.at[name, "Value"]
+                if name == '':
+                    raise pointerNotAssigned(old, line)
             return self.table.at[name, "Value"], self.table.at[name, "Type"], level, self.table.at[name, "Fillable"]
         else:
             return self.table.at[name, "Value"], self.table.at[name, "Type"], self.table.at[name, "Level"], \

@@ -431,3 +431,13 @@ class fullArrayOperation(Exception):
     def __str__(self):
         return "\n\tError in line " + str(self.line) + ": no operations can be done with the full array " + \
                str(self.name)
+
+
+class pointerNotAssigned(Exception):
+    def __init__(self, name, line):
+        self.line = line
+        self.name = name
+
+    def __str__(self):
+        return "\n\tError in line " + str(self.line) + ": the pointer " + str(self.name) + \
+               " has not been assigned a memory location yet."

@@ -733,15 +733,29 @@ class CustomListener(ExpressionListener):
             self.parent = None
             return"""
 
-        if self.declaration is False and isinstance(self.loop,
-                                                    For) and self.expr_layer == 0 and self.loop.Condition is None and self.loop.f_dec is not None:
+        if self.declaration is False and isinstance(self.loop, For) and self.expr_layer == 0 and \
+                self.loop.Condition is None and self.loop.f_dec is not None:
             # self.asT = create_tree()
             # self.asT.setRoot(self.parent)
             self.loop.Condition = self.parent
-        elif not self.declaration and isinstance(self.loop,
-                                                 For) and self.expr_layer == 0 and self.loop.Condition is not None and self.loop.f_dec is not None and self.loop.f_incr is None:
-
-            self.loop.f_incr = self.parent
+        elif not self.declaration and isinstance(self.loop, For) and self.expr_layer == 0 and \
+                self.loop.Condition is not None and self.loop.f_dec is not None and self.loop.f_incr is None:
+            left = Value(ctx.start.text, LiteralType.INT, ctx.start.line, variable = True)
+            right = Value(ctx.start.text, LiteralType.INT, ctx.start.line, variable = True)
+            add = Value(1, LiteralType.INT, ctx.start.line)
+            if ctx.stop.text == "++":
+                oper = "+"
+            elif ctx.stop.text == "--":
+                oper = "-"
+            binary = BinaryOperator(oper, ctx.start.line)
+            binary.setLeftChild(right)
+            binary.setRightChild(add)
+            decl = Declaration(left, ctx.start.line)
+            decl.setRightChild(binary)
+            tree = AST()
+            tree.setRoot(decl)
+            self.loop.f_incr = tree
+            # self.loop.f_incr = self.parent TODO: replace this line with the above to add increase of variable to scope
         elif (not self.declaration or self.is_array_position) and self.expr_layer == 0:
             if isinstance(self.current.parent, BinaryOperator) and self.current.parent.operator == "":
                 self.current.parent = None
