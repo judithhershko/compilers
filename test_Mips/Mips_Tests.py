@@ -149,7 +149,7 @@ class Mips_TestCases_Working(unittest.TestCase):
         file = "M_P_LocalGlobal"
         return self.filetest(file)
 
-    def test_Functions(self):
+    def test_Functions1(self):
         """
         ∗ Definition and declaration
         ∗ Calling
@@ -157,19 +157,19 @@ class Mips_TestCases_Working(unittest.TestCase):
         ∗ Return values
         ∗ Functions with void return
         """
-        file = "M_P_Functions"
+        file = "M_P_Functions1"
+        return self.filetest(file)
+
+    def test_Functions2(self):
+        file = "M_P_Functions2"
+        return self.filetest(file)
+
+    def test_FunctionVoid(self):
+        file = "M_P_functionVoid"
         return self.filetest(file)
 
     def test_FowardDeclaration(self):
         file = "M_P_ForwardDeclaration"
-        return self.filetest(file)
-
-    def test_ReturnTypeChecking(self): # TODO: together with syntax errors
-        file = "M_P_returnTypeChecking"
-        return self.filetest(file)
-
-    def test_TypeCheckforwardDec(self): # TODO: together with syntax errors
-        file = "M_P_TypeCheckForwardDec"
         return self.filetest(file)
 
     # SHOW NO DEAD CODE AFTER RETURN/BREAK/CONTINUE
@@ -425,11 +425,228 @@ class Mips_TestCasesErrors(unittest.TestCase):
             testFile(file)
         self.assertEqual(ce.exception.code, "Line 10 has a syntax error. Please check the code.")
 
+    # ASSIGNMENT 4
     def test_synErr_ifElse1(self):
         file = "M_synErr_ifElse1"
         with self.assertRaises(SystemExit) as ce:
             testFile(file)
-        self.assertEqual(ce.exception.code, "Line 10 has a syntax error. Please check the code.")
+        self.assertEqual(ce.exception.code, "Line 5 has a syntax error. Please check the code.")
+
+    def test_synErr_ifElse2(self):
+        file = "M_synErr_ifElse2"
+        with self.assertRaises(SystemExit) as ce:
+            testFile(file)
+        self.assertEqual(ce.exception.code, "Line 6 has a syntax error. Please check the code.")
+
+    def test_synErr_ifElse3(self):
+        file = "M_synErr_ifElse3"
+        with self.assertRaises(SystemExit) as ce:
+            testFile(file)
+        self.assertEqual(ce.exception.code, "Line 17 has a syntax error. Please check the code.")
+
+    def test_synErr_while1(self):
+        file = "M_synErr_while1"
+        with self.assertRaises(SystemExit) as ce:
+            testFile(file)
+        self.assertEqual(ce.exception.code, "Line 5 has a syntax error. Please check the code.")
+
+    def test_synErr_while2(self):
+        file = "M_synErr_while2"
+        with self.assertRaises(SystemExit) as ce:
+            testFile(file)
+        self.assertEqual(ce.exception.code, "Line 9 has a syntax error. Please check the code.")
+
+    def test_synErr_while3(self):
+        file = "M_synErr_while3"
+        with self.assertRaises(SystemExit) as ce:
+            testFile(file)
+        self.assertEqual(ce.exception.code, "Line 5 has a syntax error. Please check the code.")
+
+    def test_synErr_for1(self):
+        file = "M_synErr_for1"
+        with self.assertRaises(SystemExit) as ce:
+            testFile(file)
+        self.assertEqual(ce.exception.code, "Line 4 has a syntax error. Please check the code.")
+
+    def test_synErr_for2(self):
+        file = "M_synErr_for2"
+        with self.assertRaises(SystemExit) as ce:
+            testFile(file)
+        self.assertEqual(ce.exception.code, "Line 4 has a syntax error. Please check the code.")
+
+    def test_synErr_for3(self):
+        file = "M_synErr_for3"
+        with self.assertRaises(SystemExit) as ce:
+            testFile(file)
+        self.assertEqual(ce.exception.code, "Line 4 has a syntax error. Please check the code.")
+
+    def test_synErr_break(self):
+        file = "M_synErr_break"
+        with self.assertRaises(Exception) as ce:
+            testFile(file)
+        self.assertEqual(str(ce.exception), "\n\tError in line 8: brek is not declared")
+
+    def test_synErr_continue(self):
+        file = "M_synErr_continue"
+        with self.assertRaises(SystemExit) as ce:
+            testFile(file)
+        self.assertEqual(ce.exception.code, "Line 12 has a syntax error. Please check the code.")
+
+    # ASSIGNMENT 5
+    def test_synErr_function(self):
+        file = "M_synErr_function"
+        with self.assertRaises(SystemExit) as ce:
+            testFile(file)
+        self.assertEqual(ce.exception.code, "Line 3 has a syntax error. Please check the code.")
+
+    def test_semErr_returnTypeChecking1(self):
+        file = "M_semErr_returnTypeChecking1"
+        with self.assertRaises(Exception) as ce:
+            testFile(file)
+        self.assertEqual(str(ce.exception),
+                         "\n\tError in line 3: the function f is initialised with return type INT but returns CHAR")
+
+    def test_semErr_returnTypeChecking2(self):
+        file = "M_semErr_returnTypeChecking2"
+        with self.assertRaises(Exception) as ce:
+            testFile(file)
+        self.assertEqual(str(ce.exception), "\n\tError in line 10: INT can not be placed in a variable of type CHAR")
+
+    def test_semErr_functionInputChecking1(self):
+        file = "M_semErr_functionInputChecking1"
+        with self.assertRaises(Exception) as ce:
+            testFile(file)
+        self.assertEqual(str(ce.exception), "\n\tError in line 9: the function f should hold exactly 1 parameters")
+
+    def test_semErr_functionInputChecking2(self):
+        file = "M_semErr_functionInputChecking2"
+        with self.assertRaises(Exception) as ce:
+            testFile(file)
+        self.assertEqual(str(ce.exception),
+                         "\n\tError in line 9: the function f should have type INT for the parameter x "
+                         "instead of the given CHAR")
+
+    def test_semErr_functionInputChecking3(self):
+        file = "M_semErr_functionInputChecking3"
+        with self.assertRaises(Exception) as ce:
+            testFile(file)
+        self.assertEqual(str(ce.exception), "\n\tError in line 9: the function f should hold exactly 1 parameters")
+
+    def test_semErr_forwardDeclaration1(self):
+        file = "M_semErr_forwardDeclaration1"
+        with self.assertRaises(Exception) as ce:
+            testFile(file)
+        self.assertEqual(str(ce.exception),
+                         "\n\tError in line 3: the parameters of the function f do not have the same types "
+                         "as the forward declaration")
+
+    def test_semErr_forwardDeclaration2(self):
+        file = "M_semErr_forwardDeclaration2"
+        with self.assertRaises(Exception) as ce:
+            testFile(file)
+        self.assertEqual(str(ce.exception),
+                         "\n\tError in line 3: the parameters of the function f do not have the same types "
+                         "as the forward declaration")
+
+    def test_semErr_undeclaredFunction(self):
+        file = "M_semErr_undeclaredFunction"
+        with self.assertRaises(Exception) as ce:
+            testFile(file)
+        self.assertEqual(str(ce.exception), "\n\tError in line 4: f has not been declared yet")
+
+    def test_semErr_declaredFunctionLocal(self):
+        file = "M_semErr_declaredFunctionLocal"
+        with self.assertRaises(SystemExit) as ce:
+            testFile(file)
+        self.assertEqual(ce.exception.code, "Line 3 has a syntax error. Please check the code.")
+
+    def test_semErr_returnOutsideFunction(self):
+        file = "M_semErr_returnOutsideFunction"
+        with self.assertRaises(Exception) as ce:
+            testFile(file)
+        self.assertEqual(str(ce.exception), "\n\tError in line 0: main has not been declared yet")
+
+    # ASSIGNMENT 6
+    def test_synErr_array1(self):
+        file = "M_synErr_array1"
+        with self.assertRaises(SystemExit) as ce:
+            testFile(file)
+        self.assertEqual(ce.exception.code, "Line 2 has a syntax error. Please check the code.")
+
+    def test_synErr_array2(self):
+        file = "M_synErr_array2"
+        with self.assertRaises(SystemExit) as ce:
+            testFile(file)
+        self.assertEqual(ce.exception.code, "Line 2 has a syntax error. Please check the code.")
+
+    # ASSIGNMENT 6
+    def test_semErr_arrayIndex1(self):
+        file = "M_semErr_arrayIndex1"
+        with self.assertRaises(Exception) as ce:
+            testFile(file)
+        self.assertEqual(str(ce.exception), "\n\tError in line 3: 0.5x is not declared")
+
+    def test_semErr_arrayIndex2(self):
+        file = "M_semErr_arrayIndex2"
+        with self.assertRaises(Exception) as ce:
+            testFile(file)
+        self.assertEqual(str(ce.exception), "\n\tError in line 3: 2x is not declared")
+
+    def test_semErr_arrayCompare(self):
+        file = "M_semErr_arrayCompare"
+        with self.assertRaises(Exception) as ce:
+            testFile(file)
+        self.assertEqual(str(ce.exception), "\n\tError in line 4: no operations can be done with the full array a")
+
+    def test_synErr_print(self):
+        file = "M_synErr_print"
+        with self.assertRaises(SystemExit) as ce:
+            testFile(file)
+        self.assertEqual(ce.exception.code, "Line 5 has a syntax error. Please check the code.")
+
+    def test_semErr_print1(self):
+        file = "M_semErr_print1"
+        with self.assertRaises(Exception) as ce:
+            testFile(file)
+        self.assertEqual(str(ce.exception),
+                         "\n\tError in line 5: the print expects the same amount of flags and values")
+
+    def test_semErr_print2(self):
+        file = "M_semErr_print2"
+        with self.assertRaises(SystemExit) as ce:
+            testFile(file)
+        self.assertEqual(ce.exception.code, "Line 5 has a syntax error. Please check the code.")
+
+    def test_synErr_scan(self):
+        file = "M_synErr_scan"
+        with self.assertRaises(SystemExit) as ce:
+            testFile(file)
+        self.assertEqual(ce.exception.code, "Line 4 has a syntax error. Please check the code.")
+
+    def test_semErr_scan1(self):
+        file = "M_semErr_scan1"
+        with self.assertRaises(SystemExit) as ce:
+            testFile(file)
+        self.assertEqual(ce.exception.code, "Line 4 has a syntax error. Please check the code.")
+
+    def test_semErr_scan2(self):
+        file = "M_semErr_scan2"
+        with self.assertRaises(SystemExit) as ce:
+            testFile(file)
+        self.assertEqual(ce.exception.code, "Line 4 has a syntax error. Please check the code.")
+
+    def test_synErr_include1(self):
+        file = "M_synErr_include1"
+        with self.assertRaises(SystemExit) as ce:
+            testFile(file)
+        self.assertEqual(ce.exception.code, "Line 1 has a syntax error. Please check the code.")
+
+    def test_synErr_include2(self):
+        file = "M_synErr_include2"
+        with self.assertRaises(SystemExit) as ce:
+            testFile(file)
+        self.assertEqual(ce.exception.code, "Line 1 has a syntax error. Please check the code.")
+
     
 
 # LOCAL/GLOBAL VARIABLES
