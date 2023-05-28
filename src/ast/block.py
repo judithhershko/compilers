@@ -76,6 +76,13 @@ class block:
         result = []
         for tree in self.trees:
             result.append(tree.getVariables(fill, scope=self)[0])
+            if tree.root.name == "declaration" and tree.root.leftChild.name == "array":
+                name = str(tree.root.leftChild.pos.value) + str(tree.root.leftChild.value)
+            elif tree.root.name == "declaration":
+                name = tree.root.leftChild.value
+            if not fill and tree.root.name == "declaration" and self.symbols.findSymbol(name) is None:
+                dec = tree.createUnfilledDeclaration(tree.root)
+                self.symbols.addSymbol(dec, False, fill)
         return result
 
     def fillLiterals(self, tree: AST, onlyLocal: bool = False, fill: bool = True):

@@ -21,22 +21,21 @@ lw	$ra, -4($fp)
 move	$sp, $fp
 lw	$fp, ($sp)
 jr	$ra
-#//intmain(){intx[2];x[0]=1;return0;}
+#//intmain(){intx=5;int*y=&x;f(*y);return0;}
 main: 
  sw	$fp, 0($sp)
 move	$fp, $sp
-subu	$sp, $sp,20
+subu	$sp, $sp,16
 sw	$ra, -4($fp)
 sw	$s0, -8($fp)
 sw	$s1, -12($fp)
-sw	$s2, -16($fp)
-#//intx[2]
-#//x[0]=1
+#//intx=5
 lw  $s0, -8($fp)
-ori $s0,$0,1
+ori $s0,$0,5
 sw  $s0, -8($fp)
+#//int*y=&x
+sw $s0, ($s1)
 li $v0, 0
-lw $s2, -16($fp)
 lw $s1, -12($fp)
 lw $s0, -8($fp)
 lw	$ra, -4($fp)

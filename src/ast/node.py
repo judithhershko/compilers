@@ -1869,15 +1869,17 @@ class Function(AST_node):
                 else:
                     givenType = [[], given.type]
 
-                if givenType is None:
+                if fill and givenType is None:
                     raise NotDeclared(given.value, self.line)
+                if givenType is None:
+                    givenType = [[], given.type]
                 if expec != str(givenType[1]):
                     raise FunctionParamType(self.f_name, exp, givenType, expec, self.line)
                 else:
                     if self.param[pos].variable:
                         params.append((self.param[pos].value, self.param[pos].line))
                         self.param[pos].type = givenType[1]
-                pos += 1;
+                pos += 1
 
         except FunctionParam:
             raise

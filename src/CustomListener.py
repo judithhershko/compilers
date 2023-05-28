@@ -416,7 +416,10 @@ class CustomListener(ExpressionListener):
         elif val[1] == LiteralType.FLOAT:
             cval = float(val[0])"""
         # self.current = Value(cval, val[1], ctx.start.line, self.parent)
-        self.current = Pointer(pval, LiteralType.VAR, ctx.start.line, level, self.parent)
+        if self.current is not None and self.current.name == "function": # TODO: added this for pointers in function calls
+            self.current.param[len(self.current.param)-1] = Pointer(pval, LiteralType.VAR, ctx.start.line, level, self.parent)
+        else:
+            self.current = Pointer(pval, LiteralType.VAR, ctx.start.line, level, self.parent)
         #self.parent.rightChild = self.current
         if self.parent.leftChild is None: # TODO: changed rightChild to leftChild
             self.parent.leftChild=self.current

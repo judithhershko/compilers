@@ -12,8 +12,8 @@ int main()
     int i = 5;
     int* a = &i;
     while(*a > 0){
-        int x = a;
-        f(x);
+        int x = *a;
+        f(*a);
     }
 return 0;
 }
