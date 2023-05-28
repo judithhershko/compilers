@@ -102,6 +102,8 @@ class SymbolTable:
                         # TODO: cleaning already replaces the value -> if this is the case: just use the value, don't look up
                         value = self.findSymbol(root.getRightChild().getValue(), False,
                                                 root.getRightChild().getPosition())
+                        if isinstance(value, tuple):
+                            value = value[0]
                     else:
                         value = root.getRightChild().getValue()
                 else:

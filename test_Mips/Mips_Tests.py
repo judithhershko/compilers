@@ -178,7 +178,7 @@ class Mips_TestCases_Working(unittest.TestCase):
         return self.filetest(file)
 
     # ASSIGNEMT 6 # TODO: progress from here
-    def test_OneDimeArray(self):
+    def test_OneDimArray(self):
         file = "M_P_Array"
         return self.filetest(file)
 
