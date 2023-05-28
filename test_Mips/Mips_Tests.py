@@ -619,9 +619,9 @@ class Mips_TestCasesErrors(unittest.TestCase):
 
     def test_synErr_scan(self):
         file = "M_synErr_scan"
-        with self.assertRaises(SystemExit) as ce:
+        with self.assertRaises(Exception) as ce:
             testFile(file)
-        self.assertEqual(ce.exception.code, "Line 4 has a syntax error. Please check the code.")
+        self.assertEqual(str(ce.exception), "\n\tError in line 5: the scan expects the same amount of flags and values")
 
     def test_semErr_scan1(self):
         file = "M_semErr_scan1"

@@ -373,11 +373,15 @@ class ArraySize(Exception):
 
 
 class PrintSize(Exception):
-    def __init__(self, line: int):
+    def __init__(self, line: int, print: bool):
         self.line = line
+        self.print = print
 
     def __str__(self):
-        return "\n\tError in line " + str(self.line) + ": the print expects the same amount of flags and values"
+        if self.print:
+            return "\n\tError in line " + str(self.line) + ": the print expects the same amount of flags and values"
+        else:
+            return "\n\tError in line " + str(self.line) + ": the scan expects the same amount of flags and values"
 
 
 class PrintType(Exception):

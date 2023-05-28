@@ -199,7 +199,11 @@ class Print(AST_node):
             return self, True
         try:
             if len(self.param) != len(self.paramString):
-                raise PrintSize(self.line)
+                if self.name == "scan":
+                    print = False
+                else:
+                    print = True
+                raise PrintSize(self.line, print)
             for pos in range(len(self.param)):
                 """if self.paramString[pos] == "%f" and self.param[pos].root.getType() != LiteralType.FLOAT:
                     raise PrintType(self.line, "%f", str(LiteralType.FLOAT))
@@ -286,7 +290,11 @@ class Scan(AST_node):
             return self, True
         try:
             if len(self.param) != len(self.paramString):
-                raise PrintSize(self.line)
+                if self.name == "scan":
+                    print = False
+                else:
+                    print = True
+                raise PrintSize(self.line, print)
             for pos in range(len(self.param)):
                 para = self.param[pos]
                 if isinstance(para, tuple):
