@@ -802,6 +802,7 @@ class CustomListener(ExpressionListener):
                 return
             if self.loop is not None and self.loop.Condition is None:
                 self.loop.Condition = self.asT.root
+                self.parent = None #TODO: done for if in if (first line)
                 return  # TODO: check if this still works: set Condition to node instead of ast
 
             if not self.return_function:

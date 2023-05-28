@@ -442,7 +442,7 @@ class Mips_TestCasesErrors(unittest.TestCase):
         file = "M_synErr_ifElse3"
         with self.assertRaises(SystemExit) as ce:
             testFile(file)
-        self.assertEqual(ce.exception.code, "Line 17 has a syntax error. Please check the code.")
+        self.assertEqual(ce.exception.code, "Line 18 has a syntax error. Please check the code.")
 
     def test_synErr_while1(self):
         file = "M_synErr_while1"
@@ -454,7 +454,7 @@ class Mips_TestCasesErrors(unittest.TestCase):
         file = "M_synErr_while2"
         with self.assertRaises(SystemExit) as ce:
             testFile(file)
-        self.assertEqual(ce.exception.code, "Line 9 has a syntax error. Please check the code.")
+        self.assertEqual(ce.exception.code, "Line 10 has a syntax error. Please check the code.")
 
     def test_synErr_while3(self):
         file = "M_synErr_while3"

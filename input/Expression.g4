@@ -16,7 +16,7 @@ typed_var: INT| DOUBLE | FLOAT |CHAR | BOOL;
 
 scope : '{' rule (return)? rule'}' (';')?;
 rule  : (print ';'|scan ';' |expr ';'|dec ';'|comments|line|loop|scope | function_dec)*;
-lrules: (print ';' |scan ';' |expr ';' |dec ';' |comments |line |loop (';')? |break |continue | lscope | function_dec )*;
+lrules: (print ';' |scan ';' |expr ';' |dec ';' |comments |line |loop (';')? |break |continue | lscope | function_dec | return)*;
 lscope: '{' lrules '}' ;
 loop  : while | for | if;
 while : WHILE '(' expr ')' lscope;
@@ -25,7 +25,7 @@ if    : IF LBRAK expr RBRAK lscope |  ELSE  lscope | ELSE IF  LBRAK expr RBRAK l
 break : BREAK ';';
 continue: CONTINUE ';';
 
-function_dec: function_name '(' (f_variables)?  (',' f_variables )* ')';
+function_dec: function_name '(' (f_variables | f_variables binop f_variables | f_variables binop_md f_variables)?  (',' f_variables | f_variables binop f_variables | f_variables binop_md f_variables )* ')';
 return_type: (CONST)? (INT| DOUBLE | FLOAT |CHAR | BOOL | VOID);
 parameters: (const)? typed_var (pointer)* (ref)? ID ;
 f_variables: pri | char_pri;
