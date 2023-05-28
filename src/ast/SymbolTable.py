@@ -99,8 +99,9 @@ class SymbolTable:
                 name = root.getLeftChild().getValue()
                 if root.getRightChild() is not None:
                     if isinstance(root.getRightChild(), Array):
+                        # TODO: cleaning already replaces the value -> if this is the case: just use the value, don't look up
                         value = self.findSymbol(root.getRightChild().getValue(), False,
-                                                root.getRightChild().getPosition())[0]
+                                                root.getRightChild().getPosition())
                     else:
                         value = root.getRightChild().getValue()
                 else:

@@ -1869,6 +1869,8 @@ class Function(AST_node):
                 else:
                     givenType = [[], given.type]
 
+                if givenType is None:
+                    raise NotDeclared(given.value, self.line)
                 if expec != str(givenType[1]):
                     raise FunctionParamType(self.f_name, exp, givenType, expec, self.line)
                 else:
@@ -1878,6 +1880,8 @@ class Function(AST_node):
                 pos += 1;
 
         except FunctionParam:
+            raise
+        except NotDeclared:
             raise
         # for param in self.param:
         #     if self.param[param].variable:

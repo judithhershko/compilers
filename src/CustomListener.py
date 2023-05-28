@@ -167,9 +167,12 @@ class CustomListener(ExpressionListener):
             self.parent.setRightChild(self.current)
             self.right = False
             self.left = True
-        elif self.left:
+        elif self.left and (("(" not in v or ")" not in v) and ("[" not in v or "]" not in v)): #TODO: added and("("...) for definition in loops
             self.parent.setLeftChild(self.current)
             self.right = True
+        # elif self.loop is not None and self.loop.Condition is not None and id(self.parent) == id(self.loop.Condition) \
+        #         and (("(" in v or ")" in v) or ("[" in v or "]" in v)): # TODO: added this for array in first line of loop
+        #     self.parent = None
 
     def set_expression(self, ctx: ParserRuleContext):
         self.expr_layer += 1
@@ -1173,8 +1176,10 @@ class CustomListener(ExpressionListener):
         self.call_function = True
         if self.dec_op is None or self.dec_op.leftChild is None:
             self.parent = None
-
-        self.current = Function(f_name=getFunction(ctx.getText()), parent=self.parent, line=ctx.start.line)
+        if self.loop is not None and self.loop. Condition is not None and id(self.loop.Condition) == id(self.parent): # TODO: added this to allow functionCall in first line of loop
+            self.current = Function(f_name=getFunction(ctx.getText()), parent=None, line=ctx.start.line)
+        else:
+            self.current = Function(f_name=getFunction(ctx.getText()), parent=self.parent, line=ctx.start.line)
         if self.declaration:
             self.current.parent = self.parent
             if self.parent is not None:
@@ -1333,6 +1338,7 @@ class CustomListener(ExpressionListener):
         else:
             self.current.init = False
             name = ctx.getText()
+            # if self.parent is not None: #TODO: added for array in first line of loop
             if self.parent.rightChild is not None and self.dec_op.rightChild.value == name:
                 self.parent.rightChild = self.current
             elif self.parent.leftChild is not None and self.dec_op.leftChild.value == name:
