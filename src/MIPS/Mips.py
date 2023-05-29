@@ -24,6 +24,7 @@ https://gist.github.com/KaceCottam/37a065a2c194c0eb50b417cf67455af1
 # todo: if /else            v
 # todo :UNNAMED SCOPES      v --> vraag als dit ok is?
 # TODO: function return     v
+# TODO: function parameters x
 # TODO: pointers            x
 # todo declaration pointer
 # todo: expression pointer
@@ -316,7 +317,7 @@ class Mips:
 
     def end_function(self, void: bool):
         for key in reversed(self.frame_register):
-            if key[0]=='f':
+            if key[0] == 'f':
                 self.text += "l.s ${}, {}\n".format(key, self.frame_register[key])
             else:
                 self.text += "lw ${}, {}\n".format(key, self.frame_register[key])
@@ -338,7 +339,7 @@ class Mips:
     def load_retrun_value(self, v):
         if v.getType() == LiteralType.INT and str(v.value).isdigit():
             self.text += "li $v0, {}\n".format(v.value)
-        elif v.getType()==LiteralType.INT:
+        elif v.getType() == LiteralType.INT:
             self.text += "move $v0, ${}\n".format(self.get_register(v.value))
         elif v.getType() == LiteralType.FLOAT and is_float(v.value):
             # self.text += "ori $v0,$0,{}\n".format(self.float_to_hex(v.value))
@@ -621,6 +622,9 @@ class Mips:
         # store it
         if isinstance(declaration.leftChild, Pointer):
             return self.to_pointer_dec(declaration)
+        if isinstance(declaration.rightChild,Pointer):
+            #we need tha value it is pointing to
+            declaration.rightChild=Value(declaration.rightChild.value,declaration.rightChild.type,declaration.rightChild.line)
         # todo: left child array
         if isinstance(declaration.rightChild, Array):
             return self.to_array_dec(declaration)
@@ -670,7 +674,7 @@ class Mips:
             else:
                 # is variable
                 t = declaration.leftChild.type
-                t= self.get_register_type(t)
+                t = self.get_register_type(t)
                 s = self.get_register(declaration.leftChild.value, t, declaration.leftChild.value)
                 m = 'move'
                 if t == 'f':
@@ -729,20 +733,43 @@ class Mips:
         self.text += "sw ${}, {}($fp)\n".format(self.register[declaration.value], self.frame_counter)
 
     def to_pointer_dec(self, declaration):
+        """
         ps = self.get_register(declaration.leftChild.value, 's', declaration.leftChild.getType())
         vs = self.get_register(declaration.rightChild.value, 's', declaration.rightChild.getType())
         if declaration.leftChild.type == LiteralType.FLOAT:
-            #store value content in (mem location)
-            #load float value in data
-            #store data content in the  pointer
             self.load_float(0.0)
-            #store value in data
             self.text += "swc1  ${}, $${}\n".format(vs,self.data_count)
             self.text += "la    $t0, $${}\n".format(self.data_count)
             self.text += "lwc1  ${}, ($t0)\n".format(ps)
         else:
             self.text += "sw ${}, (${})\n".format(vs, ps)
         return
+        """
+
+        # find register pointing to this mem location
+        # assign this mem location to the pointer
+        ps = self.get_register(declaration.leftChild.value, 's', declaration.leftChild.getType())
+
+        if declaration.leftChild.declaration:
+            old_reg = self.get_register(declaration.rightChild.value, 's', declaration.rightChild.getType())
+            memloc = 0
+            if old_reg in self.frame_register.keys():
+                memloc = self.frame_register[old_reg]
+            else:
+                print("pointer not pointing to a,anything??")
+            self.frame_register[ps] = memloc
+        #need to reset value or pointer
+        else:
+            if ps[0]=='f':
+                self.text += "s.s ${}, {}\n".format(ps,self.frame_register[ps])
+            else:
+                self.text += "sw ${}, {}\n".format(ps, self.frame_register[ps])
+            declaration.leftChild=Value(declaration.leftChild.value,declaration.leftChild.getType(),0)
+            self.to_declaration(declaration)
+            if ps[0] == 'f':
+                self.text += "l.s ${}, {}\n".format(ps,self.frame_register[ps])
+            else:
+                self.text += "lw ${}, {}\n".format(ps,self.frame_register[ps])
 
     def to_array_dec(self, declaration):
         return
