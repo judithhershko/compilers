@@ -813,7 +813,7 @@ class CustomListener(ExpressionListener):
                         self.right = True
                         self.parent = self.a_val
                 return
-            if self.loop is not None and self.loop.Condition is None:
+            if self.loop is not None and self.loop.Condition is None and not (isinstance(self.loop, If) and self.loop.operator is ConditionType.ELSE): #TODO: added and not for double return
                 self.loop.Condition = self.asT.root
                 self.parent = None #TODO: done for if in if (first line)
                 return  # TODO: check if this still works: set Condition to node instead of ast
@@ -1192,7 +1192,10 @@ class CustomListener(ExpressionListener):
         # print("function declaration")
         self.call_function = True
         if self.dec_op is None or self.dec_op.leftChild is None:
-            self.parent = None
+            if isinstance(self.parent, Function): #TODO: replaced self.parent = None by this if-else loop for double return
+                self.parent = None
+            elif not (self.parent is not None and self.parent.rightChild is not None and "(" in self.parent.rightChild.value):
+                self.parent = None
         if self.loop is not None and self.loop. Condition is not None and id(self.loop.Condition) == id(self.parent): # TODO: added this to allow functionCall in first line of loop
             self.current = Function(f_name=getFunction(ctx.getText()), parent=None, line=ctx.start.line)
         else:
@@ -1247,7 +1250,7 @@ class CustomListener(ExpressionListener):
         self.f_var = True
         if ctx.getText().isdigit():
             v = Value(int(ctx.getText()), LiteralType.INT, ctx.start.line, None)
-            if isinstance(self.parent, BinaryOperator) and self.parent.leftChild is not None and self.parent.rightChild is None: #TODO: added for double return
+            if isinstance(self.parent, BinaryOperator) and self.parent.leftChild is not None and (self.parent.rightChild is None or "(" in self.parent.rightChild.value): #TODO: added for double return
                 self.parent.rightChild = v
                 self.current.param[list(self.current.param)[-1]] = self.parent
                 self.parent = self.current
