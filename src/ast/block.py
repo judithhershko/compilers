@@ -72,10 +72,10 @@ class block:
     def getLabel(self):
         return "\"new scope\""
 
-    def getVariables(self, fill: bool = True):
+    def getVariables(self, fill: bool = True, f_name: str = None):
         result = []
         for tree in self.trees:
-            result.append(tree.getVariables(fill, scope=self)[0])
+            result.append(tree.getVariables(fill, scope=self, f_name=f_name)[0])
             if tree.root.name == "declaration" and tree.root.leftChild.name == "array":
                 name = str(tree.root.leftChild.pos.value) + str(tree.root.leftChild.value)
             elif tree.root.name == "declaration":
@@ -85,12 +85,12 @@ class block:
                 self.symbols.addSymbol(dec, False, fill)
         return result
 
-    def fillLiterals(self, tree: AST, onlyLocal: bool = False, fill: bool = True):
+    def fillLiterals(self, tree: AST, onlyLocal: bool = False, fill: bool = True, f_name: str = None):
         """
         This function will try to replace the variables in the AST with the actual values. If it can not find the
         variables in its own symbol table, it will look at the symbol tables of its parents
         """
-        res = tree.getVariables(scope=self)
+        res = tree.getVariables(scope=self, f_name=f_name)
         variables = res[0]
         notFound = []
         values = dict()
@@ -205,13 +205,15 @@ class block:
         if self.parent is not None:
             self.parent.symbols.makeUnfillable()
 
-    def cleanBlock(self, glob: bool = False, onlyLocal: bool = False, fill: bool = True):
+    def cleanBlock(self, glob: bool = False, onlyLocal: bool = False, fill: bool = True, f_name: str = None):
         if self.cleaned:
             return []
         allVar = []
         cleanTrees = []
         for tree in self.trees:
-            res = self.fillLiterals(tree.root, onlyLocal, fill)
+            res = self.fillLiterals(tree.root, onlyLocal, fill, f_name=f_name)
+            if fill and tree.root.name == "scope" and tree.root.f_name != "":
+                self.parent.functions.addFunction(tree.root)
             all = res[1]
             if not all:
                 self.makeUnfillable()
@@ -226,8 +228,6 @@ class block:
                 else:
                     none = tree.createUnfilledDeclaration(tree.root)
                     self.symbols.addSymbol(none, glob, False)
-            elif fill and tree.root.name == "scope" and tree.root.f_name != "":
-                self.parent.functions.addFunction(tree.root)
             for elem in res[0]:
                 allVar.append(elem)
             cleanTrees.append(tree)
@@ -236,8 +236,6 @@ class block:
         self.trees = cleanTrees
         self.cleaned = True
         return allVar
-
-
 
     def setParent(self, parent):
         self.parent = parent

@@ -31,7 +31,7 @@ class FunctionTable:
                 raise wrongReturnType(func.f_name, func.line, str(func.return_type), "void")
         elif func.return_type is None:
             raise wrongReturnType(func.f_name, func.line, "void", str(func.f_return.root.getType()))
-        elif func.return_type == func.f_return.root.getType():
+        elif (func.f_return.root.name == "function" and func.f_return.root.f_name == func.f_name) or func.return_type == func.f_return.root.getType():
             function["return"] = str(func.return_type)
         else:
             raise wrongReturnType(func.f_name, func.line, str(func.return_type), str(func.f_return.root.getType()))

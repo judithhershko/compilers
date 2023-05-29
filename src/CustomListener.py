@@ -191,6 +191,8 @@ class CustomListener(ExpressionListener):
     def set_token(self, ctx, operator=None):
         if operator is None:
             operator = BinaryOperator(ctx.getText(), ctx.start.line)
+        if self.parent is None: #TODO: added for recursive functioncalls
+            self.parent = BinaryOperator("", ctx.start.line)
         if self.parent is not None and not isinstance(self.parent, Declaration) and self.parent.operator == "":
             if isinstance(operator, UnaryOperator):
                 self.parent = operator

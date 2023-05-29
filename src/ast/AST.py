@@ -331,8 +331,8 @@ class AST:
             return self, temp[1]
         return self, True
 
-    def getVariables(self, fill: bool = True, scope=None):
-        return self.root.getVariables(fill, scope)
+    def getVariables(self, fill: bool = True, scope=None, f_name: str = None):
+        return self.root.getVariables(fill, scope, f_name=f_name)
 
     def replaceVariables(self, values, fill: bool = True):
         self.root.replaceVariables(values, fill)

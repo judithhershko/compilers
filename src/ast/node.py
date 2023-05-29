@@ -127,7 +127,7 @@ class Comment(AST_node):
     def getType(self):
         return self.type
 
-    def getVariables(self, fill: bool = True, scope=None):
+    def getVariables(self, fill: bool = True, scope=None, f_name: str = None):
         return [[], True]
 
     def replaceVariables(self, values, fill: bool = True):
@@ -174,14 +174,14 @@ class Print(AST_node):
     def getValue(self):
         return self.value
 
-    def getVariables(self, fill: bool = True, scope=None):
+    def getVariables(self, fill: bool = True, scope=None, f_name: str = None):
         ret = []
         true = True
         for tree in self.param:
             temp = tree
             if isinstance(tree, tuple):
                 temp = tree[0]
-            temp2 = temp.getVariables(fill, scope)
+            temp2 = temp.getVariables(fill, scope, f_name=f_name)
             if not len(temp2[0]) == 0:
                 ret.append(temp2[0][0])
             if not temp2[1]:
@@ -268,14 +268,14 @@ class Scan(AST_node):
     def getValue(self):
         return self.value
 
-    def getVariables(self, fill: bool = True, scope=None):
+    def getVariables(self, fill: bool = True, scope=None, f_name: str = None):
         ret = []
         true = True
         for tree in self.param:
             temp = tree
             if isinstance(tree, tuple):
                 temp = tree[0]
-            temp2 = temp.getVariables(fill, scope)
+            temp2 = temp.getVariables(fill, scope, f_name=f_name)
             if not len(temp2[0]) == 0:
                 ret.append(temp2[0][0])
             if not temp2[1]:
@@ -374,7 +374,7 @@ class Value(AST_node):
     def getType(self):
         return self.type
 
-    def getVariables(self, fill: bool = True, scope=None):
+    def getVariables(self, fill: bool = True, scope=None, f_name: str = None):
         """
         returns the variable contained within the node
         :return:
@@ -590,13 +590,13 @@ class BinaryOperator(AST_node):
         except NotSupported:
             raise
 
-    def getVariables(self, fill: bool = True, scope=None):
+    def getVariables(self, fill: bool = True, scope=None, f_name: str = None):
         """
         returns the variable contained within the node
         :return:
         """
-        res = self.leftChild.getVariables(fill, scope)
-        right = self.rightChild.getVariables(fill, scope)
+        res = self.leftChild.getVariables(fill, scope, f_name=f_name)
+        right = self.rightChild.getVariables(fill, scope, f_name=f_name)
         res[0].extend(right[0])
         if not res[1] or not right[1]:
             res[1] = False
@@ -713,12 +713,12 @@ class UnaryOperator(AST_node):
         except NotSupported:
             raise
 
-    def getVariables(self, fill: bool = True, scope=None):
+    def getVariables(self, fill: bool = True, scope=None, f_name: str = None):
         """
         returns the variable contained within the node
         :return:
         """
-        return self.rightChild.getVariables(fill, scope)
+        return self.rightChild.getVariables(fill, scope, f_name=f_name)
 
     def replaceVariables(self, values, fill: bool = True):
         """
@@ -857,13 +857,13 @@ class LogicalOperator(AST_node):
         except NotSupported:
             raise
 
-    def getVariables(self, fill: bool = True, scope=None):
+    def getVariables(self, fill: bool = True, scope=None, f_name: str = None):
         """
         returns the variable contained within the node
         :return:
         """
-        res = self.leftChild.getVariables(fill, scope)
-        right = self.rightChild.getVariables(fill, scope)
+        res = self.leftChild.getVariables(fill, scope, f_name=f_name)
+        right = self.rightChild.getVariables(fill, scope, f_name=f_name)
         res[0].extend(right[0])
         if not res[1] or not right[1]:
             res[1] = False
@@ -978,14 +978,14 @@ class Declaration(AST_node):
         except WrongDeclaration:
             raise
 
-    def getVariables(self, fill: bool = True, scope=None):
+    def getVariables(self, fill: bool = True, scope=None, f_name: str = None):
         """
         returns the variable contained within the node
         :return:
         """
-        values = self.rightChild.getVariables(fill, scope)
+        values = self.rightChild.getVariables(fill, scope, f_name=f_name)
         if not self.leftChild.declaration: # TODO: removed this part: and not isinstance(self.leftChild, Array):
-            temp = self.leftChild.getVariables(fill, scope)
+            temp = self.leftChild.getVariables(fill, scope, f_name=f_name)
             values[0].append(temp[0][0])
         # if isinstance(self.leftChild, Array) and self.leftChild.declaration:
         #     temp = self.leftChild.getVariables(fill, scope)
@@ -1116,7 +1116,7 @@ class Pointer(AST_node):
     def setDeclaration(self, decl):
         self.declaration = decl
 
-    def getVariables(self, fill: bool = True, scope=None):
+    def getVariables(self, fill: bool = True, scope=None, f_name: str = None):
         """
         returns the variable contained within the node
         :return:
@@ -1213,7 +1213,7 @@ class EmptyNode(AST_node):
     def getType(self):
         return self.type
 
-    def getVariables(self, fill: bool = True, scope=None):
+    def getVariables(self, fill: bool = True, scope=None, f_name: str = None):
         """
         returns the variable contained within the node
         :return:
@@ -1256,7 +1256,7 @@ class ReturnNode(AST_node):
     def getType(self):
         return self.type
 
-    def getVariables(self, fill: bool = True, scope=None):
+    def getVariables(self, fill: bool = True, scope=None, f_name: str = None):
         """
         returns the variable contained within the node
         :return:
@@ -1301,7 +1301,7 @@ class Include(AST_node):
     def getType(self):
         return self.type
 
-    def getVariables(self, fill: bool = True, scope=None):
+    def getVariables(self, fill: bool = True, scope=None, f_name: str = None):
         return [[], True]
 
     def fold(self, to_llvm):
@@ -1399,27 +1399,27 @@ class Scope(AST_node):  # TODO: let it hold a block instead of trees
         else:
             return self, False
 
-    def getVariables(self, fill: bool = True, scope=None):
+    def getVariables(self, fill: bool = True, scope=None, f_name: str = None):
         """
         returns the variable contained within the node
         :return:
         """
         if self.f_name == "":
-            self.block.cleanBlock(fill=fill)
+            self.block.cleanBlock(fill=fill, f_name=f_name)
             return [[], True]
         else:
             # res = self.block.cleanBlock(onlyLocal=True)
-            self.block.cleanBlock() # TODO: check if removing onlyLocal=True did not make other things crash
+            self.block.cleanBlock(f_name=self.f_name) # TODO: check if removing onlyLocal=True did not make other things crash
             if self.f_return is not None:
-                self.block.fillLiterals(self.f_return, True)
+                self.block.fillLiterals(self.f_return, True, f_name=self.f_name)
             res = []
             # for elem in res:
-            for elem in self.block.getVariables(fill=False):
+            for elem in self.block.getVariables(fill=False, f_name=f_name):
                 if len(elem) != 0 and elem[0][0] not in self.parameters and \
                         not self.block.symbols.findSymbol(elem[0][0]):
                     res.append(elem[0])
             if self.f_return is not None:
-                for elem in self.f_return.getVariables(fill=False):
+                for elem in self.f_return.getVariables(fill=False, scope=scope, f_name=self.f_name): # TODO: added for recursive functioncalls
                     if isinstance(elem, list):
                         if len(elem) > 0 and elem[0][0] not in self.parameters and \
                                 not self.block.symbols.findSymbol(elem[0][0]):
@@ -1521,15 +1521,15 @@ class If(AST_node):
         self.folded = True
         return self, True
 
-    def getVariables(self, fill: bool = True, scope=None):
+    def getVariables(self, fill: bool = True, scope=None, f_name: str = None):
         """
         returns the variable contained within the node
         :return:
         """
         res = None
         if self.operator != ConditionType.ELSE:
-            res = self.Condition.getVariables(fill, scope)
-        self.c_block.cleanBlock(fill=fill)
+            res = self.Condition.getVariables(fill, scope, f_name=f_name)
+        self.c_block.cleanBlock(fill=fill, f_name=f_name)
         if res is None:
             return [[], True]
         else:
@@ -1581,7 +1581,7 @@ class Break(AST_node):
     def getType(self):
         return self.type
 
-    def getVariables(self, fill: bool = True, scope=None):
+    def getVariables(self, fill: bool = True, scope=None, f_name: str = None):
         """
         returns the variable contained within the node
         :return:
@@ -1623,7 +1623,7 @@ class Continue(AST_node):
     def getType(self):
         return self.type
 
-    def getVariables(self, fill: bool = True, scope=None):
+    def getVariables(self, fill: bool = True, scope=None, f_name: str = None):
         """
         returns the variable contained within the node
         :return:
@@ -1662,7 +1662,7 @@ class String(AST_node):
     def getType(self):
         return self.type
 
-    def getVariables(self, fill: bool = True, scope=None):
+    def getVariables(self, fill: bool = True, scope=None, f_name: str = None):
         """
         returns the variable contained within the node
         :return:
@@ -1733,15 +1733,15 @@ class While(AST_node):
     def fold(self, to_llvm=None):
         return self, False
 
-    def getVariables(self, fill: bool = True, scope=None):
+    def getVariables(self, fill: bool = True, scope=None, f_name: str = None):
         """
         returns the variable contained within the node
         :return:
         """
-        res = self.Condition.getVariables(fill, scope)[0]
+        res = self.Condition.getVariables(fill, scope, f_name=f_name)[0]
         # self.Condition=self.Condition.root
         self.Condition.fold()
-        for elem in self.c_block.getVariables(False)[0]:
+        for elem in self.c_block.getVariables(False, f_name=f_name)[0]:
             res.append(elem)
         # self.c_block.cleanBlock(fill=False) # TODO: check if something needs to be done instead of this one (to fill in variables)
         return [res, False]
@@ -1851,7 +1851,7 @@ class Function(AST_node):
         return self.expected["return"]
 
     def getVariables(self, fill: bool = True,
-                     scope=None):  # TODO: for now no filling of variables because this can run multiple times
+                     scope=None, f_name: str = None):  # TODO: for now no filling of variables because this can run multiple times
         """
         returns the variable contained within the node
         :return:
@@ -1864,6 +1864,8 @@ class Function(AST_node):
         prog = scope
         while prog.name != "program":
             prog = prog.parent
+        if self.f_name == f_name:
+            return [[], True]
         self.expected = prog.functions.findFunction(self.f_name, self.line)
         try:
             params = []
@@ -1973,7 +1975,7 @@ class Array(AST_node):
         else:
             return "\"array: " + str(self.value) + "\nposition: " + "\"" # TODO: removed this: + str(self.pos.value)
 
-    def getVariables(self, fill: bool = True, scope=None):
+    def getVariables(self, fill: bool = True, scope=None, f_name: str = None):
         """
         returns the variable contained within the node
         :return:
@@ -1981,7 +1983,7 @@ class Array(AST_node):
         if self.declaration:
             return [[], True]
         if not isinstance(self.pos, Value) or self.pos.variable:
-            return self.pos.getVariables()
+            return self.pos.getVariables(f_name=f_name)
         return [[(str(self.pos.value) + str(self.value), self.line)], True]
 
     def fold(self, to_llvm):
