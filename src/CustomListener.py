@@ -161,6 +161,8 @@ class CustomListener(ExpressionListener):
             return"""
         if self.array_content:
             return
+        if isinstance(self.parent, Function): #TODO: added for double return
+            return
         if self.right or (self.parent.rightChild is None and self.parent.leftChild is not None):
             if self.dec_op is not None and not isinstance(self.dec_op, Array) and isinstance(self.dec_op.leftChild, Array) and self.dec_op.leftChild.pos is not None: # TODO: added this to make complex array's work: int x[i+1] = 1;
                 self.parent = self.dec_op
@@ -193,6 +195,9 @@ class CustomListener(ExpressionListener):
             operator = BinaryOperator(ctx.getText(), ctx.start.line)
         if self.parent is None: #TODO: added for recursive functioncalls
             self.parent = BinaryOperator("", ctx.start.line)
+        elif isinstance(self.parent, Function):
+            self.parent = BinaryOperator(ctx.getText(), ctx.start.line)
+            self.parent.leftChild = self.current
         if self.parent is not None and not isinstance(self.parent, Declaration) and self.parent.operator == "":
             if isinstance(operator, UnaryOperator):
                 self.parent = operator
@@ -200,7 +205,9 @@ class CustomListener(ExpressionListener):
                 self.left = False
                 return
             self.current.parent = operator
-            if not isinstance(operator, UnaryOperator):
+            if isinstance(self.current, Function) and not isinstance(operator, UnaryOperator): #TODO: added for double return
+                operator.leftChild = self.current.param[len(self.current.param)-1]
+            elif not isinstance(operator, UnaryOperator):
                 operator.leftChild = self.current
             self.parent = operator
         elif self.parent.operator == "":
@@ -259,12 +266,13 @@ class CustomListener(ExpressionListener):
             elif order_prec[self.parent.operator] == order_prec[operator.operator]:
                 # parent is None:
                 if self.parent.parent is None:
-                    if self.parent.rightChild is None:
-                        self.current.parent = self.parent
-                        self.parent.rightChild = self.current
-                    self.parent.parent = operator
-                    operator.leftChild = self.parent
-                    self.parent = operator
+                    if not isinstance(self.parent.leftChild, Function):
+                        if self.parent.rightChild is None:
+                            self.current.parent = self.parent
+                            self.parent.rightChild = self.current
+                        self.parent.parent = operator
+                        operator.leftChild = self.parent
+                        self.parent = operator
                 else:
                     rc = self.parent.parent.rightChild
                     rc.parent = operator
@@ -782,7 +790,10 @@ class CustomListener(ExpressionListener):
                 self.current = self.current.parent
             if isinstance(self.current, BinaryOperator) and self.current.operator == "":
                 self.current = self.current.leftChild
-            self.asT.setRoot(self.current)
+            if isinstance(self.parent, Function): #TODO: added for double return
+                self.asT.setRoot(self.parent)
+            else:
+                self.asT.setRoot(self.current)
             if self.is_print:
                 self.c_print.addParam(self.asT)
                 self.asT = create_tree()
@@ -1236,7 +1247,13 @@ class CustomListener(ExpressionListener):
         self.f_var = True
         if ctx.getText().isdigit():
             v = Value(int(ctx.getText()), LiteralType.INT, ctx.start.line, None)
-            self.current.addParameter(v, scope=self.c_scope, line=ctx.start.line)
+            if isinstance(self.parent, BinaryOperator) and self.parent.leftChild is not None and self.parent.rightChild is None: #TODO: added for double return
+                self.parent.rightChild = v
+                self.current.param[list(self.current.param)[-1]] = self.parent
+                self.parent = self.current
+                # self.current.addParameter(self.parent, scope=self.c_scope, line=ctx.start.line)
+            else:
+                self.current.addParameter(v, scope=self.c_scope, line=ctx.start.line)
             return
         if is_float(ctx.getText()):
             v = Value(float(ctx.getText()), LiteralType.FLOAT, ctx.start.line, None)

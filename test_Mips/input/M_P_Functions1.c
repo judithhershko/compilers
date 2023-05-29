@@ -2,7 +2,7 @@
 
 int f(int a) {
 	if (a<2) {
-		return a;
+		return f(a-1);
 	}
 	else {
 		return f(a-1) + f(a-2);
@@ -14,7 +14,7 @@ int main()
     int i = 5;
     int a = 0;
     while(a < i){
-		f(a);
+		f(a-1);
 	}
 return 0;
 }

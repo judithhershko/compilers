@@ -1881,7 +1881,7 @@ class Function(AST_node):
                 if given.variable:
                     givenType = scope.symbols.findSymbol(given.value)
                 else:
-                    givenType = [[], given.type]
+                    givenType = [[], given.getType()]
 
                 if fill and givenType is None:
                     raise NotDeclared(given.value, self.line)
