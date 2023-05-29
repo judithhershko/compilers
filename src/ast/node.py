@@ -192,7 +192,10 @@ class Print(AST_node):
         self.value = val
 
     def getLabel(self):
-        return "\"Print:\""
+        if len(self.param) == 0 and self.input_string is not None:
+            return "\"Print: " + self.input_string.replace("\"", "'") + "\""
+        else:
+            return "\"Print:\""
 
     def fold(self, to_llvm=None):
         if self.folded:
@@ -1644,7 +1647,7 @@ class String(AST_node):
         self.deref = False
 
     def getLabel(self):
-        return "\"String Node: " + self.value + "\""
+        return "\"String Node: " + self.value.replace("\"", "'") + "\""
 
     def getValue(self):
         return self.value
