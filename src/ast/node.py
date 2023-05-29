@@ -1409,9 +1409,9 @@ class Scope(AST_node):  # TODO: let it hold a block instead of trees
             return [[], True]
         else:
             # res = self.block.cleanBlock(onlyLocal=True)
-            self.block.cleanBlock(f_name=self.f_name) # TODO: check if removing onlyLocal=True did not make other things crash
+            self.block.cleanBlock(f_name=[self.f_name, self.return_type]) # TODO: check if removing onlyLocal=True did not make other things crash
             if self.f_return is not None:
-                self.block.fillLiterals(self.f_return, True, f_name=self.f_name)
+                self.block.fillLiterals(self.f_return, True, f_name=[self.f_name, self.return_type])
             res = []
             # for elem in res:
             for elem in self.block.getVariables(fill=False, f_name=f_name):
@@ -1419,7 +1419,7 @@ class Scope(AST_node):  # TODO: let it hold a block instead of trees
                         not self.block.symbols.findSymbol(elem[0][0]):
                     res.append(elem[0])
             if self.f_return is not None:
-                for elem in self.f_return.getVariables(fill=False, scope=scope, f_name=self.f_name): # TODO: added for recursive functioncalls
+                for elem in self.f_return.getVariables(fill=False, scope=scope, f_name=[self.f_name, self.return_type]): # TODO: added for recursive functioncalls
                     if isinstance(elem, list):
                         if len(elem) > 0 and elem[0][0] not in self.parameters and \
                                 not self.block.symbols.findSymbol(elem[0][0]):
@@ -1864,7 +1864,8 @@ class Function(AST_node):
         prog = scope
         while prog.name != "program":
             prog = prog.parent
-        if self.f_name == f_name:
+        if f_name is not None and self.f_name == f_name[0]:
+            self.expected = {"return": f_name[1]}
             return [[], True]
         self.expected = prog.functions.findFunction(self.f_name, self.line)
         try:

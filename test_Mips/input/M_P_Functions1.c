@@ -2,7 +2,7 @@
 
 int f(int a) {
 	if (a<2) {
-		return f(a);
+		return a;
 	}
 	else {
 		return f(a-1) + f(a-2);
