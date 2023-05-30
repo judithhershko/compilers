@@ -298,6 +298,8 @@ class SymbolTable:
                         return None
                 else:
                     pos = self.table.at[pos, "Value"]
+                    if isinstance(pos, str) and pos.isnumeric():
+                        pos = int(pos)
             elif isinstance(pos, str) and pos.isnumeric():
                 pos = int(pos)
             try:

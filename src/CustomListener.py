@@ -136,7 +136,7 @@ class CustomListener(ExpressionListener):
         else:
             var = False
         self.current = Value(ctx.getText(), type_, ctx.start.line, self.parent, variable=var)
-        if type_ == LiteralType.INT:
+        if type_ == LiteralType.INT: #TODO:ctx.getText als start met nul en langer dan 1 of niet 0.
             self.current = Value(int(ctx.getText()), type_, ctx.start.line, self.parent)
         elif type_ == LiteralType.FLOAT:
             self.current = Value(float(ctx.getText()), type_, ctx.start.line, self.parent)
@@ -165,13 +165,19 @@ class CustomListener(ExpressionListener):
             return
         if self.right or (self.parent.rightChild is None and self.parent.leftChild is not None):
             if self.dec_op is not None and not isinstance(self.dec_op, Array) and isinstance(self.dec_op.leftChild, Array) and self.dec_op.leftChild.pos is not None: # TODO: added this to make complex array's work: int x[i+1] = 1;
+                if self.parent is not None and isinstance(self.parent, BinaryOperator) and self.parent.rightChild is None and self.current is not None and self.a_val is not None:
+                    self.parent.rightChild = self.current
+                    self.a_val.pos = self.parent
                 self.parent = self.dec_op
             self.parent.setRightChild(self.current)
             self.right = False
             self.left = True
         elif self.left and (("(" not in v or ")" not in v) and ("[" not in v or "]" not in v)): #TODO: added and("("...) for definition in loops
-            self.parent.setLeftChild(self.current)
-            self.right = True
+            if isinstance(self.a_val, Array) and self.a_val.pos is None: #TODO: added for operations with arrays
+                self.a_val.pos = self.current
+            else:
+                self.parent.setLeftChild(self.current)
+                self.right = True
         # elif self.loop is not None and self.loop.Condition is not None and id(self.parent) == id(self.loop.Condition) \
         #         and (("(" in v or ")" in v) or ("[" in v or "]" in v)): # TODO: added this for array in first line of loop
         #     self.parent = None
@@ -1375,7 +1381,9 @@ class CustomListener(ExpressionListener):
             self.current.init = False
             name = ctx.getText()
             # if self.parent is not None: #TODO: added for array in first line of loop
-            if self.parent.rightChild is not None and self.dec_op.rightChild.value == name:
+            if self.parent.rightChild is not None and self.dec_op.rightChild is None:
+                pass
+            elif self.parent.rightChild is not None and self.dec_op.rightChild.value == name:
                 self.parent.rightChild = self.current
             elif self.parent.leftChild is not None and self.dec_op.leftChild.value == name:
                 self.parent.leftChild = self.current
@@ -1409,6 +1417,9 @@ class CustomListener(ExpressionListener):
         self.is_array_position = False
         self.a_dec = False
         self.current = self.a_val
+        if self.parent is not None and isinstance(self.parent, BinaryOperator) and isinstance(self.parent.rightChild, Value) and isinstance(self.parent.rightChild.value, str) and "[" in self.parent.rightChild.value: #TODO: added for array operations
+            self.current.declaration = False # TODO: added for array calculations
+            self.parent.rightChild = self.current
         return
 
     # Enter a parse tree produced by ExpressionParser#array_ci.

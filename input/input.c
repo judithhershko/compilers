@@ -15,5 +15,6 @@ int main()
         int x = *a;
         f(*a);
     }
+
 return 0;
 }
