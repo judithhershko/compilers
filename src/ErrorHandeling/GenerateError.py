@@ -169,7 +169,7 @@ class PointerLevel(Exception):
 
     def __str__(self):
         return "\n\tError in line " + str(self.line) + ": " + str(self.variable) + " should reference a level " + \
-               str(self.level-1) + " pointer and not the given " + str(self.valueLevel)
+               str(self.level) + " pointer and not the given " + str(self.valueLevel)
 
 
 class RefPointerLevel(Exception):
@@ -373,11 +373,15 @@ class ArraySize(Exception):
 
 
 class PrintSize(Exception):
-    def __init__(self, line: int):
+    def __init__(self, line: int, print: bool):
         self.line = line
+        self.print = print
 
     def __str__(self):
-        return "\n\tError in line " + str(self.line) + ": the print expects the same amount of flags and values"
+        if self.print:
+            return "\n\tError in line " + str(self.line) + ": the print expects the same amount of flags and values"
+        else:
+            return "\n\tError in line " + str(self.line) + ": the scan expects the same amount of flags and values"
 
 
 class PrintType(Exception):
@@ -421,3 +425,23 @@ class wrongReturnType(Exception):
     def __str__(self):
         return "\n\tError in line " + str(self.line) + ": the function " + self.name + \
                " is initialised with return type " + self.expRet + " but returns " + self.givenRet
+
+
+class fullArrayOperation(Exception):
+    def __init__(self, name, line):
+        self.name = name
+        self.line = line
+
+    def __str__(self):
+        return "\n\tError in line " + str(self.line) + ": no operations can be done with the full array " + \
+               str(self.name)
+
+
+class pointerNotAssigned(Exception):
+    def __init__(self, name, line):
+        self.line = line
+        self.name = name
+
+    def __str__(self):
+        return "\n\tError in line " + str(self.line) + ": the pointer " + str(self.name) + \
+               " has not been assigned a memory location yet."

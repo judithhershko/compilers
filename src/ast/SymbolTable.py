@@ -25,11 +25,13 @@ class FunctionTable:
         if func.f_return is None:
             if func.return_type is None:
                 function["return"] = "void"
+            elif func.forward_declaration:
+                function["return"] = str(func.return_type);
             else:
                 raise wrongReturnType(func.f_name, func.line, str(func.return_type), "void")
         elif func.return_type is None:
             raise wrongReturnType(func.f_name, func.line, "void", str(func.f_return.root.getType()))
-        elif func.return_type == func.f_return.root.getType():
+        elif (func.f_return.root.name == "function" and func.f_return.root.f_name == func.f_name) or func.return_type == func.f_return.root.getType():
             function["return"] = str(func.return_type)
         else:
             raise wrongReturnType(func.f_name, func.line, str(func.return_type), str(func.f_return.root.getType()))
@@ -73,7 +75,8 @@ class SymbolTable:
                                    "Const": pd.Series(dtype=bool),
                                    "Level": pd.Series(dtype=int),
                                    "Global": pd.Series(dtype=bool),
-                                   "Fillable": pd.Series(dtype=bool)})
+                                   "Fillable": pd.Series(dtype=bool),
+                                   "Array": pd.Series(dtype=bool)})
         self.parent = None
 
     def __eq__(self, other):
@@ -96,8 +99,11 @@ class SymbolTable:
                 name = root.getLeftChild().getValue()
                 if root.getRightChild() is not None:
                     if isinstance(root.getRightChild(), Array):
+                        # TODO: cleaning already replaces the value -> if this is the case: just use the value, don't look up
                         value = self.findSymbol(root.getRightChild().getValue(), False,
-                                                root.getRightChild().getPosition())[0]
+                                                root.getRightChild().getPosition())
+                        if isinstance(value, tuple):
+                            value = value[0]
                     else:
                         value = root.getRightChild().getValue()
                 else:
@@ -132,13 +138,17 @@ class SymbolTable:
                         self.parent.addSymbol(root, isGlobal, fill)
                 if ref is None:
                     if isinstance(root.getLeftChild(), Pointer):
-                        self.table.loc[name] = [value, symType, const, level, isGlobal, False]
+                        self.table.loc[name] = [str(value), symType, const, level, isGlobal, False, False]
                     else:
-                        self.table.loc[name] = [value, symType, const, level, isGlobal,
-                                                fill]  # TODO: use deref to make sure a reference can not be placed in a normal variable once introduced
+                        self.table.loc[name] = [str(value), symType, const, level, isGlobal,
+                                                fill, False]  # TODO: use deref to make sure a reference can not be placed in a normal variable once introduced
                     return "placed"
                 elif ref not in self.table.index:
-                    raise ImpossibleRef(ref, line)
+                    if root.getRightChild().value == 0: # TODO: added to make int* a; work
+                        self.table.loc[name] = ['', symType, const, level, isGlobal, fill, False]
+                        return "placed"
+                    else:
+                        raise ImpossibleRef(ref, line)
                 refValue = self.table.loc[ref]
                 if deref and level - 1 != refValue["Level"]:
                     raise RefPointerLevel(name, refValue["Level"], level, line)
@@ -146,7 +156,7 @@ class SymbolTable:
                     raise RefPointerLevel(name, refValue["Level"], level, line)
                 elif symType != refValue["Type"]:
                     raise PointerType(name, refValue["Type"], symType, line)
-                self.table.loc[name] = [value, symType, const, level, isGlobal, fill]
+                self.table.loc[name] = [str(value), symType, const, level, isGlobal, fill, False]
                 return "placed"
             else:
                 row = self.table.loc[name]
@@ -166,9 +176,9 @@ class SymbolTable:
                 elif row["Type"] != symType:
                     raise TypeDeclaration(name, row["Type"], symType, line)
                 elif row["Level"] != level and not root.getRightChild().deref:
-                    raise PointerLevel(name, row["Level"], level, line)
+                    raise PointerLevel(name, row["Level"], level+1, line)
                 elif row["Level"] != level + 1 and root.getRightChild().deref:
-                    raise PointerLevel(name, row["Level"], level - 1, line)
+                    raise PointerLevel(name, row["Level"], level, line)
                 else:
                     if isinstance(root.getLeftChild(), Value):
                         self.table.loc[name, ["Value"]] = str(value)
@@ -232,14 +242,14 @@ class SymbolTable:
                     raise ArraySize(root.value, root.pos.value, root.line)
                 elif root.value not in self.table.index:
                     self.table.loc[root.value] = [root.pos.value, root.type, True, 0, isGlobal,
-                                                  fill]  # TODO: check if arrays are indeed always const
+                                                  fill, True]  # TODO: check if arrays are indeed always const
                     for pos in range(root.pos.value):
                         name = str(pos) + root.value
                         if len(root.arrayContent) != 0:
                             arrayValue = root.arrayContent[pos].value
                         else:
                             arrayValue = None
-                        self.table.loc[name] = [arrayValue, root.type, False, 0, isGlobal, fill]
+                        self.table.loc[name] = [arrayValue, root.type, False, 0, isGlobal, fill, False]
                     return "placed"
             elif isinstance(root, Declaration):
                 position = root.getLeftChild().pos.value
@@ -299,9 +309,14 @@ class SymbolTable:
             except ArrayOutOfBounds:
                 raise
         if not onlyNext:
+            if self.table.at[name, "Array"]:
+                raise fullArrayOperation(name, line)
             level = self.table.at[name, "Level"]
             while self.table.at[name, "Level"] > 0:
+                old = name
                 name = self.table.at[name, "Value"]
+                if name == '':
+                    raise pointerNotAssigned(old, line)
             return self.table.at[name, "Value"], self.table.at[name, "Type"], level, self.table.at[name, "Fillable"]
         else:
             return self.table.at[name, "Value"], self.table.at[name, "Type"], self.table.at[name, "Level"], \

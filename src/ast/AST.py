@@ -279,10 +279,10 @@ class AST:
             res = root.c_block.toDot()
             nodes = nodes + res[0]
             edges = edges + res[1]
-        elif isinstance(self.root, Function):
+        elif isinstance(root, Function):
             for value in self.root.param:
-                value = self.root.param[value]
-                edges = edges + "\n" + self.root.getId() + "--" + value.getId()
+                value = root.param[value]
+                edges = edges + "\n" + root.getId() + "--" + value.getId()
                 nodes = nodes + "\n" + value.getId() + " [label=" + value.getLabel() + "]"
         elif isinstance(root, Array): # TODO: removed self from before root
             edges = edges + "\n" + root.getId() + "--" + root.pos.getId()
@@ -325,14 +325,14 @@ class AST:
          tree, self.g_assignment
         """
         temp = None
-        if not (isinstance(self.root, Value) or isinstance(self.root, Include) or isinstance(self.root,Continue) or isinstance(self.root,Break)):
+        if not (isinstance(self.root, Value) or isinstance(self.root, Include) or isinstance(self.root,Continue) or isinstance(self.root,Break) or isinstance(self.root, Pointer)):
             temp = self.root.fold(to_llvm)
             self.root = temp[0]
             return self, temp[1]
         return self, True
 
-    def getVariables(self, fill: bool = True, scope=None):
-        return self.root.getVariables(fill, scope)
+    def getVariables(self, fill: bool = True, scope=None, f_name: str = None):
+        return self.root.getVariables(fill, scope, f_name=f_name)
 
     def replaceVariables(self, values, fill: bool = True):
         self.root.replaceVariables(values, fill)

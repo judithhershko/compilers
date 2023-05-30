@@ -143,6 +143,8 @@ class CustomListener(ExpressionListener):
         elif type_ == LiteralType.DOUBLE:
             self.current = Value(float(ctx.getText()), type_, ctx.start.line, self.parent)
         elif type_ == LiteralType.CHAR:
+            if len(ctx.getText()) == 2:
+                raise CharSize(ctx.getText(), ctx.start.line)
             if len(ctx.getText()) > 3:
                 if not (ctx.getText() == "\n" or ctx.getText() == "\t" or ctx.getText() == "\0"):
                     raise CharSize(ctx.getText(), ctx.start.line)
@@ -159,15 +161,20 @@ class CustomListener(ExpressionListener):
             return"""
         if self.array_content:
             return
+        if isinstance(self.parent, Function): #TODO: added for double return
+            return
         if self.right or (self.parent.rightChild is None and self.parent.leftChild is not None):
-            if isinstance(self.dec_op.leftChild, Array) and self.dec_op.leftChild.pos is not None: # TODO: added this to make complex array's work: int x[i+1] = 1;
+            if self.dec_op is not None and not isinstance(self.dec_op, Array) and isinstance(self.dec_op.leftChild, Array) and self.dec_op.leftChild.pos is not None: # TODO: added this to make complex array's work: int x[i+1] = 1;
                 self.parent = self.dec_op
             self.parent.setRightChild(self.current)
             self.right = False
             self.left = True
-        elif self.left:
+        elif self.left and (("(" not in v or ")" not in v) and ("[" not in v or "]" not in v)): #TODO: added and("("...) for definition in loops
             self.parent.setLeftChild(self.current)
             self.right = True
+        # elif self.loop is not None and self.loop.Condition is not None and id(self.parent) == id(self.loop.Condition) \
+        #         and (("(" in v or ")" in v) or ("[" in v or "]" in v)): # TODO: added this for array in first line of loop
+        #     self.parent = None
 
     def set_expression(self, ctx: ParserRuleContext):
         self.expr_layer += 1
@@ -186,6 +193,11 @@ class CustomListener(ExpressionListener):
     def set_token(self, ctx, operator=None):
         if operator is None:
             operator = BinaryOperator(ctx.getText(), ctx.start.line)
+        if self.parent is None: #TODO: added for recursive functioncalls
+            self.parent = BinaryOperator("", ctx.start.line)
+        elif isinstance(self.parent, Function):
+            self.parent = BinaryOperator(ctx.getText(), ctx.start.line)
+            self.parent.leftChild = self.current
         if self.parent is not None and not isinstance(self.parent, Declaration) and self.parent.operator == "":
             if isinstance(operator, UnaryOperator):
                 self.parent = operator
@@ -193,7 +205,9 @@ class CustomListener(ExpressionListener):
                 self.left = False
                 return
             self.current.parent = operator
-            if not isinstance(operator, UnaryOperator):
+            if isinstance(self.current, Function) and not isinstance(operator, UnaryOperator) and self.call_function: #TODO: added for double return
+                operator.leftChild = self.current.param[len(self.current.param)-1]
+            elif not isinstance(operator, UnaryOperator):
                 operator.leftChild = self.current
             self.parent = operator
         elif self.parent.operator == "":
@@ -252,12 +266,17 @@ class CustomListener(ExpressionListener):
             elif order_prec[self.parent.operator] == order_prec[operator.operator]:
                 # parent is None:
                 if self.parent.parent is None:
-                    if self.parent.rightChild is None:
-                        self.current.parent = self.parent
-                        self.parent.rightChild = self.current
-                    self.parent.parent = operator
-                    operator.leftChild = self.parent
-                    self.parent = operator
+                    if not isinstance(self.parent.leftChild, Function):
+                        if self.parent.rightChild is None:
+                            self.current.parent = self.parent
+                            self.parent.rightChild = self.current
+                        self.parent.parent = operator
+                        operator.leftChild = self.parent
+                        self.parent = operator
+                    elif isinstance(self.parent.rightChild, Function) and id(self.parent.rightChild) == id(self.current): # TODO: added for return with operator of functioncalls
+                        operator.leftChild = self.current.param[len(self.current.param) - 1]
+                        self.current.param[len(self.current.param) - 1] = operator
+                        self.current = operator
                 else:
                     rc = self.parent.parent.rightChild
                     rc.parent = operator
@@ -411,7 +430,10 @@ class CustomListener(ExpressionListener):
         elif val[1] == LiteralType.FLOAT:
             cval = float(val[0])"""
         # self.current = Value(cval, val[1], ctx.start.line, self.parent)
-        self.current = Pointer(pval, LiteralType.VAR, ctx.start.line, level, self.parent)
+        if self.current is not None and self.current.name == "function": # TODO: added this for pointers in function calls
+            self.current.param[len(self.current.param)-1] = Pointer(pval, LiteralType.VAR, ctx.start.line, level, self.parent)
+        else:
+            self.current = Pointer(pval, LiteralType.VAR, ctx.start.line, level, self.parent)
         #self.parent.rightChild = self.current
         if self.parent.leftChild is None: # TODO: changed rightChild to leftChild
             self.parent.leftChild=self.current
@@ -731,15 +753,29 @@ class CustomListener(ExpressionListener):
             self.parent = None
             return"""
 
-        if self.declaration is False and isinstance(self.loop,
-                                                    For) and self.expr_layer == 0 and self.loop.Condition is None and self.loop.f_dec is not None:
+        if self.declaration is False and isinstance(self.loop, For) and self.expr_layer == 0 and \
+                self.loop.Condition is None and self.loop.f_dec is not None:
             # self.asT = create_tree()
             # self.asT.setRoot(self.parent)
             self.loop.Condition = self.parent
-        elif not self.declaration and isinstance(self.loop,
-                                                 For) and self.expr_layer == 0 and self.loop.Condition is not None and self.loop.f_dec is not None and self.loop.f_incr is None:
-
-            self.loop.f_incr = self.parent
+        elif not self.declaration and isinstance(self.loop, For) and self.expr_layer == 0 and \
+                self.loop.Condition is not None and self.loop.f_dec is not None and self.loop.f_incr is None:
+            left = Value(ctx.start.text, LiteralType.INT, ctx.start.line, variable = True)
+            right = Value(ctx.start.text, LiteralType.INT, ctx.start.line, variable = True)
+            add = Value(1, LiteralType.INT, ctx.start.line)
+            if ctx.stop.text == "++":
+                oper = "+"
+            elif ctx.stop.text == "--":
+                oper = "-"
+            binary = BinaryOperator(oper, ctx.start.line)
+            binary.setLeftChild(right)
+            binary.setRightChild(add)
+            decl = Declaration(left, ctx.start.line)
+            decl.setRightChild(binary)
+            tree = AST()
+            tree.setRoot(decl)
+            self.loop.f_incr = tree
+            # self.loop.f_incr = self.parent TODO: replace this line with the above to add increase of variable to scope
         elif (not self.declaration or self.is_array_position) and self.expr_layer == 0:
             if isinstance(self.current.parent, BinaryOperator) and self.current.parent.operator == "":
                 self.current.parent = None
@@ -758,7 +794,10 @@ class CustomListener(ExpressionListener):
                 self.current = self.current.parent
             if isinstance(self.current, BinaryOperator) and self.current.operator == "":
                 self.current = self.current.leftChild
-            self.asT.setRoot(self.current)
+            if isinstance(self.parent, Function): #TODO: added for double return
+                self.asT.setRoot(self.parent)
+            else:
+                self.asT.setRoot(self.current)
             if self.is_print:
                 self.c_print.addParam(self.asT)
                 self.asT = create_tree()
@@ -778,8 +817,9 @@ class CustomListener(ExpressionListener):
                         self.right = True
                         self.parent = self.a_val
                 return
-            if self.loop is not None and self.loop.Condition is None:
+            if self.loop is not None and self.loop.Condition is None and not (isinstance(self.loop, If) and self.loop.operator is ConditionType.ELSE): #TODO: added and not for double return
                 self.loop.Condition = self.asT.root
+                self.parent = None #TODO: done for if in if (first line)
                 return  # TODO: check if this still works: set Condition to node instead of ast
 
             if not self.return_function:
@@ -1156,9 +1196,17 @@ class CustomListener(ExpressionListener):
         # print("function declaration")
         self.call_function = True
         if self.dec_op is None or self.dec_op.leftChild is None:
-            self.parent = None
-
-        self.current = Function(f_name=getFunction(ctx.getText()), parent=self.parent, line=ctx.start.line)
+            if isinstance(self.parent, Function): #TODO: replaced self.parent = None by this if-else loop for double return
+                self.parent = None
+            elif not (self.parent is not None and self.parent.rightChild is not None and "(" in self.parent.rightChild.value):
+                self.parent = None
+        if self.loop is not None and self.loop. Condition is not None and id(self.loop.Condition) == id(self.parent): # TODO: added this to allow functionCall in first line of loop
+            self.current = Function(f_name=getFunction(ctx.getText()), parent=None, line=ctx.start.line)
+        elif self.call_function and isinstance(self.parent, BinaryOperator) and self.parent.rightChild is not None and "(" in self.parent.rightChild.value: # TODO: added for operator with function calls in return
+            self.current = Function(f_name=getFunction(ctx.getText()), parent=self.parent, line=ctx.start.line)
+            self.parent.rightChild = self.current
+        else:
+            self.current = Function(f_name=getFunction(ctx.getText()), parent=self.parent, line=ctx.start.line)
         if self.declaration:
             self.current.parent = self.parent
             if self.parent is not None:
@@ -1209,7 +1257,16 @@ class CustomListener(ExpressionListener):
         self.f_var = True
         if ctx.getText().isdigit():
             v = Value(int(ctx.getText()), LiteralType.INT, ctx.start.line, None)
-            self.current.addParameter(v, scope=self.c_scope, line=ctx.start.line)
+            if isinstance(self.parent, BinaryOperator) and self.parent.rightChild is not None and isinstance(self.parent.rightChild, Function) and isinstance(self.current, BinaryOperator) and self.current.rightChild is None: #TODO added for return with operator of functioncalls
+                self.current.rightChild = v
+                self.current = self.parent
+            elif isinstance(self.parent, BinaryOperator) and self.parent.leftChild is not None and (self.parent.rightChild is None or "(" in self.parent.rightChild.value): #TODO: added for double return
+                self.parent.rightChild = v
+                self.current.param[list(self.current.param)[-1]] = self.parent
+                self.parent = self.current
+                # self.current.addParameter(self.parent, scope=self.c_scope, line=ctx.start.line)
+            else:
+                self.current.addParameter(v, scope=self.c_scope, line=ctx.start.line)
             return
         if is_float(ctx.getText()):
             v = Value(float(ctx.getText()), LiteralType.FLOAT, ctx.start.line, None)
@@ -1317,6 +1374,7 @@ class CustomListener(ExpressionListener):
         else:
             self.current.init = False
             name = ctx.getText()
+            # if self.parent is not None: #TODO: added for array in first line of loop
             if self.parent.rightChild is not None and self.dec_op.rightChild.value == name:
                 self.parent.rightChild = self.current
             elif self.parent.leftChild is not None and self.dec_op.leftChild.value == name:
