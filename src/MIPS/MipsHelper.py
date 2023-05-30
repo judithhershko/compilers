@@ -367,8 +367,9 @@ def array_in_operation(left, right, op, llvm):
 
 
 def load_pointer(p, mips):
-    v = mips.make_value(lit='$pointer', valueType=p.type, line=p.line)
-    mips.to_pointer_dec(p, v)
+    """v = mips.make_value(lit='$pointer', valueType=p.type, line=p.line)
+    mips.to_pointer_dec(p, v)"""
+    v=mips.make_value(lit=p.value, valueType=p.type, line=p.line)
     # return l
     return v
 
