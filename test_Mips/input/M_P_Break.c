@@ -7,7 +7,7 @@ int i = 0;
 		if (i == 5){
 			break;
 		} else {
-			i++;
+			i = i+1;
 			continue;
 		}
 		i = 10;

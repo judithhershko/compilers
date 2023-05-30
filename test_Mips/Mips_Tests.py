@@ -203,6 +203,7 @@ class Mips_TestCases_Working(unittest.TestCase):
 # – Modulo operator: %
 # – Increment, decrement operators: ++, -- (both prefix and suﬀix variants) ???????
 # – Store comments in AST and machine code ??????
+# - array: int x[2] = {1,2}
 
 
 class Mips_TestCasesErrors(unittest.TestCase):
