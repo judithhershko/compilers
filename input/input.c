@@ -1,14 +1,20 @@
 #include "stdio.h";
 
+int f(int a) {
+	if (a>1) {
+		a = 1;
+	}
+	return a;
+}
+
 int main()
 {
-int x = 2;
-int* p = &x;
-int y[2];
-y[0] = 3;
-y[1] = 4;
-
-int r = x * *p + y[0]*y[1];
+    int i = 5;
+    int* a = &i;
+    while(*a > 0){
+        int x = *a;
+        f(*a);
+    }
 
 return 0;
 }
