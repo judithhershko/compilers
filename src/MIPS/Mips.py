@@ -274,6 +274,7 @@ class Mips:
         self.c_function = None
         self.remove_register_type('s')
         self.reused_registers = dict()
+        self.frame_register = dict()
         return
 
     def save_function_variables(self, scope: Scope):
@@ -680,10 +681,17 @@ class Mips:
             return s
         # not in keys:
         s = self.get_next_highest_register_type(type_, Value(valueType=value_type, lit=v, line=0))
-        if type_ != 't' and type_ != 'f':
-            self.frame_register[s] = str(self.frame_counter) + "($fp)"
-            self.text += "sw ${}, {}($fp)\n".format(s, self.frame_counter)
+        if type_ != 't':
+            if s in self.frame_register.keys():
+                self.save_to_frame(s)
         return s
+
+    def save_to_frame(self, reg):
+        self.frame_register[reg] = str(self.frame_counter) + "($fp)"
+        if reg[0] == 'f':
+            self.text += "s.s ${}, {}($fp)\n".format(reg, self.frame_counter)
+        else:
+            self.text += "sw ${}, {}($fp)\n".format(reg, self.frame_counter)
 
     def get_register_type(self, type_):
         if type_ == LiteralType.INT:
@@ -879,9 +887,9 @@ class Mips:
         save_return_reg = self.register[var.value]
         save_mem_reg = self.frame_register[self.register[var.value]]
         self.register = dict()
-        self.frame_register = dict
+        self.frame_register = dict()
         for i in f.param:
-            self.load_type(f.param[i], True)
+            self.load_type(f.param[i], True,old_frame,old_registers)
         self.text += "jal {}\n".format(f.f_name)
         # self.text += "sw $v0, {}\n".format(d.rightChild.f_name)
         if var.type == LiteralType.FLOAT:
@@ -902,7 +910,7 @@ class Mips:
                     self.text += "lw ${}, {}\n".format(param_regex[k], self.frame_register[param_regex[k]])
         return
 
-    def load_type(self, v, is_param: bool):
+    def load_type(self, v, is_param: bool, old_frame=None,old_reg=None):
         save = "t"
         if is_param:
             save = "s"
@@ -927,9 +935,14 @@ class Mips:
             self.data_count += 1
             self.data_dict[v.value] = self.data_count
             self.data += "$${}  : .byte {} \"\n".format(self.data_count, v.value)
-            self.text += "lb ${} , $${}\n".format(self.register[v.value], self.data_count)
+            self.text += "lb ${} , $${}\n".format(self.get_register(v.value), self.data_count)
         elif isinstance(v, Value):
-            self.text += "lw ${}, {}\n".format(self.register[v.value], self.frame_register[self.register[v.value]])
+            if old_frame is None:
+                self.text += "lw ${}, {}\n".format(self.get_register(v.value),
+                                               self.frame_register[self.get_register(v.value)])
+            else:
+                self.text += "lw ${}, {}\n".format(self.get_register(v.value),
+                                                   old_frame[self.get_register(v.value)])
 
     def int_to_float(self, old, new):
         self.text += "mtc1 ${}, ${}\n".format(old, new)
