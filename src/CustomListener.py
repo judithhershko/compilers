@@ -136,11 +136,20 @@ class CustomListener(ExpressionListener):
         else:
             var = False
         self.current = Value(ctx.getText(), type_, ctx.start.line, self.parent, variable=var)
-        if type_ == LiteralType.INT: #TODO:ctx.getText als start met nul en langer dan 1 of niet 0.
+        txt = ctx.getText()
+        one = txt[0]
+        two = txt[0:2]
+        if type_ == LiteralType.INT:
+            if txt[0] == '0' and len(txt) > 1 and txt[0:2] != "0.":
+                raise startWithZero(ctx.start.line)
             self.current = Value(int(ctx.getText()), type_, ctx.start.line, self.parent)
         elif type_ == LiteralType.FLOAT:
+            if txt[0] == '0' and len(txt) > 1 and txt[0:2] != "0.":
+                raise startWithZero(ctx.start.line)
             self.current = Value(float(ctx.getText()), type_, ctx.start.line, self.parent)
         elif type_ == LiteralType.DOUBLE:
+            if txt[0] == '0' and len(txt) > 1 and txt[0:2] != "0.":
+                raise startWithZero(ctx.start.line)
             self.current = Value(float(ctx.getText()), type_, ctx.start.line, self.parent)
         elif type_ == LiteralType.CHAR:
             if len(ctx.getText()) == 2:

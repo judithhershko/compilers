@@ -445,3 +445,11 @@ class pointerNotAssigned(Exception):
     def __str__(self):
         return "\n\tError in line " + str(self.line) + ": the pointer " + str(self.name) + \
                " has not been assigned a memory location yet."
+
+
+class startWithZero(Exception):
+    def __init__(self, line):
+        self.line = line
+
+    def __str__(self):
+        return "\n\tError in line " + str(self.line) + ": an integer should not start with 0"

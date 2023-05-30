@@ -233,9 +233,9 @@ class Mips_TestCasesErrors(unittest.TestCase):
 
     def test_synErr_operators4(self):
         file = "M_synErr_operators4"
-        with self.assertRaises(SystemExit) as ce:
+        with self.assertRaises(Exception) as ce:
             testFile(file)
-        self.assertEqual(ce.exception.code, "")
+        self.assertEqual(str(ce.exception), "\n\tError in line 2: an integer should not start with 0")
 
     #TODO: add syntax error for logical operators
 
