@@ -82,23 +82,23 @@ def get_operation(op: str, type):
     if op == ">" and (type == LiteralType.INT or type == 'INT'):
         return "sgt"
     if op == ">" and (type == LiteralType.FLOAT or type == 'FLOAT'):
-        return "sgt"
+        return "c.gt.s"
     if op == ">=" and (type == LiteralType.INT or type == 'INT'):
         return "sge"
     if op == ">=" and (type == LiteralType.FLOAT or type == 'FLOAT'):
-        return "sge"
+        return "c.ge.s"
     if op == "<" and (type == LiteralType.INT or type == 'INT'):
         return "slt"
     if op == "<" and (type == LiteralType.FLOAT or type == 'FLOAT'):
-        return "slt"
+        return "c.lt.s"
     if op == "<=" and (type == LiteralType.INT or type == 'INT'):
         return "sle"
     if op == "<=" and (type == LiteralType.FLOAT or type == 'FLOAT'):
-        return "slte"
+        return "c.lte.s"
     if op == "==" and (type == LiteralType.INT or type == 'INT'):
         return "seq"
     if op == "==" and (type == LiteralType.FLOAT or type == 'FLOAT'):
-        return "seq"
+        return "c.eq.s"
     if op == "&&" and (type == LiteralType.INT or type == 'INT'):
         return "and"
     if op == "&&" and (type == LiteralType.FLOAT or type == 'FLOAT'):
@@ -107,6 +107,12 @@ def get_operation(op: str, type):
         return "or"
     if op == "||" and (type == LiteralType.FLOAT or type == 'FLOAT'):
         return "or"
+
+
+def is_comparator(op):
+    if op == ">" or op=="<" or op==">=" or op=="<=" or op=="==" or op=="&&" or op=="||":
+        return True
+    return False
 
 
 def store_unary_operation(op, right, rtype, mips):
@@ -119,8 +125,12 @@ def store_unary_operation(op, right, rtype, mips):
     if mips.register[mips.declaration.value] in mips.frame_register:
         fr = mips.frame_register[mips.register[mips.declaration.value]]
         mips.text += "sw ${}, {}\n".format(save, fr)
-
-
+def convert_int_to_float(reg,mips):
+    mips.remove_register(reg)
+    new_reg=mips.get_register(reg,'f',LiteralType.FLOAT)
+    mips.text += "mtc1 ${}, ${}\n".format(reg,new_reg)
+    mips.text += "cvt.s.w ${}, ${}\n".format(new_reg,new_reg)
+    return new_reg
 def store_binary_operation(op, left, right, rtype, mips):
     # save olf variable counter
     mips.save_old_val = left
@@ -130,6 +140,17 @@ def store_binary_operation(op, left, right, rtype, mips):
     save = mips.register[mips.declaration.value]
 
     opi = get_operation(op, rtype)
+    # if is comparator --> dont save directly
+    if (sl[0] == 'f' or sr[0] == 'f') and is_comparator(op):
+        mips.text += "{} ${}, ${}\n".format(opi,sl, sr)
+        mips.text += "bc1f false\n".format(save)
+        mips.text += "bc1t true\n".format(save)
+        return
+    if sl[0] == 'f' and sr[0]!='f':
+        sr=convert_int_to_float(sr,mips)
+    if sr[0] == 'f' and sl[0]!='f':
+        sl=convert_int_to_float(sl,mips)
+
     mips.text += "{} ${},${}, ${}\n".format(opi, save, sl, sr)
     # store back in frame
     if mips.register[mips.declaration.value] in mips.frame_register:
