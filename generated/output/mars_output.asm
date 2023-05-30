@@ -1,4 +1,7 @@
 .data
+$$1  : .byte 'a' 
+$$2  : .byte 'b' 
+$$3  : .byte 'b' 
 .text
 .globl main
 j main
@@ -8,80 +11,86 @@ false:
 true:
   li $1, 1
   jr $ra
-#//intf(inta){if(a>1){a=1;}returna;}
-f: 
- sw	$fp, 0($sp)
-move	$fp, $sp
-subu	$sp, $sp,12
-sw	$ra, -4($fp)
-sw	$s0, -8($fp)
-#//inta
-#//if(a>1){a=1;}
-j $loop1
-nop
-$loop1:
-ori $t1,$0,1
-sgt $1,$t1, $t1
-sw $1, -12($fp)
-lbu $1, -12($fp)
-andi  $1, $1, 1
-beqz    $1, $loop3
-nop 
-j $loop2
-nop
-$loop2:
-#//a=1
-lw  $s0, -8($fp)
-ori $s0,$0,1
-sw  $s0, -8($fp)
-j $loop3
-$loop3:
-li $v0, 1
-lw $1, -12($fp)
-lw $s0, -8($fp)
-lw	$ra, -4($fp)
-move	$sp, $fp
-lw	$fp, ($sp)
-jr	$ra
-#//intmain(){inti=5;int*a=&i;while(*a>0){intx=*a;f(*a);}return0;}
+#//intmain(){charx='a';char*chr_ptr=&x;*chr_ptr='b';charanother_char=*chr_ptr;inty=-60;int*some_pointer=&y;*some_pointer=53;int**another_pointer=&some_pointer;int***triple_pointer=&another_pointer;intz=***triple_pointer;return0;}
 main: 
  sw	$fp, 0($sp)
 move	$fp, $sp
-subu	$sp, $sp,16
+subu	$sp, $sp,40
 sw	$ra, -4($fp)
 sw	$s0, -8($fp)
 sw	$s1, -12($fp)
-#//inti=5
-lw  $s0, -8($fp)
-ori $s0,$0,5
-sw  $s0, -8($fp)
-#//int*a=&i
-move $s1,$s0
-#//while(*a>0){intx=*a;f(*a);}
-j $loop4
-nop
-$loop4:
-lw  $s1, -8($fp)
-ori $t0,$0,0
-sgt $2,$s1, $t0
-sw $2, -16($fp)
-lbu $2, -16($fp)
-andi  $2, $2, 1
-beqz    $2, $loop6
-nop 
-j $loop5
-nop
-$loop5:
-#//intx=*a
-lw $s1, -8($fp)
-move $s2, $s1
-j $loop4
-nop
-$loop6:
+sw	$s2, -16($fp)
+sw	$s3, -20($fp)
+sw	$s4, -24($fp)
+sw	$s5, -28($fp)
+sw	$s6, -32($fp)
+push everything in memory to reuse registers 
+sw <src.ast.node.Value object at 0x12cf141d0>, -8($fp)
+sw <src.ast.node.Value object at 0x12cf141d0>, -12($fp)
+sw <src.ast.node.Value object at 0x12cf141d0>, -16($fp)
+sw <src.ast.node.Value object at 0x12cf141d0>, -20($fp)
+sw <src.ast.node.Value object at 0x12cf141d0>, -24($fp)
+sw <src.ast.node.Value object at 0x12cf141d0>, -28($fp)
+sw <src.ast.node.Value object at 0x12cf141d0>, -32($fp)
+sw	$s0, -36($fp)
+#//charx='a'
+sw $s1, -36($fp)
+lb $s1 , $$1
+sb $s1, -36($fp)
+#//char*chr_ptr=&x
+sw $s2, -36($fp)
+move $s2,$s1
+#//*chr_ptr='b'
+lw $s2, -36($fp)
+lb $s2 , $$2
+sb $s2, -36($fp)
+sw $s2, -36($fp)
+#//charanother_char=*chr_ptr
+sw $s3, -36($fp)
+lb $s3 , $$3
+sb $s3, -36($fp)
+#//inty=-60
+sw $s4, -36($fp)
+sw $s5, -36($fp)
+lw $s5, -36($fp)
+move $s4, $s5
+#//int*some_pointer=&y
+sw $s6, -36($fp)
+move $s6,$s4
+#//*some_pointer=53
+lw $s6, -36($fp)
+lw  $s6, -36($fp)
+ori $s6,$0,53
+sw  $s6, -36($fp)
+sw $s6, -36($fp)
+#//int**another_pointer=&some_pointer
+push everything in memory to reuse registers 
+sw <src.ast.node.Value object at 0x12cf15950>, -36($fp)
+sw <src.ast.node.Value object at 0x12cf15950>, -36($fp)
+sw <src.ast.node.Value object at 0x12cf15950>, -36($fp)
+sw <src.ast.node.Value object at 0x12cf15950>, -36($fp)
+sw <src.ast.node.Value object at 0x12cf15950>, -36($fp)
+sw <src.ast.node.Value object at 0x12cf15950>, -36($fp)
+sw <src.ast.node.Value object at 0x12cf15950>, -36($fp)
+sw $s0, -36($fp)
+sw $s1, -36($fp)
+move $s0,$s1
+#//int***triple_pointer=&another_pointer
+sw $s2, -36($fp)
+move $s2,$s0
+#//intz=***triple_pointer
+sw $s3, -36($fp)
+lw  $s3, -36($fp)
+ori $s3,$0,53
+sw  $s3, -36($fp)
 li $v0, 0
-lw $2, -16($fp)
-lw $s1, -8($fp)
-lw $s0, -8($fp)
+lw $s6, -36($fp)
+lw $s5, -36($fp)
+lw $s4, -36($fp)
+lw $s3, -36($fp)
+lw $s2, -36($fp)
+lw $s1, -36($fp)
+lw $s0, -36($fp)
 lw	$ra, -4($fp)
 move	$sp, $fp
 lw	$fp, ($sp)

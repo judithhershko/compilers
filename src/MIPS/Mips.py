@@ -133,8 +133,8 @@ class Mips:
             return type + "0"
         values = {k: v for k, v in self.register.items() if v.startswith(type)}.values()
         values = [string[1:] for string in values]
-        #values = [int(digit) for digit in values]
-        int_values=[]
+        # values = [int(digit) for digit in values]
+        int_values = []
         for i in values:
             if str(i).isdigit():
                 int_values.append(int(i))
@@ -153,10 +153,10 @@ class Mips:
             """
             if type == 's':
                 self.text += "push everything in memory to reuse registers \n"
-                for k, v in self.register.items():
-                    if v.startswith(type):
-                        self.reused_registers[v] = self.frame_register[v]
-                        self.text += "sw {}, {}\n".format(v, self.frame_register[v])
+                for k, vi in self.register.items():
+                    if vi.startswith(type):
+                        self.reused_registers[vi] = self.frame_register[vi]
+                        self.text += "sw {}, {}\n".format(v, self.frame_register[vi])
                 self.remove_register_type(type)
                 return self.get_next_highest_register_type(type, v)
             elif type == 't':
@@ -721,14 +721,22 @@ class Mips:
             return self.to_array_dec(declaration)
         if isinstance(declaration.rightChild, Function):
             return self.to_function_dec(declaration.rightChild, declaration.leftChild, True)
+
+        # check if right child is float and left child is int:
+        if declaration.leftChild.getType() == LiteralType.CHAR:
+            self.data_count += 1
+            self.data_dict[declaration.leftChild.value] = self.data_count
+            self.data += "$${}  : .byte {} \n".format(self.data_count, declaration.rightChild.value)
+            s = self.get_register(declaration.leftChild.value, 's', LiteralType.CHAR)
+            self.text += "lb ${} , $${}\n".format(s, self.data_count)
+            self.text += "sb ${}, {}\n".format(s, self.frame_register[self.register[declaration.leftChild.value]])
+            return
         s = self.get_register(declaration.leftChild.value, self.get_register_type(declaration.leftChild.getType()),
                               declaration.leftChild.getType())
-        # check if right child is float and left child is int:
-
         if declaration.rightChild.getType() == LiteralType.INT and str(declaration.rightChild.value).isdigit():
-            val= self.get_register(declaration.leftChild.value)
+            val = self.get_register(declaration.leftChild.value)
             if val not in self.frame_register.keys():
-                self.frame_counter-=4
+                self.frame_counter -= 4
                 self.save_to_frame(val)
             f = self.frame_register[val]
             self.text += "lw  ${}, {}\n".format(s, f)
@@ -757,29 +765,21 @@ class Mips:
             char needs to be saved in .data fragment
             """
             # check if needs data element:
-            if declaration.leftChild.getType() == LiteralType.CHAR:
-                self.data_count += 1
-                self.data_dict[declaration.leftChild.value] = self.data_count
-                self.data += "$${}  : .byte '{}' \n".format(self.data_count, declaration.leftChild.value)
-                s = self.get_register(declaration.leftChild.value, 's', LiteralType.CHAR)
-                self.text += "lb ${} , $${}\n".format(s, self.data_count)
-                self.text += "sb ${}, {}\n".format(s, self.frame_register[self.register[declaration.leftChild.value]])
-            else:
                 # is variable
-                t = declaration.leftChild.type
-                t = self.get_register_type(t)
-                s = self.get_register(declaration.leftChild.value, t, declaration.leftChild.value)
-                m = 'move'
+            t = declaration.leftChild.type
+            t = self.get_register_type(t)
+            s = self.get_register(declaration.leftChild.value, t, declaration.leftChild.value)
+            m = 'move'
+            if t == 'f':
+                m = 'mov.s'
+            old_reg = self.get_register(declaration.rightChild.value, t, declaration.rightChild.type)
+            # check if in memory
+            if old_reg in self.frame_register.keys():
                 if t == 'f':
-                    m = 'mov.s'
-                old_reg = self.get_register(declaration.rightChild.value, t, declaration.rightChild.type)
-                # check if in memory
-                if old_reg in self.frame_register.keys():
-                    if t == 'f':
-                        self.text += "l.s ${}, {}\n".format(old_reg, self.frame_register[old_reg])
-                    else:
-                        self.text += "lw ${}, {}\n".format(old_reg, self.frame_register[old_reg])
-                self.text += "{} ${}, ${}\n".format(m, s, old_reg)
+                    self.text += "l.s ${}, {}\n".format(old_reg, self.frame_register[old_reg])
+                else:
+                    self.text += "lw ${}, {}\n".format(old_reg, self.frame_register[old_reg])
+            self.text += "{} ${}, ${}\n".format(m, s, old_reg)
 
         return
 
@@ -897,7 +897,7 @@ class Mips:
         self.register = dict()
         self.frame_register = dict()
         for i in f.param:
-            self.load_type(f.param[i], True,old_frame,old_registers)
+            self.load_type(f.param[i], True, old_frame, old_registers)
         self.text += "jal {}\n".format(f.f_name)
         # self.text += "sw $v0, {}\n".format(d.rightChild.f_name)
         if var.type == LiteralType.FLOAT:
@@ -918,7 +918,7 @@ class Mips:
                     self.text += "lw ${}, {}\n".format(param_regex[k], self.frame_register[param_regex[k]])
         return
 
-    def load_type(self, v, is_param: bool, old_frame=None,old_reg=None):
+    def load_type(self, v, is_param: bool, old_frame=None, old_reg=None):
         save = "t"
         if is_param:
             save = "s"
@@ -947,7 +947,7 @@ class Mips:
         elif isinstance(v, Value):
             if old_frame is None:
                 self.text += "lw ${}, {}\n".format(self.get_register(v.value),
-                                               self.frame_register[self.get_register(v.value)])
+                                                   self.frame_register[self.get_register(v.value)])
             else:
                 self.text += "lw ${}, {}\n".format(self.get_register(v.value),
                                                    old_frame[self.get_register(v.value)])

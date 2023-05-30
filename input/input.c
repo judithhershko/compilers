@@ -1,19 +1,17 @@
 #include "stdio.h";
-
-int f(int a) {
-	if (a>1) {
-		a = 1;
-	}
-	return a;
-}
-
 int main()
 {
-    int i = 5;
-    int* a = &i;
-    while(*a > 0){
-        int x = *a;
-        f(*a);
-    }
+char x = 'a';
+char* chr_ptr = &x;
+*chr_ptr = 'b';
+char another_char = *chr_ptr;
+
+int y = -60;
+int* some_pointer = &y;
+*some_pointer = 53;
+int** another_pointer = &some_pointer;
+int*** triple_pointer = &another_pointer;
+int z = ***triple_pointer;
+
 return 0;
 }
