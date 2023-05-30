@@ -8,6 +8,27 @@ false:
 true:
   li $1, 1
   jr $ra
+#//intf(inta){intb=a*a;returnb;}
+f: 
+ sw	$fp, 0($sp)
+move	$fp, $sp
+subu	$sp, $sp,16
+sw	$ra, -4($fp)
+sw	$s0, -8($fp)
+sw	$s1, -12($fp)
+#//inta
+#//intb=a*a
+lw  $s0, -8($fp)
+lw  $s0, -8($fp)
+mul $s1,$s0, $s0
+sw $s1, -12($fp)
+move $v0, $s1
+lw $s1, -12($fp)
+lw $s0, -8($fp)
+lw	$ra, -4($fp)
+move	$sp, $fp
+lw	$fp, ($sp)
+jr	$ra
 #//intmain(){intx=2;int*p=&x;inty[2];y[0]=3;y[1]=4;intr=x**p+y[0]*y[1];return0;}
 main: 
  sw	$fp, 0($sp)

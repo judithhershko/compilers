@@ -628,8 +628,8 @@ class CustomListener(ExpressionListener):
             self.asT.root.leftChild.setLevel(self.nr_pointers)
             self.nr_pointers = 0
 
-#        self.asT.setNodeIds(self.asT.root)
-#        self.asT.generateDot(self.pathName + str(self.counter) + ".dot")
+        self.asT.setNodeIds(self.asT.root)
+        self.asT.generateDot(self.pathName + str(self.counter) + ".dot")
         # todo : dont fill if block needs info previous block
         if self.is_loop:
             if isinstance(self.loop, For) and self.loop.f_dec is None:

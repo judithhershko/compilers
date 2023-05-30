@@ -194,6 +194,11 @@ class Mips_TestCases_Working(unittest.TestCase):
         file = "M_P_include"
         return self.filetest(file)
 
+    #EXTRA
+    def test_extended_propagation(self):
+        file = "E_P_ExtendedPropagation"
+        return self.filetest(file)
+
 
 # EXTRA
 # TODO: CHECK WHAT EXTRA WE ARE IMPLEMENTING
