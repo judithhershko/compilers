@@ -722,7 +722,11 @@ class Mips:
         # check if right child is float and left child is int:
 
         if declaration.rightChild.getType() == LiteralType.INT and str(declaration.rightChild.value).isdigit():
-            f = self.frame_register[self.register[declaration.leftChild.value]]
+            val= self.get_register(declaration.leftChild.value)
+            if val not in self.frame_register.keys():
+                self.frame_counter-=4
+                self.save_to_frame(val)
+            f = self.frame_register[val]
             self.text += "lw  ${}, {}\n".format(s, f)
             self.text += "ori ${},$0,{}\n".format(self.register[declaration.leftChild.value],
                                                   declaration.rightChild.value)
