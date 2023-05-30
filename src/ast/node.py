@@ -270,7 +270,6 @@ class Scan(AST_node):
 
     def getVariables(self, fill: bool = True, scope=None, f_name: str = None):
         ret = []
-        true = True
         for tree in self.param:
             temp = tree
             if isinstance(tree, tuple):
@@ -278,9 +277,7 @@ class Scan(AST_node):
             temp2 = temp.getVariables(fill, scope, f_name=f_name)
             if not len(temp2[0]) == 0:
                 ret.append(temp2[0][0])
-            if not temp2[1]:
-                true = False
-        return ret, true
+        return ret, False
 
     def setValue(self, val):
         self.value = val
@@ -316,13 +313,13 @@ class Scan(AST_node):
         except PrintType:
             raise
         self.folded = True
-        return self, True  # TODO: redo this when the print function is adapted to the final form
+        return self, False  # TODO: redo this when the print function is adapted to the final form
 
     def replaceVariables(self, values, fill: bool = True):
         for tree in self.param:
             if isinstance(tree, tuple):
                 tree = tree[0]
-            tree.replaceVariables(values, fill)
+            tree.replaceVariables(values, False)
 
 
 class Value(AST_node):
