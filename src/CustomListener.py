@@ -205,7 +205,7 @@ class CustomListener(ExpressionListener):
                 self.left = False
                 return
             self.current.parent = operator
-            if isinstance(self.current, Function) and not isinstance(operator, UnaryOperator): #TODO: added for double return
+            if isinstance(self.current, Function) and not isinstance(operator, UnaryOperator) and self.call_function: #TODO: added for double return
                 operator.leftChild = self.current.param[len(self.current.param)-1]
             elif not isinstance(operator, UnaryOperator):
                 operator.leftChild = self.current
@@ -273,6 +273,10 @@ class CustomListener(ExpressionListener):
                         self.parent.parent = operator
                         operator.leftChild = self.parent
                         self.parent = operator
+                    elif isinstance(self.parent.rightChild, Function) and id(self.parent.rightChild) == id(self.current): # TODO: added for return with operator of functioncalls
+                        operator.leftChild = self.current.param[len(self.current.param) - 1]
+                        self.current.param[len(self.current.param) - 1] = operator
+                        self.current = operator
                 else:
                     rc = self.parent.parent.rightChild
                     rc.parent = operator
@@ -1198,6 +1202,9 @@ class CustomListener(ExpressionListener):
                 self.parent = None
         if self.loop is not None and self.loop. Condition is not None and id(self.loop.Condition) == id(self.parent): # TODO: added this to allow functionCall in first line of loop
             self.current = Function(f_name=getFunction(ctx.getText()), parent=None, line=ctx.start.line)
+        elif self.call_function and isinstance(self.parent, BinaryOperator) and self.parent.rightChild is not None and "(" in self.parent.rightChild.value: # TODO: added for operator with function calls in return
+            self.current = Function(f_name=getFunction(ctx.getText()), parent=self.parent, line=ctx.start.line)
+            self.parent.rightChild = self.current
         else:
             self.current = Function(f_name=getFunction(ctx.getText()), parent=self.parent, line=ctx.start.line)
         if self.declaration:
@@ -1250,7 +1257,10 @@ class CustomListener(ExpressionListener):
         self.f_var = True
         if ctx.getText().isdigit():
             v = Value(int(ctx.getText()), LiteralType.INT, ctx.start.line, None)
-            if isinstance(self.parent, BinaryOperator) and self.parent.leftChild is not None and (self.parent.rightChild is None or "(" in self.parent.rightChild.value): #TODO: added for double return
+            if isinstance(self.parent, BinaryOperator) and self.parent.rightChild is not None and isinstance(self.parent.rightChild, Function) and isinstance(self.current, BinaryOperator) and self.current.rightChild is None: #TODO added for return with operator of functioncalls
+                self.current.rightChild = v
+                self.current = self.parent
+            elif isinstance(self.parent, BinaryOperator) and self.parent.leftChild is not None and (self.parent.rightChild is None or "(" in self.parent.rightChild.value): #TODO: added for double return
                 self.parent.rightChild = v
                 self.current.param[list(self.current.param)[-1]] = self.parent
                 self.parent = self.current
