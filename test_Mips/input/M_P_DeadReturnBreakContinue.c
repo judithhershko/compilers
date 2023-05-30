@@ -9,7 +9,7 @@ while(i < 10){
         int z = 5;
         int y = z*z;
     } else {
-        i++;
+        i=i+1;
         continue;
         int x = 10;
         int q = x*x;
