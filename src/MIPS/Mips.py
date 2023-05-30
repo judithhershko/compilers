@@ -6,8 +6,10 @@ from src.ast.node import *
 
 """
 print implementatie:
-
 https://gist.github.com/KaceCottam/37a065a2c194c0eb50b417cf67455af1
+
+syscall table:
+https://courses.missouristate.edu/kenvollmar/mars/help/syscallhelp.html
 
 """
 
@@ -24,14 +26,15 @@ https://gist.github.com/KaceCottam/37a065a2c194c0eb50b417cf67455af1
 # todo: if /else            x --> vraag said als while float klopt?
 # todo :UNNAMED SCOPES      v
 # TODO: function return     v
-# TODO: function parameters v
+# TODO: function parameters x
+# TODO: function parameters --> binary operator/
 # TODO: pointers            x
 # todo: print pointer       x
 # todo declaration pointer  v
 # todo: expression pointer  x
 # todo : deref pointer *px=90;v
 # TODO: PRINT               x
-# TODO: SCAN                x
+# TODO: SCAN                v
 # TODO: ARRAYS              x
 # todo : function calls     v
 # TODO: modulo              x
@@ -519,15 +522,15 @@ class Mips:
             a = i.root.getType()
             scan_ = Value("$scan", a, 0)
             scan_type = self.get_syscall_type(a)
-            if a==LiteralType.FLOAT:
+            if a == LiteralType.FLOAT:
                 self.text += "li $f0, {}\n".format(scan_type)
                 self.text += "syscall\n"
-                v=self.get_register(i.root.value)
-                fv=self.frame_register[v]
-                self.text += "s.s ${}, {}\n".format(v,fv)
+                v = self.get_register(i.root.value)
+                fv = self.frame_register[v]
+                self.text += "s.s ${}, {}\n".format(v, fv)
                 self.text += "mov.s ${}, $f0\n".format(v)
-                self.text += "l.s ${}, {}\n".format(v,fv)
-            elif a==LiteralType.INT:
+                self.text += "l.s ${}, {}\n".format(v, fv)
+            elif a == LiteralType.INT:
                 self.text += "li $v0, {}\n".format(scan_type)
                 self.text += "syscall\n"
                 v = self.get_register(i.root.value)
@@ -535,7 +538,7 @@ class Mips:
                 self.text += "sw ${}, {}\n".format(v, fv)
                 self.text += "move ${}, $v0\n".format(v)
                 self.text += "lw ${}, {}\n".format(v, fv)
-            elif a==LiteralType.CHAR:
+            elif a == LiteralType.CHAR:
                 self.text += "la $a0, $${}\n".format(self.data_dict[i.root.value])
                 self.text += "li $a0, 1\n"
                 self.text += "li $v0, {}\n".format(scan_type)
@@ -717,9 +720,6 @@ class Mips:
                                                   declaration.rightChild.value)
             self.text += "sw  ${}, {}\n".format(s, f)
         elif declaration.rightChild.getType() == LiteralType.FLOAT and is_float(str(declaration.rightChild.value)):
-            # self.text += "ori ${},$0,{}\n".format(self.register[declaration.leftChild.value],
-            #                                      self.float_to_hex(declaration.rightChild.value))
-            # self.text += "sw  ${}, {}\n".format(s, f)
             self.load_float(declaration.rightChild.value)
             s = self.get_register(declaration.rightChild.value, 'f', declaration.rightChild.type)
             self.text += "lwc1 ${}, $${}\n".format(s, self.data_count)
@@ -859,7 +859,11 @@ class Mips:
                 self.text += "sw ${}, {}\n".format(ps, self.frame_register[ps])
 
     def to_array_dec(self, declaration):
-        return
+        print("array dec")
+        self.data_count += 1
+        self.data_dict[declaration.leftChild.value] = self.data_count
+        size = declaration.leftChild.pos.root
+        self.data += "$${}: .space {}\n".format(self.data_count, size * 4)
 
     def to_function_dec(self, f, var, save_mem=False):
         # pass function paramerters
