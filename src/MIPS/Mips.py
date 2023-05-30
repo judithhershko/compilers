@@ -133,8 +133,12 @@ class Mips:
             return type + "0"
         values = {k: v for k, v in self.register.items() if v.startswith(type)}.values()
         values = [string[1:] for string in values]
-        values = [int(digit) for digit in values]
-        highest = max(values)
+        #values = [int(digit) for digit in values]
+        int_values=[]
+        for i in values:
+            if str(i).isdigit():
+                int_values.append(int(i))
+        highest = max(int_values)
         # $ end of string \d match digits
         # digits = int(re.findall(r'\d+$', highest)[0])
         digits = highest
