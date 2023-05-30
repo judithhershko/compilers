@@ -211,7 +211,7 @@ class Mips_TestCasesErrors(unittest.TestCase):
         file = "M_synErr_operators1"
         with self.assertRaises(SystemExit) as ce:
             testFile(file)
-        self.assertEqual(ce.exception.code, "")
+        self.assertEqual(ce.exception.code, "Line 2 has a syntax error. Please check the code.")
 
     def test_synErr_operators2(self):
         file = "M_synErr_operators2"
