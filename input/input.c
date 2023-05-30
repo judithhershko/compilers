@@ -12,12 +12,8 @@ int main(int x, float fx, int xi)
 {
 int y;
 //scanf("%d%d", &x, &y);
-//scanf("%d%d", x, y);
-while(x<xi)
-{
-x=x+1;
-break;
-}
+scanf("%d%d", x, y);
+
 /**
 float f=fff(1,2.2);
 float *px=&f;

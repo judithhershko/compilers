@@ -512,12 +512,44 @@ class Mips:
         print("scan called")
         # split syscall to %i
         pi = 0
-        for i in Scan.paramString:
+        for i in Scan.param:
             if isinstance(i, tuple):
                 i = i[0]
             # print_ = self.set_print_type(inp)
             a = i.root.getType()
-            print_ = Value("$print", a, 0)
+            scan_ = Value("$scan", a, 0)
+            scan_type = self.get_syscall_type(a)
+            if a==LiteralType.FLOAT:
+                self.text += "li $f0, {}\n".format(scan_type)
+                self.text += "syscall\n"
+                v=self.get_register(i.root.value)
+                fv=self.frame_register[v]
+                self.text += "s.s ${}, {}\n".format(v,fv)
+                self.text += "mov.s ${}, $f0\n".format(v)
+                self.text += "l.s ${}, {}\n".format(v,fv)
+            elif a==LiteralType.INT:
+                self.text += "li $v0, {}\n".format(scan_type)
+                self.text += "syscall\n"
+                v = self.get_register(i.root.value)
+                fv = self.frame_register[v]
+                self.text += "sw ${}, {}\n".format(v, fv)
+                self.text += "move ${}, $v0\n".format(v)
+                self.text += "lw ${}, {}\n".format(v, fv)
+            elif a==LiteralType.CHAR:
+                self.text += "la $a0, $${}\n".format(self.data_dict[i.root.value])
+                self.text += "li $a0, 1\n"
+                self.text += "li $v0, {}\n".format(scan_type)
+                self.text += "syscall\n"
+
+            pi += 1
+
+    def get_syscall_type(self, t: LiteralType):
+        if t == LiteralType.INT:
+            return '5'
+        if t == LiteralType.FLOAT:
+            return '6'
+        if t == LiteralType.CHAR:
+            return '8'
 
     def to_continue(self, branch_count):
         """
