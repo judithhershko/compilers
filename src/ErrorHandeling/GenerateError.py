@@ -453,3 +453,11 @@ class startWithZero(Exception):
 
     def __str__(self):
         return "\n\tError in line " + str(self.line) + ": an integer should not start with 0"
+
+
+class elseWithoutIf(Exception):
+    def __init__(self, line):
+        self.line = line
+
+    def __str__(self):
+        return "\n\tError in line " + str(self.line) + ": there is an else if or else without an if"

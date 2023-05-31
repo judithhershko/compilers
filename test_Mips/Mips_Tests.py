@@ -203,7 +203,7 @@ class Mips_TestCases_Working(unittest.TestCase):
 # EXTRA
 # TODO: CHECK WHAT EXTRA WE ARE IMPLEMENTING
 # - else if
-# - uitgebreide constant propagation + folding
+# - uitgebreide constant propagation + folding--------------------------------------------------------------------------------
 # – Additional logical operators: >=, <=, !=
 # – Modulo operator: %
 # – Increment, decrement operators: ++, -- (both prefix and suﬀix variants) ???????
@@ -449,6 +449,12 @@ class Mips_TestCasesErrors(unittest.TestCase):
         with self.assertRaises(SystemExit) as ce:
             testFile(file)
         self.assertEqual(ce.exception.code, "Line 18 has a syntax error. Please check the code.")
+
+    def test_semErr_ElseNoIf(self):
+        file = "M_semErr_ElseNoIf"
+        with self.assertRaises(Exception) as ce:
+            testFile(file)
+        self.assertEqual(str(ce.exception), "\n\tError in line 5: there is an else if or else without an if")
 
     def test_synErr_while1(self):
         file = "M_synErr_while1"

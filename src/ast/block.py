@@ -210,7 +210,10 @@ class block:
             return []
         allVar = []
         cleanTrees = []
+        lastIf = False
         for tree in self.trees:
+            if tree.root.name == "if" and str(tree.root.operator) == "else" and not lastIf:
+                raise elseWithoutIf(tree.root.line)
             res = self.fillLiterals(tree.root, onlyLocal, fill, f_name=f_name)
             if fill and tree.root.name == "scope" and tree.root.f_name != "":
                 self.parent.functions.addFunction(tree.root)
@@ -233,6 +236,10 @@ class block:
             cleanTrees.append(tree)
             if tree.root.name in ("break", "continue", "return"):
                 break
+            if tree.root.name != "comment":
+                lastIf = False
+            if tree.root.name == "if" and str(tree.root.operator) in ("if", "elif"):
+                lastIf = True
         self.trees = cleanTrees
         self.cleaned = True
         return allVar
