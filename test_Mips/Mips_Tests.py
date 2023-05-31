@@ -199,16 +199,28 @@ class Mips_TestCases_Working(unittest.TestCase):
         file = "E_P_ExtendedPropagation"
         return self.filetest(file)
 
+    def test_additional_operators(self):
+        file = "E_P_AdditionalLogicalOperators"
+        return self.filetest(file)
+
+    def test_modulo(self):
+        file = "E_P_ModuloOperator"
+        return self.filetest(file)
+
+    def test_direct_array_allocation(self):
+        file = "E_P_directArrayAllocation"
+        return self.filetest(file)
+
 
 # EXTRA
 # TODO: CHECK WHAT EXTRA WE ARE IMPLEMENTING
 # - else if
 # - uitgebreide constant propagation + folding--------------------------------------------------------------------------------
-# – Additional logical operators: >=, <=, !=
-# – Modulo operator: %
+# – Additional logical operators: >=, <=, !=----------------------------------------------------------------------------------
+# – Modulo operator: %--------------------------------------------------------------------------------------------------------
 # – Increment, decrement operators: ++, -- (both prefix and suﬀix variants) ???????
 # – Store comments in AST and machine code ??????
-# - array: int x[2] = {1,2}
+# - array: int x[2] = {1,2}---------------------------------------------------------------------------------------------------
 
 
 class Mips_TestCasesErrors(unittest.TestCase):
