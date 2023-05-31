@@ -155,7 +155,7 @@ class Mips:
                 for k, vi in self.register.items():
                     if vi.startswith(type):
                         self.reused_registers[vi] = self.frame_register[vi]
-                        self.text += "sw {}, {}\n".format(vi, self.frame_register[vi])
+                        self.text += "sw ${}, {}\n".format(vi, self.frame_register[vi])
                 self.remove_register_type(type)
                 return self.get_next_highest_register_type(type, v)
             elif type == 't':
@@ -218,8 +218,10 @@ class Mips:
                 i = AST
                 i.root = t
                 t = i
+            if isinstance(t.root,Declaration) and isinstance(t.root.rightChild,Array):
+                self.set_array_position(t.root.leftChild,t.root.rightChild)
             if isinstance(t.root, Declaration) and \
-                    (isinstance(t.root.rightChild, Value) or isinstance(t.root.rightChild, Array) or isinstance(
+                    (isinstance(t.root.rightChild, Value) or isinstance(
                         t.root.rightChild, Pointer) or isinstance(t.root.rightChild, Function) or isinstance(
                         t.root.rightChild, EmptyNode)):
                 self.to_declaration(t.root)
@@ -717,6 +719,8 @@ class Mips:
             # we need tha value it is pointing to
             declaration.rightChild = Value(declaration.rightChild.value, declaration.rightChild.type,
                                            declaration.rightChild.line)
+        if isinstance(declaration.leftChild, Array):
+            return self.set_array_position(declaration.leftChild, declaration.rightChild)
         # todo: left child array
         if isinstance(declaration.rightChild, Array):
             return self.to_array_dec(declaration)
@@ -875,33 +879,70 @@ class Mips:
             else:
                 self.text += "sw ${}, {}\n".format(ps, self.frame_register[ps])
 
+    def set_array_position(self, left, right):
+        if not isinstance(right, Value):
+            right_reg = self.get_register('array', self.get_register_type(right.getType()), right.getType())
+            self.declaration = Value('array')
+            right.printTables('random', self)
+            right = Value('array', right.getType(), 0)
+        # get array from data
+        array = left.value
+        if not isinstance(left.pos, Value):
+            self.declaration = Value('$1', left.getType(), 0)
+            self.register['$1'] = '$1'
+            left.pos.printTable('ramdom', self)
+            self.remove_register('$1')
+            # position is stored in '$1'
+            self.text += "addi $t0,$zero,4\n"
+            self.text += "addi $1, $1, -1\n"
+            self.text += "mul $1, $1, $t0\n"
+            self.text += "addi $t0, $1, 0\n"
+        else:
+            size = left.getPosition()
+            size = (size - 1) * 4
+            self.text += "addi $t0,$zero, {}\n".format(size)
+
+        rval = self.save_value_to_temp(right)
+        if rval[0] == 'f':
+            self.text += "s.s {}, $$2($t0)\n".format(rval)
+        else:
+            self.text += "sw {}, $$2($t0)\n".format(rval)
+        self.remove_register('array')
+
+    def save_value_to_temp(self, i):
+        if i.getType() == LiteralType.INT and str(i.value).isdigit():
+            self.text += "addi $t1, $zero, {}\n".format(i.value)
+            return '$t1'
+        elif i.getType() == LiteralType.FLOAT and is_float(str(i.value)):
+            s = self.load_float(i.value)
+            self.text += "mov.s $f1, ${}\n".format(s)
+            return '$f1'
+        elif i.getType() == LiteralType.FLOAT:
+            self.text += "mov.s $f1, ${}\n".format(self.get_register(i.value))
+            return '$f1'
+        elif i.getType() == LiteralType.CHAR and i.value[0] == '\'':
+            s = self.get_char(i.value)
+            self.text += "lb $t1, $${}\n".format(s)
+            return '$t1'
+        elif i.getType() == LiteralType.INT or i.getType() == LiteralType.CHAR:
+            self.text += "move $t1, ${}\n".format(self.get_register(i.value))
+            return '$t1'
+
     def to_array_dec(self, array: Array):
         print("array dec")
         # set size:
         size = array.pos.value
         self.data_count += 1
-        self.data_dict[array.value] = array.value
+        self.data_dict[array.value] = self.data_count
         self.data += "$${}: .space {}\n".format(self.data_count, size * 4)
         # keep index
         self.text += "addi $t0, $zero, 0\n"
-
         for i in array.arrayContent:
-            if i.getType() == LiteralType.INT and str(i.value).isdigit():
-                self.text += "addi $t1, $zero, {}\n".format(i.value)
-            elif i.getType() == LiteralType.FLOAT and is_float(str(i.value)):
-                s = self.load_float(i.value)
-                self.text += "mov.s $f1, ${}\n".format(s)
-            elif i.getType() == LiteralType.FLOAT:
-                self.text += "mov.s $f1, ${}\n".format(self.get_register(i.value))
-            elif i.getType() == LiteralType.CHAR and i.value[0] == '\'':
-                s = self.get_char(i.value)
-                self.text += "lb $t1, $${}\n".format(s)
-            elif i.getType() == LiteralType.INT or i.getType() == LiteralType.CHAR:
-                self.text += "move $t1, ${}\n".format(self.get_register(i.value))
+            self.save_value_to_temp(i)
             if i.getType() == LiteralType.FLOAT:
-                self.text += " s.s $f1, {}($t0)\n".format(array.value)
+                self.text += " s.s $f1, $${}($t0)\n".format(self.data_dict[array.value])
             else:
-                self.text += " sw $t1, {}($t0)\n".format(array.value)
+                self.text += " sw $t1, $${}($t0)\n".format(self.data_dict[array.value])
             self.text += "addi $t0, $t0, 4\n"
 
     def get_char(self, val):
