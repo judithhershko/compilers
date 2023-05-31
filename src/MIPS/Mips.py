@@ -152,11 +152,10 @@ class Mips:
             call function again
             """
             if type == 's':
-                self.text += "push everything in memory to reuse registers \n"
                 for k, vi in self.register.items():
                     if vi.startswith(type):
                         self.reused_registers[vi] = self.frame_register[vi]
-                        self.text += "sw {}, {}\n".format(v, self.frame_register[vi])
+                        self.text += "sw {}, {}\n".format(vi, self.frame_register[vi])
                 self.remove_register_type(type)
                 return self.get_next_highest_register_type(type, v)
             elif type == 't':
@@ -224,6 +223,8 @@ class Mips:
                         t.root.rightChild, Pointer) or isinstance(t.root.rightChild, Function) or isinstance(
                         t.root.rightChild, EmptyNode)):
                 self.to_declaration(t.root)
+            if isinstance(t.root, Array):
+                self.to_array_dec(t.root)
             if isinstance(t.root, Comment):
                 self.to_comment(t.root)
             elif isinstance(t.root, Print):
@@ -765,7 +766,7 @@ class Mips:
             char needs to be saved in .data fragment
             """
             # check if needs data element:
-                # is variable
+            # is variable
             t = declaration.leftChild.type
             t = self.get_register_type(t)
             s = self.get_register(declaration.leftChild.value, t, declaration.leftChild.value)
@@ -874,12 +875,39 @@ class Mips:
             else:
                 self.text += "sw ${}, {}\n".format(ps, self.frame_register[ps])
 
-    def to_array_dec(self, declaration):
+    def to_array_dec(self, array: Array):
         print("array dec")
+        # set size:
+        size = array.pos.value
         self.data_count += 1
-        self.data_dict[declaration.leftChild.value] = self.data_count
-        size = declaration.leftChild.pos.root
+        self.data_dict[array.value] = array.value
         self.data += "$${}: .space {}\n".format(self.data_count, size * 4)
+        # keep index
+        self.text += "addi $t0, $zero, 0\n"
+
+        for i in array.arrayContent:
+            if i.getType() == LiteralType.INT and str(i.value).isdigit():
+                self.text += "addi $t1, $zero, {}\n".format(i.value)
+            elif i.getType() == LiteralType.FLOAT and is_float(str(i.value)):
+                s = self.load_float(i.value)
+                self.text += "mov.s $f1, ${}\n".format(s)
+            elif i.getType() == LiteralType.FLOAT:
+                self.text += "mov.s $f1, ${}\n".format(self.get_register(i.value))
+            elif i.getType() == LiteralType.CHAR and i.value[0] == '\'':
+                s = self.get_char(i.value)
+                self.text += "lb $t1, $${}\n".format(s)
+            elif i.getType() == LiteralType.INT or i.getType() == LiteralType.CHAR:
+                self.text += "move $t1, ${}\n".format(self.get_register(i.value))
+            if i.getType() == LiteralType.FLOAT:
+                self.text += " s.s $f1, {}($t0)\n".format(array.value)
+            else:
+                self.text += " sw $t1, {}($t0)\n".format(array.value)
+            self.text += "addi $t0, $t0, 4\n"
+
+    def get_char(self, val):
+        self.data_count += 1
+        self.data += "$${}, .byte {}\n".format(self.data_count, val)
+        return self.data_count
 
     def to_function_dec(self, f, var, save_mem=False):
         # pass function paramerters
