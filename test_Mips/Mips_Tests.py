@@ -202,16 +202,28 @@ class Mips_TestCases_Working(unittest.TestCase):
         file = "E_P_ExtendedPropagation"
         return self.filetest(file)
 
+    def test_additional_operators(self):
+        file = "E_P_AdditionalLogicalOperators"
+        return self.filetest(file)
+
+    def test_modulo(self):
+        file = "E_P_ModuloOperator"
+        return self.filetest(file)
+
+    def test_direct_array_allocation(self):
+        file = "E_P_directArrayAllocation"
+        return self.filetest(file)
+
 
 # EXTRA
 # TODO: CHECK WHAT EXTRA WE ARE IMPLEMENTING
 # - else if
-# - uitgebreide constant propagation + folding
-# – Additional logical operators: >=, <=, !=
-# – Modulo operator: %
+# - uitgebreide constant propagation + folding--------------------------------------------------------------------------------
+# – Additional logical operators: >=, <=, !=----------------------------------------------------------------------------------
+# – Modulo operator: %--------------------------------------------------------------------------------------------------------
 # – Increment, decrement operators: ++, -- (both prefix and suﬀix variants) ???????
 # – Store comments in AST and machine code ??????
-# - array: int x[2] = {1,2}
+# - array: int x[2] = {1,2}---------------------------------------------------------------------------------------------------
 
 
 class Mips_TestCasesErrors(unittest.TestCase):
@@ -236,9 +248,9 @@ class Mips_TestCasesErrors(unittest.TestCase):
 
     def test_synErr_operators4(self):
         file = "M_synErr_operators4"
-        with self.assertRaises(SystemExit) as ce:
+        with self.assertRaises(Exception) as ce:
             testFile(file)
-        self.assertEqual(ce.exception.code, "")
+        self.assertEqual(str(ce.exception), "\n\tError in line 2: an integer should not start with 0")
 
     # TODO: add syntax error for logical operators
 
@@ -319,13 +331,13 @@ class Mips_TestCasesErrors(unittest.TestCase):
         file = "M_synErr_pointerOpp2"
         with self.assertRaises(SystemExit) as ce:
             testFile(file)
-        self.assertEqual(ce.exception.code, "")
+        self.assertEqual(ce.exception.code, "Line 3 has a syntax error. Please check the code.")
 
     def test_synErr_pointerOpp3(self):
         file = "M_synErr_pointerOpp3"
         with self.assertRaises(SystemExit) as ce:
             testFile(file)
-        self.assertEqual(ce.exception.code, "Line 11 has a syntax error. Please check the code.")
+        self.assertEqual(ce.exception.code, "Line 3 has a syntax error. Please check the code.")
 
     def test_semErr_varUndeclared1(self):
         file = "M_semErr_varUndeclared1"
@@ -452,6 +464,12 @@ class Mips_TestCasesErrors(unittest.TestCase):
         with self.assertRaises(SystemExit) as ce:
             testFile(file)
         self.assertEqual(ce.exception.code, "Line 18 has a syntax error. Please check the code.")
+
+    def test_semErr_ElseNoIf(self):
+        file = "M_semErr_ElseNoIf"
+        with self.assertRaises(Exception) as ce:
+            testFile(file)
+        self.assertEqual(str(ce.exception), "\n\tError in line 5: there is an else if or else without an if")
 
     def test_synErr_while1(self):
         file = "M_synErr_while1"

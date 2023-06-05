@@ -1,5 +1,4 @@
 .data
-$$1  :.asciiz  "i is  "
 .text
 .globl main
 j main
@@ -9,7 +8,7 @@ false:
 true:
   li $1, 1
   jr $ra
-#//intmain(){inti=0;while(i<10){printf("i is %i",i);if(i==5){break;}else{continue;}i=10;}return0;}
+#//intmain(){inti=0;while(i<10){printf("%d\n",i);if(i==5){break;}else{i=i+1;continue;}i=10;}return0;}
 main:
  sw	$fp, 0($sp)
 move	$fp, $sp
@@ -20,7 +19,7 @@ sw	$s0, -8($fp)
 lw  $s0, -8($fp)
 ori $s0,$0,0
 sw  $s0, -8($fp)
-#//while(i<10){printf("i is %i",i);if(i==5){break;}else{continue;}i=10;}
+#//while(i<10){printf("%d\n",i);if(i==5){break;}else{i=i+1;continue;}i=10;}
 j $loop1
 nop
 $loop1:
@@ -35,13 +34,7 @@ nop
 j $loop2
 nop
 $loop2:
-#//printf("i is %i",i)
-li $v0, 4
-la $a0, $$1
-syscall
-li $v0, 1
-move $a0, $s0
-syscall
+#//printf("%d\n",i)
 #//if(i==5){break;}
 
 j $loop4
@@ -63,6 +56,11 @@ nop
 j $loop6
 j $loop7
 $loop6:
+#//i=i+1
+lw  $s0, -8($fp)
+ori $t0,$0,1
+addu $s0,$s0, $t0
+sw $s0, -8($fp)
 j $loop7
 nop
 j $loop7
