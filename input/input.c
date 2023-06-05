@@ -5,6 +5,6 @@ int main()
 	int y;
     printf("Enter two numbers:");
 	scanf("%i%i", &x, &y);
-	printf("%i en %i", x, y);
+	printf("value of x and y are: %i and %i",x,y);
 return 0;
 }
