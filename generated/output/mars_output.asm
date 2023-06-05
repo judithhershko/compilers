@@ -1,5 +1,7 @@
 .data
-$$1  :.asciiz  "val of i is:  " 
+$$1  : .byte 'b' 
+$$2  : .byte 'a' 
+$$3: .float 33.1
 .text
 .globl main
 j main
@@ -9,49 +11,55 @@ false:
 true:
   li $1, 1
   jr $ra
-#//intmain(){inti=0;while(i<5){i=i+1;printf("val of i is: %i;",i);}return0;}
+#//intmain(){/**Thisisacomment**/intline_of_code=5;/***AnotherComment*****//******/intf=45;charc='b';intx=5;// line 1chard='a';floate=33.1;// another line/////// some documentation/////////////////////////////////////// abcdef 123 //////////intfinal_line=33;return0;}
 main: 
  sw	$fp, 0($sp)
 move	$fp, $sp
-subu	$sp, $sp,12
+subu	$sp, $sp,36
 sw	$ra, -4($fp)
 sw	$s0, -8($fp)
-#//inti=0
+sw	$s1, -12($fp)
+sw	$s2, -16($fp)
+sw	$s3, -20($fp)
+sw	$s4, -24($fp)
+s.s   $f0, -28($fp)
+sw	$s5, -32($fp)
+#/**Thisisacomment**/#//intline_of_code=5
 lw  $s0, -8($fp)
-ori $s0,$0,0
+ori $s0,$0,5
 sw  $s0, -8($fp)
-#//while(i<5){i=i+1;printf("val of i is: %i;",i);}
-j $loop1
-nop
-$loop1:
-lw  $s0, -8($fp)
-ori $t0,$0,5
-slt $1,$s0, $t0
-sw $1, -12($fp)
-lbu $1, -12($fp)
-andi  $1, $1, 1
-beqz    $1, $loop3
-nop 
-j $loop2
-nop
-$loop2:
-#//i=i+1
-lw  $s0, -8($fp)
-ori $t0,$0,1
-addu $s0,$s0, $t0
-sw $s0, -8($fp)
-#//printf("val of i is: %i;",i)
-li $v0, 4
-la $a0, $$1
-syscall
-li $v0, 1
-move $a0, $s0
-syscall
-j $loop1
-nop
-$loop3:
+#/***AnotherComment*****//******/#//intf=45
+lw  $s1, -12($fp)
+ori $s1,$0,45
+sw  $s1, -12($fp)
+#//charc='b'
+lb $s2 , $$1
+sb $s2, -16($fp)
+#//intx=5
+lw  $s3, -20($fp)
+ori $s3,$0,5
+sw  $s3, -20($fp)
+#// line 1
+#//chard='a'
+lb $s4 , $$2
+sb $s4, -24($fp)
+#//floate=33.1
+lwc1 $f1, $$3
+#// another line
+#/////// some documentation
+#/////////////////////////////////////
+#// abcdef 123 //////////
+#//intfinal_line=33
+lw  $s5, -32($fp)
+ori $s5,$0,33
+sw  $s5, -32($fp)
 li $v0, 0
-lw $1, -12($fp)
+lw $s5, -32($fp)
+l.s $f0, -28($fp)
+lw $s4, -24($fp)
+lw $s3, -20($fp)
+lw $s2, -16($fp)
+lw $s1, -12($fp)
 lw $s0, -8($fp)
 lw	$ra, -4($fp)
 move	$sp, $fp
