@@ -65,6 +65,7 @@ class Mips:
         self.save_old_val = None
         self.loop_counter = 0
         self.reused_registers = dict()
+        self.c_table=SymbolTable()
 
     def set_false(self, reg="1"):
         self.text += "false:\n"
@@ -133,8 +134,8 @@ class Mips:
             return type + "0"
         values = {k: v for k, v in self.register.items() if v.startswith(type)}.values()
         values = [string[1:] for string in values]
-        #values = [int(digit) for digit in values]
-        int_values=[]
+        # values = [int(digit) for digit in values]
+        int_values = []
         for i in values:
             if str(i).isdigit():
                 int_values.append(int(i))
@@ -152,11 +153,10 @@ class Mips:
             call function again
             """
             if type == 's':
-                self.text += "push everything in memory to reuse registers \n"
-                for k, v in self.register.items():
-                    if v.startswith(type):
-                        self.reused_registers[v] = self.frame_register[v]
-                        self.text += "sw {}, {}\n".format(v, self.frame_register[v])
+                for k, vi in self.register.items():
+                    if vi.startswith(type):
+                        self.reused_registers[vi] = self.frame_register[vi]
+                        self.text += "sw ${}, {}\n".format(vi, self.frame_register[vi])
                 self.remove_register_type(type)
                 return self.get_next_highest_register_type(type, v)
             elif type == 't':
@@ -219,11 +219,15 @@ class Mips:
                 i = AST
                 i.root = t
                 t = i
+            if isinstance(t.root, Declaration) and isinstance(t.root.leftChild, Array):
+                self.set_array_position(t.root.leftChild, t.root.rightChild)
             if isinstance(t.root, Declaration) and \
-                    (isinstance(t.root.rightChild, Value) or isinstance(t.root.rightChild, Array) or isinstance(
+                    (isinstance(t.root.rightChild, Value) or isinstance(
                         t.root.rightChild, Pointer) or isinstance(t.root.rightChild, Function) or isinstance(
                         t.root.rightChild, EmptyNode)):
                 self.to_declaration(t.root)
+            if isinstance(t.root, Array):
+                self.to_array_dec(t.root)
             if isinstance(t.root, Comment):
                 self.to_comment(t.root)
             elif isinstance(t.root, Print):
@@ -406,7 +410,7 @@ class Mips:
         strings = p.input_string.split("%")
         pi = 0
         for i in strings:
-            if i[-1] == "\"":
+            if i[-1] == "\"" and strings.__len__()>1:
                 continue
             i = str(i)
             self.data_count += 1
@@ -424,17 +428,23 @@ class Mips:
             self.text += "li $v0, 4\n"
             self.text += "la $a0, $${}\n".format(self.data_count)
             self.text += "syscall\n"
+            if p.param.__len__()==0:
+                continue
             # input value to print:
             inp = p.paramString[pi]
             if isinstance(p.param[pi], tuple):
                 p.param[pi] = p.param[pi][0]
             # print_ = self.set_print_type(inp)
             a = p.param[pi].root.getType()
-            print_ = Value("$print", a, 0)
 
+            print_ = Value("$print", a, 0)
+            if a==LiteralType.VAR:
+                if self.c_table.findSymbol(p.param[pi].root.value) is not None:
+                    print_.type =self.c_table.findSymbol(p.param[pi].root.value)[1]
             print_nr = 4
             if print_ is not None:
                 print_nr = self.print_nr(print_.type)
+
             if print_ is None or print_.type == LiteralType.CHAR:
                 # is string
                 self.data_count += 1
@@ -565,8 +575,8 @@ class Mips:
         :param branch_count: if false
         :return:
         """
-        self.text += "j {}\n".format(branch_count)
-        self.text += "nop"
+        self.text += "j ${}\n".format(branch_count)
+        self.text += "nop\n"
 
     def to_break(self, branch_count):
         """
@@ -574,10 +584,11 @@ class Mips:
         :param branch_count: if false
         :return:
         """
-        self.text += "j {}\n".format(branch_count)
-        self.text += "nop"
+        self.text += "j ${}\n".format(branch_count)
+        self.text += "nop\n"
 
     def set_while_loop(self, w: While):
+        self.c_table=w.c_block.getSymbolTable()
         self.loop_counter += 1
         condition = "loop{}".format(self.loop_counter)
         self.loop_counter += 1
@@ -600,6 +611,8 @@ class Mips:
         return
 
     def set_if_loop(self, f: If):
+        self.text += "\n"
+        self.c_table=f.c_block.getSymbolTable()
         if isinstance(f, If) and f.operator == ConditionType.IF:
             self.loop_counter += 1
             condition = "loop{}".format(self.loop_counter)
@@ -716,19 +729,30 @@ class Mips:
             # we need tha value it is pointing to
             declaration.rightChild = Value(declaration.rightChild.value, declaration.rightChild.type,
                                            declaration.rightChild.line)
+        if isinstance(declaration.leftChild, Array):
+            return self.set_array_position(declaration.leftChild, declaration.rightChild)
         # todo: left child array
         if isinstance(declaration.rightChild, Array):
-            return self.to_array_dec(declaration)
+            #return self.to_array_dec(declaration)
+            return self.array_assignement(declaration)
         if isinstance(declaration.rightChild, Function):
             return self.to_function_dec(declaration.rightChild, declaration.leftChild, True)
+
+        # check if right child is float and left child is int:
+        if declaration.leftChild.getType() == LiteralType.CHAR:
+            self.data_count += 1
+            self.data_dict[declaration.leftChild.value] = self.data_count
+            self.data += "$${}  : .byte {} \n".format(self.data_count, declaration.rightChild.value)
+            s = self.get_register(declaration.leftChild.value, 's', LiteralType.CHAR)
+            self.text += "lb ${} , $${}\n".format(s, self.data_count)
+            self.text += "sb ${}, {}\n".format(s, self.frame_register[self.register[declaration.leftChild.value]])
+            return
         s = self.get_register(declaration.leftChild.value, self.get_register_type(declaration.leftChild.getType()),
                               declaration.leftChild.getType())
-        # check if right child is float and left child is int:
-
         if declaration.rightChild.getType() == LiteralType.INT and str(declaration.rightChild.value).isdigit():
-            val= self.get_register(declaration.leftChild.value)
+            val = self.get_register(declaration.leftChild.value)
             if val not in self.frame_register.keys():
-                self.frame_counter-=4
+                self.frame_counter -= 4
                 self.save_to_frame(val)
             f = self.frame_register[val]
             self.text += "lw  ${}, {}\n".format(s, f)
@@ -757,29 +781,21 @@ class Mips:
             char needs to be saved in .data fragment
             """
             # check if needs data element:
-            if declaration.leftChild.getType() == LiteralType.CHAR:
-                self.data_count += 1
-                self.data_dict[declaration.leftChild.value] = self.data_count
-                self.data += "$${}  : .byte '{}' \n".format(self.data_count, declaration.leftChild.value)
-                s = self.get_register(declaration.leftChild.value, 's', LiteralType.CHAR)
-                self.text += "lb ${} , $${}\n".format(s, self.data_count)
-                self.text += "sb ${}, {}\n".format(s, self.frame_register[self.register[declaration.leftChild.value]])
-            else:
-                # is variable
-                t = declaration.leftChild.type
-                t = self.get_register_type(t)
-                s = self.get_register(declaration.leftChild.value, t, declaration.leftChild.value)
-                m = 'move'
+            # is variable
+            t = declaration.leftChild.type
+            t = self.get_register_type(t)
+            s = self.get_register(declaration.leftChild.value, t, declaration.leftChild.value)
+            m = 'move'
+            if t == 'f':
+                m = 'mov.s'
+            old_reg = self.get_register(declaration.rightChild.value, t, declaration.rightChild.type)
+            # check if in memory
+            if old_reg in self.frame_register.keys():
                 if t == 'f':
-                    m = 'mov.s'
-                old_reg = self.get_register(declaration.rightChild.value, t, declaration.rightChild.type)
-                # check if in memory
-                if old_reg in self.frame_register.keys():
-                    if t == 'f':
-                        self.text += "l.s ${}, {}\n".format(old_reg, self.frame_register[old_reg])
-                    else:
-                        self.text += "lw ${}, {}\n".format(old_reg, self.frame_register[old_reg])
-                self.text += "{} ${}, ${}\n".format(m, s, old_reg)
+                    self.text += "l.s ${}, {}\n".format(old_reg, self.frame_register[old_reg])
+                else:
+                    self.text += "lw ${}, {}\n".format(old_reg, self.frame_register[old_reg])
+            self.text += "{} ${}, ${}\n".format(m, s, old_reg)
 
         return
 
@@ -874,12 +890,78 @@ class Mips:
             else:
                 self.text += "sw ${}, {}\n".format(ps, self.frame_register[ps])
 
-    def to_array_dec(self, declaration):
+    def set_array_position(self, left, right):
+        if not isinstance(right, Value):
+            right_reg = self.get_register('array', self.get_register_type(right.getType()), right.getType())
+            self.declaration = Value('array', right.getType(), 0)
+            right.printTables('random',self)
+            right = Value('array', right.getType(), 0)
+        # get array from data
+        array = left.value
+        if not isinstance(left.pos, Value):
+            self.declaration = Value('$1', left.getType(), 0)
+            self.register['$1'] = '$1'
+            left.pos.printTable('ramdom', self)
+            self.remove_register('$1')
+            # position is stored in '$1'
+            self.text += "addi $t0,$zero,4\n"
+            self.text += "addi $1, $1, -1\n"
+            self.text += "mul $1, $1, $t0\n"
+            self.text += "addi $t0, $1, 0\n"
+        else:
+            size = left.getPosition()
+            if isinstance(size, str):
+                size = int(size)
+            size = (size - 1) * 4
+            self.text += "addi $t0,$zero, {}\n".format(size)
+
+        rval = self.save_value_to_temp(right)
+        if rval[0] == 'f':
+            self.text += "s.s {}, $$2($t0)\n".format(rval)
+        else:
+            self.text += "sw {}, $$2($t0)\n".format(rval)
+        self.remove_register('array')
+
+    def save_value_to_temp(self, i):
+        if i.getType() == LiteralType.INT and str(i.value).isdigit():
+            self.text += "addi $t1, $zero, {}\n".format(i.value)
+            return '$t1'
+        elif i.getType() == LiteralType.FLOAT and is_float(str(i.value)):
+            s = self.load_float(i.value)
+            self.text += "mov.s $f1, ${}\n".format(s)
+            return '$f1'
+        elif i.getType() == LiteralType.FLOAT:
+            self.text += "mov.s $f1, ${}\n".format(self.get_register(i.value))
+            return '$f1'
+        elif i.getType() == LiteralType.CHAR and i.value[0] == '\'':
+            s = self.get_char(i.value)
+            self.text += "lb $t1, $${}\n".format(s)
+            return '$t1'
+        elif i.getType() == LiteralType.INT or i.getType() == LiteralType.CHAR:
+            self.text += "move $t1, ${}\n".format(self.get_register(i.value))
+            return '$t1'
+
+    def to_array_dec(self, array: Array):
         print("array dec")
+        # set size:
+        size = array.pos.value
         self.data_count += 1
-        self.data_dict[declaration.leftChild.value] = self.data_count
-        size = declaration.leftChild.pos.root
+        self.data_dict[array.value] = self.data_count
         self.data += "$${}: .space {}\n".format(self.data_count, size * 4)
+        # keep index
+        self.text += "addi $t0, $zero, 0\n"
+        for i in array.arrayContent:
+            self.save_value_to_temp(i)
+            if i.getType() == LiteralType.FLOAT:
+                self.text += " s.s $f1, $${}($t0)\n".format(self.data_dict[array.value])
+            else:
+                self.text += " sw $t1, $${}($t0)\n".format(self.data_dict[array.value])
+            self.text += "addi $t0, $t0, 4\n"
+
+    def get_char(self, val):
+        self.data_count += 1
+        self.data += "$${}, .byte {}\n".format(self.data_count, val)
+        return self.data_count
 
     def to_function_dec(self, f, var, save_mem=False):
         # pass function paramerters
@@ -897,7 +979,7 @@ class Mips:
         self.register = dict()
         self.frame_register = dict()
         for i in f.param:
-            self.load_type(f.param[i], True,old_frame,old_registers)
+            self.load_type(f.param[i], True, old_frame, old_registers)
         self.text += "jal {}\n".format(f.f_name)
         # self.text += "sw $v0, {}\n".format(d.rightChild.f_name)
         if var.type == LiteralType.FLOAT:
@@ -918,7 +1000,7 @@ class Mips:
                     self.text += "lw ${}, {}\n".format(param_regex[k], self.frame_register[param_regex[k]])
         return
 
-    def load_type(self, v, is_param: bool, old_frame=None,old_reg=None):
+    def load_type(self, v, is_param: bool, old_frame=None, old_reg=None):
         save = "t"
         if is_param:
             save = "s"
@@ -947,7 +1029,7 @@ class Mips:
         elif isinstance(v, Value):
             if old_frame is None:
                 self.text += "lw ${}, {}\n".format(self.get_register(v.value),
-                                               self.frame_register[self.get_register(v.value)])
+                                                   self.frame_register[self.get_register(v.value)])
             else:
                 self.text += "lw ${}, {}\n".format(self.get_register(v.value),
                                                    old_frame[self.get_register(v.value)])
@@ -958,6 +1040,9 @@ class Mips:
 
     def make_value(self, lit, valueType, line):
         return Value(lit=lit, valueType=valueType, line=line)
+
+    def array_assignement(self, declaration):
+        print("array assignement")
 
 
 def is_float(string):

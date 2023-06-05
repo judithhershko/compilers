@@ -1,20 +1,10 @@
 #include "stdio.h";
-
-int f(int a) {
-	if (a>1) {
-		a = 1;
-	}
-	return a;
-}
-
 int main()
 {
-    int i = 5;
-    int* a = &i;
-    while(*a > 0){
-        int x = *a;
-        f(*a);
-    }
-
+int i = 0;
+	while (i < 5){
+		i = i+1;
+		printf("val of i is: %i;", i);
+	}
 return 0;
 }
