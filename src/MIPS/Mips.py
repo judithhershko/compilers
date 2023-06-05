@@ -333,6 +333,7 @@ class Mips:
             # self.add_to_memory(self.declaration)
             self.register["v0"] = self.declaration.value
             f_return.printTables("random", self)
+            self.load_retrun_value(self.declaration)
             # self.text += "sw ${}, $ra\n".format(self.register[self.declaration.value])
         elif isinstance(f_return.root, Value):
             self.load_retrun_value(f_return.root)
@@ -975,7 +976,7 @@ class Mips:
         old_frame = self.frame_register
         # save value that keeps return param:
         save_return_reg = self.register[var.value]
-        save_mem_reg = self.frame_register[self.register[var.value]]
+        #save_mem_reg = self.frame_register[self.register[var.value]]
         self.register = dict()
         self.frame_register = dict()
         for i in f.param:

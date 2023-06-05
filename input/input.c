@@ -1,45 +1,20 @@
 #include "stdio.h";
+
+int f(int a) {
+	if (a<2) {
+		return f(a);
+	}
+	else {
+		return f(a-1) + f(a-2);
+	}
+}
+
 int main()
 {
-/*
- * This is a comment
- *
- */
-int line_of_code = 5;
-
-/**
- * Another Comment
-  ***** /
-
-  /**
-
-  *
-  *
-  **/
-
-int f = 45;
-
-
-
-
-
-
-char c = 'b';
-
-int x = 5;
-
-// line 1
-char d = 'a';
-
-
-float e = 33.1; // another line
-
-
-/////// some documentation
-/////////////////////////////////////
-
-// abcdef 123 //////////
-int final_line = 33;
-
+    int i = 5;
+    int a = 0;
+    while(a < i){
+		f(a);
+	}
 return 0;
 }

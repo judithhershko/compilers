@@ -1,7 +1,4 @@
 .data
-$$1  : .byte 'b' 
-$$2  : .byte 'a' 
-$$3: .float 33.1
 .text
 .globl main
 j main
@@ -11,54 +8,84 @@ false:
 true:
   li $1, 1
   jr $ra
-#//intmain(){/**Thisisacomment**/intline_of_code=5;/***AnotherComment*****//******/intf=45;charc='b';intx=5;// line 1chard='a';floate=33.1;// another line/////// some documentation/////////////////////////////////////// abcdef 123 //////////intfinal_line=33;return0;}
+#//intf(inta){if(a<2){returnf(a);}else{returnf(a-1)+f(a-2);}}
+f: 
+ sw	$fp, 0($sp)
+move	$fp, $sp
+subu	$sp, $sp,12
+sw	$ra, -4($fp)
+sw	$s0, -8($fp)
+#//inta
+#//if(a<2){returnf(a);}
+
+j $loop1
+nop
+$loop1:
+lw  $s0, -8($fp)
+ori $t0,$0,2
+slt $1,$s0, $t0
+sw $1, -12($fp)
+lbu $1, -12($fp)
+andi  $1, $1, 1
+beqz    $1, $loop3
+nop 
+j $loop2
+nop
+$loop2:
+j $loop3
+j $loop4
+$loop3:
+j $loop4
+nop
+$loop4:
+jal f
+move $t0, $v0
+jal f
+move $t0, $v0
+addu $s1,$t0, $t0
+move $v0, $s1
+lw $1, -12($fp)
+lw $s0, -8($fp)
+lw	$ra, -4($fp)
+move	$sp, $fp
+lw	$fp, ($sp)
+jr	$ra
+#//intmain(){inti=5;inta=0;while(a<i){f(a);}return0;}
 main: 
  sw	$fp, 0($sp)
 move	$fp, $sp
-subu	$sp, $sp,36
+subu	$sp, $sp,16
 sw	$ra, -4($fp)
 sw	$s0, -8($fp)
 sw	$s1, -12($fp)
-sw	$s2, -16($fp)
-sw	$s3, -20($fp)
-sw	$s4, -24($fp)
-s.s   $f0, -28($fp)
-sw	$s5, -32($fp)
-#/**Thisisacomment**/#//intline_of_code=5
+#//inti=5
 lw  $s0, -8($fp)
 ori $s0,$0,5
 sw  $s0, -8($fp)
-#/***AnotherComment*****//******/#//intf=45
+#//inta=0
 lw  $s1, -12($fp)
-ori $s1,$0,45
+ori $s1,$0,0
 sw  $s1, -12($fp)
-#//charc='b'
-lb $s2 , $$1
-sb $s2, -16($fp)
-#//intx=5
-lw  $s3, -20($fp)
-ori $s3,$0,5
-sw  $s3, -20($fp)
-#// line 1
-#//chard='a'
-lb $s4 , $$2
-sb $s4, -24($fp)
-#//floate=33.1
-lwc1 $f1, $$3
-#// another line
-#/////// some documentation
-#/////////////////////////////////////
-#// abcdef 123 //////////
-#//intfinal_line=33
-lw  $s5, -32($fp)
-ori $s5,$0,33
-sw  $s5, -32($fp)
+#//while(a<i){f(a);}
+j $loop5
+nop
+$loop5:
+lw  $s1, -12($fp)
+lw  $s0, -8($fp)
+slt $2,$s1, $s0
+sw $2, -16($fp)
+lbu $2, -16($fp)
+andi  $2, $2, 1
+beqz    $2, $loop7
+nop 
+j $loop6
+nop
+$loop6:
+j $loop5
+nop
+$loop7:
 li $v0, 0
-lw $s5, -32($fp)
-l.s $f0, -28($fp)
-lw $s4, -24($fp)
-lw $s3, -20($fp)
-lw $s2, -16($fp)
+lw $2, -16($fp)
 lw $s1, -12($fp)
 lw $s0, -8($fp)
 lw	$ra, -4($fp)

@@ -1,3 +1,4 @@
+import difflib
 import unittest
 from src.CustomListener import *
 from src.LLVM.LLVM_Operators import ToLLVM
@@ -41,8 +42,10 @@ class Mips_TestCases_Working(unittest.TestCase):
         file2 = 'Mips_expected/' + filename + '.asm'
         with open(file1, 'r') as file:
             text1 = file.read().replace('\n', '')
+            text1 = text1.replace(' ', '')
         with open(file2, 'r') as file:
             text2 = file.read().replace('\n', '')
+            text2 = text2.replace(' ', '')
         self.assertTrue(text1 == text2)
 
     # MANDITORY
@@ -194,7 +197,7 @@ class Mips_TestCases_Working(unittest.TestCase):
         file = "M_P_include"
         return self.filetest(file)
 
-    #EXTRA
+    # EXTRA
     def test_extended_propagation(self):
         file = "E_P_ExtendedPropagation"
         return self.filetest(file)
@@ -237,7 +240,7 @@ class Mips_TestCasesErrors(unittest.TestCase):
             testFile(file)
         self.assertEqual(ce.exception.code, "")
 
-    #TODO: add syntax error for logical operators
+    # TODO: add syntax error for logical operators
 
     # ASSIGNMENT 2
     def test_synErr_variable(self):
@@ -653,7 +656,6 @@ class Mips_TestCasesErrors(unittest.TestCase):
             testFile(file)
         self.assertEqual(ce.exception.code, "Line 1 has a syntax error. Please check the code.")
 
-    
 
 # LOCAL/GLOBAL VARIABLES
 

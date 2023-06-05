@@ -5,7 +5,7 @@ char b = 'b';
 char dot = '.';
 
 float a = 1654.0000;
-float d = 0000.00000;
+float d = 0.00000;
 d = -565.21547;
 
 int x = 5;
