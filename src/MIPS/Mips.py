@@ -410,7 +410,7 @@ class Mips:
         strings = p.input_string.split("%")
         pi = 0
         for i in strings:
-            if i[-1] == "\"":
+            if i[-1] == "\"" and strings.__len__()>1:
                 continue
             i = str(i)
             self.data_count += 1
@@ -428,6 +428,8 @@ class Mips:
             self.text += "li $v0, 4\n"
             self.text += "la $a0, $${}\n".format(self.data_count)
             self.text += "syscall\n"
+            if p.param.__len__()==0:
+                continue
             # input value to print:
             inp = p.paramString[pi]
             if isinstance(p.param[pi], tuple):
