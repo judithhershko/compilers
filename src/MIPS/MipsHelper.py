@@ -137,7 +137,8 @@ def store_binary_operation(op, left, right, rtype, mips):
 
     sl = mips.register[left.value]
     sr = mips.register[right.value]
-    save = mips.register[mips.declaration.value]
+    #save = mips.register[mips.declaration.value]
+    save= mips.get_register(mips.declaration.value)
 
     opi = get_operation(op, rtype)
     # if is comparator --> dont save directly

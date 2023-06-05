@@ -4,7 +4,7 @@ int main()
     int x;
 	int y;
     printf("Enter two numbers:");
-	scanf("%d%d", &x, &y);
-	printf("%d; %d", x, y);
+	scanf("%i%i", &x, &y);
+	printf("%i en %i", x, y);
 return 0;
 }

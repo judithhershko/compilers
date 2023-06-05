@@ -1,3 +1,4 @@
+import difflib
 import unittest
 from src.CustomListener import *
 from src.LLVM.LLVM_Operators import ToLLVM
@@ -196,7 +197,7 @@ class Mips_TestCases_Working(unittest.TestCase):
         file = "M_P_include"
         return self.filetest(file)
 
-    #EXTRA
+    # EXTRA
     def test_extended_propagation(self):
         file = "E_P_ExtendedPropagation"
         return self.filetest(file)
@@ -251,7 +252,7 @@ class Mips_TestCasesErrors(unittest.TestCase):
             testFile(file)
         self.assertEqual(str(ce.exception), "\n\tError in line 2: an integer should not start with 0")
 
-    #TODO: add syntax error for logical operators
+    # TODO: add syntax error for logical operators
 
     # ASSIGNMENT 2
     def test_synErr_variable(self):
@@ -673,7 +674,6 @@ class Mips_TestCasesErrors(unittest.TestCase):
             testFile(file)
         self.assertEqual(ce.exception.code, "Line 1 has a syntax error. Please check the code.")
 
-    
 
 # LOCAL/GLOBAL VARIABLES
 
