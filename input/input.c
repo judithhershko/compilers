@@ -1,20 +1,10 @@
 #include "stdio.h";
-
-int f(int a) {
-	if (a<2) {
-		return f(a);
-	}
-	else {
-		return f(a-1) + f(a-2);
-	}
-}
-
 int main()
 {
-    int i = 5;
-    int a = 0;
-    while(a < i){
-		f(a);
-	}
+    int x;
+	int y;
+    printf("Enter two numbers:");
+	scanf("%i%i", &x, &y);
+	printf("%i en %i", x, y);
 return 0;
 }
