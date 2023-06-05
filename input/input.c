@@ -1,13 +1,16 @@
 #include "stdio.h";
-
 int main()
 {
-int x = 2;
-int* p = &x;
-int y[2];
-int yy[2]={1,2};
-y[0] = 3;
-y[1] = 4;
-int r = x * *p + y[0]*y[1];
+int i = 0;
+	while(i < 10){
+		printf("i is %i",i);
+		if (i == 5){
+			break;
+		} else {
+
+			continue;
+		}
+		i = 10;
+	}
 return 0;
 }

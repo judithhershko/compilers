@@ -65,6 +65,7 @@ class Mips:
         self.save_old_val = None
         self.loop_counter = 0
         self.reused_registers = dict()
+        self.c_table=SymbolTable()
 
     def set_false(self, reg="1"):
         self.text += "false:\n"
@@ -218,8 +219,8 @@ class Mips:
                 i = AST
                 i.root = t
                 t = i
-            if isinstance(t.root,Declaration) and isinstance(t.root.rightChild,Array):
-                self.set_array_position(t.root.leftChild,t.root.rightChild)
+            if isinstance(t.root, Declaration) and isinstance(t.root.leftChild, Array):
+                self.set_array_position(t.root.leftChild, t.root.rightChild)
             if isinstance(t.root, Declaration) and \
                     (isinstance(t.root.rightChild, Value) or isinstance(
                         t.root.rightChild, Pointer) or isinstance(t.root.rightChild, Function) or isinstance(
@@ -433,11 +434,15 @@ class Mips:
                 p.param[pi] = p.param[pi][0]
             # print_ = self.set_print_type(inp)
             a = p.param[pi].root.getType()
-            print_ = Value("$print", a, 0)
 
+            print_ = Value("$print", a, 0)
+            if a==LiteralType.VAR:
+                if self.c_table.findSymbol(p.param[pi].root.value) is not None:
+                    print_.type =self.c_table.findSymbol(p.param[pi].root.value)[1]
             print_nr = 4
             if print_ is not None:
                 print_nr = self.print_nr(print_.type)
+
             if print_ is None or print_.type == LiteralType.CHAR:
                 # is string
                 self.data_count += 1
@@ -568,8 +573,8 @@ class Mips:
         :param branch_count: if false
         :return:
         """
-        self.text += "j {}\n".format(branch_count)
-        self.text += "nop"
+        self.text += "j ${}\n".format(branch_count)
+        self.text += "nop\n"
 
     def to_break(self, branch_count):
         """
@@ -577,10 +582,11 @@ class Mips:
         :param branch_count: if false
         :return:
         """
-        self.text += "j {}\n".format(branch_count)
-        self.text += "nop"
+        self.text += "j ${}\n".format(branch_count)
+        self.text += "nop\n"
 
     def set_while_loop(self, w: While):
+        self.c_table=w.c_block.getSymbolTable()
         self.loop_counter += 1
         condition = "loop{}".format(self.loop_counter)
         self.loop_counter += 1
@@ -603,6 +609,8 @@ class Mips:
         return
 
     def set_if_loop(self, f: If):
+        self.text += "\n"
+        self.c_table=f.c_block.getSymbolTable()
         if isinstance(f, If) and f.operator == ConditionType.IF:
             self.loop_counter += 1
             condition = "loop{}".format(self.loop_counter)
@@ -723,7 +731,8 @@ class Mips:
             return self.set_array_position(declaration.leftChild, declaration.rightChild)
         # todo: left child array
         if isinstance(declaration.rightChild, Array):
-            return self.to_array_dec(declaration)
+            #return self.to_array_dec(declaration)
+            return self.array_assignement(declaration)
         if isinstance(declaration.rightChild, Function):
             return self.to_function_dec(declaration.rightChild, declaration.leftChild, True)
 
@@ -882,8 +891,8 @@ class Mips:
     def set_array_position(self, left, right):
         if not isinstance(right, Value):
             right_reg = self.get_register('array', self.get_register_type(right.getType()), right.getType())
-            self.declaration = Value('array')
-            right.printTables('random', self)
+            self.declaration = Value('array', right.getType(), 0)
+            right.printTables('random',self)
             right = Value('array', right.getType(), 0)
         # get array from data
         array = left.value
@@ -899,6 +908,8 @@ class Mips:
             self.text += "addi $t0, $1, 0\n"
         else:
             size = left.getPosition()
+            if isinstance(size, str):
+                size = int(size)
             size = (size - 1) * 4
             self.text += "addi $t0,$zero, {}\n".format(size)
 
@@ -1027,6 +1038,9 @@ class Mips:
 
     def make_value(self, lit, valueType, line):
         return Value(lit=lit, valueType=valueType, line=line)
+
+    def array_assignement(self, declaration):
+        print("array assignement")
 
 
 def is_float(string):

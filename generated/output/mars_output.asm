@@ -1,6 +1,5 @@
 .data
-$$1: .space 8
-$$2: .space 8
+$$1  :.asciiz  "i is  " 
 .text
 .globl main
 j main
@@ -10,67 +9,75 @@ false:
 true:
   li $1, 1
   jr $ra
-#//intmain(){intx=2;int*p=&x;inty[2];intyy[2]={1,2};y[0]=3;y[1]=4;intr=x**p+y[0]*y[1];return0;}
+#//intmain(){inti=0;while(i<10){printf("i is %i",i);if(i==5){break;}else{continue;}i=10;}return0;}
 main: 
  sw	$fp, 0($sp)
 move	$fp, $sp
-subu	$sp, $sp,44
+subu	$sp, $sp,12
 sw	$ra, -4($fp)
 sw	$s0, -8($fp)
-sw	$s1, -12($fp)
-sw	$s2, -16($fp)
-sw	$s3, -20($fp)
-sw	$s4, -24($fp)
-sw	$s5, -28($fp)
-sw	$s6, -32($fp)
-sw $s0, -8($fp)
-sw $s1, -12($fp)
-sw $s2, -16($fp)
-sw $s3, -20($fp)
-sw $s4, -24($fp)
-sw $s5, -28($fp)
-sw $s6, -32($fp)
-sw	$s0, -36($fp)
-sw	$s1, -40($fp)
-#//intx=2
-sw $s2, -40($fp)
-lw  $s2, -40($fp)
-ori $s2,$0,2
-sw  $s2, -40($fp)
-#//int*p=&x
-sw $s3, -40($fp)
-move $s3,$s2
-#//inty[2]
-addi $t0, $zero, 0
-#//intyy[2]={1,2}
-addi $t0, $zero, 0
-addi $t1, $zero, 1
- sw $t1, $$2($t0)
-addi $t0, $t0, 4
-addi $t1, $zero, 2
- sw $t1, $$2($t0)
-addi $t0, $t0, 4
-#//y[0]=3
-addi $t0,$zero, -4
-addi $t1, $zero, 3
-sw $t1, $$2($t0)
-sw $s4, -44($fp)
-#//y[1]=4
-addi $t0,$zero, 0
-addi $t1, $zero, 4
-sw $t1, $$2($t0)
-#//intr=x**p+y[0]*y[1]
-lw  $s1, -40($fp)
-ori $s1,$0,16
-sw  $s1, -40($fp)
+#//inti=0
+lw  $s0, -8($fp)
+ori $s0,$0,0
+sw  $s0, -8($fp)
+#//while(i<10){printf("i is %i",i);if(i==5){break;}else{continue;}i=10;}
+j $loop1
+nop
+$loop1:
+lw  $s0, -8($fp)
+ori $t0,$0,10
+slt $1,$s0, $t0
+sw $1, -12($fp)
+lbu $1, -12($fp)
+andi  $1, $1, 1
+beqz    $1, $loop3
+nop 
+j $loop2
+nop
+$loop2:
+#//printf("i is %i",i)
+li $v0, 4
+la $a0, $$1
+syscall
+li $v0, 1
+move $a0, $s0
+syscall
+#//if(i==5){break;}
+
+j $loop4
+nop
+$loop4:
+lw  $s0, -8($fp)
+ori $t0,$0,5
+seq $1,$s0, $t0
+sw $1, -16($fp)
+lbu $1, -16($fp)
+andi  $1, $1, 1
+beqz    $1, $loop6
+nop 
+j $loop5
+nop
+$loop5:
+j $loop6
+nop
+j $loop6
+j $loop7
+$loop6:
+j $loop7
+nop
+j $loop7
+nop
+$loop7:
+#//i=10
+lw  $s0, -8($fp)
+ori $s0,$0,10
+sw  $s0, -8($fp)
+j $loop1
+nop
+$loop3:
 li $v0, 0
-lw $s6, -32($fp)
-lw $s5, -28($fp)
-lw $s4, -44($fp)
-lw $s3, -40($fp)
-lw $s2, -40($fp)
-lw $s1, -40($fp)
-lw $s0, -36($fp)
+lw $1, -16($fp)
+lw $s0, -8($fp)
 lw	$ra, -4($fp)
 move	$sp, $fp
 lw	$fp, ($sp)
