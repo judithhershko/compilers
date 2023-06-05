@@ -3,7 +3,7 @@ int main()
 {
 int i = 0;
 	while(i < 10){
-		printf("%d\n",i);
+		printf("val of i is : %d\n",i);
 		if (i == 5){
 			break;
 		} else {

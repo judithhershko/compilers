@@ -17,7 +17,7 @@ int line_of_code = 5;
   *
   **/
 
-float f = 45;
+int f = 45;
 
 
 
@@ -39,7 +39,7 @@ float e = 33.1; // another line
 /////////////////////////////////////
 
 // abcdef 123 //////////
-float final_line = 33.99895;
+int final_line = 33;
 
 return 0;
 }
