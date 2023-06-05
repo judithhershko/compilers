@@ -34,14 +34,14 @@ syscall
 #//scanf("%i%i",&x,&y)
 li $v0, 5
 syscall
-sw $s0, -8($fp)
-move $s0, $v0
 lw $s0, -8($fp)
+move $s0, $v0
+sw $s0, -8($fp)
 li $v0, 5
 syscall
-sw $s1, -12($fp)
-move $s1, $v0
 lw $s1, -12($fp)
+move $s1, $v0
+sw $s1, -12($fp)
 #//printf("value of x and y are: %i and %i",x,y)
 li $v0, 4
 la $a0, $$2

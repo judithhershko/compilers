@@ -4,7 +4,7 @@ int main()
     int x;
 	int y;
     printf("Enter two numbers:");
-	scanf("%d%d", &x, &y);
-	printf("%d; %d", x, y);
+	scanf("%i%i", &x, &y);
+	printf("value of x and y are: %i and %i",x,y);
 return 0;
 }

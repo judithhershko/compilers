@@ -543,17 +543,17 @@ class Mips:
                 self.text += "syscall\n"
                 v = self.get_register(i.root.value)
                 fv = self.frame_register[v]
-                self.text += "s.s ${}, {}\n".format(v, fv)
-                self.text += "mov.s ${}, $f0\n".format(v)
                 self.text += "l.s ${}, {}\n".format(v, fv)
+                self.text += "mov.s ${}, $f0\n".format(v)
+                self.text += "s.s ${}, {}\n".format(v, fv)
             elif a == LiteralType.INT:
                 self.text += "li $v0, {}\n".format(scan_type)
                 self.text += "syscall\n"
                 v = self.get_register(i.root.value)
                 fv = self.frame_register[v]
-                self.text += "sw ${}, {}\n".format(v, fv)
-                self.text += "move ${}, $v0\n".format(v)
                 self.text += "lw ${}, {}\n".format(v, fv)
+                self.text += "move ${}, $v0\n".format(v)
+                self.text += "sw ${}, {}\n".format(v, fv)
             elif a == LiteralType.CHAR:
                 self.text += "la $a0, $${}\n".format(self.data_dict[i.root.value])
                 self.text += "li $a0, 1\n"
