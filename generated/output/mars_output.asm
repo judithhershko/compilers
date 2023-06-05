@@ -1,7 +1,6 @@
 .data
-$$1  : .byte 'b' 
-$$2  : .byte 'a' 
-$$3: .float 33.1
+$$1  :.asciiz  "Enter two numbers:"  
+$$2  :.asciiz " ;  " 
 .text
 .globl main
 j main
@@ -11,54 +10,45 @@ false:
 true:
   li $1, 1
   jr $ra
-#//intmain(){/**Thisisacomment**/intline_of_code=5;/***AnotherComment*****//******/intf=45;charc='b';intx=5;// line 1chard='a';floate=33.1;// another line/////// some documentation/////////////////////////////////////// abcdef 123 //////////intfinal_line=33;return0;}
+#//intmain(){intx;inty;printf("Enter two numbers:");scanf("%d%d",&x,&y);printf("%d; %d",x,y);return0;}
 main: 
  sw	$fp, 0($sp)
 move	$fp, $sp
-subu	$sp, $sp,36
+subu	$sp, $sp,16
 sw	$ra, -4($fp)
 sw	$s0, -8($fp)
 sw	$s1, -12($fp)
-sw	$s2, -16($fp)
-sw	$s3, -20($fp)
-sw	$s4, -24($fp)
-s.s   $f0, -28($fp)
-sw	$s5, -32($fp)
-#/**Thisisacomment**/#//intline_of_code=5
+#//intx
 lw  $s0, -8($fp)
-ori $s0,$0,5
+ori $s0,$0,0
 sw  $s0, -8($fp)
-#/***AnotherComment*****//******/#//intf=45
+#//inty
 lw  $s1, -12($fp)
-ori $s1,$0,45
+ori $s1,$0,0
 sw  $s1, -12($fp)
-#//charc='b'
-lb $s2 , $$1
-sb $s2, -16($fp)
-#//intx=5
-lw  $s3, -20($fp)
-ori $s3,$0,5
-sw  $s3, -20($fp)
-#// line 1
-#//chard='a'
-lb $s4 , $$2
-sb $s4, -24($fp)
-#//floate=33.1
-lwc1 $f1, $$3
-#// another line
-#/////// some documentation
-#/////////////////////////////////////
-#// abcdef 123 //////////
-#//intfinal_line=33
-lw  $s5, -32($fp)
-ori $s5,$0,33
-sw  $s5, -32($fp)
+#//printf("Enter two numbers:")
+li $v0, 4
+la $a0, $$1
+syscall
+#//scanf("%d%d",&x,&y)
+li $v0, 5
+syscall
+sw $s0, -8($fp)
+move $s0, $v0
+lw $s0, -8($fp)
+li $v0, 5
+syscall
+sw $s1, -12($fp)
+move $s1, $v0
+lw $s1, -12($fp)
+#//printf("%d; %d",x,y)
+li $v0, 4
+la $a0, $$2
+syscall
+li $v0, 1
+move $a0, $s0
+syscall
 li $v0, 0
-lw $s5, -32($fp)
-l.s $f0, -28($fp)
-lw $s4, -24($fp)
-lw $s3, -20($fp)
-lw $s2, -16($fp)
 lw $s1, -12($fp)
 lw $s0, -8($fp)
 lw	$ra, -4($fp)

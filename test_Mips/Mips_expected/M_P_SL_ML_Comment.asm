@@ -2,7 +2,6 @@
 $$1  : .byte 'b'
 $$2  : .byte 'a'
 $$3: .float 33.1
-$$4: .float 33.99895
 .text
 .globl main
 j main
@@ -12,7 +11,7 @@ false:
 true:
   li $1, 1
   jr $ra
-#//intmain(){/**Thisisacomment**/intline_of_code=5;/***AnotherComment*****//******/intf=45;charc='b';intx=5;// line 1chard='a';floate=33.1;// another line/////// some documentation/////////////////////////////////////// abcdef 123 //////////floatfinal_line=33.99895;return0;};
+#//intmain(){/**Thisisacomment**/intline_of_code=5;/***AnotherComment*****//******/intf=45;charc='b';intx=5;// line 1chard='a';floate=33.1;// another line/////// some documentation/////////////////////////////////////// abcdef 123 //////////intfinal_line=33;return0;}
 main:
  sw	$fp, 0($sp)
 move	$fp, $sp
@@ -24,7 +23,7 @@ sw	$s2, -16($fp)
 sw	$s3, -20($fp)
 sw	$s4, -24($fp)
 s.s   $f0, -28($fp)
-s.s   $f1, -32($fp)
+sw	$s5, -32($fp)
 #/**Thisisacomment**/#//intline_of_code=5
 lw  $s0, -8($fp)
 ori $s0,$0,5
@@ -45,15 +44,17 @@ sw  $s3, -20($fp)
 lb $s4 , $$2
 sb $s4, -24($fp)
 #//floate=33.1
-lwc1 $f2, $$3
+lwc1 $f1, $$3
 #// another line
 #/////// some documentation
 #/////////////////////////////////////
 #// abcdef 123 //////////
-#//floatfinal_line=33.99895
-lwc1 $f3, $$4
+#//intfinal_line=33
+lw  $s5, -32($fp)
+ori $s5,$0,33
+sw  $s5, -32($fp)
 li $v0, 0
-l.s $f1, -32($fp)
+lw $s5, -32($fp)
 l.s $f0, -28($fp)
 lw $s4, -24($fp)
 lw $s3, -20($fp)

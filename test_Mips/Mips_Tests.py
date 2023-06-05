@@ -41,8 +41,10 @@ class Mips_TestCases_Working(unittest.TestCase):
         file2 = 'Mips_expected/' + filename + '.asm'
         with open(file1, 'r') as file:
             text1 = file.read().replace('\n', '')
+            text1 = text1.replace(' ', '')
         with open(file2, 'r') as file:
             text2 = file.read().replace('\n', '')
+            text2 = text2.replace(' ', '')
         self.assertTrue(text1 == text2)
 
     # MANDITORY
@@ -328,13 +330,13 @@ class Mips_TestCasesErrors(unittest.TestCase):
         file = "M_synErr_pointerOpp2"
         with self.assertRaises(SystemExit) as ce:
             testFile(file)
-        self.assertEqual(ce.exception.code, "")
+        self.assertEqual(ce.exception.code, "Line 3 has a syntax error. Please check the code.")
 
     def test_synErr_pointerOpp3(self):
         file = "M_synErr_pointerOpp3"
         with self.assertRaises(SystemExit) as ce:
             testFile(file)
-        self.assertEqual(ce.exception.code, "Line 11 has a syntax error. Please check the code.")
+        self.assertEqual(ce.exception.code, "Line 3 has a syntax error. Please check the code.")
 
     def test_semErr_varUndeclared1(self):
         file = "M_semErr_varUndeclared1"

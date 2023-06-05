@@ -13,7 +13,7 @@ false:
 true:
   li $1, 1
   jr $ra
-#//intmain(){charb='b';chardot='.';floata=1654.0000;floatd=0000.00000;d=-565.21547;intx=5;intz=x+3;return0;}
+#//intmain(){charb='b';chardot='.';floata=1654.0000;floatd=0.00000;d=-565.21547;intx=5;intz=x+3;return0;}
 main:
  sw	$fp, 0($sp)
 move	$fp, $sp
@@ -33,7 +33,7 @@ lb $s1 , $$2
 sb $s1, -12($fp)
 #//floata=1654.0000
 lwc1 $f2, $$3
-#//floatd=0000.00000
+#//floatd=0.00000
 lwc1 $f3, $$4
 #//d=-565.21547
 lwc1 $f4, $$5
