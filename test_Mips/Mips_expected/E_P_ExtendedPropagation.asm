@@ -32,17 +32,17 @@ addi $t0, $zero, 0
 #//y[0]=3
 addi $t0,$zero, -4
 addi $t1, $zero, 3
-sw $t1, $$2($t0)
+sw $t1, $$1($t0)
 addi $t0,$zero, -4
 addi $t1, $zero, 3
-sw $t1, $$2($t0)
+sw $t1, $$1($t0)
 #//y[1]=4
 addi $t0,$zero, 0
 addi $t1, $zero, 4
-sw $t1, $$2($t0)
+sw $t1, $$1($t0)
 addi $t0,$zero, 0
 addi $t1, $zero, 4
-sw $t1, $$2($t0)
+sw $t1, $$1($t0)
 #//intr=x**p+y[0]*y[1]
 lw  $s5, -28($fp)
 ori $s5,$0,16
