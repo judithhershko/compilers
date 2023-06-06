@@ -70,7 +70,7 @@ chmod 777 run.sh
 
 ### verplicht:
 
-- [x ] Conditional statements
+- [x] Conditional statements
   - [x] if else 
 - [x]  Loops
   - [x] while
@@ -108,7 +108,7 @@ chmod 777 run.sh
 - [x] to llvm 
 ### optioneel:
 - [ ] multi-dimensional arrays
-- [ ] assignments of complete arrays or array rows in case of multi-dimensional arrays.
+- [x] assignments of complete arrays or array rows in case of multi-dimensional arrays.
 - [ ] dynamic arrays
 
 

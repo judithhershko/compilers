@@ -1,7 +1,4 @@
 .data
-$$1  :.asciiz  "Enter two numbers:"  
-$$2  :.asciiz  "value of x and y are:  " 
-$$3  :.asciiz "  and  " 
 .text
 .globl main
 j main
@@ -11,51 +8,29 @@ false:
 true:
   li $1, 1
   jr $ra
-#//intmain(){intx;inty;printf("Enter two numbers:");scanf("%i%i",&x,&y);printf("value of x and y are: %i and %i",x,y);return0;}
+#//intmain(){inta=1;{intb=2;{intc=3;}}return0;}
 main: 
  sw	$fp, 0($sp)
 move	$fp, $sp
-subu	$sp, $sp,16
+subu	$sp, $sp,12
 sw	$ra, -4($fp)
 sw	$s0, -8($fp)
-sw	$s1, -12($fp)
-#//intx
+#//inta=1
 lw  $s0, -8($fp)
-ori $s0,$0,0
+ori $s0,$0,1
 sw  $s0, -8($fp)
-#//inty
-lw  $s1, -12($fp)
-ori $s1,$0,0
-sw  $s1, -12($fp)
-#//printf("Enter two numbers:")
-li $v0, 4
-la $a0, $$1
-syscall
-#//scanf("%i%i",&x,&y)
-li $v0, 5
-syscall
-lw $s0, -8($fp)
-move $s0, $v0
-sw $s0, -8($fp)
-li $v0, 5
-syscall
-lw $s1, -12($fp)
-move $s1, $v0
+#//intb=2
 sw $s1, -12($fp)
-#//printf("value of x and y are: %i and %i",x,y)
-li $v0, 4
-la $a0, $$2
-syscall
-li $v0, 1
-move $a0, $s0
-syscall
-li $v0, 4
-la $a0, $$3
-syscall
-li $v0, 1
-move $a0, $s1
-syscall
+lw  $s1, -12($fp)
+ori $s1,$0,2
+sw  $s1, -12($fp)
+#//intc=3
+sw $s2, -16($fp)
+lw  $s2, -16($fp)
+ori $s2,$0,3
+sw  $s2, -16($fp)
 li $v0, 0
+lw $s2, -16($fp)
 lw $s1, -12($fp)
 lw $s0, -8($fp)
 lw	$ra, -4($fp)

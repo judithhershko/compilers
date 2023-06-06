@@ -1,12 +1,21 @@
-# Main
-First run following command: chmod 777 run.sh
+# START PROJECT
+In run.sh the antlr will generate the files for the grammar.
+use the following command:
 
-Next the main file can run. This will generate a couple of files:
-* The dot-files in: compilers/src/ast/dotFiles
-* The llvm output in: compilers/generated/output
+    chmod 777 run.sh
+    ./run.sh
+# MAIN
+To test an input file use input/input.c . In this file you can put the c-code you want to test.
+This will generate the following:
 
-These will be generated based on the input file compilers/input/input.c
+- mips code in generated/output.mars_output.asm
+- dot file in src/ast/dotFiles/no_folded_expression_dot.dot
 
-# Tests
-The test files can be uploaded into test_LLVM/input folder. And the expected llvm output
-can be uploaded to test_LLVM/LLVM_expected
+To visualise this use command:
+
+    dot -Tpng src/ast/dotFiles/no_fold_expression_dot.dot -o generated/output/result.png
+
+# TESTS
+
+To run mips tests go to testMips/Mips_Tests.py. 
+This file contains all the tests (passes and error checking) for this part of the project. 

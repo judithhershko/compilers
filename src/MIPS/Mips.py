@@ -406,7 +406,6 @@ class Mips:
         return self.data_count
 
     def to_print(self, p: Print):
-        print("print called")
         # split syscall to %i
         strings = p.input_string.split("%")
         pi = 0
