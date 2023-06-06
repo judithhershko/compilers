@@ -44,25 +44,25 @@ addi $t0, $zero, 0
 #//x[z-1]=5
 addi $t0,$zero, -4
 addi $t1, $zero, 5
-sw $t1, $$2($t0)
+sw $t1, $$1($t0)
 addi $t0,$zero, -4
 addi $t1, $zero, 5
-sw $t1, $$2($t0)
+sw $t1, $$1($t0)
 sw $s5, -52($fp)
 #//x[z]=6
 addi $t0,$zero, 0
 addi $t1, $zero, 6
-sw $t1, $$2($t0)
+sw $t1, $$1($t0)
 addi $t0,$zero, 0
 addi $t1, $zero, 6
-sw $t1, $$2($t0)
+sw $t1, $$1($t0)
 #//x[1+z]=7
 addi $t0,$zero, 4
 addi $t1, $zero, 7
-sw $t1, $$2($t0)
+sw $t1, $$1($t0)
 addi $t0,$zero, 4
 addi $t1, $zero, 7
-sw $t1, $$2($t0)
+sw $t1, $$1($t0)
 #//inty=x[z-1]
 sw $s6, -56($fp)
 #//intw=x[z]

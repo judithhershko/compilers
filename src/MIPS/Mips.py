@@ -796,6 +796,11 @@ class Mips:
                 else:
                     self.text += "lw ${}, {}\n".format(old_reg, self.frame_register[old_reg])
             self.text += "{} ${}, ${}\n".format(m, s, old_reg)
+            if s in self.frame_register.keys():
+                if t == 'f':
+                    self.text += "s.s ${}, {}\n".format(s, self.frame_register[s])
+                else:
+                    self.text += "sw ${}, {}\n".format(s, self.frame_register[s])
 
         return
 
