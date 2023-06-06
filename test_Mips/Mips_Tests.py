@@ -180,7 +180,7 @@ class Mips_TestCases_Working(unittest.TestCase):
         file = "M_P_DeadReturnBreakContinue"
         return self.filetest(file)
 
-    # ASSIGNEMT 6 # TODO: progress from here
+    # ASSIGNEMT 6
     def test_OneDimArray(self):
         file = "M_P_Array"
         return self.filetest(file)
@@ -216,16 +216,6 @@ class Mips_TestCases_Working(unittest.TestCase):
 
 
 # EXTRA
-# TODO: CHECK WHAT EXTRA WE ARE IMPLEMENTING
-# - else if
-# - uitgebreide constant propagation + folding--------------------------------------------------------------------------------
-# – Additional logical operators: >=, <=, !=----------------------------------------------------------------------------------
-# – Modulo operator: %--------------------------------------------------------------------------------------------------------
-# – Increment, decrement operators: ++, -- (both prefix and suﬀix variants) ???????
-# – Store comments in AST and machine code ??????
-# - array: int x[2] = {1,2}---------------------------------------------------------------------------------------------------
-
-
 class Mips_TestCasesErrors(unittest.TestCase):
     # ASSIGNMENT 1
     def test_synErr_operators1(self):
@@ -251,8 +241,6 @@ class Mips_TestCasesErrors(unittest.TestCase):
         with self.assertRaises(Exception) as ce:
             testFile(file)
         self.assertEqual(str(ce.exception), "\n\tError in line 2: an integer should not start with 0")
-
-    # TODO: add syntax error for logical operators
 
     # ASSIGNMENT 2
     def test_synErr_variable(self):
@@ -606,7 +594,6 @@ class Mips_TestCasesErrors(unittest.TestCase):
             testFile(file)
         self.assertEqual(ce.exception.code, "Line 2 has a syntax error. Please check the code.")
 
-    # ASSIGNMENT 6
     def test_semErr_arrayIndex1(self):
         file = "M_semErr_arrayIndex1"
         with self.assertRaises(Exception) as ce:

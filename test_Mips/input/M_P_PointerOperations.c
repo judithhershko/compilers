@@ -1,17 +1,16 @@
 #include "stdio.h";
+
 int main()
 {
-char x = 'a';
-char* chr_ptr = &x;
-*chr_ptr = 'b';
-char another_char = *chr_ptr;
+	int x = 0;
+	int* xp = &x;
+	*xp = 42;
+	int a=x+*xp;
 
-int y = -60;
-int* some_pointer = &y;
-*some_pointer = 53;
-int** another_pointer = &some_pointer;
-int*** triple_pointer = &another_pointer;
-int z = ***triple_pointer;
+	float f=90.0;
+	float *pf=&f;
+
+	float ff= *pf+f**pf;
 
 return 0;
 }
