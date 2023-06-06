@@ -4,42 +4,6 @@ from src.HelperFunctions import stack
 from src.ast.Program import *
 from src.ast.node import *
 
-"""
-print implementatie:
-https://gist.github.com/KaceCottam/37a065a2c194c0eb50b417cf67455af1
-
-syscall table:
-https://courses.missouristate.edu/kenvollmar/mars/help/syscallhelp.html
-
-"""
-
-
-# issue return x (int)
-# issue return float --> input function and not stored in a fp?
-# todo: vraag is probleem dat conditions output op de fp opslaag??
-# en return_function niet in volgorde?
-# TODO: DECLARATIONS        v
-# TODO: binary OPERATIONS   v
-# todo: unary operations    v --> kan niet helemaal getest worden door folding probleem
-# TODO: LOOPS               v
-# todo: while               v
-# todo: if /else            x --> vraag said als while float klopt?
-# todo :UNNAMED SCOPES      v
-# TODO: function return     v
-# TODO: function parameters x
-# TODO: function parameters --> binary operator/
-# TODO: pointers            x
-# todo: print pointer       x
-# todo declaration pointer  v
-# todo: expression pointer  x
-# todo : deref pointer *px=90;v
-# TODO: PRINT               x
-# TODO: SCAN                v
-# TODO: ARRAYS              x
-# todo : function calls     v
-# TODO: modulo              x
-# todo: conversions int    ->float/bool->int in helper  x
-# todo function forward declaration skippen v
 
 class Mips:
     def __init__(self, program_: program):

@@ -1241,7 +1241,7 @@ class CustomListener(ExpressionListener):
 
     # Enter a parse tree produced by ExpressionParser#function_forward.
     def enterFunction_forward(self, ctx: ParserRuleContext):
-        print("forward declaration")
+
         """self.current=Scope(ctx.start.line)
         self.is_function_forward=True
         return"""
