@@ -28,8 +28,10 @@ ori $s1,$0,10
 sw  $s1, -12($fp)
 #//intz=x-y
 move $s2, $s4
+sw $s2, -16($fp)
 #//intu=x+y*z
 move $s3, $s5
+sw $s3, -20($fp)
 li $v0, 0
 lw $s3, -20($fp)
 lw $s2, -16($fp)

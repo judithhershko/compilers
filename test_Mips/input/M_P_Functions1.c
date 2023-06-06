@@ -1,20 +1,27 @@
-#include "stdio.h";
+#include <stdio.h>
 
-int f(int a) {
-	if (a<2) {
-		return f(a);
-	}
-	else {
-		return f(a-1) + f(a-2);
-	}
+int print(int n) {
+
+    printf("%i",n);
+    return 0;
 }
 
-int main()
-{
-    int i = 5;
-    int a = 0;
-    while(a < i){
-		f(a);
-	}
-return 0;
+int main() {
+    int n=5;
+    int counter=0;
+    int i=1;
+    int ip=1;
+    int pp=1;
+    int a=0;
+    printf("%i",i);
+    printf("%i",i);
+    while(counter<n)
+    {
+        i=ip+pp;
+        pp=ip;
+        ip=i;
+        printf("%i",i);
+        counter=counter+1;
+    }
+    return 0;
 }

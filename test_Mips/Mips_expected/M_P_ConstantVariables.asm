@@ -28,6 +28,7 @@ sw  $s0, -8($fp)
 lwc1 $f2, $$1
 #//constinty=x*35*-5
 move $s1, $s2
+sw $s1, -16($fp)
 #//constfloatz=f*f*f
 lwc1 $f3, $$2
 li $v0, 0

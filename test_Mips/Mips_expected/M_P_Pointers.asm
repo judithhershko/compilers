@@ -65,6 +65,7 @@ sw  $s0, -52($fp)
 sw $s1, -52($fp)
 lw $s0, -52($fp)
 move $s1, $s0
+sw $s1, -52($fp)
 #//int*pointer=&z
 sw $s2, -52($fp)
 move $s2,$s0
