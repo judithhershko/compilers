@@ -1,0 +1,58 @@
+graph ast {
+0.0 [label="the program"]
+
+1.1 [label="new scope"]
+2.2 [label="Comment: //intf(intx,float**y);"]
+2.3 [label="Function: f"]
+3.4 [label="Literal: x"]
+3.5 [label="Pointer: y"]
+3.6 [label="new scope"]
+4.7 [label="Comment: //intx"]
+4.8 [label="Comment: //float**y"]
+2.9 [label="Comment: //intx=90"]
+2.10 [label="Declaration: ="]
+3.11 [label="Literal: x"]
+3.12 [label="Literal: 90"]
+2.13 [label="Comment: //intmain(){inta[2]={1,2};a[1]=2;return0;}"]
+2.14 [label="Function: main"]
+3.15 [label="new scope"]
+4.16 [label="Comment: //inta[2]={1,2}"]
+4.17 [label="array: a
+position: 2"]
+5.18 [label="Literal: 1"]
+5.19 [label="Literal: 2"]
+4.20 [label="Comment: //a[1]=2"]
+4.21 [label="Declaration: ="]
+5.22 [label="array: a
+position: 1"]
+5.23 [label="Literal: 2"]
+4.24 [label="Return Node"]
+3.26 [label="Literal: 0"]
+
+
+0.0--1.1
+1.1--2.2
+1.1--2.3
+2.3--3.4
+2.3--3.5
+2.3--3.6
+3.6--4.7
+3.6--4.8
+1.1--2.9
+1.1--2.10
+2.10--3.11
+2.10--3.12
+1.1--2.13
+1.1--2.14
+2.14--3.15
+3.15--4.16
+3.15--4.17
+4.17--5.18
+4.17--5.19
+3.15--4.20
+3.15--4.21
+4.21--5.22
+4.21--5.23
+3.15--4.24
+4.24--3.26
+}

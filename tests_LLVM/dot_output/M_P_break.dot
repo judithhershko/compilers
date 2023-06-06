@@ -1,0 +1,8 @@
+graph ast {
+0.0 [label="the program"]
+
+1.1 [label="new scope"]
+
+
+0.0--1.1
+}
