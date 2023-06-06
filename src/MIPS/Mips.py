@@ -527,7 +527,6 @@ class Mips:
                 self.text += "li $t0, {}\n".format(v.value)
 
     def to_scan(self, Scan: Scan):
-        print("scan called")
         # split syscall to %i
         pi = 0
         for i in Scan.param:
@@ -646,7 +645,7 @@ class Mips:
             celse = "loop{}".format(self.loop_counter)
             self.loop_counter += 1
             cfalse = "loop{}".format(self.loop_counter)
-            print(cfalse)
+            #print(cfalse)
             self.text += "j ${}\n".format(cfalse)
             self.text += "${}:\n".format(celse)
             self.transverse_trees(f.c_block, cfalse)
@@ -870,8 +869,6 @@ class Mips:
             memloc = 0
             if old_reg in self.frame_register.keys():
                 memloc = self.frame_register[old_reg]
-            else:
-                print("pointer not pointing to a,anything??")
             self.frame_register[ps] = memloc
             if declaration.rightChild.getType() == LiteralType.FLOAT:
                 self.text += "mov.s ${},${}\n".format(ps, old_reg)
@@ -942,7 +939,7 @@ class Mips:
             return '$t1'
 
     def to_array_dec(self, array: Array):
-        print("array dec")
+
         # set size:
         size = array.pos.value
         self.data_count += 1
@@ -1042,7 +1039,7 @@ class Mips:
         return Value(lit=lit, valueType=valueType, line=line)
 
     def array_assignement(self, declaration):
-        print("array assignement")
+        pass
 
 
 def is_float(string):
