@@ -65,7 +65,7 @@ class Mips:
         self.save_old_val = None
         self.loop_counter = 0
         self.reused_registers = dict()
-        self.c_table=SymbolTable()
+        self.c_table = SymbolTable()
 
     def set_false(self, reg="1"):
         self.text += "false:\n"
@@ -234,6 +234,8 @@ class Mips:
                 self.to_print(t.root)
             elif isinstance(t.root, Scan):
                 self.to_scan(t.root)
+            elif isinstance(t.root, Function):
+                self.call_function(t.root)
             elif isinstance(t.root, Continue):
                 self.to_continue(branch_count)
             elif isinstance(t.root, Break):
@@ -410,37 +412,36 @@ class Mips:
         strings = p.input_string.split("%")
         pi = 0
         for i in strings:
-            if i[-1] == "\"" and strings.__len__()>1:
-                continue
-            i = str(i)
-            self.data_count += 1
-            self.data_dict[i] = self.data_count
-            front = ""
-            back = ""
-            if i != strings[0]:
-                i = i[1:]
-            if i[0] != "\"" or i[0] != '\"':
-                front = "\""
-            if i[-1] != "\"" or i[-1] != '\"':
-                back = "\""
+            if i[-1] == "\"" and strings.__len__() > 1:
+                pass
+            else:
+                i = str(i)
+                self.data_count += 1
+                self.data_dict[i] = self.data_count
+                front = ""
+                back = ""
+                if i != strings[0]:
+                    i = i[1:]
+                if i[0] != "\"" or i[0] != '\"':
+                    front = "\""
+                if i[-1] != "\"" or i[-1] != '\"':
+                    back = "\""
 
-            self.data += "$${}  :.asciiz {} {} {} \n".format(self.data_count, front, i, back)
-            self.text += "li $v0, 4\n"
-            self.text += "la $a0, $${}\n".format(self.data_count)
-            self.text += "syscall\n"
-            if p.param.__len__()==0:
+                self.data += "$${}  :.asciiz {} {} {} \n".format(self.data_count, front, i, back)
+                self.text += "li $v0, 4\n"
+                self.text += "la $a0, $${}\n".format(self.data_count)
+                self.text += "syscall\n"
+            if p.param.__len__() == 0 or pi > p.param.__len__() - 1:
                 continue
-            # input value to print:
-            inp = p.paramString[pi]
             if isinstance(p.param[pi], tuple):
                 p.param[pi] = p.param[pi][0]
             # print_ = self.set_print_type(inp)
             a = p.param[pi].root.getType()
 
             print_ = Value("$print", a, 0)
-            if a==LiteralType.VAR:
+            if a == LiteralType.VAR:
                 if self.c_table.findSymbol(p.param[pi].root.value) is not None:
-                    print_.type =self.c_table.findSymbol(p.param[pi].root.value)[1]
+                    print_.type = self.c_table.findSymbol(p.param[pi].root.value)[1]
             print_nr = 4
             if print_ is not None:
                 print_nr = self.print_nr(print_.type)
@@ -449,7 +450,7 @@ class Mips:
                 # is string
                 self.data_count += 1
                 self.data_dict[i] = self.data_count
-                self.data += "$${}  :.asciiz {} \n".format(self.data_count, p.param[pi].value)
+                self.data += "$${}  :.byte '{}' \n".format(self.data_count, p.param[pi].root.value)
                 self.text += "li $v0, 4\n"
                 self.text += "la $a0, $${}\n".format(self.data_count)
                 self.text += "syscall\n"
@@ -587,7 +588,7 @@ class Mips:
         self.text += "nop\n"
 
     def set_while_loop(self, w: While):
-        self.c_table=w.c_block.getSymbolTable()
+        self.c_table = w.c_block.getSymbolTable()
         self.loop_counter += 1
         condition = "loop{}".format(self.loop_counter)
         self.loop_counter += 1
@@ -611,7 +612,7 @@ class Mips:
 
     def set_if_loop(self, f: If):
         self.text += "\n"
-        self.c_table=f.c_block.getSymbolTable()
+        self.c_table = f.c_block.getSymbolTable()
         if isinstance(f, If) and f.operator == ConditionType.IF:
             self.loop_counter += 1
             condition = "loop{}".format(self.loop_counter)
@@ -645,7 +646,7 @@ class Mips:
             celse = "loop{}".format(self.loop_counter)
             self.loop_counter += 1
             cfalse = "loop{}".format(self.loop_counter)
-            #print(cfalse)
+            # print(cfalse)
             self.text += "j ${}\n".format(cfalse)
             self.text += "${}:\n".format(celse)
             self.transverse_trees(f.c_block, cfalse)
@@ -732,7 +733,7 @@ class Mips:
             return self.set_array_position(declaration.leftChild, declaration.rightChild)
         # todo: left child array
         if isinstance(declaration.rightChild, Array):
-            #return self.to_array_dec(declaration)
+            # return self.to_array_dec(declaration)
             return self.array_assignement(declaration)
         if isinstance(declaration.rightChild, Function):
             return self.to_function_dec(declaration.rightChild, declaration.leftChild, True)
@@ -891,7 +892,7 @@ class Mips:
         if not isinstance(right, Value):
             right_reg = self.get_register('array', self.get_register_type(right.getType()), right.getType())
             self.declaration = Value('array', right.getType(), 0)
-            right.printTables('random',self)
+            right.printTables('random', self)
             right = Value('array', right.getType(), 0)
         # get array from data
         array = left.value
@@ -972,7 +973,7 @@ class Mips:
         old_frame = self.frame_register
         # save value that keeps return param:
         save_return_reg = self.register[var.value]
-        #save_mem_reg = self.frame_register[self.register[var.value]]
+        # save_mem_reg = self.frame_register[self.register[var.value]]
         self.register = dict()
         self.frame_register = dict()
         for i in f.param:
@@ -990,7 +991,7 @@ class Mips:
         self.frame_register = old_frame
         # save mem location in register
         for k in param_regex:
-            if param_regex[k][0] == 'f' or param_regex[k][0] == 's':
+            if param_regex[k][0] == 'f' or param_regex[k][0] == 's' and param_regex[k] in self.frame_register.keys():
                 if param_regex[k][0] == 'f':
                     self.text += "l.s ${}, {}\n".format(param_regex[k], self.frame_register[param_regex[k]])
                 else:
@@ -1002,7 +1003,19 @@ class Mips:
         if is_param:
             save = "s"
         if isinstance(v, Pointer):
-            pass
+            v = Value(v.value, v.getType(), 0)
+        if isinstance(v,BinaryOperator):
+            save_old=self.register
+            save_frame=self.frame_register
+            self.register=old_reg
+            self.frame_register=old_frame
+            self.declaration=Value('$fparam',v.getType(),0)
+            self.get_register(self.declaration.value,self.get_register_type(self.declaration.getType()),self.declaration.getType())
+            self.add_to_frame_register(self.register['$fparam'])
+            v.printTables("random",self)
+            v=self.declaration
+            self.register=save_old
+            self.frame_register=save_frame
         if isinstance(v, Array):
             pass
         if isinstance(v, Value) and v.getType() == LiteralType.INT and str(v.value).isdigit():
@@ -1040,6 +1053,32 @@ class Mips:
 
     def array_assignement(self, declaration):
         pass
+
+    def call_function(self, f):
+        # pass function paramerters
+        # jal function
+        # save return value
+        old_registers = self.register
+        old_frame = self.frame_register
+        # save_mem_reg = self.frame_register[self.register[var.value]]
+        self.register = dict()
+        self.frame_register = dict()
+        for i in f.param:
+            self.load_type(f.param[i], True, old_frame, old_registers)
+        self.text += "jal {}\n".format(f.f_name)
+        """if save_mem and self.register[var.value][0] == 's':
+            self.text += "sw ${}, {}\n".format(save_return_reg, save_mem_reg)"""
+        param_regex = self.register
+        self.register = old_registers
+        self.frame_register = old_frame
+        # save mem location in register
+        for k in param_regex:
+            if param_regex[k][0] == 'f' or param_regex[k][0] == 's':
+                if param_regex[k][0] == 'f':
+                    self.text += "l.s ${}, {}\n".format(param_regex[k], self.frame_register[param_regex[k]])
+                else:
+                    self.text += "lw ${}, {}\n".format(param_regex[k], self.frame_register[param_regex[k]])
+        return
 
 
 def is_float(string):
