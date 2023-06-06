@@ -1,6 +1,5 @@
 import unittest
-import filecmp
-from .node import *
+from src.ast.node import *
 from .Program import program
 from .block import block
 from .AST import AST

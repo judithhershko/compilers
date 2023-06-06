@@ -98,6 +98,16 @@ class Redeclaration(Exception):
                str(self.variable)
 
 
+class RedeclarationF(Exception):
+    def __init__(self, var, line):
+        self.variable = var
+        self.line = line
+
+    def __str__(self):
+        return "\n\tError in line " + str(self.line) + ": there is a redeclaration of the function " + \
+               str(self.variable)
+
+
 class PointerRedeclaration(Exception):
     def __init__(self, var, line):
         self.variable = var
@@ -158,8 +168,8 @@ class PointerLevel(Exception):
         self.line = line
 
     def __str__(self):
-        return "\n\tError in line " + str(self.line) + ": " + str(self.variable) + " has level " + str(self.level) + \
-               " and not the given " + str(self.valueLevel)
+        return "\n\tError in line " + str(self.line) + ": " + str(self.variable) + " should reference a level " + \
+               str(self.level) + " pointer and not the given " + str(self.valueLevel)
 
 
 class RefPointerLevel(Exception):
@@ -334,5 +344,120 @@ class FunctionParam(Exception):
         self.line = line
 
     def __str__(self):
-        return "\n\tError in line " + str(self.line) + ": the function " + self.name + " can only hold " + \
+        return "\n\tError in line " + str(self.line) + ": the function " + self.name + " should hold exactly " + \
                str(self.size) + " parameters"
+
+
+class FunctionParamType(Exception):
+    def __init__(self, name, param, givenType, expType, line):
+        self.name = name
+        self.param = param
+        self.given = givenType
+        self.exp = expType
+        self.line = line
+
+    def __str__(self):
+        return "\n\tError in line " + str(self.line) + ": the function " + self.name + " should have type " + \
+               str(self.exp) + " for the parameter " + str(self.param) + " instead of the given " + str(self.given[1])
+
+
+class ArraySize(Exception):
+    def __init__(self, name, pos, line):
+        self.name = name
+        self.size = pos
+        self.line = line
+
+    def __str__(self):
+        return "\n\tError in line " + str(self.line) + ": the array " + self.name + " should hold exactly " + \
+               str(self.size) + " parameters"
+
+
+class PrintSize(Exception):
+    def __init__(self, line: int, print: bool):
+        self.line = line
+        self.print = print
+
+    def __str__(self):
+        if self.print:
+            return "\n\tError in line " + str(self.line) + ": the print expects the same amount of flags and values"
+        else:
+            return "\n\tError in line " + str(self.line) + ": the scan expects the same amount of flags and values"
+
+
+class PrintType(Exception):
+    def __init__(self, line: int, flag: str, type: str):
+        self.line = line
+        self.flag = flag
+        self.type = type
+
+    def __str__(self):
+        return "\n\tError in line " + str(self.line) + ": print expects a " + \
+               self.type + " as input with the flag " + self.flag
+
+
+class forwardWrongType(Exception):
+    def __init__(self, name, line):
+        self.name = name
+        self.line = line
+
+    def __str__(self):
+        return "\n\tError in line " + str(self.line) + ": the parameters of the function " + \
+               self.name + " do not have the same types as the forward declaration"
+
+
+class forwardWrongSize(Exception):
+    def __init__(self, name, line):
+        self.name = name
+        self.line = line
+
+    def __str__(self):
+        return "\n\tError in line " + str(self.line) + ": the amount of parameters of the function " + \
+               self.name + " is not the same as in the forward declaration"
+
+
+class wrongReturnType(Exception):
+    def __init__(self, name, line, exp, given):
+        self.name = name
+        self.line = line
+        self.expRet = exp
+        self.givenRet = given
+
+    def __str__(self):
+        return "\n\tError in line " + str(self.line) + ": the function " + self.name + \
+               " is initialised with return type " + self.expRet + " but returns " + self.givenRet
+
+
+class fullArrayOperation(Exception):
+    def __init__(self, name, line):
+        self.name = name
+        self.line = line
+
+    def __str__(self):
+        return "\n\tError in line " + str(self.line) + ": no operations can be done with the full array " + \
+               str(self.name)
+
+
+class pointerNotAssigned(Exception):
+    def __init__(self, name, line):
+        self.line = line
+        self.name = name
+
+    def __str__(self):
+        return "\n\tError in line " + str(self.line) + ": the pointer " + str(self.name) + \
+               " has not been assigned a memory location yet."
+
+
+class startWithZero(Exception):
+    def __init__(self, line):
+        self.line = line
+
+    def __str__(self):
+        return "\n\tError in line " + str(self.line) + ": an integer should not start with 0"
+
+
+class elseWithoutIf(Exception):
+    def __init__(self, line):
+        self.line = line
+
+    def __str__(self):
+        return "\n\tError in line " + str(self.line) + ": there is an else if or else without an if"

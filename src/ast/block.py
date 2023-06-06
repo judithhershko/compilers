@@ -14,6 +14,8 @@ class Declaration:
 class block:
     def __init__(self, parent):
         self.symbols = SymbolTable()
+        if parent is not None:
+            self.symbols.setParent(parent.symbols)
         self.ast = AST()
         self.parent = parent
         self.blocks = []
@@ -23,6 +25,7 @@ class block:
         self.level = None
         self.number = None
         self.name = "block"
+        self.cleaned = False
 
     def __eq__(self, other):
         if not isinstance(other, block):
@@ -53,6 +56,10 @@ class block:
     def getParent(self):
         return self.parent
 
+    def setParent(self, parent):
+        self.parent = parent
+        self.symbols.setParent(parent.symbols)
+
     def addBlock(self, newBlock):
         self.blocks.append(newBlock)
 
@@ -65,23 +72,32 @@ class block:
     def getLabel(self):
         return "\"new scope\""
 
-    def getVariables(self):
+    def getVariables(self, fill: bool = True, f_name: str = None):
         result = []
         for tree in self.trees:
-            result.append(tree.getVariables()[0])
+            result.append(tree.getVariables(fill, scope=self, f_name=f_name)[0])
+            if tree.root.name == "declaration" and tree.root.leftChild.name == "array":
+                name = str(tree.root.leftChild.pos.value) + str(tree.root.leftChild.value)
+            elif tree.root.name == "declaration":
+                name = tree.root.leftChild.value
+            if not fill and tree.root.name == "declaration" and self.symbols.findSymbol(name) is None:
+                dec = tree.createUnfilledDeclaration(tree.root)
+                self.symbols.addSymbol(dec, False, fill)
         return result
 
-    def fillLiterals(self, tree: AST, onlyLocal: bool = False):
+    def fillLiterals(self, tree: AST, onlyLocal: bool = False, fill: bool = True, f_name: str = None):
         """
         This function will try to replace the variables in the AST with the actual values. If it can not find the
         variables in its own symbol table, it will look at the symbol tables of its parents
         """
-        res = tree.getVariables()
+        res = tree.getVariables(scope=self, f_name=f_name)
         variables = res[0]
         notFound = []
         values = dict()
         for elem in variables:
-            temp = self.symbols.findSymbol(elem[0])
+            if len(elem) == 0:
+                continue
+            temp = self.symbols.findSymbol(elem[0], line = elem[1])
             if temp:
                 values[elem[0]] = temp
             else:
@@ -89,8 +105,8 @@ class block:
 
         current = self
         if onlyLocal:
-            tree.replaceVariables(values)
-            return res[1]
+            tree.replaceVariables(values, fill)
+            return res
         while not current.name == "program" and notFound:
             current = current.getParent()
             variables = notFound
@@ -105,12 +121,12 @@ class block:
             if notFound:
                 raise Undeclared(notFound)
             elif values:
-                tree.replaceVariables(values)
+                tree.replaceVariables(values, fill)
 
         except Undeclared:
             raise
 
-        return res[1]
+        return res
 
     def fold(self, llvm=None):
         folded = True
@@ -189,14 +205,51 @@ class block:
         if self.parent is not None:
             self.parent.symbols.makeUnfillable()
 
-    def cleanBlock(self, glob: bool = False, onlyLocal: bool = False):
+    def cleanBlock(self, glob: bool = False, onlyLocal: bool = False, fill: bool = True, f_name: str = None):
+        if self.cleaned:
+            return []
+        allVar = []
+        cleanTrees = []
+        lastIf = False
         for tree in self.trees:
-            all = self.fillLiterals(tree.root, onlyLocal)
+            if tree.root.name == "if" and str(tree.root.operator) == "else" and not lastIf:
+                raise elseWithoutIf(tree.root.line)
+            res = self.fillLiterals(tree.root, onlyLocal, fill, f_name=f_name)
+            if fill and tree.root.name == "scope" and tree.root.f_name != "":
+                self.parent.functions.addFunction(tree.root)
+            all = res[1]
             if not all:
                 self.makeUnfillable()
             fold = tree.foldTree()
-            if fold[1] and (tree.root.name == "declaration" or tree.root.name == "array"):
+            if fill and fold[1] and (tree.root.name == "declaration" or tree.root.name == "array"):
                 self.symbols.addSymbol(tree.root, glob)
-            elif tree.root.name == "declaration" or tree.root.name == "array":
-                none = tree.createUnfilledDeclaration(tree.root)
-                self.symbols.addSymbol(none, glob, False)
+            elif fill and not fold[1] and tree.root.name == "declaration" and tree.root.leftChild.name == "pointer": # TODO: also add to program if works
+                self.symbols.addSymbol(tree.root, glob)
+            elif fill and tree.root.name == "declaration" or tree.root.name == "array":
+                if tree.root.name == "declaration" and tree.root.rightChild.name == "val" and tree.root.rightChild.deref:
+                    self.symbols.addSymbol(tree.root, glob)
+                else:
+                    none = tree.createUnfilledDeclaration(tree.root)
+                    self.symbols.addSymbol(none, glob, False)
+            for elem in res[0]:
+                allVar.append(elem)
+            cleanTrees.append(tree)
+            if tree.root.name in ("break", "continue", "return"):
+                break
+            if tree.root.name != "comment":
+                lastIf = False
+            if tree.root.name == "if" and str(tree.root.operator) in ("if", "elif"):
+                lastIf = True
+        self.trees = cleanTrees
+        self.cleaned = True
+        return allVar
+
+    def setParent(self, parent):
+        self.parent = parent
+        self.symbols.setParent(parent.symbols)
+
+    def printTables(self, filePath: str, to_llvm=None):
+        symbolPath = filePath + self.name + "_symbols_" + str(self.level) + "_" + str(self.number) + ".csv"
+        self.symbols.table.to_csv(symbolPath)
+        for tree in self.trees:
+            tree.printTables(filePath)

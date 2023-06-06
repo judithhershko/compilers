@@ -8,10 +8,12 @@ from src.LLVM.LLVM_Operators import ToLLVM
 from src.CustomErrorListener import *
 from src.ErrorHandeling.GenerateError import *
 from src.CustomErrorListener import *
+from src.MIPS.Mips import Mips
+
 
 def main():
     try:
-        argv = "input/projecten_123_zonder_main/proj3_man_syntaxErr_commentSingleLine2.c"
+        argv = "input/input.c"
         input_stream = FileStream(argv)
         lexer = ExpressionLexer(input_stream)
         MyError = CustomError()
@@ -27,13 +29,16 @@ def main():
         # result = EvalVisitor().visit(tree)
         walker = ParseTreeWalker()
         walker.walk(printer, tree)
-        #printer.get_program()
-        to_llvm=ToLLVM()
+        printer.get_program("./src/ast/dotFiles/no_fold_expression_dot.dot")
+        printer.program.printTables("./src/ast/dotFiles/table")
 
-        #to_llvm.transverse_block(printer.c_block)
+        """to_llvm = ToLLVM()
         to_llvm.transverse_program(printer.program)
-        to_llvm.write_to_file("generated/output/llvm_output.ll")
-
+        to_llvm.write_to_file("./generated/output/output_llvm.ll")"""
+        to_mips=Mips(printer.program)
+        to_mips.transverse_program()
+        to_mips.write_to_file("./generated/output/mars_output.asm")
+        return
     except SystemExit:
         sys.exit()
 

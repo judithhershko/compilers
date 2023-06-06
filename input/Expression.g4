@@ -1,15 +1,22 @@
 grammar Expression;
 
-start_rule: (print ';'|expr ';'|dec ';'|comments|line|loop|scope (';')?| function_definition | function_dec)*;
+start_rule : (includes (';')* )? s_rule ;
+s_rule: (print ';'|scan ';'|expr ';'|dec ';'|comments|line|loop|scope (';')?| function_definition | function_dec| includes | function_forward )*;
 
+includes: INCLUDE|INCLUDEH (';')?;
 line:NLINE;
-print   : PRINT LBRAK (char_pri | pri) RBRAK ;
-comments: ML_COMMENT | SL_COMMENT;
+
+print : PRINT '(' format_string (',' (string| expr) )* ')';
+scan  : SCAN '(' format_string (',' (string | (REF)? expr) )* ')';
+format_string: STRING_LITERAL;
+string : STRING_LITERAL ;
+
+comments:  '/*' ~( '*/' )* '*/' | SL_COMMENT;
 typed_var: INT| DOUBLE | FLOAT |CHAR | BOOL;
 
 scope : '{' rule (return)? rule'}' (';')?;
-rule  : (print ';'|expr ';'|dec ';'|comments|line|loop|scope | function_dec)*;
-lrules: (print ';' |expr ';' |dec ';' |comments |line |loop |break |continue | lscope | function_dec )*;
+rule  : (print ';'|scan ';' |expr ';'|dec ';'|comments|line|loop|scope | function_dec)*;
+lrules: (print ';' |scan ';' |expr ';' |dec ';' |comments |line |loop (';')? |break |continue | lscope | function_dec | return)*;
 lscope: '{' lrules '}' ;
 loop  : while | for | if;
 while : WHILE '(' expr ')' lscope;
@@ -18,13 +25,14 @@ if    : IF LBRAK expr RBRAK lscope |  ELSE  lscope | ELSE IF  LBRAK expr RBRAK l
 break : BREAK ';';
 continue: CONTINUE ';';
 
-function_dec: function_name '(' f_variables  (',' f_variables )* ')';
+function_dec: function_name '(' (f_variables | f_variables binop f_variables | f_variables binop_md f_variables)?  (',' f_variables | f_variables binop f_variables | f_variables binop_md f_variables )* ')';
 return_type: (CONST)? (INT| DOUBLE | FLOAT |CHAR | BOOL | VOID);
 parameters: (const)? typed_var (pointer)* (ref)? ID ;
-f_variables: ID;
+f_variables: pri | char_pri;
 ref: REF;
-function_definition: return_type function_name LBRAK (parameters)? (',' parameters )* RBRAK scope ;
+function_definition: return_type function_name LBRAK (parameters)? (',' parameters )* RBRAK scope  ;
 function_name: ID;
+function_forward : return_type function_name LBRAK ( parameters (','parameters)* ) RBRAK ';' ;
 return: RETURN (expr | char_expr)? ';' ;
 
 const : CONST;
@@ -34,8 +42,12 @@ pointers: (pointer)+ ID (EQ ref_ref)? |  REF (EQ ref_ref)?;
 suf_dec: pointers | ID EQ (char_expr|expr);
 pointer_val: (pointer)+ ID;
 
-dec:(const)? typed_var (pointer)* ID EQ (pointer_val|ref_ref|char_expr|expr) |(pointer)* ID EQ (pointer_val|ref_ref|char_expr|expr)
-| (const)? typed_var (pointer)* ID;
+array : ID '[' array_position ']' ;
+array_position :expr;
+array_content : '{' array_ci (',' array_ci)* '}';
+array_ci      : pri | (pointer)* (ID|array) ;
+dec:(const)? typed_var (pointer)* (ID|array) EQ (function_dec|pointer_val|ref_ref|char_expr|expr|array_content|array) |(pointer)* (ID|array) EQ (function_dec|pointer_val|ref_ref|char_expr|expr|array)
+| (const)? typed_var (pointer)* (ID|array);
 
 binop:MIN | PLUS ;
 binop_md: MULT| DIV | MOD;
@@ -48,14 +60,18 @@ suffix_op: PP | MM ;
 expr: expr suffix_op | prefix_op expr | expr binop_md expr | expr binop expr | expr comparator expr |  expr equality expr | expr or_and expr  | fac;
 fac : brackets|pri ;
 brackets: LBRAK expr RBRAK;
-pri: function_dec | ID | ('-' | '+') ? num+ '.' num* |('-' | '+') ? '.' num+ | ('-' | '+') ? num;
+pri: function_dec | array| pointer_val | ID | ('-' | '+') ? num+ '.' num* |('-' | '+') ? '.' num+ | ('-' | '+') ? num;
+
 fnum: num | num+ '.' num* | '.' num+ ;
 num: NUM;
 
 char_op: PLUS | MIN;
 char_expr: char_pri| char_expr char_op char_expr;
 
-char_pri:CHAR_ID (ID | NUM)* CHAR_ID ;
+char_pri: CHAR_ID ( . )? CHAR_ID ;
+//'\\' 'n' | '\\' 'r' | '\\' 't' | '\\' '0'
+//CHAR_LITERAL : ( ESC | ~[\n\r"] ) ;
+
 
 INT     : 'int'     ;
 DOUBLE  : 'double'  ;
@@ -65,8 +81,11 @@ BOOL    : 'bool'    ;
 CONST   : 'const'   ;
 REF     : '&'       ;
 PRINT   : 'printf'  ;
+SCAN    : 'scanf'   ;
 VOID    : 'void'    ;
 RETURN  : 'return'  ;
+INCLUDE : '#include <stdio.h>' ;
+INCLUDEH: '#include "stdio.h"' ;
 
 PT   : '.' ;
 WHILE:'while';
@@ -78,6 +97,7 @@ CONTINUE: 'continue';
 MULT : '*' ;
 NUM  : [0-9]+ ;
 ID   : [a-zA-Z_][a-zA-Z_0-9]*;
+ALPHANUM : [A-Za-z0-9] ;
 WS   : [ \t\n\r\f]+ -> skip ;
 NEQ  : '!=';
 PP   : '++';
@@ -99,11 +119,13 @@ LOE  :  '<=';
 MOD  :  '%' ;
 CHAR_ID:'\'';
 ONE_LINE_COMMENT:'//';
-STRT_COMMENT:'/**';
-END_COMMENT:'**/' ;
-ML_COMMENT:  '/*' .* '*/';
+STRT_COMMENT:'/*';
+END_COMMENT:'*/' ;
+ML_COMMENT:  '/*' * '*/';
 SL_COMMENT:  '//' ~('\r' | '\n')*;
 
+STRING_LITERAL: '"' (ESC_SEQ |~('%'|'"'|'\n'|'\r'))* '"';
+
+fragment ESC_SEQ: '%' ('d'|'i'|'s'|'c'|'f');
+fragment ESC : '\\' [nrt\\"'] ;
 NLINE: '\n';
-//NLINE:';' .*? '\n' ;
-//NLINE:';' .*? '\n' -> skip;

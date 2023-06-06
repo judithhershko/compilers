@@ -1,8 +1,11 @@
+import json
+import os
+
 from .SymbolTable import SymbolTable, FunctionTable
 from src.ErrorHandeling.GenerateError import *
 from .block import block
 from .AST import AST
-from .node import Scope
+from src.ast.node import Scope
 
 
 class program:
@@ -12,6 +15,7 @@ class program:
         self.functions = FunctionTable()
         self.ast = AST()
         self.blocks = []
+        self.include_added = False
         self.block = block(None)
         self.trees = []
         self.tree = Scope(0)
@@ -74,7 +78,7 @@ class program:
         except Undeclared:
             raise
 
-        return res[1]
+        return res
 
     def fold(self):
         folded = True
@@ -154,7 +158,8 @@ class program:
     def cleanProgram(self):
         if self.ast.root is not None:
             tree = self.ast
-            all = self.fillLiterals(tree.root)
+            res = self.fillLiterals(tree.root)
+            all = res[1]
             if not all:
                 self.makeUnfillable()
             fold = tree.foldTree()
@@ -163,5 +168,18 @@ class program:
             elif tree.root.name == "declaration" or tree.root.name == "array":
                 none = tree.createUnfilledDeclaration(tree.root)
                 self.symbols.addSymbol(none, True, False)
+            elif tree.root.name == "scope" and tree.root.f_name != "":
+                self.parent.functions.addFunction(tree.root)
             tree.setNodeIds(tree.root)
-            self.generateDot("./generated/output/programAST.dot")
+            # self.generateDot("./generated/output/programAST.dot")
+            return res[0]
+
+    def printTables(self, filePath: str, to_llvm=None):
+        symbolPath = filePath + self.name + "_symbols_" + str(self.level) + "_" + str(self.number) + ".csv"
+        functionPath = filePath + self.name + "_functions_" + str(self.level) + "_" + str(self.number) + ".csv"
+        os.makedirs(os.path.dirname(filePath), exist_ok=True)
+        self.symbols.table.to_csv(symbolPath)
+        with open(functionPath, 'w') as file:
+            file.write(json.dumps(self.functions.functions))
+        if self.ast.root is not None:
+            self.ast.printTables(filePath)
