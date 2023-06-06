@@ -1,0 +1,26 @@
+graph ast {
+0.0 [label="the program"]
+
+1.1 [label="new scope"]
+2.2 [label="Include Node: #include 'stdio.h';"]
+2.3 [label="Comment: //intmain(){5<=5;10>=4;4!=4;return0;}"]
+2.4 [label="Function: main"]
+3.5 [label="new scope"]
+4.6 [label="Literal: True"]
+4.7 [label="Literal: True"]
+4.8 [label="Literal: False"]
+4.9 [label="Return Node"]
+3.11 [label="Literal: 0"]
+
+
+0.0--1.1
+1.1--2.2
+1.1--2.3
+1.1--2.4
+2.4--3.5
+3.5--4.6
+3.5--4.7
+3.5--4.8
+3.5--4.9
+4.9--3.11
+}
