@@ -35,6 +35,9 @@ j $loop2
 nop
 $loop2:
 #//printf("%d\n",i)
+li $v0, 1
+move $a0, $s0
+syscall
 #//if(i==5){break;}
 
 j $loop4

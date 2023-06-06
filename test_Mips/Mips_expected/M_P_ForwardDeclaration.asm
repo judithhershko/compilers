@@ -1,5 +1,7 @@
 .data
-$$1  : .byte 'a'
+$$1  :.byte 'b'
+$$2  :.byte 'b'
+$$3  : .byte 'a'
 .text
 .globl main
 j main
@@ -38,6 +40,12 @@ sw	$ra, -4($fp)
 sw	$s0, -8($fp)
 #//charb
 #//printf("%c",b)
+li $v0, 4
+la $a0, $$1
+syscall
+li $v0, 4
+la $a0, $$2
+syscall
 lw $s0, -8($fp)
 lw	$ra, -4($fp)
 move	$sp, $fp
@@ -63,8 +71,11 @@ jal f
 move $s1, $v0
 lw $s0, -8($fp)
 #//charb='a'
-lb $s2 , $$1
+lb $s2 , $$3
 sb $s2, -16($fp)
+lw $s0, -8($fp)
+jal f2
+lw $s0, -8($fp)
 li $v0, 0
 lw $s2, -16($fp)
 lw $s1, -12($fp)

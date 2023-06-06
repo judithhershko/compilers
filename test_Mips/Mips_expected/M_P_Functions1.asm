@@ -38,12 +38,26 @@ $loop3:
 j $loop4
 nop
 $loop4:
+lw  $s0, -8($fp)
+ori $t1,$0,1
+subu $s1,$s0, $t1
+sw $s1, -16($fp)
+lw $s0, -8($fp)
 jal f
 move $t0, $v0
+lw $s0, -8($fp)
+lw  $s0, -8($fp)
+ori $t2,$0,2
+subu $s1,$s0, $t2
+sw $s1, -20($fp)
+lw $s0, -8($fp)
 jal f
 move $t0, $v0
+lw $s0, -8($fp)
 addu $s1,$t0, $t0
+sw $s1, -20($fp)
 move $v0, $s1
+lw $s1, -20($fp)
 lw $1, -12($fp)
 lw $s0, -8($fp)
 lw	$ra, -4($fp)
@@ -81,6 +95,9 @@ nop
 j $loop6
 nop
 $loop6:
+lw $s0, -8($fp)
+jal f
+lw $s0, -8($fp)
 j $loop5
 nop
 $loop7:

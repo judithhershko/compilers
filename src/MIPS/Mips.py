@@ -848,18 +848,6 @@ class Mips:
         self.text += "sw ${}, {}($fp)\n".format(self.register[declaration.value], self.frame_counter)
 
     def to_pointer_dec(self, declaration):
-        """
-        ps = self.get_register(declaration.leftChild.value, 's', declaration.leftChild.getType())
-        vs = self.get_register(declaration.rightChild.value, 's', declaration.rightChild.getType())
-        if declaration.leftChild.type == LiteralType.FLOAT:
-            self.load_float(0.0)
-            self.text += "swc1  ${}, $${}\n".format(vs,self.data_count)
-            self.text += "la    $t0, $${}\n".format(self.data_count)
-            self.text += "lwc1  ${}, ($t0)\n".format(ps)
-        else:
-            self.text += "sw ${}, (${})\n".format(vs, ps)
-        return
-        """
 
         # find register pointing to this mem location
         # assign this mem location to the pointer
@@ -889,6 +877,9 @@ class Mips:
                 self.text += "sw ${}, {}\n".format(ps, self.frame_register[ps])
 
     def set_array_position(self, left, right):
+        if left.declaration:
+            self.data_dict[left.value]=self.data_count
+            self.data_count += 1
         if not isinstance(right, Value):
             right_reg = self.get_register('array', self.get_register_type(right.getType()), right.getType())
             self.declaration = Value('array', right.getType(), 0)
@@ -915,9 +906,9 @@ class Mips:
 
         rval = self.save_value_to_temp(right)
         if rval[0] == 'f':
-            self.text += "s.s {}, $$2($t0)\n".format(rval)
+            self.text += "s.s {}, $${}($t0)\n".format(rval,self.data_dict[left.value])
         else:
-            self.text += "sw {}, $$2($t0)\n".format(rval)
+            self.text += "sw {}, $${}($t0)\n".format(rval,self.data_dict[left.value])
         self.remove_register('array')
 
     def save_value_to_temp(self, i):

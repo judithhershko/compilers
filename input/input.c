@@ -1,11 +1,12 @@
 #include "stdio.h";
+
 int main()
 {
-int x = 5;
-printf("Hello World!\n");
-printf("%s %s!\n", "Hello", "World");
-printf("x is %i", x*x);
-printf("%d %f %c", 10, 0.5, "a");
-
+int x = 2;
+int* p = &x;
+int y[2];
+y[0] = 3;
+y[1] = 4;
+int r = x * *p + y[0]*y[1];
 return 0;
 }

@@ -3,8 +3,8 @@ $$1  :.asciiz  "Hello World!\n"
 $$2  :.asciiz "   "
 $$3  :.asciiz  "x is  "
 $$4  :.asciiz "   "
-$$5  :.asciiz "   "
-$$6: .float 0.5
+$$5: .float 0.5
+$$6  :.asciiz "   "
 .text
 .globl main
 j main
@@ -42,19 +42,19 @@ li $t0, 25
 move $a0, $t0
 syscall
 #//printf("%d %f %c",10,0.5,"a")
-li $v0, 4
-la $a0, $$4
-syscall
 li $v0, 1
 li $t1, 10
 move $a0, $t1
 syscall
 li $v0, 4
-la $a0, $$5
+la $a0, $$4
 syscall
 li $v0, 2
-lwc1 $f0, $$6
+lwc1 $f0, $$5
 mov.s $f12, $f0
+syscall
+li $v0, 4
+la $a0, $$6
 syscall
 li $v0, 0
 lw $s0, -8($fp)

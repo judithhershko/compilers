@@ -55,6 +55,9 @@ sw	$s0, -8($fp)
 lw  $s0, -8($fp)
 ori $s0,$0,5
 sw  $s0, -8($fp)
+lw $s0, -8($fp)
+jal f
+lw $s0, -8($fp)
 li $v0, 0
 lw $s0, -8($fp)
 lw	$ra, -4($fp)

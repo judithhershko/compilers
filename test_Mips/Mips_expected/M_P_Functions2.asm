@@ -76,6 +76,9 @@ $loop5:
 #//intx=*a
 lw $s1, -8($fp)
 move $s2, $s1
+lw $s0, -8($fp)
+jal f
+lw $s0, -8($fp)
 j $loop4
 nop
 $loop6:
